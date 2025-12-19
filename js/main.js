@@ -82,18 +82,23 @@ function initScrollAnimations() {
     });
 }
 
-// ===== FORM VALIDATION =====
+// ===== FORM VALIDATION & GOOGLE SHEETS INTEGRATION =====
+// URL del Google Apps Script
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbziEsxNMxvpe_Ytl9mcD5wxhG7WaBHGTjv3IfO7BrVbRNDdbLDyAJfHksWUC2A6kAyjMQ/exec';
+
 function initFormValidation() {
     const contactForm = document.getElementById('contactForm');
 
     if (contactForm) {
-        contactForm.addEventListener('submit', function (e) {
+        contactForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             // Obtener campos
             const nombre = document.getElementById('nombre');
             const email = document.getElementById('email');
             const telefono = document.getElementById('telefono');
+            const empresa = document.getElementById('empresa');
+            const servicio = document.getElementById('servicio');
             const mensaje = document.getElementById('mensaje');
 
             let isValid = true;
@@ -131,9 +136,54 @@ function initFormValidation() {
             }
 
             if (isValid) {
-                // Simular envío
-                showSuccessMessage();
-                contactForm.reset();
+                // Mostrar estado de carga
+                const submitBtn = contactForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+
+                // Preparar datos para enviar
+                const formData = {
+                    nombre: nombre.value.trim(),
+                    email: email.value.trim(),
+                    telefono: telefono.value.trim(),
+                    empresa: empresa ? empresa.value.trim() : '',
+                    servicio: servicio ? servicio.value : '',
+                    mensaje: mensaje.value.trim()
+                };
+
+                try {
+                    // Verificar si la URL está configurada
+                    if (GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+                        // Modo demo - simular envío exitoso
+                        console.log('Datos del formulario (modo demo):', formData);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        showSuccessMessage('¡Mensaje enviado con éxito! Nos pondremos en contacto pronto.');
+                        contactForm.reset();
+                    } else {
+                        // Enviar a Google Sheets
+                        const response = await fetch(GOOGLE_SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        // Con mode: 'no-cors' no podemos leer la respuesta,
+                        // pero asumimos éxito si no hay error
+                        showSuccessMessage('¡Mensaje enviado con éxito! Nos pondremos en contacto pronto.');
+                        contactForm.reset();
+                    }
+                } catch (error) {
+                    console.error('Error al enviar:', error);
+                    showErrorMessage('Hubo un error al enviar el mensaje. Por favor intenta de nuevo o contáctanos directamente.');
+                }
+
+                // Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
             }
         });
     }
@@ -170,22 +220,51 @@ function removeError(input) {
     input.classList.remove('is-invalid');
 }
 
-function showSuccessMessage() {
+function showSuccessMessage(message) {
+    // Remover mensajes anteriores
+    const existingAlerts = document.querySelectorAll('.form-alert');
+    existingAlerts.forEach(alert => alert.remove());
+
     const successAlert = document.createElement('div');
-    successAlert.className = 'alert alert-success alert-dismissible fade show mt-3';
+    successAlert.className = 'alert alert-success alert-dismissible fade show mt-3 form-alert';
     successAlert.innerHTML = `
         <i class="fas fa-check-circle me-2"></i>
-        ¡Mensaje enviado con éxito! Nos pondremos en contacto pronto.
+        ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
 
     const form = document.getElementById('contactForm');
     form.parentElement.insertBefore(successAlert, form.nextSibling);
 
-    // Auto-remover después de 5 segundos
+    // Scroll al mensaje
+    successAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Auto-remover después de 8 segundos
     setTimeout(function () {
-        successAlert.remove();
-    }, 5000);
+        if (successAlert.parentElement) {
+            successAlert.remove();
+        }
+    }, 8000);
+}
+
+function showErrorMessage(message) {
+    // Remover mensajes anteriores
+    const existingAlerts = document.querySelectorAll('.form-alert');
+    existingAlerts.forEach(alert => alert.remove());
+
+    const errorAlert = document.createElement('div');
+    errorAlert.className = 'alert alert-danger alert-dismissible fade show mt-3 form-alert';
+    errorAlert.innerHTML = `
+        <i class="fas fa-exclamation-circle me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    const form = document.getElementById('contactForm');
+    form.parentElement.insertBefore(errorAlert, form.nextSibling);
+
+    // Scroll al mensaje
+    errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ===== COUNTER ANIMATION =====
@@ -222,15 +301,16 @@ function initCounters() {
 
 function animateCounter(element, start, target, increment) {
     let current = start;
+    const prefix = element.getAttribute('data-prefix') || '';
 
     const timer = setInterval(function () {
         current += increment;
 
         if (current >= target) {
-            element.textContent = formatNumber(target);
+            element.textContent = prefix + formatNumber(target);
             clearInterval(timer);
         } else {
-            element.textContent = formatNumber(Math.floor(current));
+            element.textContent = prefix + formatNumber(Math.floor(current));
         }
     }, 16);
 }
