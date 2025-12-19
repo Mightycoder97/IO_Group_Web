@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Tutorial paso a paso para declarar manifiestos de residuos peligrosos en SIGERSOL. Guía completa con capturas y consejos prácticos.">
+    <meta name="keywords" content="SIGERSOL, manifiestos, residuos peligrosos, declaración, MINAM">
+    <meta name="robots" content="index, follow">
+
+    <title>Cómo Declarar Manifiestos en SIGERSOL: Guía Completa | IO Group</title>
+
+    <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="preloader">
+        <div class="spinner"></div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg fixed-top scrolled">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <img src="../img/logos/logo-principal.png" alt="IO Group" height="18">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="../index.html">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../nosotros.html">Nosotros</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../servicios.html">Servicios</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../blog.html">Blog</a></li>
+                </ul>
+                <a href="../contacto.html" class="btn btn-primary ms-lg-3">
+                    <i class="fas fa-phone-alt me-2"></i>Contáctanos
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="page-header">
+        <div class="container">
+            <h1>Guía SIGERSOL</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="../index.html">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="../blog.html">Blog</a></li>
+                    <li class="breadcrumb-item active">Guía SIGERSOL</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+
+    <article class="section-padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="mb-4">
+                        <span class="badge bg-primary mb-3">SIGERSOL</span>
+                        <h2 class="mb-3">Cómo declarar manifiestos en la plataforma SIGERSOL paso a paso</h2>
+                        <div class="d-flex gap-3 text-muted mb-4">
+                            <span><i class="fas fa-calendar-alt me-1"></i> 28 Noviembre 2025</span>
+                            <span><i class="fas fa-user me-1"></i> Equipo IO Group</span>
+                            <span><i class="fas fa-clock me-1"></i> 10 min de lectura</span>
+                        </div>
+                    </div>
+
+                    <div class="article-content">
+                        <p class="lead">El Sistema de Información para la Gestión de Residuos Sólidos (SIGERSOL) es la
+                            plataforma oficial del MINAM para el registro y seguimiento de la gestión de residuos. En
+                            este tutorial te explicamos cómo declarar tus manifiestos correctamente.</p>
+
+                        <h3 class="mt-5 mb-3">¿Qué es SIGERSOL?</h3>
+                        <p>SIGERSOL (Sistema de Información para la Gestión de Residuos Sólidos) es una herramienta
+                            informática desarrollada por el Ministerio del Ambiente que permite a los generadores y
+                            operadores de residuos sólidos reportar información sobre la gestión de sus residuos.</p>
+
+                        <p>La plataforma es de uso obligatorio para:</p>
+                        <ul>
+                            <li>Generadores de residuos del ámbito no municipal</li>
+                            <li>Empresas Operadoras de Residuos Sólidos (EO-RS)</li>
+                            <li>Municipalidades (para residuos del ámbito municipal)</li>
+                        </ul>
+
+                        <div class="alert alert-info my-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>URL de acceso:</strong> <a href="https://sigersol.minam.gob.pe" target="_blank"
+                                class="text-info">https://sigersol.minam.gob.pe</a>
+                        </div>
+
+                        <h3 class="mt-5 mb-3">Requisitos previos</h3>
+                        <p>Antes de iniciar la declaración, asegúrate de contar con:</p>
+
+                        <div class="row g-3 my-4">
+                            <div class="col-md-6">
+                                <div class="card-custom h-100">
+                                    <h6><i class="fas fa-user-plus text-primary me-2"></i>Registro de usuario</h6>
+                                    <p class="small mb-0">Debes estar registrado en SIGERSOL como generador o EO-RS con
+                                        usuario y contraseña activos.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card-custom h-100">
+                                    <h6><i class="fas fa-building text-primary me-2"></i>Registro de establecimiento
+                                    </h6>
+                                    <p class="small mb-0">Tu establecimiento debe estar dado de alta en el sistema con
+                                        todos sus datos actualizados.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card-custom h-100">
+                                    <h6><i class="fas fa-file-alt text-primary me-2"></i>Datos del manifiesto físico
+                                    </h6>
+                                    <p class="small mb-0">Número de manifiesto, fecha de recojo, tipo y cantidad de
+                                        residuos, EO-RS contratada.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card-custom h-100">
+                                    <h6><i class="fas fa-truck text-primary me-2"></i>Datos del operador</h6>
+                                    <p class="small mb-0">RUC, razón social y autorización de la EO-RS que realizó el
+                                        servicio.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="mt-5 mb-3">Pasos para declarar un manifiesto</h3>
+
+                        <div class="bg-light p-4 rounded-4 mb-4">
+                            <h5><i class="fas fa-list-ol text-primary me-2"></i>Paso 1: Acceso al sistema</h5>
+                            <ol class="mb-0">
+                                <li>Ingresa a <strong>sigersol.minam.gob.pe</strong></li>
+                                <li>Selecciona "Residuos No Municipales"</li>
+                                <li>Ingresa tu usuario y contraseña</li>
+                                <li>Haz clic en "Ingresar"</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-light p-4 rounded-4 mb-4">
+                            <h5><i class="fas fa-list-ol text-primary me-2"></i>Paso 2: Selección del módulo</h5>
+                            <ol class="mb-0">
+                                <li>En el menú lateral, selecciona "Manifiestos"</li>
+                                <li>Haz clic en "Nuevo Manifiesto"</li>
+                                <li>Selecciona el tipo: "Manifiesto de Residuos Sólidos Peligrosos"</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-light p-4 rounded-4 mb-4">
+                            <h5><i class="fas fa-list-ol text-primary me-2"></i>Paso 3: Datos del generador</h5>
+                            <ol class="mb-0">
+                                <li>Verifica que los datos de tu empresa estén correctos</li>
+                                <li>Selecciona el establecimiento generador</li>
+                                <li>Ingresa la fecha de generación del residuo</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-light p-4 rounded-4 mb-4">
+                            <h5><i class="fas fa-list-ol text-primary me-2"></i>Paso 4: Descripción del residuo</h5>
+                            <ol class="mb-0">
+                                <li>Selecciona el tipo de residuo según la clasificación del MINAM</li>
+                                <li>Ingresa el código de residuo correspondiente</li>
+                                <li>Especifica la cantidad en kilogramos</li>
+                                <li>Indica el estado físico (sólido, líquido, semisólido)</li>
+                                <li>Describe las características de peligrosidad (inflamable, corrosivo, tóxico, etc.)
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-light p-4 rounded-4 mb-4">
+                            <h5><i class="fas fa-list-ol text-primary me-2"></i>Paso 5: Datos del operador</h5>
+                            <ol class="mb-0">
+                                <li>Ingresa el RUC de la EO-RS transportista</li>
+                                <li>El sistema validará automáticamente que esté autorizada</li>
+                                <li>Selecciona el destino final (planta de tratamiento o relleno sanitario)</li>
+                                <li>Ingresa los datos del vehículo y conductor</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-light p-4 rounded-4 mb-4">
+                            <h5><i class="fas fa-list-ol text-primary me-2"></i>Paso 6: Confirmación y envío</h5>
+                            <ol class="mb-0">
+                                <li>Revisa todos los datos ingresados</li>
+                                <li>Adjunta el manifiesto físico escaneado (formato PDF)</li>
+                                <li>Haz clic en "Guardar y Enviar"</li>
+                                <li>El sistema generará un código de confirmación</li>
+                            </ol>
+                        </div>
+
+                        <div class="alert alert-warning my-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Plazo de declaración:</strong> Los manifiestos deben declararse dentro de los 15
+                            días calendario siguientes al recojo de los residuos. El incumplimiento de este plazo puede
+                            generar observaciones en fiscalizaciones.
+                        </div>
+
+                        <h3 class="mt-5 mb-3">Errores comunes y cómo evitarlos</h3>
+                        <ul>
+                            <li><strong>Datos incompletos:</strong> Verificar que todos los campos obligatorios estén
+                                llenos</li>
+                            <li><strong>EO-RS no autorizada:</strong> Confirmar que el operador tenga registro vigente
+                            </li>
+                            <li><strong>Códigos de residuo incorrectos:</strong> Consultar el catálogo oficial del MINAM
+                            </li>
+                            <li><strong>Fechas inconsistentes:</strong> La fecha de recojo no puede ser futura</li>
+                            <li><strong>Archivo muy pesado:</strong> El PDF no debe exceder 2 MB</li>
+                        </ul>
+
+                        <div class="bg-primary text-white p-4 rounded-4 mt-5">
+                            <div class="row align-items-center">
+                                <div class="col-lg-8">
+                                    <h4 class="text-white mb-2">¿Necesitas ayuda con SIGERSOL?</h4>
+                                    <p class="mb-0 opacity-75">Ofrecemos servicio de declaración de manifiestos para
+                                        nuestros clientes.</p>
+                                </div>
+                                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                                    <a href="../contacto.html" class="btn btn-light">Solicitar Servicio</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top">
+                        <h5 class="mb-3">Compartir artículo</h5>
+                        <div class="d-flex gap-2">
+                            <a href="#" class="btn btn-sm btn-outline-primary"><i class="fab fa-facebook-f me-1"></i>
+                                Facebook</a>
+                            <a href="#" class="btn btn-sm btn-outline-success"><i class="fab fa-whatsapp me-1"></i>
+                                WhatsApp</a>
+                            <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fab fa-linkedin-in me-1"></i>
+                                LinkedIn</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card-custom mb-4">
+                        <h5 class="mb-3"><i class="fas fa-book-reader me-2 text-primary"></i>Artículos relacionados</h5>
+                        <ul class="list-unstyled mb-0">
+                            <li class="d-flex gap-3 py-3 border-bottom">
+                                <div class="bg-light rounded p-2" style="min-width: 50px;">
+                                    <i class="fas fa-file-alt text-primary"></i>
+                                </div>
+                                <div>
+                                    <a href="normativa-oefa-2025.html" class="text-dark fw-semibold d-block mb-1"
+                                        style="font-size: 0.9rem;">Normativa OEFA 2025</a>
+                                    <small class="text-muted">Guía completa</small>
+                                </div>
+                            </li>
+                            <li class="d-flex gap-3 py-3">
+                                <div class="bg-light rounded p-2" style="min-width: 50px;">
+                                    <i class="fas fa-industry text-primary"></i>
+                                </div>
+                                <div>
+                                    <a href="residuos-industriales-clasificacion.html"
+                                        class="text-dark fw-semibold d-block mb-1" style="font-size: 0.9rem;">Residuos
+                                        industriales</a>
+                                    <small class="text-muted">Clasificación</small>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card-custom" style="background: var(--gradient-primary);">
+                        <h5 class="text-white mb-3"><i class="fas fa-envelope me-2"></i>Newsletter</h5>
+                        <p class="text-white-50 small mb-3">Recibe actualizaciones sobre normativas.</p>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" placeholder="Tu correo electrónico">
+                        </div>
+                        <button class="btn btn-light w-100">Suscribirse</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">
+                        <img src="../img/logos/logo-principal.png" alt="IO Group" height="18">
+                    </div>
+                    <p class="footer-text">Somos una empresa peruana comprometida con la preservación del medio
+                        ambiente.</p>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="footer-title">Enlaces</h5>
+                    <ul class="footer-links">
+                        <li><a href="../index.html">Inicio</a></li>
+                        <li><a href="../servicios.html">Servicios</a></li>
+                        <li><a href="../blog.html">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-title">Contacto</h5>
+                    <ul class="footer-links">
+                        <li><a href="tel:+51997571262"><i class="fas fa-phone-alt"></i> +51 997 571 262</a></li>
+                        <li><a href="mailto:naenciso@iogroup.pe"><i class="fas fa-envelope"></i> naenciso@iogroup.pe</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 IO Group. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/51997571262" class="whatsapp-float" target="_blank" rel="noopener">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+
+</html>
