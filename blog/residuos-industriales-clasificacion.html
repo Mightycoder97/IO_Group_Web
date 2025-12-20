@@ -222,11 +222,17 @@
                     <div class="mt-5 pt-4 border-top">
                         <h5 class="mb-3">Compartir artículo</h5>
                         <div class="d-flex gap-2">
-                            <a href="#" class="btn btn-sm btn-outline-primary"><i class="fab fa-facebook-f me-1"></i>
+                            <a href="#"
+                                onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href), 'facebook-share', 'width=580,height=400'); return false;"
+                                class="btn btn-sm btn-outline-primary"><i class="fab fa-facebook-f me-1"></i>
                                 Facebook</a>
-                            <a href="#" class="btn btn-sm btn-outline-success"><i class="fab fa-whatsapp me-1"></i>
+                            <a href="#"
+                                onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.title + ' ' + window.location.href), 'whatsapp-share', 'width=580,height=400'); return false;"
+                                class="btn btn-sm btn-outline-success"><i class="fab fa-whatsapp me-1"></i>
                                 WhatsApp</a>
-                            <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fab fa-linkedin-in me-1"></i>
+                            <a href="#"
+                                onclick="window.open('https://www.linkedin.com/shareArticle?mini=true&url='+encodeURIComponent(window.location.href)+'&title='+encodeURIComponent(document.title), 'linkedin-share', 'width=580,height=400'); return false;"
+                                class="btn btn-sm btn-outline-secondary"><i class="fab fa-linkedin-in me-1"></i>
                                 LinkedIn</a>
                         </div>
                     </div>
