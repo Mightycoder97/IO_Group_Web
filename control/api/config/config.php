@@ -8,7 +8,7 @@
 define('DB_HOST', 'localhost');
 define('DB_PORT', '3306');
 define('DB_NAME', 'u511863531_iogDB');
-define('DB_USER', 'admin');
+define('DB_USER', 'u511863531_admin');
 define('DB_PASS', 'admin'); 
 define('DB_CHARSET', 'utf8mb4');
 
