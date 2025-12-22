@@ -1012,6 +1012,29 @@ img {
     margin-top: 50px;
     text-align: center;
     color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.control-access-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition-normal);
+    text-decoration: none;
+}
+
+.control-access-link:hover {
+    color: var(--primary-light);
+    border-color: var(--primary-light);
+    background: rgba(234, 69, 23, 0.1);
 }
 
 /* ===== PAGE HEADER ===== */

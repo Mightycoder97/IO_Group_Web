@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Servicios</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <a href="../alertas/index.html" class="btn btn-light alert-badge">
+                        <i class="bi bi-bell"></i><span class="badge bg-danger" id="alertCount">0</span>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <!-- Filters -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-2">
+                                <label class="form-label small">Fecha</label>
+                                <input type="date" class="form-control form-control-sm" id="filterFecha">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small">Estado</label>
+                                <select class="form-select form-select-sm" id="filterEstado">
+                                    <option value="">Todos</option>
+                                    <option value="programado">Programado</option>
+                                    <option value="en_curso">En Curso</option>
+                                    <option value="completado">Completado</option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Buscar</label>
+                                <input type="text" class="form-control form-control-sm" id="searchInput"
+                                    placeholder="Sede, empresa...">
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-sm btn-primary" onclick="loadData()"><i class="bi bi-search"></i>
+                                    Filtrar</button>
+                                <button class="btn btn-sm btn-secondary" onclick="clearFilters()"><i
+                                        class="bi bi-x"></i> Limpiar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h5 class="table-title mb-0"><i class="bi bi-box-seam"></i> Servicios</h5>
+                        <a href="formulario.html" class="btn btn-primary" id="btnNew"><i class="bi bi-plus"></i>
+                            Nuevo</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Fecha</th>
+                                    <th>Sede</th>
+                                    <th>Empresa</th>
+                                    <th>Planta</th>
+                                    <th>Peso (Kg)</th>
+                                    <th>Estado</th>
+                                    <th width="150">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('servicios');
+
+        if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
+
+        async function loadData() {
+            const fecha = document.getElementById('filterFecha').value;
+            const estado = document.getElementById('filterEstado').value;
+            const search = document.getElementById('searchInput').value;
+
+            let url = '/servicios?';
+            if (fecha) url += `fecha=${fecha}&`;
+            if (estado) url += `estado=${estado}&`;
+
+            try {
+                const result = await api.get(url);
+                if (result.success) {
+                    let data = result.data;
+                    if (search) {
+                        const term = search.toLowerCase();
+                        data = data.filter(s =>
+                            s.sede_nombre?.toLowerCase().includes(term) ||
+                            s.empresa_razon_social?.toLowerCase().includes(term) ||
+                            s.codigo_servicio?.toLowerCase().includes(term)
+                        );
+                    }
+                    renderTable(data);
+                }
+            } catch (err) {
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No hay registros</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(s => `
+                <tr>
+                    <td><strong>${s.codigo_servicio || '-'}</strong></td>
+                    <td>${formatDate(s.fecha_programada)}</td>
+                    <td>${s.sede_nombre}</td>
+                    <td>${s.empresa_razon_social}</td>
+                    <td>${s.planta_nombre}</td>
+                    <td>${s.peso_kg ? s.peso_kg + ' kg' : '-'}</td>
+                    <td>${getStatusBadge(s.estado)}</td>
+                    <td>
+                        <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary btn-action" title="Ver/Editar"><i class="bi bi-pencil"></i></a>
+                        ${!s.id_manifiesto && canEdit() ? `<a href="../manifiestos/formulario.html?servicio=${s.id_servicio}" class="btn btn-sm btn-outline-success btn-action" title="Crear Manifiesto"><i class="bi bi-journal-plus"></i></a>` : ''}
+                        ${!s.id_factura && canEdit() ? `<a href="../facturas/formulario.html?servicio=${s.id_servicio}" class="btn btn-sm btn-outline-warning btn-action" title="Crear Factura"><i class="bi bi-receipt"></i></a>` : ''}
+                        ${s.estado === 'programado' && canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${s.id_servicio})"><i class="bi bi-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function clearFilters() {
+            document.getElementById('filterFecha').value = '';
+            document.getElementById('filterEstado').value = '';
+            document.getElementById('searchInput').value = '';
+            loadData();
+        }
+
+        async function deleteItem(id) {
+            if (!confirmDelete()) return;
+            try {
+                const result = await api.delete(`/servicios/${id}`);
+                if (result.success) {
+                    showToast('Servicio eliminado');
+                    loadData();
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                showToast('Error eliminando', 'danger');
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>
