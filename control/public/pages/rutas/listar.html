@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutas - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Rutas</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <a href="../alertas/index.html" class="btn btn-light alert-badge">
+                        <i class="bi bi-bell"></i><span class="badge bg-danger" id="alertCount">0</span>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>
+                            <h5 class="table-title mb-0"><i class="bi bi-signpost-2"></i> Rutas</h5>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <input type="date" class="form-control" id="fechaFilter" style="width: 150px;">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar..."
+                                style="width: 150px;">
+                            <a href="formulario.html" class="btn btn-primary" id="btnNew"><i class="bi bi-plus"></i>
+                                Nueva</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Vehículo</th>
+                                    <th>Fecha</th>
+                                    <th>Horario</th>
+                                    <th>Km</th>
+                                    <th>Estado</th>
+                                    <th width="100">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('rutas');
+
+        if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
+
+        let allData = [];
+
+        async function loadData(fecha = null) {
+            try {
+                let url = '/rutas';
+                if (fecha) url += `?fecha=${fecha}`;
+
+                const result = await api.get(url);
+                if (result.success) {
+                    allData = result.data;
+                    renderTable(allData);
+                }
+            } catch (err) {
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        function formatTime(time) {
+            if (!time) return '-';
+            return time.substring(0, 5);
+        }
+
+        function getEstadoBadge(estado) {
+            const badges = {
+                'programada': 'bg-secondary',
+                'en_curso': 'bg-primary',
+                'completada': 'bg-success',
+                'cancelada': 'bg-danger'
+            };
+            return `<span class="badge ${badges[estado] || 'bg-secondary'}">${estado}</span>`;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No hay registros</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td><strong>${item.codigo_ruta || `R-${item.id_ruta}`}</strong></td>
+                    <td>${item.vehiculo_placa || '-'}<br><small class="text-muted">${item.vehiculo_marca || ''} ${item.vehiculo_modelo || ''}</small></td>
+                    <td>${new Date(item.fecha).toLocaleDateString('es-PE')}</td>
+                    <td>${formatTime(item.hora_salida)} - ${formatTime(item.hora_retorno)}</td>
+                    <td>
+                        <small>Inicio: ${item.km_inicial || '-'}</small><br>
+                        <small>Final: ${item.km_final || '-'}</small>
+                    </td>
+                    <td>${getEstadoBadge(item.estado)}</td>
+                    <td>
+                        <a href="formulario.html?id=${item.id_ruta}" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-pencil"></i></a>
+                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_ruta})"><i class="bi bi-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase();
+            const filtered = allData.filter(item =>
+                item.codigo_ruta?.toLowerCase().includes(term) ||
+                item.vehiculo_placa?.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+        });
+
+        document.getElementById('fechaFilter').addEventListener('change', function (e) {
+            loadData(e.target.value);
+        });
+
+        async function deleteItem(id) {
+            if (!confirmDelete()) return;
+            try {
+                const result = await api.delete(`/rutas/${id}`);
+                if (result.success) {
+                    showToast('Ruta eliminada');
+                    loadData();
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                showToast('Error eliminando', 'danger');
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

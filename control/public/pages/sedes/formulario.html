@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sede - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="listar.html">Sedes</a></li>
+                            <li class="breadcrumb-item active" id="pageTitle">Nueva Sede</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-geo-alt"></i> <span id="formTitle">Nueva Sede</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="dataForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Empresa *</label>
+                                    <select class="form-select" id="id_empresa" required>
+                                        <option value="">Seleccione...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Nombre Comercial *</label>
+                                    <input type="text" class="form-control" id="nombre_comercial" required>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Dirección *</label>
+                                    <input type="text" class="form-control" id="direccion" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Distrito</label>
+                                    <input type="text" class="form-control" id="distrito">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Provincia</label>
+                                    <input type="text" class="form-control" id="provincia">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Departamento</label>
+                                    <input type="text" class="form-control" id="departamento">
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label">Referencia</label>
+                                    <input type="text" class="form-control" id="referencia">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Coordenadas GPS</label>
+                                    <input type="text" class="form-control" id="coordenadas_gps"
+                                        placeholder="-12.0464, -77.0428">
+                                </div>
+
+                                <div class="col-12">
+                                    <h6 class="mt-3"><i class="bi bi-person-lines-fill"></i> Datos de Contacto</h6>
+                                    <hr>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Nombre de Contacto</label>
+                                    <input type="text" class="form-control" id="contacto_nombre">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Teléfono de Contacto</label>
+                                    <input type="text" class="form-control" id="contacto_telefono">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Email de Contacto</label>
+                                    <input type="email" class="form-control" id="contacto_email">
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i>
+                                    Guardar</button>
+                                <a href="listar.html" class="btn btn-secondary">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('sedes');
+
+        const id = getUrlParam('id');
+        const empresaParam = getUrlParam('empresa');
+
+        // Load empresas for select
+        async function loadEmpresas() {
+            try {
+                const result = await api.get('/empresas');
+                if (result.success) {
+                    const select = document.getElementById('id_empresa');
+                    select.innerHTML = '<option value="">Seleccione...</option>' +
+                        result.data.map(e => `<option value="${e.id_empresa}">${e.razon_social} (${e.ruc})</option>`).join('');
+
+                    // Pre-select if coming from empresa filter
+                    if (empresaParam) {
+                        select.value = empresaParam;
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading empresas:', err);
+            }
+        }
+        loadEmpresas();
+
+        if (id) {
+            document.getElementById('pageTitle').textContent = 'Editar Sede';
+            document.getElementById('formTitle').textContent = 'Editar Sede';
+            loadData();
+        }
+
+        async function loadData() {
+            try {
+                const result = await api.get(`/sedes/${id}`);
+                if (result.success) {
+                    setTimeout(() => {
+                        document.getElementById('id_empresa').value = result.data.id_empresa || '';
+                    }, 500);
+                    document.getElementById('nombre_comercial').value = result.data.nombre_comercial || '';
+                    document.getElementById('direccion').value = result.data.direccion || '';
+                    document.getElementById('distrito').value = result.data.distrito || '';
+                    document.getElementById('provincia').value = result.data.provincia || '';
+                    document.getElementById('departamento').value = result.data.departamento || '';
+                    document.getElementById('referencia').value = result.data.referencia || '';
+                    document.getElementById('coordenadas_gps').value = result.data.coordenadas_gps || '';
+                    document.getElementById('contacto_nombre').value = result.data.contacto_nombre || '';
+                    document.getElementById('contacto_telefono').value = result.data.contacto_telefono || '';
+                    document.getElementById('contacto_email').value = result.data.contacto_email || '';
+                }
+            } catch (err) {
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        document.getElementById('dataForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const data = {
+                id_empresa: document.getElementById('id_empresa').value,
+                nombre_comercial: document.getElementById('nombre_comercial').value,
+                direccion: document.getElementById('direccion').value,
+                distrito: document.getElementById('distrito').value || null,
+                provincia: document.getElementById('provincia').value || null,
+                departamento: document.getElementById('departamento').value || null,
+                referencia: document.getElementById('referencia').value || null,
+                coordenadas_gps: document.getElementById('coordenadas_gps').value || null,
+                contacto_nombre: document.getElementById('contacto_nombre').value || null,
+                contacto_telefono: document.getElementById('contacto_telefono').value || null,
+                contacto_email: document.getElementById('contacto_email').value || null
+            };
+
+            try {
+                const result = id
+                    ? await api.put(`/sedes/${id}`, data)
+                    : await api.post('/sedes', data);
+
+                if (result.success) {
+                    showToast(id ? 'Sede actualizada' : 'Sede creada');
+                    window.location.href = 'listar.html';
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                showToast('Error guardando', 'danger');
+            }
+        });
+    </script>
+</body>
+
+</html>

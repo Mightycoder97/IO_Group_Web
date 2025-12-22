@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Reportes</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <a href="../alertas/index.html" class="btn btn-light alert-badge">
+                        <i class="bi bi-bell"></i><span class="badge bg-danger" id="alertCount">0</span>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <h4><i class="bi bi-graph-up"></i> Centro de Reportes</h4>
+                        <p class="text-muted">Seleccione el tipo de reporte y configure los filtros según sus
+                            necesidades.</p>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-funnel"></i> Filtros
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Fecha Inicio</label>
+                                        <input type="date" class="form-control" id="fecha_inicio">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Fecha Fin</label>
+                                        <input type="date" class="form-control" id="fecha_fin">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Cliente</label>
+                                        <select class="form-select" id="cliente">
+                                            <option value="">Todos</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Tipo de Reporte</label>
+                                        <select class="form-select" id="tipo_reporte">
+                                            <option value="servicios">Servicios</option>
+                                            <option value="facturacion">Facturación</option>
+                                            <option value="residuos">Residuos por Tipo</option>
+                                            <option value="vehiculos">Uso de Vehículos</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-primary" onclick="generateReport()"><i
+                                            class="bi bi-search"></i> Generar Reporte</button>
+                                    <button class="btn btn-success" onclick="exportReport()"><i
+                                            class="bi bi-file-earmark-excel"></i> Exportar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas Rápidas -->
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h3 id="totalServicios">0</h3>
+                                <p class="mb-0">Servicios</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h3 id="totalPeso">0 Kg</h3>
+                                <p class="mb-0">Residuos Recolectados</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h3 id="totalFacturado">S/ 0</h3>
+                                <p class="mb-0">Total Facturado</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body text-center">
+                                <h3 id="totalPendiente">S/ 0</h3>
+                                <p class="mb-0">Pendiente de Cobro</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Resultados -->
+                    <div class="col-12">
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h5 class="table-title mb-0"><i class="bi bi-table"></i> Resultados</h5>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table" id="resultTable">
+                                    <thead id="tableHeader">
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">Seleccione los filtros y
+                                                haga clic en "Generar Reporte"</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('reportes');
+
+        // Set default dates (current month)
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        document.getElementById('fecha_inicio').value = firstDay.toISOString().split('T')[0];
+        document.getElementById('fecha_fin').value = today.toISOString().split('T')[0];
+
+        // Load clients
+        async function loadClientes() {
+            try {
+                const result = await api.get('/clientes');
+                if (result.success) {
+                    document.getElementById('cliente').innerHTML = '<option value="">Todos</option>' +
+                        result.data.map(c => `<option value="${c.id_cliente}">${c.nombre}</option>`).join('');
+                }
+            } catch (err) { }
+        }
+        loadClientes();
+
+        // Load initial stats
+        loadStats();
+
+        async function loadStats() {
+            try {
+                const reportes = await api.get('/reportes/resumen');
+                if (reportes.success) {
+                    document.getElementById('totalServicios').textContent = reportes.data.total_servicios || 0;
+                    document.getElementById('totalPeso').textContent = (parseFloat(reportes.data.total_peso_kg || 0).toFixed(1)) + ' Kg';
+                    document.getElementById('totalFacturado').textContent = 'S/ ' + parseFloat(reportes.data.total_facturado || 0).toFixed(2);
+                    document.getElementById('totalPendiente').textContent = 'S/ ' + parseFloat(reportes.data.total_pendiente || 0).toFixed(2);
+                }
+            } catch (err) {
+                // Stats not available
+            }
+        }
+
+        async function generateReport() {
+            const tipo = document.getElementById('tipo_reporte').value;
+            const fechaInicio = document.getElementById('fecha_inicio').value;
+            const fechaFin = document.getElementById('fecha_fin').value;
+            const cliente = document.getElementById('cliente').value;
+
+            let data = [];
+            let headers = [];
+
+            try {
+                if (tipo === 'servicios') {
+                    headers = ['Código', 'Fecha', 'Sede', 'Planta', 'Estado', 'Peso (Kg)'];
+                    const result = await api.get(`/servicios?desde=${fechaInicio}&hasta=${fechaFin}${cliente ? '&cliente=' + cliente : ''}`);
+                    if (result.success) {
+                        data = result.data.map(s => [
+                            s.codigo_servicio || 'SV-' + s.id_servicio,
+                            new Date(s.fecha_programada).toLocaleDateString('es-PE'),
+                            s.sede_nombre || '-',
+                            s.planta_nombre || '-',
+                            `<span class="badge bg-${s.estado === 'completado' ? 'success' : 'secondary'}">${s.estado}</span>`,
+                            s.peso_kg || '-'
+                        ]);
+                    }
+                } else if (tipo === 'facturacion') {
+                    headers = ['Factura', 'Fecha', 'Cliente', 'Monto', 'Estado', 'Fecha Pago'];
+                    const result = await api.get(`/facturas?desde=${fechaInicio}&hasta=${fechaFin}`);
+                    if (result.success) {
+                        data = result.data.map(f => [
+                            f.numero_factura || '#' + f.id_factura,
+                            new Date(f.fecha_emision).toLocaleDateString('es-PE'),
+                            f.cliente_nombre || '-',
+                            'S/ ' + parseFloat(f.monto_total || 0).toFixed(2),
+                            `<span class="badge bg-${f.estado === 'pagada' ? 'success' : f.estado === 'pendiente' ? 'warning' : 'danger'}">${f.estado}</span>`,
+                            f.fecha_pago ? new Date(f.fecha_pago).toLocaleDateString('es-PE') : '-'
+                        ]);
+                    }
+                } else if (tipo === 'residuos') {
+                    headers = ['Tipo Residuo', 'Servicio', 'Sede', 'Peso (Kg)', 'Fecha'];
+                    const result = await api.get(`/manifiestos?desde=${fechaInicio}&hasta=${fechaFin}`);
+                    if (result.success) {
+                        data = result.data.map(m => [
+                            m.tipo_residuo,
+                            m.servicio_codigo || 'SV-' + m.id_servicio,
+                            m.sede_nombre || '-',
+                            parseFloat(m.peso_kg || 0).toFixed(2),
+                            m.fecha_creacion ? new Date(m.fecha_creacion).toLocaleDateString('es-PE') : '-'
+                        ]);
+                    }
+                } else if (tipo === 'vehiculos') {
+                    headers = ['Placa', 'Marca/Modelo', 'Rutas', 'Km Recorridos', 'Estado'];
+                    const result = await api.get('/vehiculos');
+                    if (result.success) {
+                        data = result.data.map(v => [
+                            v.placa,
+                            (v.marca || '') + ' ' + (v.modelo || ''),
+                            '-',
+                            '-',
+                            v.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-secondary">Inactivo</span>'
+                        ]);
+                    }
+                }
+
+                renderReport(headers, data);
+            } catch (err) {
+                showToast('Error generando reporte', 'danger');
+            }
+        }
+
+        function renderReport(headers, data) {
+            const thead = document.getElementById('tableHeader');
+            const tbody = document.getElementById('tableBody');
+
+            thead.innerHTML = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-muted">No hay datos para los filtros seleccionados</td></tr>`;
+            } else {
+                tbody.innerHTML = data.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('');
+            }
+        }
+
+        function exportReport() {
+            showToast('Función de exportación próximamente disponible', 'info');
+        }
+    </script>
+</body>
+
+</html>

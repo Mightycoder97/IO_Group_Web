@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruta - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="listar.html">Rutas</a></li>
+                            <li class="breadcrumb-item active" id="pageTitle">Nueva Ruta</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-signpost-2"></i> <span id="formTitle">Nueva Ruta</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="dataForm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Vehículo *</label>
+                                    <select class="form-select" id="id_vehiculo" required>
+                                        <option value="">Seleccione...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Código de Ruta</label>
+                                    <input type="text" class="form-control" id="codigo_ruta" placeholder="R-2024-001">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha *</label>
+                                    <input type="date" class="form-control" id="fecha" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Hora Salida</label>
+                                    <input type="time" class="form-control" id="hora_salida">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Hora Retorno</label>
+                                    <input type="time" class="form-control" id="hora_retorno">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Km Inicial</label>
+                                    <input type="number" class="form-control" id="km_inicial">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Km Final</label>
+                                    <input type="number" class="form-control" id="km_final">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estado</label>
+                                    <select class="form-select" id="estado">
+                                        <option value="programada">Programada</option>
+                                        <option value="en_curso">En Curso</option>
+                                        <option value="completada">Completada</option>
+                                        <option value="cancelada">Cancelada</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label">Observaciones</label>
+                                    <input type="text" class="form-control" id="observaciones">
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i>
+                                    Guardar</button>
+                                <a href="listar.html" class="btn btn-secondary">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('rutas');
+
+        const id = getUrlParam('id');
+
+        // Load vehiculos
+        async function loadVehiculos() {
+            try {
+                const result = await api.get('/vehiculos');
+                if (result.success) {
+                    const select = document.getElementById('id_vehiculo');
+                    select.innerHTML = '<option value="">Seleccione...</option>' +
+                        result.data.map(v => `<option value="${v.id_vehiculo}">${v.placa} - ${v.marca || ''} ${v.modelo || ''}</option>`).join('');
+                }
+            } catch (err) {
+                console.error('Error loading vehiculos:', err);
+            }
+        }
+        loadVehiculos();
+
+        // Set default date to today
+        document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+
+        if (id) {
+            document.getElementById('pageTitle').textContent = 'Editar Ruta';
+            document.getElementById('formTitle').textContent = 'Editar Ruta';
+            loadData();
+        }
+
+        async function loadData() {
+            try {
+                const result = await api.get(`/rutas/${id}`);
+                if (result.success) {
+                    setTimeout(() => {
+                        document.getElementById('id_vehiculo').value = result.data.id_vehiculo || '';
+                    }, 500);
+                    document.getElementById('codigo_ruta').value = result.data.codigo_ruta || '';
+                    document.getElementById('fecha').value = result.data.fecha || '';
+                    document.getElementById('hora_salida').value = result.data.hora_salida || '';
+                    document.getElementById('hora_retorno').value = result.data.hora_retorno || '';
+                    document.getElementById('km_inicial').value = result.data.km_inicial || '';
+                    document.getElementById('km_final').value = result.data.km_final || '';
+                    document.getElementById('estado').value = result.data.estado || 'programada';
+                    document.getElementById('observaciones').value = result.data.observaciones || '';
+                }
+            } catch (err) {
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        document.getElementById('dataForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const data = {
+                id_vehiculo: document.getElementById('id_vehiculo').value,
+                codigo_ruta: document.getElementById('codigo_ruta').value || null,
+                fecha: document.getElementById('fecha').value,
+                hora_salida: document.getElementById('hora_salida').value || null,
+                hora_retorno: document.getElementById('hora_retorno').value || null,
+                km_inicial: document.getElementById('km_inicial').value || null,
+                km_final: document.getElementById('km_final').value || null,
+                estado: document.getElementById('estado').value,
+                observaciones: document.getElementById('observaciones').value || null
+            };
+
+            try {
+                const result = id
+                    ? await api.put(`/rutas/${id}`, data)
+                    : await api.post('/rutas', data);
+
+                if (result.success) {
+                    showToast(id ? 'Ruta actualizada' : 'Ruta creada');
+                    window.location.href = 'listar.html';
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                showToast('Error guardando', 'danger');
+            }
+        });
+    </script>
+</body>
+
+</html>

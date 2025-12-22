@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manifiestos - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Manifiestos</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <a href="../alertas/index.html" class="btn btn-light alert-badge">
+                        <i class="bi bi-bell"></i><span class="badge bg-danger" id="alertCount">0</span>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>
+                            <h5 class="table-title mb-0"><i class="bi bi-journal-text"></i> Manifiestos</h5>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar..."
+                                style="width: 200px;">
+                            <a href="formulario.html" class="btn btn-primary" id="btnNew"><i class="bi bi-plus"></i>
+                                Nuevo</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nº Manifiesto</th>
+                                    <th>Servicio</th>
+                                    <th>Tipo Residuo</th>
+                                    <th>Peso (Kg)</th>
+                                    <th>Responsable</th>
+                                    <th width="100">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('manifiestos');
+
+        if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
+
+        let allData = [];
+
+        async function loadData() {
+            try {
+                const result = await api.get('/manifiestos');
+                if (result.success) {
+                    allData = result.data;
+                    renderTable(allData);
+                }
+            } catch (err) {
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No hay registros</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td><strong>${item.numero_manifiesto || '#' + item.id_manifiesto}</strong></td>
+                    <td>${item.servicio_codigo || 'SV-' + item.id_servicio}<br><small class="text-muted">${item.sede_nombre || ''}</small></td>
+                    <td><span class="badge bg-info">${item.tipo_residuo}</span></td>
+                    <td><strong>${parseFloat(item.peso_kg).toFixed(2)}</strong> ${item.unidad_medida || 'kg'}</td>
+                    <td>${item.nombre_responsable || '-'}<br><small class="text-muted">${item.cargo_responsable || ''}</small></td>
+                    <td>
+                        <a href="formulario.html?id=${item.id_manifiesto}" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-pencil"></i></a>
+                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_manifiesto})"><i class="bi bi-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase();
+            const filtered = allData.filter(item =>
+                item.numero_manifiesto?.toLowerCase().includes(term) ||
+                item.tipo_residuo?.toLowerCase().includes(term) ||
+                item.sede_nombre?.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+        });
+
+        async function deleteItem(id) {
+            if (!confirmDelete()) return;
+            try {
+                const result = await api.delete(`/manifiestos/${id}`);
+                if (result.success) {
+                    showToast('Manifiesto eliminado');
+                    loadData();
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                showToast('Error eliminando', 'danger');
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

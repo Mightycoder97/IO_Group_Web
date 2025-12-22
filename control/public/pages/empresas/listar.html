@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empresas - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Empresas</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <a href="../alertas/index.html" class="btn btn-light alert-badge">
+                        <i class="bi bi-bell"></i><span class="badge bg-danger" id="alertCount">0</span>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>
+                            <h5 class="table-title mb-0"><i class="bi bi-building"></i> Empresas</h5>
+                            <small class="text-muted" id="clienteFilter"></small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar..."
+                                style="width: 200px;">
+                            <a href="formulario.html" class="btn btn-primary" id="btnNew"><i class="bi bi-plus"></i>
+                                Nueva</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Razón Social</th>
+                                    <th>RUC</th>
+                                    <th>Cliente</th>
+                                    <th>Teléfono</th>
+                                    <th>Sedes</th>
+                                    <th>Estado</th>
+                                    <th width="140">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('empresas');
+
+        if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
+
+        const clienteId = getUrlParam('cliente');
+        let allData = [];
+
+        async function loadData() {
+            try {
+                let url = '/empresas';
+                if (clienteId) url += `?cliente=${clienteId}`;
+
+                const result = await api.get(url);
+                if (result.success) {
+                    allData = result.data;
+                    renderTable(allData);
+
+                    if (clienteId && allData.length > 0) {
+                        document.getElementById('clienteFilter').textContent =
+                            `Filtrando por cliente: ${allData[0].cliente_nombre}`;
+                    }
+                }
+            } catch (err) {
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No hay registros</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td><strong>${item.razon_social}</strong></td>
+                    <td>${item.ruc}</td>
+                    <td>${item.cliente_nombre || '-'}</td>
+                    <td>${item.telefono || '-'}</td>
+                    <td><span class="badge bg-secondary">${item.total_sedes || 0}</span></td>
+                    <td>${item.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-secondary">Inactivo</span>'}</td>
+                    <td>
+                        <a href="formulario.html?id=${item.id_empresa}" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-pencil"></i></a>
+                        <a href="../sedes/listar.html?empresa=${item.id_empresa}" class="btn btn-sm btn-outline-info btn-action"><i class="bi bi-geo-alt"></i></a>
+                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_empresa})"><i class="bi bi-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase();
+            const filtered = allData.filter(item =>
+                item.razon_social?.toLowerCase().includes(term) ||
+                item.ruc?.includes(term) ||
+                item.cliente_nombre?.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+        });
+
+        async function deleteItem(id) {
+            if (!confirmDelete()) return;
+            try {
+                const result = await api.delete(`/empresas/${id}`);
+                if (result.success) {
+                    showToast('Empresa eliminada');
+                    loadData();
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                showToast('Error eliminando', 'danger');
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>
