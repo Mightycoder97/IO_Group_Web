@@ -7,9 +7,9 @@
 // Database credentials - Hostinger
 define('DB_HOST', 'localhost');
 define('DB_PORT', '3306');
-define('DB_NAME', 'u511863531_iogDB');
-define('DB_USER', 'u511863531_admin');
-define('DB_PASS', 'admin'); 
+define('DB_NAME', 'u511863531_IOGroupBD');
+define('DB_USER', 'u511863531_Sebastian');
+define('DB_PASS', 'Sebas0920%'); 
 define('DB_CHARSET', 'utf8mb4');
 
 // JWT Configuration
