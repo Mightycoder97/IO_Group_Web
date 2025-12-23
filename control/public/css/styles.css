@@ -46,7 +46,7 @@ body {
     padding: 2.5rem;
     width: 100%;
     max-width: 420px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .login-logo {
@@ -85,7 +85,7 @@ body {
 .sidebar-header {
     padding: 1.5rem;
     text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-header img {
@@ -112,7 +112,7 @@ body {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
     margin-bottom: 0.5rem;
 }
 
@@ -120,7 +120,7 @@ body {
     display: flex;
     align-items: center;
     padding: 0.75rem 1rem;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
     text-decoration: none;
     border-radius: 8px;
     margin: 0.25rem 0.75rem;
@@ -128,12 +128,12 @@ body {
 }
 
 .nav-item:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
 }
 
 .nav-item.active {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.2);
     color: white;
 }
 
@@ -202,7 +202,7 @@ body {
 .card {
     border: none;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .card-header {
@@ -253,7 +253,7 @@ body {
     background: var(--surface);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .table-header {
@@ -292,6 +292,43 @@ body {
     background: rgba(76, 175, 80, 0.05);
 }
 
+/* Sortable Table Headers */
+.table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.table th.sortable:hover {
+    background: #e8e8e8;
+}
+
+.table th.sortable.sorted {
+    background: #dcedc8;
+}
+
+.table th .sort-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.table th .sort-icon {
+    opacity: 0.4;
+    font-size: 0.75rem;
+    transition: opacity 0.2s ease;
+}
+
+.table th.sortable:hover .sort-icon {
+    opacity: 0.7;
+}
+
+.table th.sorted .sort-icon {
+    opacity: 1;
+    color: var(--primary);
+}
+
 /* Buttons */
 .btn-primary {
     background-color: var(--primary);
@@ -326,15 +363,45 @@ body {
     font-weight: 500;
 }
 
-.badge-programado { background: #E3F2FD; color: #1565C0; }
-.badge-en_curso { background: #FFF3E0; color: #E65100; }
-.badge-completado { background: #E8F5E9; color: #2E7D32; }
-.badge-cancelado { background: #FFEBEE; color: #C62828; }
+.badge-programado {
+    background: #E3F2FD;
+    color: #1565C0;
+}
 
-.badge-vencido { background: #FFEBEE; color: #C62828; }
-.badge-critico { background: #FBE9E7; color: #D84315; }
-.badge-advertencia { background: #FFF8E1; color: #F57F17; }
-.badge-ok { background: #E8F5E9; color: #2E7D32; }
+.badge-en_curso {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.badge-completado {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.badge-cancelado {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+.badge-vencido {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+.badge-critico {
+    background: #FBE9E7;
+    color: #D84315;
+}
+
+.badge-advertencia {
+    background: #FFF8E1;
+    color: #F57F17;
+}
+
+.badge-ok {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
 
 /* Forms */
 .form-label {
@@ -342,7 +409,8 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--primary-light);
     box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
 }
@@ -378,15 +446,15 @@ body {
     .sidebar {
         transform: translateX(-100%);
     }
-    
+
     .sidebar.show {
         transform: translateX(0);
     }
-    
+
     .main-content {
         margin-left: 0;
     }
-    
+
     .toggle-sidebar {
         display: block;
     }
@@ -399,7 +467,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255,255,255,0.8);
+    background: rgba(255, 255, 255, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;

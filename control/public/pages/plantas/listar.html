@@ -80,6 +80,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
+    <script src="../../js/table-sort.js"></script>
     <script src="../../js/app.js"></script>
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
@@ -88,6 +89,7 @@
         if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
 
         let allData = [];
+        let tableSorter = null;
 
         async function loadData() {
             try {
@@ -95,6 +97,15 @@
                 if (result.success) {
                     allData = result.data;
                     renderTable(allData);
+
+                    // Inicializar ordenamiento de columnas
+                    if (!tableSorter) {
+                        tableSorter = new TableSort('tableBody', {
+                            columns: ['razon_social', 'ruc', 'tipo_tratamiento', 'codigo_eps', 'distrito', 'activo', null],
+                            onSort: (sortedData) => renderTable(sortedData)
+                        });
+                    }
+                    tableSorter.setData(allData);
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
@@ -134,6 +145,7 @@
                 item.tipo_tratamiento?.toLowerCase().includes(term)
             );
             renderTable(filtered);
+            if (tableSorter) tableSorter.setData(filtered);
         });
 
         async function deleteItem(id) {
