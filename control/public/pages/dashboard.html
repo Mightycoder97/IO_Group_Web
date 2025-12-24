@@ -33,6 +33,75 @@
         .sede-popup .badge {
             font-size: 10px;
         }
+
+        /* Buscador de direcciones */
+        .search-address-container {
+            position: relative;
+            padding: 12px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-address-container .input-group {
+            max-width: 100%;
+        }
+
+        .search-marker {
+            background: #2563eb;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .nearby-results {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .nearby-results.show {
+            display: block;
+        }
+
+        .nearby-item {
+            padding: 8px 12px;
+            border-left: 3px solid #4ade80;
+            background: #f0fdf4;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .nearby-item .distance {
+            font-weight: bold;
+            color: #16a34a;
+        }
+
+        .nearby-item .name {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .search-result-marker {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(37, 99, 235, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+            }
+        }
     </style>
 </head>
 
@@ -170,6 +239,22 @@
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <span><i class="bi bi-geo-alt-fill text-danger"></i> Sedes Activas</span>
                                 <span class="badge bg-primary" id="sedesCount">0 sedes</span>
+                            </div>
+                            <!-- Buscador de direcciones -->
+                            <div class="search-address-container">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="addressSearch"
+                                        placeholder="Buscar dirección para ver clientes cercanos..." autocomplete="off">
+                                    <button class="btn btn-primary" type="button" id="btnSearchAddress">
+                                        <i class="bi bi-geo"></i> Buscar
+                                    </button>
+                                    <button class="btn btn-outline-secondary" type="button" id="btnClearSearch"
+                                        style="display:none;">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                                <div id="nearbyResults" class="nearby-results"></div>
                             </div>
                             <div class="card-body p-0">
                                 <div id="dashboardMap"></div>
@@ -402,6 +487,186 @@
 
         // Cargar mapa después del DOM
         setTimeout(loadSedesMap, 100);
+
+        // ========== BUSCADOR DE DIRECCIONES ==========
+        let searchMarker = null;
+        let searchCircle = null;
+
+        // Calcular distancia entre dos puntos (Haversine formula)
+        function calcDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radio de la Tierra en km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // Buscar clientes cercanos a una ubicación
+        function findNearbyClients(lat, lng, radiusKm = 5) {
+            const nearby = [];
+            Object.values(sedesData).forEach(sede => {
+                const parts = sede.coordenadas_gps?.split(',');
+                if (!parts || parts.length !== 2) return;
+
+                const sLat = parseFloat(parts[0]);
+                const sLng = parseFloat(parts[1]);
+                if (isNaN(sLat) || isNaN(sLng)) return;
+
+                const dist = calcDistance(lat, lng, sLat, sLng);
+                if (dist <= radiusKm) {
+                    nearby.push({ ...sede, distance: dist, lat: sLat, lng: sLng });
+                }
+            });
+            return nearby.sort((a, b) => a.distance - b.distance);
+        }
+
+        // Mostrar resultados de clientes cercanos
+        function showNearbyResults(nearby, searchLat, searchLng) {
+            const container = document.getElementById('nearbyResults');
+
+            if (nearby.length === 0) {
+                container.innerHTML = '<div class="alert alert-info mb-0 py-2"><i class="bi bi-info-circle"></i> No hay clientes en un radio de 5 km</div>';
+            } else {
+                container.innerHTML = `
+                    <div class="text-muted small mb-2"><i class="bi bi-check-circle text-success"></i> ${nearby.length} cliente(s) en un radio de 5 km:</div>
+                    ${nearby.slice(0, 10).map(s => `
+                        <div class="nearby-item" onclick="zoomToSede(${s.lat}, ${s.lng}, ${s.id_sede})" style="cursor:pointer;">
+                            <span class="distance">${s.distance < 1 ? (s.distance * 1000).toFixed(0) + ' m' : s.distance.toFixed(2) + ' km'}</span>
+                            - <span class="name">${s.nombre_comercial}</span>
+                            <br><small class="text-muted">${s.direccion || ''}</small>
+                        </div>
+                    `).join('')}
+                    ${nearby.length > 10 ? `<div class="text-muted small">... y ${nearby.length - 10} más</div>` : ''}
+                `;
+            }
+            container.classList.add('show');
+        }
+
+        // Zoom a una sede específica
+        function zoomToSede(lat, lng, sedeId) {
+            dashboardMap.setView([lat, lng], 16);
+            // Abrir popup de la sede
+            markersLayer.eachLayer(marker => {
+                if (marker.options.sedeId === sedeId) {
+                    marker.fire('click');
+                }
+            });
+        }
+
+        // Geocodificar dirección usando Nominatim
+        async function searchAddress(query) {
+            const btn = document.getElementById('btnSearchAddress');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            btn.disabled = true;
+
+            try {
+                // Agregar "Lima, Peru" para mejores resultados
+                const searchQuery = query.includes('Lima') || query.includes('Peru') ? query : `${query}, Lima, Peru`;
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`;
+
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': 'IOGroup-Dashboard' }
+                });
+                const results = await response.json();
+
+                if (results.length === 0) {
+                    alert('No se encontró la dirección. Intenta ser más específico.');
+                    return;
+                }
+
+                const result = results[0];
+                const lat = parseFloat(result.lat);
+                const lng = parseFloat(result.lon);
+
+                // Limpiar marcador anterior
+                if (searchMarker) dashboardMap.removeLayer(searchMarker);
+                if (searchCircle) dashboardMap.removeLayer(searchCircle);
+
+                // Crear marcador de búsqueda (azul, con pulso)
+                searchMarker = L.circleMarker([lat, lng], {
+                    radius: 10,
+                    fillColor: '#2563eb',
+                    color: '#fff',
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 1,
+                    className: 'search-result-marker'
+                }).addTo(dashboardMap);
+
+                // Círculo de radio de 5km
+                searchCircle = L.circle([lat, lng], {
+                    radius: 5000, // 5km en metros
+                    color: '#2563eb',
+                    fillColor: '#2563eb',
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    dashArray: '5, 5'
+                }).addTo(dashboardMap);
+
+                // Popup con la dirección encontrada
+                searchMarker.bindPopup(`
+                    <div class="sede-popup">
+                        <h6><i class="bi bi-search text-primary"></i> Ubicación buscada</h6>
+                        <p>${result.display_name}</p>
+                    </div>
+                `).openPopup();
+
+                // Ajustar vista
+                dashboardMap.setView([lat, lng], 14);
+
+                // Buscar clientes cercanos
+                const nearby = findNearbyClients(lat, lng, 5);
+                showNearbyResults(nearby, lat, lng);
+
+                // Mostrar botón de limpiar
+                document.getElementById('btnClearSearch').style.display = 'block';
+
+            } catch (err) {
+                console.error('Error searching address:', err);
+                alert('Error al buscar la dirección. Intenta de nuevo.');
+            } finally {
+                btn.innerHTML = '<i class="bi bi-geo"></i> Buscar';
+                btn.disabled = false;
+            }
+        }
+
+        // Limpiar búsqueda
+        function clearSearch() {
+            if (searchMarker) dashboardMap.removeLayer(searchMarker);
+            if (searchCircle) dashboardMap.removeLayer(searchCircle);
+            searchMarker = null;
+            searchCircle = null;
+            document.getElementById('addressSearch').value = '';
+            document.getElementById('nearbyResults').classList.remove('show');
+            document.getElementById('btnClearSearch').style.display = 'none';
+            // Volver a vista general
+            if (Object.keys(sedesData).length > 0) {
+                const bounds = Object.values(sedesData)
+                    .filter(s => s.coordenadas_gps)
+                    .map(s => s.coordenadas_gps.split(',').map(parseFloat));
+                if (bounds.length > 0) {
+                    dashboardMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+                }
+            }
+        }
+
+        // Event listeners
+        document.getElementById('btnSearchAddress').addEventListener('click', () => {
+            const query = document.getElementById('addressSearch').value.trim();
+            if (query) searchAddress(query);
+        });
+
+        document.getElementById('addressSearch').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) searchAddress(query);
+            }
+        });
+
+        document.getElementById('btnClearSearch').addEventListener('click', clearSearch);
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('show');
