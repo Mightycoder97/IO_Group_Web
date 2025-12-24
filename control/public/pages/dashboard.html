@@ -102,6 +102,56 @@
                 box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
             }
         }
+
+        /* Autocompletado */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .autocomplete-item:hover {
+            background: #f0f9ff;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item i {
+            color: #dc3545;
+            margin-right: 8px;
+        }
+
+        .map-help-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .map-help-text i {
+            color: #2563eb;
+        }
     </style>
 </head>
 
@@ -242,17 +292,20 @@
                             </div>
                             <!-- Buscador de direcciones -->
                             <div class="search-address-container">
-                                <div class="input-group">
+                                <div class="input-group" style="position: relative;">
                                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                                     <input type="text" class="form-control" id="addressSearch"
-                                        placeholder="Buscar dirección para ver clientes cercanos..." autocomplete="off">
-                                    <button class="btn btn-primary" type="button" id="btnSearchAddress">
-                                        <i class="bi bi-geo"></i> Buscar
-                                    </button>
+                                        placeholder="Escribe una dirección..." autocomplete="off">
                                     <button class="btn btn-outline-secondary" type="button" id="btnClearSearch"
                                         style="display:none;">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
+                                    <!-- Dropdown de autocompletado -->
+                                    <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+                                </div>
+                                <div class="map-help-text">
+                                    <i class="bi bi-hand-index"></i> ¿No encuentras la dirección? Haz <strong>click en
+                                        el mapa</strong> para poner un pin manual
                                 </div>
                                 <div id="nearbyResults" class="nearby-results"></div>
                             </div>
@@ -654,15 +707,123 @@
         }
 
         // Event listeners
-        document.getElementById('btnSearchAddress').addEventListener('click', () => {
-            const query = document.getElementById('addressSearch').value.trim();
-            if (query) searchAddress(query);
+        let searchTimeout = null;
+        const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+        const addressInput = document.getElementById('addressSearch');
+
+        // Busqueda en tiempo real con debounce
+        addressInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+
+            // Limpiar timeout anterior
+            if (searchTimeout) clearTimeout(searchTimeout);
+
+            // Si menos de 3 caracteres, ocultar dropdown
+            if (query.length < 3) {
+                autocompleteDropdown.classList.remove('show');
+                return;
+            }
+
+            // Debounce: esperar 300ms despues de que el usuario deje de escribir
+            searchTimeout = setTimeout(() => fetchSuggestions(query), 300);
         });
 
-        document.getElementById('addressSearch').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const query = e.target.value.trim();
-                if (query) searchAddress(query);
+        // Obtener sugerencias de Nominatim
+        async function fetchSuggestions(query) {
+            try {
+                const searchQuery = query.includes('Lima') || query.includes('Peru') ? query : `${query}, Lima, Peru`;
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1`;
+
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': 'IOGroup-Dashboard' }
+                });
+                const results = await response.json();
+
+                if (results.length === 0) {
+                    autocompleteDropdown.innerHTML = '<div class="autocomplete-item text-muted"><i class="bi bi-info-circle"></i> No se encontraron resultados</div>';
+                } else {
+                    autocompleteDropdown.innerHTML = results.map((r, i) => `
+                        <div class="autocomplete-item" data-lat="${r.lat}" data-lng="${r.lon}" data-name="${r.display_name}">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            ${r.display_name.substring(0, 80)}${r.display_name.length > 80 ? '...' : ''}
+                        </div>
+                    `).join('');
+
+                    // Agregar event listeners a los items
+                    autocompleteDropdown.querySelectorAll('.autocomplete-item[data-lat]').forEach(item => {
+                        item.addEventListener('click', () => {
+                            const lat = parseFloat(item.dataset.lat);
+                            const lng = parseFloat(item.dataset.lng);
+                            const name = item.dataset.name;
+                            selectLocation(lat, lng, name);
+                            autocompleteDropdown.classList.remove('show');
+                            addressInput.value = name.substring(0, 50);
+                        });
+                    });
+                }
+                autocompleteDropdown.classList.add('show');
+            } catch (err) {
+                console.error('Error fetching suggestions:', err);
+            }
+        }
+
+        // Seleccionar una ubicacion (desde autocomplete o click en mapa)
+        function selectLocation(lat, lng, name = 'Ubicación seleccionada') {
+            // Limpiar marcador anterior
+            if (searchMarker) dashboardMap.removeLayer(searchMarker);
+            if (searchCircle) dashboardMap.removeLayer(searchCircle);
+
+            // Crear marcador de busqueda (azul)
+            searchMarker = L.circleMarker([lat, lng], {
+                radius: 10,
+                fillColor: '#2563eb',
+                color: '#fff',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 1
+            }).addTo(dashboardMap);
+
+            // Circulo de radio de 5km
+            searchCircle = L.circle([lat, lng], {
+                radius: 5000,
+                color: '#2563eb',
+                fillColor: '#2563eb',
+                fillOpacity: 0.1,
+                weight: 2,
+                dashArray: '5, 5'
+            }).addTo(dashboardMap);
+
+            // Popup
+            searchMarker.bindPopup(`
+                <div class="sede-popup">
+                    <h6><i class="bi bi-geo-alt text-primary"></i> ${name.substring(0, 60)}...</h6>
+                    <p class="text-muted">Coordenadas: ${lat.toFixed(5)}, ${lng.toFixed(5)}</p>
+                </div>
+            `).openPopup();
+
+            // Ajustar vista
+            dashboardMap.setView([lat, lng], 14);
+
+            // Buscar clientes cercanos
+            const nearby = findNearbyClients(lat, lng, 5);
+            showNearbyResults(nearby, lat, lng);
+
+            // Mostrar boton de limpiar
+            document.getElementById('btnClearSearch').style.display = 'block';
+        }
+
+        // Click en el mapa para poner pin manual
+        dashboardMap.on('click', function (e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            selectLocation(lat, lng, 'Pin manual');
+            addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        });
+
+        // Ocultar dropdown al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-address-container')) {
+                autocompleteDropdown.classList.remove('show');
             }
         });
 
