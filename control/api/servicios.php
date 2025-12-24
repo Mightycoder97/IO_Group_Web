@@ -44,16 +44,22 @@ function getAll() {
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100))); // Entre 10 y 500, default 100
     $offset = ($page - 1) * $limit;
     
-    // Consulta optimizada con índices
+    // Consulta optimizada con índices - incluye IDs de documentos relacionados
     $sql = "SELECT s.id_servicio, s.codigo_servicio, s.fecha_programada, s.fecha_ejecucion, 
             s.estado, s.id_sede, s.id_planta,
             se.nombre_comercial as sede_nombre,
             e.razon_social as empresa_razon_social,
-            p.nombre_comercial as planta_nombre
+            p.nombre_comercial as planta_nombre,
+            m.id_manifiesto, m.peso_kg,
+            g.id_guia,
+            f.id_factura
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             INNER JOIN Planta p ON s.id_planta = p.id_planta
+            LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
+            LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
+            LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
             WHERE 1=1";
     $params = [];
     
@@ -83,8 +89,11 @@ function getAll() {
             s.estado, s.id_sede, s.id_planta,
             se.nombre_comercial as sede_nombre,
             e.razon_social as empresa_razon_social,
-            p.nombre_comercial as planta_nombre",
-        "SELECT COUNT(*) as total",
+            p.nombre_comercial as planta_nombre,
+            m.id_manifiesto, m.peso_kg,
+            g.id_guia,
+            f.id_factura",
+        "SELECT COUNT(DISTINCT s.id_servicio) as total",
         $sql
     );
     $totalResult = db()->queryOne($countSql, $params);
