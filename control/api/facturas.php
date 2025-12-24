@@ -35,6 +35,7 @@ function getAll() {
     $estado = $_GET['estado'] ?? null;
     $fecha_desde = $_GET['fecha_desde'] ?? null;
     $fecha_hasta = $_GET['fecha_hasta'] ?? null;
+    $sede = $_GET['sede'] ?? null;
     
     // Paginación
     $page = max(1, intval($_GET['page'] ?? 1));
@@ -44,7 +45,7 @@ function getAll() {
     // Consulta optimizada - solo campos esenciales
     $sql = "SELECT f.id_factura, f.numero_factura, f.fecha_emision, f.monto_total, 
             f.estado, f.metodo_pago, f.id_servicio,
-            s.codigo_servicio, se.nombre_comercial as sede_nombre
+            s.codigo_servicio, se.nombre_comercial as sede_nombre, s.id_sede
             FROM Factura f
             INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
             INNER JOIN Sede se ON s.id_sede = se.id_sede
@@ -54,6 +55,11 @@ function getAll() {
     if ($servicio) {
         $sql .= " AND f.id_servicio = ?";
         $params[] = $servicio;
+    }
+    
+    if ($sede) {
+        $sql .= " AND s.id_sede = ?";
+        $params[] = $sede;
     }
     
     if ($estado) {

@@ -18,8 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 function getSidebarHTML() {
     return `
         <div class="sidebar-header">
-            <i class="bi bi-recycle" style="font-size: 2rem;"></i>
-            <h2>IO Group</h2>
+            <img src="../../img/logo-control-small.svg" alt="IO Control" style="height: 36px; width: auto;">
         </div>
         <nav class="sidebar-nav">
             <a href="../dashboard.html" class="nav-item"><i class="bi bi-speedometer2"></i> Dashboard</a>

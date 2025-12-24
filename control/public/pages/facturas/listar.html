@@ -3,12 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Facturas - IO Group</title>
-    <!-- Preconnect para optimizar carga -->
+    <title>Facturas - IO Control</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -50,11 +49,12 @@
                     <div class="table-header">
                         <div>
                             <h5 class="table-title mb-0"><i class="bi bi-receipt"></i> Facturas</h5>
+                            <small class="text-info" id="sedeFilterMsg" style="display:none;"></small>
                         </div>
                         <div class="d-flex gap-2">
                             <select class="form-select" id="estadoFilter" style="width: 140px;">
                                 <option value="">Todos</option>
-                                <option value="pendiente">Pendiente</option>
+                                <option value="emitida">Emitida</option>
                                 <option value="pagada">Pagada</option>
                                 <option value="anulada">Anulada</option>
                             </select>
@@ -69,11 +69,11 @@
                             <thead>
                                 <tr>
                                     <th>Nº Factura</th>
-                                    <th>Servicio</th>
+                                    <th>Sede</th>
                                     <th>Fecha Emisión</th>
                                     <th>Monto Total</th>
                                     <th>Estado</th>
-                                    <th>Fecha Pago</th>
+                                    <th>Método Pago</th>
                                     <th width="100">Acciones</th>
                                 </tr>
                             </thead>
@@ -101,21 +101,39 @@
 
         let allData = [];
         let tableSorter = null;
+        const sedeId = getUrlParam('sede');
+
+        // Mostrar mensaje si está filtrando por sede
+        if (sedeId) {
+            document.getElementById('sedeFilterMsg').style.display = 'block';
+            document.getElementById('sedeFilterMsg').innerHTML = '<i class="bi bi-funnel-fill"></i> Filtrando facturas por sede...';
+        }
 
         async function loadData(estado = null) {
             try {
-                let url = '/facturas';
-                if (estado) url += `?estado=${estado}`;
+                let url = '/facturas?';
+                if (sedeId) url += `sede=${sedeId}&`;
+                if (estado) url += `estado=${estado}&`;
 
                 const result = await api.get(url);
                 if (result.success) {
                     allData = result.data;
+
+                    // Actualizar mensaje de filtro con nombre de sede
+                    if (sedeId && allData.length > 0) {
+                        document.getElementById('sedeFilterMsg').innerHTML =
+                            `<i class="bi bi-funnel-fill"></i> Facturas de: <strong>${allData[0].sede_nombre}</strong> (${result.total} registros)`;
+                    } else if (sedeId) {
+                        document.getElementById('sedeFilterMsg').innerHTML =
+                            '<i class="bi bi-funnel-fill"></i> No hay facturas para esta sede';
+                    }
+
                     renderTable(allData);
 
                     // Inicializar ordenamiento de columnas
                     if (!tableSorter) {
                         tableSorter = new TableSort('tableBody', {
-                            columns: ['numero_factura', 'id_servicio', 'fecha_emision', 'monto_total', 'estado', 'fecha_pago', null],
+                            columns: ['numero_factura', 'sede_nombre', 'fecha_emision', 'monto_total', 'estado', 'metodo_pago', null],
                             onSort: (sortedData) => renderTable(sortedData)
                         });
                     }
@@ -128,11 +146,12 @@
 
         function getEstadoBadge(estado) {
             const badges = {
-                'pendiente': 'bg-warning',
+                'emitida': 'bg-warning',
                 'pagada': 'bg-success',
-                'anulada': 'bg-danger'
+                'anulada': 'bg-danger',
+                'vencida': 'bg-secondary'
             };
-            return `<span class="badge ${badges[estado] || 'bg-secondary'}">${estado}</span>`;
+            return `<span class="badge ${badges[estado] || 'bg-secondary'}">${estado || '-'}</span>`;
         }
 
         function renderTable(data) {
@@ -144,14 +163,14 @@
             tbody.innerHTML = data.map(item => `
                 <tr>
                     <td><strong>${item.numero_factura || '#' + item.id_factura}</strong></td>
-                    <td>${item.servicio_codigo || 'SV-' + item.id_servicio}<br><small class="text-muted">${item.sede_nombre || ''}</small></td>
+                    <td>${item.sede_nombre || '-'}</td>
                     <td>${item.fecha_emision ? new Date(item.fecha_emision).toLocaleDateString('es-PE') : '-'}</td>
                     <td><strong>S/ ${parseFloat(item.monto_total || 0).toFixed(2)}</strong></td>
                     <td>${getEstadoBadge(item.estado)}</td>
-                    <td>${item.fecha_pago ? new Date(item.fecha_pago).toLocaleDateString('es-PE') : '-'}</td>
+                    <td>${item.metodo_pago || '-'}</td>
                     <td>
-                        <a href="formulario.html?id=${item.id_factura}" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-pencil"></i></a>
-                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_factura})"><i class="bi bi-trash"></i></button>` : ''}
+                        <a href="formulario.html?id=${item.id_factura}" class="btn btn-sm btn-outline-primary btn-action" title="Ver/Editar"><i class="bi bi-pencil"></i></a>
+                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_factura})" title="Eliminar"><i class="bi bi-trash"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
