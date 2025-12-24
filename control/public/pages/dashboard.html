@@ -8,156 +8,62 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Dashboard - IO Control</title>
-    <!-- Preconnect para optimizar carga de recursos externos -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <link rel="preconnect" href="https://nominatim.openstreetmap.org" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
     <link href="../css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
-        #dashboardMap {
-            height: 400px;
-            border-radius: 8px;
+        .kpi-card {
+            border-radius: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .sede-popup {
-            min-width: 200px;
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .sede-popup h6 {
-            margin-bottom: 5px;
-            color: #2d3748;
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1.2;
         }
 
-        .sede-popup p {
-            margin: 0;
-            font-size: 12px;
-            color: #718096;
+        .kpi-label {
+            color: #6c757d;
+            font-size: 0.9rem;
         }
 
-        .sede-popup .badge {
-            font-size: 10px;
+        .kpi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
         }
 
-        /* Buscador de direcciones */
-        .search-address-container {
+        .chart-container {
             position: relative;
-            padding: 12px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
+            height: 300px;
         }
 
-        .search-address-container .input-group {
-            max-width: 100%;
-        }
-
-        .search-marker {
-            background: #2563eb;
-            border: 3px solid #fff;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .nearby-results {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 10px;
-            display: none;
-        }
-
-        .nearby-results.show {
-            display: block;
-        }
-
-        .nearby-item {
-            padding: 8px 12px;
-            border-left: 3px solid #4ade80;
-            background: #f0fdf4;
-            margin-bottom: 4px;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        .nearby-item .distance {
-            font-weight: bold;
-            color: #16a34a;
-        }
-
-        .nearby-item .name {
-            font-weight: 500;
-            color: #1f2937;
-        }
-
-        .search-result-marker {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+        @media (max-width: 768px) {
+            .kpi-value {
+                font-size: 1.8rem;
             }
 
-            70% {
-                box-shadow: 0 0 0 15px rgba(37, 99, 235, 0);
+            .kpi-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.2rem;
             }
 
-            100% {
-                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+            .chart-container {
+                height: 250px;
             }
-        }
-
-        /* Autocompletado */
-        .autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 0 0 8px 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            max-height: 250px;
-            overflow-y: auto;
-            display: none;
-        }
-
-        .autocomplete-dropdown.show {
-            display: block;
-        }
-
-        .autocomplete-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            font-size: 13px;
-        }
-
-        .autocomplete-item:hover {
-            background: #f0f9ff;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-
-        .autocomplete-item i {
-            color: #dc3545;
-            margin-right: 8px;
-        }
-
-        .map-help-text {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 6px;
-        }
-
-        .map-help-text i {
-            color: #2563eb;
         }
     </style>
 </head>
@@ -171,9 +77,7 @@
                 <h2 style="color: white; font-size: 1.1rem; margin: 0.5rem 0 0 0;">IO Control</h2>
             </div>
             <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-item active">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
+                <a href="dashboard.html" class="nav-item active"><i class="bi bi-speedometer2"></i> Dashboard</a>
 
                 <div class="nav-section">
                     <div class="nav-section-title">Clientes</div>
@@ -184,24 +88,29 @@
                 <a href="contratos/listar.html" class="nav-item"><i class="bi bi-file-earmark-text"></i> Contratos</a>
 
                 <div class="nav-section">
-                    <div class="nav-section-title">Personal</div>
+                    <div class="nav-section-title">Operaciones</div>
+                </div>
+                <a href="servicios/listar.html" class="nav-item"><i class="bi bi-box-seam"></i> Servicios</a>
+                <a href="rutas/listar.html" class="nav-item"><i class="bi bi-signpost-2"></i> Rutas</a>
+                <a href="manifiestos/listar.html" class="nav-item"><i class="bi bi-journal-text"></i> Manifiestos</a>
+                <a href="guias/listar.html" class="nav-item"><i class="bi bi-file-earmark"></i> Guías</a>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Recursos</div>
                 </div>
                 <a href="empleados/listar.html" class="nav-item"><i class="bi bi-person-badge"></i> Empleados</a>
                 <a href="vehiculos/listar.html" class="nav-item"><i class="bi bi-truck"></i> Vehículos</a>
-                <a href="plantas/listar.html" class="nav-item"><i class="bi bi-hospital"></i> Plantas</a>
+                <a href="plantas/listar.html" class="nav-item"><i class="bi bi-factory"></i> Plantas</a>
 
                 <div class="nav-section">
-                    <div class="nav-section-title">Operaciones</div>
+                    <div class="nav-section-title">Finanzas</div>
                 </div>
-                <a href="rutas/listar.html" class="nav-item"><i class="bi bi-signpost-2"></i> Rutas</a>
-                <a href="servicios/listar.html" class="nav-item"><i class="bi bi-box-seam"></i> Servicios</a>
-                <a href="manifiestos/listar.html" class="nav-item"><i class="bi bi-journal-text"></i> Manifiestos</a>
-                <a href="guias/listar.html" class="nav-item"><i class="bi bi-file-earmark"></i> Guías</a>
                 <a href="facturas/listar.html" class="nav-item"><i class="bi bi-receipt"></i> Facturas</a>
 
                 <div class="nav-section">
-                    <div class="nav-section-title">Reportes</div>
+                    <div class="nav-section-title">Herramientas</div>
                 </div>
+                <a href="mapa/index.html" class="nav-item"><i class="bi bi-map"></i> Mapa de Sedes</a>
                 <a href="reportes/index.html" class="nav-item"><i class="bi bi-graph-up"></i> Reportes</a>
                 <a href="alertas/index.html" class="nav-item"><i class="bi bi-bell"></i> Alertas</a>
             </nav>
@@ -214,11 +123,7 @@
                     <button class="toggle-sidebar" onclick="toggleSidebar()">
                         <i class="bi bi-list"></i>
                     </button>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item active">Dashboard</li>
-                        </ol>
-                    </nav>
+                    <h4 class="mb-0 ms-2">Dashboard</h4>
                 </div>
                 <div class="user-menu">
                     <a href="alertas/index.html" class="btn btn-light alert-badge">
@@ -239,129 +144,76 @@
             </nav>
 
             <div class="content-area">
-                <h4 class="mb-4">Dashboard</h4>
-
-                <!-- Stats Cards -->
-                <div class="row g-4 mb-4">
+                <!-- KPI Row 1 -->
+                <div class="row g-3 mb-4">
                     <div class="col-lg-3 col-md-6">
-                        <div class="card stat-card">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="stat-value" id="statSedes">0</div>
-                                    <div class="stat-label">Sedes Activas</div>
+                        <div class="card kpi-card h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-primary bg-opacity-10 text-primary me-3">
+                                    <i class="bi bi-geo-alt-fill"></i>
                                 </div>
-                                <i class="bi bi-geo-alt stat-icon text-primary"></i>
+                                <div>
+                                    <div class="kpi-value text-primary" id="kpiSedesActivas">--</div>
+                                    <div class="kpi-label">Sedes Activas</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="card stat-card info">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="stat-value" id="statServicios">0</div>
-                                    <div class="stat-label">Servicios del Mes</div>
+                        <div class="card kpi-card h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-success bg-opacity-10 text-success me-3">
+                                    <i class="bi bi-check-circle-fill"></i>
                                 </div>
-                                <i class="bi bi-box-seam stat-icon text-info"></i>
+                                <div>
+                                    <div class="kpi-value text-success" id="kpiPorcentajeServicio">--%</div>
+                                    <div class="kpi-label">Servicio del Mes</div>
+                                    <small class="text-muted" id="kpiSedesServicio"></small>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="card stat-card success">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="stat-value" id="statKg">0</div>
-                                    <div class="stat-label">Kg Recogidos (Mes)</div>
+                        <div class="card kpi-card h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-warning bg-opacity-10 text-warning me-3">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
                                 </div>
-                                <i class="bi bi-recycle stat-icon text-success"></i>
+                                <div>
+                                    <div class="kpi-value text-warning" id="kpiClientesPendientes">--</div>
+                                    <div class="kpi-label">Clientes con Pago Pendiente</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="card stat-card warning">
-                            <div class="card-body d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="stat-value" id="statAlertas">0</div>
-                                    <div class="stat-label">Alertas Críticas</div>
+                        <div class="card kpi-card h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="kpi-icon bg-danger bg-opacity-10 text-danger me-3">
+                                    <i class="bi bi-currency-dollar"></i>
                                 </div>
-                                <i class="bi bi-exclamation-triangle stat-icon text-warning"></i>
+                                <div>
+                                    <div class="kpi-value text-danger" id="kpiMontoPendiente">S/ --</div>
+                                    <div class="kpi-label">Total Pagos Pendientes</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Mapa de Ubicaciones -->
-                <div class="row mb-4">
+                <!-- Chart Row -->
+                <div class="row">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-geo-alt-fill text-danger"></i> Sedes Activas</span>
-                                <span class="badge bg-primary" id="sedesCount">0 sedes</span>
+                                <span><i class="bi bi-bar-chart-fill text-primary"></i> Facturación Últimos 12
+                                    Meses</span>
+                                <span class="badge bg-success" id="totalAnual">S/ 0.00</span>
                             </div>
-                            <!-- Buscador de direcciones -->
-                            <div class="search-address-container">
-                                <div class="input-group" style="position: relative;">
-                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="addressSearch"
-                                        placeholder="Escribe una dirección..." autocomplete="off">
-                                    <button class="btn btn-outline-secondary" type="button" id="btnClearSearch"
-                                        style="display:none;">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                    <!-- Dropdown de autocompletado -->
-                                    <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="chartFacturacion"></canvas>
                                 </div>
-                                <div class="map-help-text">
-                                    <i class="bi bi-hand-index"></i> ¿No encuentras la dirección? Haz <strong>click en
-                                        el mapa</strong> para poner un pin manual
-                                </div>
-                                <div id="nearbyResults" class="nearby-results"></div>
-                            </div>
-                            <div class="card-body p-0">
-                                <div id="dashboardMap"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-4">
-                    <!-- Servicios Programados -->
-                    <div class="col-lg-8">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-calendar-check"></i> Servicios Programados Hoy</span>
-                                <a href="servicios/listar.html" class="btn btn-sm btn-outline-primary">Ver todos</a>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>Sede</th>
-                                                <th>Empresa</th>
-                                                <th>Estado</th>
-                                                <th>Acciones</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="serviciosHoy">
-                                            <tr>
-                                                <td colspan="4" class="text-center py-4">Cargando...</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Alertas -->
-                    <div class="col-lg-4">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-bell"></i> Alertas</span>
-                                <a href="alertas/index.html" class="btn btn-sm btn-outline-primary">Ver todas</a>
-                            </div>
-                            <div class="card-body" id="alertasContainer">
-                                <p class="text-center text-muted py-4">Cargando...</p>
                             </div>
                         </div>
                     </div>
@@ -371,474 +223,87 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/app.js"></script>
     <script>
-        checkAuth();
+        initPage('dashboard');
 
-        // Load user info
-        const user = getUser();
-        if (user) {
-            document.getElementById('userName').textContent = user.nombre || user.username;
-        }
+        let facturaChart = null;
 
-        // Load dashboard data
         async function loadDashboard() {
             try {
-                const stats = await api.get('/reportes/dashboard');
-                if (stats.success) {
-                    const d = stats.data;
-                    // El API devuelve los contadores en data.counters
-                    document.getElementById('statSedes').textContent = d.counters?.sedes || d.total_sedes || 0;
-                    document.getElementById('statServicios').textContent = d.counters?.servicios_mes || d.servicios_mes || 0;
-                    document.getElementById('statKg').textContent = Math.round(d.peso_mes_kg || d.kg_mes || 0);
-                    document.getElementById('statAlertas').textContent = d.alertas_criticas || 0;
-                    document.getElementById('alertCount').textContent = d.alertas_criticas || 0;
-                }
-            } catch (err) { console.error('Error loading dashboard:', err); }
+                const result = await api.get('/reportes?action=dashboard');
+                if (result.success) {
+                    const data = result.data;
 
-            // Load today's services
-            const today = new Date().toISOString().split('T')[0];
-            try {
-                const servicios = await api.get(`/servicios?fecha=${today}`);
-                const tbody = document.getElementById('serviciosHoy');
-                if (servicios.success && servicios.data.length > 0) {
-                    tbody.innerHTML = servicios.data.slice(0, 5).map(s => `
-                        <tr>
-                            <td>${s.sede_nombre}</td>
-                            <td>${s.empresa_razon_social}</td>
-                            <td>${getStatusBadge(s.estado)}</td>
-                            <td><a href="servicios/formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a></td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No hay servicios programados</td></tr>';
-                }
-            } catch (err) { console.error('Error loading services:', err); }
+                    // KPIs
+                    document.getElementById('kpiSedesActivas').textContent = data.sedes_activas;
+                    document.getElementById('kpiPorcentajeServicio').textContent = data.porcentaje_servicio + '%';
+                    document.getElementById('kpiSedesServicio').textContent =
+                        `${data.sedes_con_servicio} de ${data.sedes_activas} sedes`;
+                    document.getElementById('kpiClientesPendientes').textContent = data.empresas_pendientes;
+                    document.getElementById('kpiMontoPendiente').textContent =
+                        'S/ ' + data.monto_pendiente.toLocaleString('es-PE', { minimumFractionDigits: 2 });
 
-            // Load alerts
-            try {
-                const alertas = await api.get('/alertas?estado=CRITICO');
-                const container = document.getElementById('alertasContainer');
-                if (alertas.success && alertas.data.length > 0) {
-                    container.innerHTML = alertas.data.slice(0, 5).map(a => `
-                        <div class="alert-item ${a.estado.toLowerCase()}">
-                            <i class="bi bi-exclamation-circle text-danger me-2"></i>
-                            <div class="flex-grow-1">
-                                <small class="d-block fw-bold">${a.documento}</small>
-                                <small class="text-muted">${a.descripcion}</small>
-                            </div>
-                            <small class="text-danger">${a.dias_restantes}d</small>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<p class="text-center text-muted py-4"><i class="bi bi-check-circle text-success"></i> Sin alertas críticas</p>';
+                    // Chart
+                    renderChart(data.facturacion_12_meses);
                 }
-            } catch (err) { console.error('Error loading alerts:', err); }
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+            }
         }
 
+        function renderChart(facturacionData) {
+            const ctx = document.getElementById('chartFacturacion').getContext('2d');
+
+            // Preparar datos
+            const labels = facturacionData.map(d => d.mes_label || d.mes);
+            const valores = facturacionData.map(d => parseFloat(d.total));
+            const total = valores.reduce((a, b) => a + b, 0);
+
+            document.getElementById('totalAnual').textContent =
+                'Total: S/ ' + total.toLocaleString('es-PE', { minimumFractionDigits: 2 });
+
+            if (facturaChart) facturaChart.destroy();
+
+            facturaChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Facturación (S/)',
+                        data: valores,
+                        backgroundColor: 'rgba(27, 94, 32, 0.7)',
+                        borderColor: 'rgba(27, 94, 32, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => 'S/ ' + ctx.raw.toLocaleString('es-PE', { minimumFractionDigits: 2 })
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => 'S/ ' + value.toLocaleString()
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load on start
         loadDashboard();
-
-        // ========== MAPA OPTIMIZADO (SIN CLUSTERING) ==========
-        // Usar Canvas renderer para mejor rendimiento con muchos marcadores
-        const dashboardMap = L.map('dashboardMap', {
-            preferCanvas: true,
-            renderer: L.canvas()
-        }).setView([-12.0464, -77.0428], 11);
-
-        // Tiles optimizados
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
-            maxZoom: 18,
-            updateWhenIdle: true,
-            updateWhenZooming: false
-        }).addTo(dashboardMap);
-
-        // FeatureGroup para agregar todos los marcadores de una vez (más rápido)
-        const markersLayer = L.featureGroup();
-
-        // Icono simple y ligero usando CircleMarker (más rápido que divIcon)
-        function createMarker(lat, lng, sedeId) {
-            return L.circleMarker([lat, lng], {
-                radius: 6,
-                fillColor: '#dc3545',
-                color: '#fff',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.9,
-                sedeId: sedeId
-            });
-        }
-
-        // Cache de datos de sedes para lazy loading de popups
-        let sedesData = {};
-
-        async function loadSedesMap() {
-            const countEl = document.getElementById('sedesCount');
-            countEl.textContent = 'Cargando...';
-
-            try {
-                const result = await api.get('/sedes?mapa=1'); // API optimizada
-                if (!result.success) return;
-
-                const sedes = result.data.filter(s => s.coordenadas_gps);
-                countEl.textContent = `${sedes.length} sedes`;
-
-                if (sedes.length === 0) return;
-
-                const bounds = [];
-
-                // Procesar todas las sedes
-                sedes.forEach(sede => {
-                    const parts = sede.coordenadas_gps.split(',');
-                    if (parts.length !== 2) return;
-
-                    const lat = parseFloat(parts[0]);
-                    const lng = parseFloat(parts[1]);
-
-                    if (isNaN(lat) || isNaN(lng)) return;
-
-                    // Guardar datos en cache para lazy popup
-                    sedesData[sede.id_sede] = sede;
-
-                    // Crear marcador circular (más eficiente que iconos)
-                    const marker = createMarker(lat, lng, sede.id_sede);
-
-                    // Lazy popup: se genera solo al click
-                    marker.on('click', function () {
-                        const s = sedesData[this.options.sedeId];
-                        if (!s) return;
-
-                        this.bindPopup(`
-                            <div class="sede-popup">
-                                <h6><i class="bi bi-building"></i> ${s.nombre_comercial}</h6>
-                                <p><strong>Empresa:</strong> ${s.empresa_razon_social || '-'}</p>
-                                <p><i class="bi bi-geo-alt"></i> ${s.direccion || '-'}</p>
-                                <p>${s.distrito || ''} ${s.provincia ? ', ' + s.provincia : ''}</p>
-                                <hr style="margin: 8px 0;">
-                                <a href="sedes/formulario.html?id=${s.id_sede}" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-pencil"></i> Editar
-                                </a>
-                            </div>
-                        `, { maxWidth: 250 }).openPopup();
-                    });
-
-                    markersLayer.addLayer(marker);
-                    bounds.push([lat, lng]);
-                });
-
-                // Agregar todos los marcadores al mapa de una vez
-                dashboardMap.addLayer(markersLayer);
-
-                // Ajustar vista
-                if (bounds.length > 0) {
-                    dashboardMap.fitBounds(bounds, {
-                        padding: [30, 30],
-                        maxZoom: 14
-                    });
-                }
-
-            } catch (err) {
-                console.error('Error loading sedes map:', err);
-                countEl.textContent = 'Error';
-            }
-        }
-
-        // Cargar mapa después del DOM
-        setTimeout(loadSedesMap, 100);
-
-        // ========== BUSCADOR DE DIRECCIONES ==========
-        let searchMarker = null;
-        let searchCircle = null;
-
-        // Calcular distancia entre dos puntos (Haversine formula)
-        function calcDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Radio de la Tierra en km
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-        }
-
-        // Buscar clientes cercanos a una ubicación
-        function findNearbyClients(lat, lng, radiusKm = 1) {
-            const nearby = [];
-            Object.values(sedesData).forEach(sede => {
-                const parts = sede.coordenadas_gps?.split(',');
-                if (!parts || parts.length !== 2) return;
-
-                const sLat = parseFloat(parts[0]);
-                const sLng = parseFloat(parts[1]);
-                if (isNaN(sLat) || isNaN(sLng)) return;
-
-                const dist = calcDistance(lat, lng, sLat, sLng);
-                if (dist <= radiusKm) {
-                    nearby.push({ ...sede, distance: dist, lat: sLat, lng: sLng });
-                }
-            });
-            return nearby.sort((a, b) => a.distance - b.distance);
-        }
-
-        // Mostrar resultados de clientes cercanos
-        function showNearbyResults(nearby, searchLat, searchLng) {
-            const container = document.getElementById('nearbyResults');
-
-            if (nearby.length === 0) {
-                container.innerHTML = '<div class="alert alert-info mb-0 py-2"><i class="bi bi-info-circle"></i> No hay clientes en un radio de 1 km</div>';
-            } else {
-                container.innerHTML = `
-                    <div class="text-muted small mb-2"><i class="bi bi-check-circle text-success"></i> ${nearby.length} cliente(s) en un radio de 1 km:</div>
-                    ${nearby.slice(0, 10).map(s => `
-                        <div class="nearby-item" onclick="zoomToSede(${s.lat}, ${s.lng}, ${s.id_sede})" style="cursor:pointer;">
-                            <span class="distance">${s.distance < 1 ? (s.distance * 1000).toFixed(0) + ' m' : s.distance.toFixed(2) + ' km'}</span>
-                            - <span class="name">${s.nombre_comercial}</span>
-                            <br><small class="text-muted">${s.direccion || ''}</small>
-                        </div>
-                    `).join('')}
-                    ${nearby.length > 10 ? `<div class="text-muted small">... y ${nearby.length - 10} más</div>` : ''}
-                `;
-            }
-            container.classList.add('show');
-        }
-
-        // Zoom a una sede específica
-        function zoomToSede(lat, lng, sedeId) {
-            dashboardMap.setView([lat, lng], 16);
-            // Abrir popup de la sede
-            markersLayer.eachLayer(marker => {
-                if (marker.options.sedeId === sedeId) {
-                    marker.fire('click');
-                }
-            });
-        }
-
-        // Geocodificar dirección usando Nominatim
-        async function searchAddress(query) {
-            const btn = document.getElementById('btnSearchAddress');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-            btn.disabled = true;
-
-            try {
-                // Agregar "Lima, Peru" para mejores resultados
-                const searchQuery = query.includes('Lima') || query.includes('Peru') ? query : `${query}, Lima, Peru`;
-                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`;
-
-                const response = await fetch(url, {
-                    headers: { 'User-Agent': 'IOGroup-Dashboard' }
-                });
-                const results = await response.json();
-
-                if (results.length === 0) {
-                    alert('No se encontró la dirección. Intenta ser más específico.');
-                    return;
-                }
-
-                const result = results[0];
-                const lat = parseFloat(result.lat);
-                const lng = parseFloat(result.lon);
-
-                // Limpiar marcador anterior
-                if (searchMarker) dashboardMap.removeLayer(searchMarker);
-                if (searchCircle) dashboardMap.removeLayer(searchCircle);
-
-                // Crear marcador de búsqueda (azul, con pulso)
-                searchMarker = L.circleMarker([lat, lng], {
-                    radius: 10,
-                    fillColor: '#2563eb',
-                    color: '#fff',
-                    weight: 3,
-                    opacity: 1,
-                    fillOpacity: 1,
-                    className: 'search-result-marker'
-                }).addTo(dashboardMap);
-
-                // Círculo de radio de 5km
-                searchCircle = L.circle([lat, lng], {
-                    radius: 5000, // 5km en metros
-                    color: '#2563eb',
-                    fillColor: '#2563eb',
-                    fillOpacity: 0.1,
-                    weight: 2,
-                    dashArray: '5, 5'
-                }).addTo(dashboardMap);
-
-                // Popup con la dirección encontrada
-                searchMarker.bindPopup(`
-                    <div class="sede-popup">
-                        <h6><i class="bi bi-search text-primary"></i> Ubicación buscada</h6>
-                        <p>${result.display_name}</p>
-                    </div>
-                `).openPopup();
-
-                // Ajustar vista
-                dashboardMap.setView([lat, lng], 14);
-
-                // Buscar clientes cercanos
-                const nearby = findNearbyClients(lat, lng, 5);
-                showNearbyResults(nearby, lat, lng);
-
-                // Mostrar botón de limpiar
-                document.getElementById('btnClearSearch').style.display = 'block';
-
-            } catch (err) {
-                console.error('Error searching address:', err);
-                alert('Error al buscar la dirección. Intenta de nuevo.');
-            } finally {
-                btn.innerHTML = '<i class="bi bi-geo"></i> Buscar';
-                btn.disabled = false;
-            }
-        }
-
-        // Limpiar búsqueda
-        function clearSearch() {
-            if (searchMarker) dashboardMap.removeLayer(searchMarker);
-            if (searchCircle) dashboardMap.removeLayer(searchCircle);
-            searchMarker = null;
-            searchCircle = null;
-            document.getElementById('addressSearch').value = '';
-            document.getElementById('nearbyResults').classList.remove('show');
-            document.getElementById('btnClearSearch').style.display = 'none';
-            // Volver a vista general
-            if (Object.keys(sedesData).length > 0) {
-                const bounds = Object.values(sedesData)
-                    .filter(s => s.coordenadas_gps)
-                    .map(s => s.coordenadas_gps.split(',').map(parseFloat));
-                if (bounds.length > 0) {
-                    dashboardMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
-                }
-            }
-        }
-
-        // Event listeners
-        let searchTimeout = null;
-        const autocompleteDropdown = document.getElementById('autocompleteDropdown');
-        const addressInput = document.getElementById('addressSearch');
-
-        // Busqueda en tiempo real con debounce
-        addressInput.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
-
-            // Limpiar timeout anterior
-            if (searchTimeout) clearTimeout(searchTimeout);
-
-            // Si menos de 3 caracteres, ocultar dropdown
-            if (query.length < 3) {
-                autocompleteDropdown.classList.remove('show');
-                return;
-            }
-
-            // Debounce: esperar 300ms despues de que el usuario deje de escribir
-            searchTimeout = setTimeout(() => fetchSuggestions(query), 300);
-        });
-
-        // Obtener sugerencias de Nominatim
-        async function fetchSuggestions(query) {
-            try {
-                const searchQuery = query.includes('Lima') || query.includes('Peru') ? query : `${query}, Lima, Peru`;
-                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1`;
-
-                const response = await fetch(url, {
-                    headers: { 'User-Agent': 'IOGroup-Dashboard' }
-                });
-                const results = await response.json();
-
-                if (results.length === 0) {
-                    autocompleteDropdown.innerHTML = '<div class="autocomplete-item text-muted"><i class="bi bi-info-circle"></i> No se encontraron resultados</div>';
-                } else {
-                    autocompleteDropdown.innerHTML = results.map((r, i) => `
-                        <div class="autocomplete-item" data-lat="${r.lat}" data-lng="${r.lon}" data-name="${r.display_name}">
-                            <i class="bi bi-geo-alt-fill"></i>
-                            ${r.display_name.substring(0, 80)}${r.display_name.length > 80 ? '...' : ''}
-                        </div>
-                    `).join('');
-
-                    // Agregar event listeners a los items
-                    autocompleteDropdown.querySelectorAll('.autocomplete-item[data-lat]').forEach(item => {
-                        item.addEventListener('click', () => {
-                            const lat = parseFloat(item.dataset.lat);
-                            const lng = parseFloat(item.dataset.lng);
-                            const name = item.dataset.name;
-                            selectLocation(lat, lng, name);
-                            autocompleteDropdown.classList.remove('show');
-                            addressInput.value = name.substring(0, 50);
-                        });
-                    });
-                }
-                autocompleteDropdown.classList.add('show');
-            } catch (err) {
-                console.error('Error fetching suggestions:', err);
-            }
-        }
-
-        // Seleccionar una ubicacion (desde autocomplete o click en mapa)
-        function selectLocation(lat, lng, name = 'Ubicación seleccionada') {
-            // Limpiar marcador anterior
-            if (searchMarker) dashboardMap.removeLayer(searchMarker);
-            if (searchCircle) dashboardMap.removeLayer(searchCircle);
-
-            // Crear marcador de busqueda (azul)
-            searchMarker = L.circleMarker([lat, lng], {
-                radius: 10,
-                fillColor: '#2563eb',
-                color: '#fff',
-                weight: 3,
-                opacity: 1,
-                fillOpacity: 1
-            }).addTo(dashboardMap);
-
-            // Circulo de radio de 1km
-            searchCircle = L.circle([lat, lng], {
-                radius: 1000,
-                color: '#2563eb',
-                fillColor: '#2563eb',
-                fillOpacity: 0.1,
-                weight: 2,
-                dashArray: '5, 5'
-            }).addTo(dashboardMap);
-
-            // Popup
-            searchMarker.bindPopup(`
-                <div class="sede-popup">
-                    <h6><i class="bi bi-geo-alt text-primary"></i> ${name.substring(0, 60)}...</h6>
-                    <p class="text-muted">Coordenadas: ${lat.toFixed(5)}, ${lng.toFixed(5)}</p>
-                </div>
-            `).openPopup();
-
-            // Ajustar vista
-            dashboardMap.setView([lat, lng], 14);
-
-            // Buscar clientes cercanos
-            const nearby = findNearbyClients(lat, lng, 1);
-            showNearbyResults(nearby, lat, lng);
-
-            // Mostrar boton de limpiar
-            document.getElementById('btnClearSearch').style.display = 'block';
-        }
-
-        // Click en el mapa para poner pin manual
-        dashboardMap.on('click', function (e) {
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
-            selectLocation(lat, lng, 'Pin manual');
-            addressInput.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-        });
-
-        // Ocultar dropdown al hacer click fuera
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-address-container')) {
-                autocompleteDropdown.classList.remove('show');
-            }
-        });
-
-        document.getElementById('btnClearSearch').addEventListener('click', clearSearch);
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('show');
-        }
     </script>
 </body>
 

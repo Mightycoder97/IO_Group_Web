@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function () {
 function getSidebarHTML() {
     return `
         <div class="sidebar-header">
-            <img src="../../img/logo-control-small.svg" alt="IO Control" style="height: 36px; width: auto;">
+            <i class="bi bi-recycle" style="font-size: 2rem; color: #81C784;"></i>
+            <h2 style="color: white; font-size: 1.1rem; margin: 0.5rem 0 0 0;">IO Control</h2>
         </div>
         <nav class="sidebar-nav">
             <a href="../dashboard.html" class="nav-item"><i class="bi bi-speedometer2"></i> Dashboard</a>
@@ -29,19 +30,22 @@ function getSidebarHTML() {
             <a href="../sedes/listar.html" class="nav-item"><i class="bi bi-geo-alt"></i> Sedes</a>
             <a href="../contratos/listar.html" class="nav-item"><i class="bi bi-file-earmark-text"></i> Contratos</a>
             
-            <div class="nav-section"><div class="nav-section-title">Personal</div></div>
-            <a href="../empleados/listar.html" class="nav-item"><i class="bi bi-person-badge"></i> Empleados</a>
-            <a href="../vehiculos/listar.html" class="nav-item"><i class="bi bi-truck"></i> Vehículos</a>
-            <a href="../plantas/listar.html" class="nav-item"><i class="bi bi-hospital"></i> Plantas</a>
-            
             <div class="nav-section"><div class="nav-section-title">Operaciones</div></div>
-            <a href="../rutas/listar.html" class="nav-item"><i class="bi bi-signpost-2"></i> Rutas</a>
             <a href="../servicios/listar.html" class="nav-item"><i class="bi bi-box-seam"></i> Servicios</a>
+            <a href="../rutas/listar.html" class="nav-item"><i class="bi bi-signpost-2"></i> Rutas</a>
             <a href="../manifiestos/listar.html" class="nav-item"><i class="bi bi-journal-text"></i> Manifiestos</a>
             <a href="../guias/listar.html" class="nav-item"><i class="bi bi-file-earmark"></i> Guías</a>
+            
+            <div class="nav-section"><div class="nav-section-title">Recursos</div></div>
+            <a href="../empleados/listar.html" class="nav-item"><i class="bi bi-person-badge"></i> Empleados</a>
+            <a href="../vehiculos/listar.html" class="nav-item"><i class="bi bi-truck"></i> Vehículos</a>
+            <a href="../plantas/listar.html" class="nav-item"><i class="bi bi-factory"></i> Plantas</a>
+            
+            <div class="nav-section"><div class="nav-section-title">Finanzas</div></div>
             <a href="../facturas/listar.html" class="nav-item"><i class="bi bi-receipt"></i> Facturas</a>
             
-            <div class="nav-section"><div class="nav-section-title">Reportes</div></div>
+            <div class="nav-section"><div class="nav-section-title">Herramientas</div></div>
+            <a href="../mapa/index.html" class="nav-item"><i class="bi bi-map"></i> Mapa de Sedes</a>
             <a href="../reportes/index.html" class="nav-item"><i class="bi bi-graph-up"></i> Reportes</a>
             <a href="../alertas/index.html" class="nav-item"><i class="bi bi-bell"></i> Alertas</a>
         </nav>

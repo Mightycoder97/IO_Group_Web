@@ -33,68 +33,79 @@ switch ($action) {
 }
 
 function getDashboard() {
-    // Basic counts
-    $clientes = db()->queryOne("SELECT COUNT(*) as count FROM Cliente WHERE activo = 1")['count'];
-    $empresas = db()->queryOne("SELECT COUNT(*) as count FROM Empresa WHERE activo = 1")['count'];
-    $sedes = db()->queryOne("SELECT COUNT(*) as count FROM Sede WHERE activo = 1")['count'];
-    $empleados = db()->queryOne("SELECT COUNT(*) as count FROM Empleado WHERE activo = 1")['count'];
-    $vehiculos = db()->queryOne("SELECT COUNT(*) as count FROM Vehiculo WHERE activo = 1")['count'];
+    // Sedes activas
+    $sedesActivas = db()->queryOne("SELECT COUNT(*) as count FROM Sede WHERE activo = 1")['count'];
     
-    // Services this month
-    $serviciosMes = db()->queryOne(
-        "SELECT COUNT(*) as count FROM Servicio 
-         WHERE MONTH(fecha_programada) = MONTH(CURDATE()) AND YEAR(fecha_programada) = YEAR(CURDATE())"
+    // Sedes con servicio este mes (únicas)
+    $sedesConServicio = db()->queryOne(
+        "SELECT COUNT(DISTINCT s.id_sede) as count 
+         FROM Servicio sv 
+         INNER JOIN Sede s ON sv.id_sede = s.id_sede
+         WHERE MONTH(sv.fecha_programada) = MONTH(CURDATE()) 
+         AND YEAR(sv.fecha_programada) = YEAR(CURDATE())
+         AND sv.estado IN ('completado', 'en_curso', 'programado')"
     )['count'];
     
-    // Services by status
-    $serviciosPorEstado = db()->query(
-        "SELECT estado, COUNT(*) as count FROM Servicio GROUP BY estado"
+    // Porcentaje de sedes con servicio
+    $porcentajeServicio = $sedesActivas > 0 ? round(($sedesConServicio / $sedesActivas) * 100, 1) : 0;
+    
+    // Facturación últimos 12 meses
+    $facturacion12Meses = db()->query(
+        "SELECT 
+            DATE_FORMAT(fecha_emision, '%Y-%m') as mes,
+            DATE_FORMAT(fecha_emision, '%b %Y') as mes_label,
+            COALESCE(SUM(monto_total), 0) as total
+         FROM Factura 
+         WHERE estado != 'anulada'
+         AND fecha_emision >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+         GROUP BY DATE_FORMAT(fecha_emision, '%Y-%m')
+         ORDER BY mes ASC"
     );
     
-    // Revenue this month
+    // Pagos pendientes (facturas emitidas no pagadas)
+    $pagosPendientes = db()->queryOne(
+        "SELECT 
+            COUNT(*) as total_facturas,
+            COALESCE(SUM(f.monto_total), 0) as monto_total
+         FROM Factura f
+         WHERE f.estado = 'emitida'"
+    );
+    
+    // Empresas con pagos pendientes
+    $empresasPendientes = db()->queryOne(
+        "SELECT COUNT(DISTINCT e.id_empresa) as count
+         FROM Factura f
+         INNER JOIN Servicio sv ON f.id_servicio = sv.id_servicio
+         INNER JOIN Sede se ON sv.id_sede = se.id_sede
+         INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+         WHERE f.estado = 'emitida'"
+    )['count'];
+    
+    // Ingresos este mes
     $ingresosMes = db()->queryOne(
         "SELECT COALESCE(SUM(monto_total), 0) as total FROM Factura 
          WHERE MONTH(fecha_emision) = MONTH(CURDATE()) AND YEAR(fecha_emision) = YEAR(CURDATE())
          AND estado != 'anulada'"
     )['total'];
     
-    // Pending invoices
-    $facturasPendientes = db()->queryOne(
-        "SELECT COUNT(*) as count FROM Factura WHERE estado = 'emitida'"
+    // Servicios este mes
+    $serviciosMes = db()->queryOne(
+        "SELECT COUNT(*) as count FROM Servicio 
+         WHERE MONTH(fecha_programada) = MONTH(CURDATE()) AND YEAR(fecha_programada) = YEAR(CURDATE())"
     )['count'];
-    
-    // Recent services
-    $serviciosRecientes = db()->query(
-        "SELECT s.id_servicio, s.codigo_servicio, s.fecha_programada, s.estado,
-                se.nombre_comercial as sede_nombre
-         FROM Servicio s
-         INNER JOIN Sede se ON s.id_sede = se.id_sede
-         ORDER BY s.fecha_programada DESC LIMIT 5"
-    );
-    
-    // Total weight this month
-    $pesoMes = db()->queryOne(
-        "SELECT COALESCE(SUM(m.peso_kg), 0) as total FROM Manifiesto m
-         INNER JOIN Servicio s ON m.id_servicio = s.id_servicio
-         WHERE MONTH(s.fecha_programada) = MONTH(CURDATE()) AND YEAR(s.fecha_programada) = YEAR(CURDATE())"
-    )['total'];
     
     echo json_encode([
         'success' => true,
         'data' => [
-            'counters' => [
-                'clientes' => $clientes,
-                'empresas' => $empresas,
-                'sedes' => $sedes,
-                'empleados' => $empleados,
-                'vehiculos' => $vehiculos,
-                'servicios_mes' => $serviciosMes
-            ],
-            'servicios_por_estado' => $serviciosPorEstado,
+            'sedes_activas' => intval($sedesActivas),
+            'sedes_con_servicio' => intval($sedesConServicio),
+            'porcentaje_servicio' => $porcentajeServicio,
+            'facturacion_12_meses' => $facturacion12Meses,
+            'empresas_pendientes' => intval($empresasPendientes),
+            'monto_pendiente' => floatval($pagosPendientes['monto_total']),
+            'facturas_pendientes' => intval($pagosPendientes['total_facturas']),
             'ingresos_mes' => floatval($ingresosMes),
-            'facturas_pendientes' => $facturasPendientes,
-            'peso_mes_kg' => floatval($pesoMes),
-            'servicios_recientes' => $serviciosRecientes
+            'servicios_mes' => intval($serviciosMes)
         ]
     ]);
 }
