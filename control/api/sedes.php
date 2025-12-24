@@ -34,6 +34,25 @@ function getAll() {
     $search = $_GET['search'] ?? '';
     $empresa = $_GET['empresa'] ?? null;
     $activo = $_GET['activo'] ?? null;
+    $mapa = $_GET['mapa'] ?? null; // Optimización para mapa
+    
+    // Si es para el mapa, devolvemos solo campos esenciales y sedes con coordenadas
+    if ($mapa) {
+        $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.provincia,
+                s.coordenadas_gps, e.razon_social as empresa_razon_social
+                FROM Sede s
+                INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+                WHERE s.coordenadas_gps IS NOT NULL AND s.coordenadas_gps != '' AND s.activo = 1
+                ORDER BY s.nombre_comercial";
+        $data = db()->query($sql);
+        
+        echo json_encode([
+            'success' => true,
+            'data' => $data,
+            'total' => count($data)
+        ]);
+        return;
+    }
     
     $sql = "SELECT s.*, e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
             c.nombre as cliente_nombre
