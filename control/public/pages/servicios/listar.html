@@ -198,13 +198,13 @@
                     <td>
                         <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary btn-action" title="Ver/Editar"><i class="bi bi-pencil"></i></a>
                         ${s.id_manifiesto
-                    ? `<a href="../manifiestos/formulario.html?id=${s.id_manifiesto}" class="btn btn-sm btn-success btn-action" title="Ver Manifiesto"><i class="bi bi-journal-text"></i></a>`
+                    ? `<a href="../manifiestos/listar.html?servicio=${s.id_servicio}" class="btn btn-sm btn-success btn-action" title="Ver Manifiesto"><i class="bi bi-journal-text"></i></a>`
                     : (canEdit() ? `<a href="../manifiestos/formulario.html?servicio=${s.id_servicio}" class="btn btn-sm btn-outline-success btn-action" title="Crear Manifiesto"><i class="bi bi-journal-plus"></i></a>` : '')}
                         ${s.id_guia
-                    ? `<a href="../guias/formulario.html?id=${s.id_guia}" class="btn btn-sm btn-info btn-action" title="Ver Guía"><i class="bi bi-file-earmark-text"></i></a>`
+                    ? `<a href="../guias/listar.html?servicio=${s.id_servicio}" class="btn btn-sm btn-info btn-action" title="Ver Guía"><i class="bi bi-file-earmark-text"></i></a>`
                     : (canEdit() ? `<a href="../guias/formulario.html?servicio=${s.id_servicio}" class="btn btn-sm btn-outline-info btn-action" title="Crear Guía"><i class="bi bi-file-earmark-plus"></i></a>` : '')}
                         ${s.id_factura
-                    ? `<a href="../facturas/formulario.html?id=${s.id_factura}" class="btn btn-sm btn-warning btn-action" title="Ver Factura"><i class="bi bi-receipt"></i></a>`
+                    ? `<a href="../facturas/listar.html?servicio=${s.id_servicio}" class="btn btn-sm btn-warning btn-action" title="Ver Factura"><i class="bi bi-receipt"></i></a>`
                     : (canEdit() ? `<a href="../facturas/formulario.html?servicio=${s.id_servicio}" class="btn btn-sm btn-outline-warning btn-action" title="Crear Factura"><i class="bi bi-receipt"></i></a>` : '')}
                         ${s.estado === 'programado' && canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${s.id_servicio})" title="Eliminar"><i class="bi bi-trash"></i></button>` : ''}
                     </td>

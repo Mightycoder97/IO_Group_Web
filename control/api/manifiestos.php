@@ -32,8 +32,18 @@ function getAll() {
     canView();
     
     $servicio = $_GET['servicio'] ?? null;
+    $sede = $_GET['sede'] ?? null;
+    $search = $_GET['search'] ?? '';
     
-    $sql = "SELECT m.*, s.codigo_servicio, se.nombre_comercial as sede_nombre
+    // Paginación
+    $page = max(1, intval($_GET['page'] ?? 1));
+    $limit = min(200, max(10, intval($_GET['limit'] ?? 50)));
+    $offset = ($page - 1) * $limit;
+    
+    // Consulta optimizada - solo campos necesarios
+    $sql = "SELECT m.id_manifiesto, m.numero_manifiesto, m.tipo_residuo, m.peso_kg,
+            m.fecha_creacion, s.codigo_servicio, s.id_servicio,
+            se.nombre_comercial as sede_nombre, se.id_sede
             FROM Manifiesto m
             INNER JOIN Servicio s ON m.id_servicio = s.id_servicio
             INNER JOIN Sede se ON s.id_sede = se.id_sede
@@ -45,14 +55,35 @@ function getAll() {
         $params[] = $servicio;
     }
     
-    $sql .= " ORDER BY m.fecha_creacion DESC";
+    if ($sede) {
+        $sql .= " AND se.id_sede = ?";
+        $params[] = $sede;
+    }
+    
+    if ($search) {
+        $sql .= " AND (m.numero_manifiesto LIKE ? OR m.tipo_residuo LIKE ? OR se.nombre_comercial LIKE ?)";
+        $searchTerm = "%$search%";
+        $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
+    }
+    
+    // Count total
+    $countSql = preg_replace('/SELECT .* FROM/', 'SELECT COUNT(*) as total FROM', $sql, 1);
+    $totalResult = db()->queryOne($countSql, $params);
+    $total = $totalResult['total'] ?? 0;
+    
+    $sql .= " ORDER BY m.fecha_creacion DESC LIMIT ? OFFSET ?";
+    $params[] = $limit;
+    $params[] = $offset;
     
     $data = db()->query($sql, $params);
     
     echo json_encode([
         'success' => true,
         'data' => $data,
-        'total' => count($data)
+        'total' => $total,
+        'page' => $page,
+        'limit' => $limit,
+        'pages' => ceil($total / $limit)
     ]);
 }
 

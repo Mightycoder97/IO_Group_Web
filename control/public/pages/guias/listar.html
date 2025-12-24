@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -50,20 +50,27 @@
                     <div class="table-header">
                         <div>
                             <h5 class="table-title mb-0"><i class="bi bi-file-earmark"></i> Guías de Remisión</h5>
+                            <small class="text-muted" id="recordCount"></small>
                         </div>
-                        <div class="d-flex gap-2">
-                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar..."
-                                style="width: 200px;">
-                            <a href="formulario.html" class="btn btn-primary" id="btnNew"><i class="bi bi-plus"></i>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <input type="text" class="form-control form-control-sm" id="searchInput"
+                                placeholder="Buscar..." style="width: 180px;">
+                            <select class="form-select form-select-sm" id="limitSelect" style="width: 90px;">
+                                <option value="25">25</option>
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <a href="formulario.html" class="btn btn-primary btn-sm" id="btnNew"><i
+                                    class="bi bi-plus"></i>
                                 Nueva</a>
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table table-sm">
                             <thead>
                                 <tr>
                                     <th>Serie - Número</th>
-                                    <th>Servicio</th>
+                                    <th>Sede</th>
                                     <th>Fecha Emisión</th>
                                     <th>Partida</th>
                                     <th>Llegada</th>
@@ -76,6 +83,13 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <!-- Paginación -->
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                        <small class="text-muted" id="pageInfo"></small>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+                        </nav>
                     </div>
                 </div>
             </div>
@@ -92,24 +106,33 @@
 
         if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
 
-        let allData = [];
-        let tableSorter = null;
+        let currentPage = 1;
+        let totalPages = 1;
+        let searchTimeout = null;
+        const sedeId = getUrlParam('sede');
+        const servicioId = getUrlParam('servicio');
 
-        async function loadData() {
+        async function loadData(page = 1) {
+            const limit = document.getElementById('limitSelect').value;
+            const search = document.getElementById('searchInput').value.trim();
+
+            let url = `/guias?page=${page}&limit=${limit}`;
+            if (sedeId) url += `&sede=${sedeId}`;
+            if (servicioId) url += `&servicio=${servicioId}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+
             try {
-                const result = await api.get('/guias');
+                const result = await api.get(url);
                 if (result.success) {
-                    allData = result.data;
-                    renderTable(allData);
+                    currentPage = result.page;
+                    totalPages = result.pages;
 
-                    // Inicializar ordenamiento de columnas
-                    if (!tableSorter) {
-                        tableSorter = new TableSort('tableBody', {
-                            columns: ['numero_guia', 'id_servicio', 'fecha_emision', 'punto_partida', 'punto_llegada', null],
-                            onSort: (sortedData) => renderTable(sortedData)
-                        });
-                    }
-                    tableSorter.setData(allData);
+                    document.getElementById('recordCount').textContent = `${result.total} registro(s)`;
+                    document.getElementById('pageInfo').textContent =
+                        `Página ${result.page} de ${result.pages || 1}`;
+
+                    renderTable(result.data);
+                    renderPagination();
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
@@ -124,28 +147,57 @@
             }
             tbody.innerHTML = data.map(item => `
                 <tr>
-                    <td><strong>${item.serie ? item.serie + '-' : ''}${item.numero_guia}</strong></td>
-                    <td>${item.servicio_codigo || 'SV-' + item.id_servicio}</td>
-                    <td>${new Date(item.fecha_emision).toLocaleDateString('es-PE')}</td>
+                    <td><strong>${item.serie ? item.serie + '-' : ''}${item.numero_guia || '-'}</strong></td>
+                    <td>${item.sede_nombre || '-'}</td>
+                    <td>${item.fecha_emision ? new Date(item.fecha_emision).toLocaleDateString('es-PE') : '-'}</td>
                     <td><small>${item.punto_partida || '-'}</small></td>
                     <td><small>${item.punto_llegada || '-'}</small></td>
                     <td>
-                        <a href="formulario.html?id=${item.id_guia}" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-pencil"></i></a>
-                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_guia})"><i class="bi bi-trash"></i></button>` : ''}
+                        <a href="formulario.html?id=${item.id_guia}" class="btn btn-sm btn-outline-primary btn-action" title="Ver/Editar"><i class="bi bi-pencil"></i></a>
+                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_guia})" title="Eliminar"><i class="bi bi-trash"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');
         }
 
-        document.getElementById('searchInput').addEventListener('input', function (e) {
-            const term = e.target.value.toLowerCase();
-            const filtered = allData.filter(item =>
-                item.numero_guia?.toLowerCase().includes(term) ||
-                item.serie?.toLowerCase().includes(term)
-            );
-            renderTable(filtered);
-            if (tableSorter) tableSorter.setData(filtered);
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="goToPage(${currentPage - 1}); return false;">«</a></li>`;
+
+            const start = Math.max(1, currentPage - 2);
+            const end = Math.min(totalPages, currentPage + 2);
+
+            for (let i = start; i <= end; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${i}); return false;">${i}</a></li>`;
+            }
+
+            html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="goToPage(${currentPage + 1}); return false;">»</a></li>`;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page >= 1 && page <= totalPages) {
+                loadData(page);
+            }
+        }
+
+        // Búsqueda con debounce
+        document.getElementById('searchInput').addEventListener('input', function () {
+            if (searchTimeout) clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => loadData(1), 300);
         });
+
+        document.getElementById('limitSelect').addEventListener('change', () => loadData(1));
 
         async function deleteItem(id) {
             if (!confirmDelete()) return;
@@ -153,7 +205,7 @@
                 const result = await api.delete(`/guias/${id}`);
                 if (result.success) {
                     showToast('Guía eliminada');
-                    loadData();
+                    loadData(currentPage);
                 } else {
                     showToast(result.message, 'danger');
                 }
