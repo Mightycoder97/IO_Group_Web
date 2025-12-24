@@ -126,10 +126,10 @@
                         <div class="card stat-card">
                             <div class="card-body d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="stat-value" id="statClientes">0</div>
-                                    <div class="stat-label">Clientes Activos</div>
+                                    <div class="stat-value" id="statSedes">0</div>
+                                    <div class="stat-label">Sedes Activas</div>
                                 </div>
-                                <i class="bi bi-people stat-icon text-primary"></i>
+                                <i class="bi bi-geo-alt stat-icon text-primary"></i>
                             </div>
                         </div>
                     </div>
@@ -173,8 +173,8 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-geo-alt-fill text-danger"></i> Clientes Activos</span>
-                                <span class="badge bg-primary" id="sedesCount">0 clientes</span>
+                                <span><i class="bi bi-geo-alt-fill text-danger"></i> Sedes Activas</span>
+                                <span class="badge bg-primary" id="sedesCount">0 sedes</span>
                             </div>
                             <div class="card-body p-0">
                                 <div id="dashboardMap"></div>
@@ -248,11 +248,13 @@
             try {
                 const stats = await api.get('/reportes/dashboard');
                 if (stats.success) {
-                    document.getElementById('statClientes').textContent = stats.data.total_clientes || 0;
-                    document.getElementById('statServicios').textContent = stats.data.servicios_mes || 0;
-                    document.getElementById('statKg').textContent = Math.round(stats.data.kg_mes || 0);
-                    document.getElementById('statAlertas').textContent = stats.data.alertas_criticas || 0;
-                    document.getElementById('alertCount').textContent = stats.data.alertas_criticas || 0;
+                    const d = stats.data;
+                    // El API devuelve los contadores en data.counters
+                    document.getElementById('statSedes').textContent = d.counters?.sedes || d.total_sedes || 0;
+                    document.getElementById('statServicios').textContent = d.counters?.servicios_mes || d.servicios_mes || 0;
+                    document.getElementById('statKg').textContent = Math.round(d.peso_mes_kg || d.kg_mes || 0);
+                    document.getElementById('statAlertas').textContent = d.alertas_criticas || 0;
+                    document.getElementById('alertCount').textContent = d.alertas_criticas || 0;
                 }
             } catch (err) { console.error('Error loading dashboard:', err); }
 
