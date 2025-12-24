@@ -39,17 +39,21 @@ function getAll() {
     $fecha_desde = $_GET['fecha_desde'] ?? null;
     $fecha_hasta = $_GET['fecha_hasta'] ?? null;
     
-    $sql = "SELECT s.*, 
-            se.nombre_comercial as sede_nombre, se.direccion as sede_direccion,
+    // Paginación - IMPORTANTE para rendimiento
+    $page = max(1, intval($_GET['page'] ?? 1));
+    $limit = min(500, max(10, intval($_GET['limit'] ?? 100))); // Entre 10 y 500, default 100
+    $offset = ($page - 1) * $limit;
+    
+    // Consulta optimizada con índices
+    $sql = "SELECT s.id_servicio, s.codigo_servicio, s.fecha_programada, s.fecha_ejecucion, 
+            s.estado, s.id_sede, s.id_planta,
+            se.nombre_comercial as sede_nombre,
             e.razon_social as empresa_razon_social,
-            p.nombre_comercial as planta_nombre,
-            r.codigo_ruta, v.placa as vehiculo_placa
+            p.nombre_comercial as planta_nombre
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             INNER JOIN Planta p ON s.id_planta = p.id_planta
-            LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
-            LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
             WHERE 1=1";
     $params = [];
     
@@ -73,14 +77,32 @@ function getAll() {
         $params[] = $fecha_hasta;
     }
     
-    $sql .= " ORDER BY s.fecha_programada DESC";
+    // Obtener total para paginación (consulta optimizada)
+    $countSql = str_replace(
+        "SELECT s.id_servicio, s.codigo_servicio, s.fecha_programada, s.fecha_ejecucion, 
+            s.estado, s.id_sede, s.id_planta,
+            se.nombre_comercial as sede_nombre,
+            e.razon_social as empresa_razon_social,
+            p.nombre_comercial as planta_nombre",
+        "SELECT COUNT(*) as total",
+        $sql
+    );
+    $totalResult = db()->queryOne($countSql, $params);
+    $total = $totalResult['total'] ?? 0;
+    
+    $sql .= " ORDER BY s.fecha_programada DESC LIMIT ? OFFSET ?";
+    $params[] = $limit;
+    $params[] = $offset;
     
     $data = db()->query($sql, $params);
     
     echo json_encode([
         'success' => true,
         'data' => $data,
-        'total' => count($data)
+        'total' => $total,
+        'page' => $page,
+        'limit' => $limit,
+        'pages' => ceil($total / $limit)
     ]);
 }
 
@@ -150,18 +172,28 @@ function getOne($id) {
 function getStats() {
     canView();
     
-    $stats = [
-        'total_servicios' => db()->queryOne("SELECT COUNT(*) as count FROM Servicio")['count'],
-        'servicios_hoy' => db()->queryOne("SELECT COUNT(*) as count FROM Servicio WHERE fecha_programada = CURDATE()")['count'],
-        'servicios_mes' => db()->queryOne("SELECT COUNT(*) as count FROM Servicio WHERE MONTH(fecha_programada) = MONTH(CURDATE()) AND YEAR(fecha_programada) = YEAR(CURDATE())")['count'],
-        'pendientes' => db()->queryOne("SELECT COUNT(*) as count FROM Servicio WHERE estado = 'programado'")['count'],
-        'en_curso' => db()->queryOne("SELECT COUNT(*) as count FROM Servicio WHERE estado = 'en_curso'")['count'],
-        'completados' => db()->queryOne("SELECT COUNT(*) as count FROM Servicio WHERE estado = 'completado'")['count']
-    ];
+    // Una sola consulta para todas las estadísticas - mucho más eficiente
+    $result = db()->queryOne("
+        SELECT 
+            COUNT(*) as total_servicios,
+            SUM(CASE WHEN fecha_programada = CURDATE() THEN 1 ELSE 0 END) as servicios_hoy,
+            SUM(CASE WHEN MONTH(fecha_programada) = MONTH(CURDATE()) AND YEAR(fecha_programada) = YEAR(CURDATE()) THEN 1 ELSE 0 END) as servicios_mes,
+            SUM(CASE WHEN estado = 'programado' THEN 1 ELSE 0 END) as pendientes,
+            SUM(CASE WHEN estado = 'en_curso' THEN 1 ELSE 0 END) as en_curso,
+            SUM(CASE WHEN estado = 'completado' THEN 1 ELSE 0 END) as completados
+        FROM Servicio
+    ");
     
     echo json_encode([
         'success' => true,
-        'data' => $stats
+        'data' => [
+            'total_servicios' => intval($result['total_servicios']),
+            'servicios_hoy' => intval($result['servicios_hoy']),
+            'servicios_mes' => intval($result['servicios_mes']),
+            'pendientes' => intval($result['pendientes']),
+            'en_curso' => intval($result['en_curso']),
+            'completados' => intval($result['completados'])
+        ]
     ]);
 }
 

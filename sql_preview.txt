@@ -1,0 +1,100 @@
+-- ============================================
+-- SQL Generado desde PAGOS CLIENTES LIMA.xlsx
+-- Fecha: 2025-12-24 01:09:31
+-- ============================================
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- PLANTA DE TRATAMIENTO
+INSERT INTO Planta (razon_social, ruc, nombre_comercial, direccion, distrito, provincia, departamento, tipo_tratamiento) SELECT 'Incineragas S.A.C.', '20537973421', 'Incineragas', 'Av. Separadora Industrial, Mz A. Lote 3A Asoc. Sumac Pacha', 'Lurin', 'Lima', 'Lima', 'Incineracion' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Planta WHERE ruc = '20537973421');
+
+SET @id_planta_default = (SELECT id_planta FROM Planta WHERE ruc = '20537973421' LIMIT 1);
+
+-- CLIENTES Y EMPRESAS
+SET @emp_0 = (SELECT id_empresa FROM Empresa WHERE ruc = '20511944202' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'NEOCORPUS CLINICA DE CIRUGIA PLASTICA INTEGRAL S.A.C.', 'JCPONCE33@GMAIL.COM', 'Importado Excel' FROM DUAL WHERE @emp_0 IS NULL;
+SET @last_cliente = IFNULL(@emp_0, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'NEOCORPUS CLINICA DE CIRUGIA PLASTICA INTEGRAL S.A.C.', '20511944202', 'JCPONCE33@GMAIL.COM' FROM DUAL WHERE @emp_0 IS NULL;
+SET @emp_0 = (SELECT id_empresa FROM Empresa WHERE ruc = '20511944202' LIMIT 1);
+
+SET @emp_1 = (SELECT id_empresa FROM Empresa WHERE ruc = '20553898294' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'VERSE BIEN CENTRO DE CIRUGIA ESTETICA INTEGRAL SAC', 'CHELAZF@HOTMAIL.COM', 'Importado Excel' FROM DUAL WHERE @emp_1 IS NULL;
+SET @last_cliente = IFNULL(@emp_1, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'VERSE BIEN CENTRO DE CIRUGIA ESTETICA INTEGRAL SAC', '20553898294', 'CHELAZF@HOTMAIL.COM' FROM DUAL WHERE @emp_1 IS NULL;
+SET @emp_1 = (SELECT id_empresa FROM Empresa WHERE ruc = '20553898294' LIMIT 1);
+
+SET @emp_2 = (SELECT id_empresa FROM Empresa WHERE ruc = '20606251255' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'CALDASMEDINA S.A.C.', 'centromedicocalmedic@hotmail.com', 'Importado Excel' FROM DUAL WHERE @emp_2 IS NULL;
+SET @last_cliente = IFNULL(@emp_2, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'CALDASMEDINA S.A.C.', '20606251255', 'centromedicocalmedic@hotmail.com' FROM DUAL WHERE @emp_2 IS NULL;
+SET @emp_2 = (SELECT id_empresa FROM Empresa WHERE ruc = '20606251255' LIMIT 1);
+
+SET @emp_3 = (SELECT id_empresa FROM Empresa WHERE ruc = '10068481860' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'PILLACA GONZALES JAIME WALTER', '', 'Importado Excel' FROM DUAL WHERE @emp_3 IS NULL;
+SET @last_cliente = IFNULL(@emp_3, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'PILLACA GONZALES JAIME WALTER', '10068481860', '' FROM DUAL WHERE @emp_3 IS NULL;
+SET @emp_3 = (SELECT id_empresa FROM Empresa WHERE ruc = '10068481860' LIMIT 1);
+
+SET @emp_4 = (SELECT id_empresa FROM Empresa WHERE ruc = '20515139835' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'EUQOR COMPANY S.A.C', '', 'Importado Excel' FROM DUAL WHERE @emp_4 IS NULL;
+SET @last_cliente = IFNULL(@emp_4, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'EUQOR COMPANY S.A.C', '20515139835', '' FROM DUAL WHERE @emp_4 IS NULL;
+SET @emp_4 = (SELECT id_empresa FROM Empresa WHERE ruc = '20515139835' LIMIT 1);
+
+SET @emp_5 = (SELECT id_empresa FROM Empresa WHERE ruc = '20602375383' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'APU SALUD MEDICOS A DOMICILIO S.A.C.', 'apusalud.mad@gmail.com', 'Importado Excel' FROM DUAL WHERE @emp_5 IS NULL;
+SET @last_cliente = IFNULL(@emp_5, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'APU SALUD MEDICOS A DOMICILIO S.A.C.', '20602375383', 'apusalud.mad@gmail.com' FROM DUAL WHERE @emp_5 IS NULL;
+SET @emp_5 = (SELECT id_empresa FROM Empresa WHERE ruc = '20602375383' LIMIT 1);
+
+SET @emp_6 = (SELECT id_empresa FROM Empresa WHERE ruc = '20603627581' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'Medicina Estetica y belleza integral E.I.R.L', 'dracarolinazimic@gmail.com', 'Importado Excel' FROM DUAL WHERE @emp_6 IS NULL;
+SET @last_cliente = IFNULL(@emp_6, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'Medicina Estetica y belleza integral E.I.R.L', '20603627581', 'dracarolinazimic@gmail.com' FROM DUAL WHERE @emp_6 IS NULL;
+SET @emp_6 = (SELECT id_empresa FROM Empresa WHERE ruc = '20603627581' LIMIT 1);
+
+SET @emp_7 = (SELECT id_empresa FROM Empresa WHERE ruc = '20601758661' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'PROMOCION  PREVENCION DE SALUD EN EL TRABAJADOR S.A.C.', 'ppst.peru@hotmail.com', 'Importado Excel' FROM DUAL WHERE @emp_7 IS NULL;
+SET @last_cliente = IFNULL(@emp_7, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'PROMOCION  PREVENCION DE SALUD EN EL TRABAJADOR S.A.C.', '20601758661', 'ppst.peru@hotmail.com' FROM DUAL WHERE @emp_7 IS NULL;
+SET @emp_7 = (SELECT id_empresa FROM Empresa WHERE ruc = '20601758661' LIMIT 1);
+
+SET @emp_8 = (SELECT id_empresa FROM Empresa WHERE ruc = '20548548625' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'BELLEZA Y CIENCIA', 'rangulo@bellesens.com', 'Importado Excel' FROM DUAL WHERE @emp_8 IS NULL;
+SET @last_cliente = IFNULL(@emp_8, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'BELLEZA Y CIENCIA', '20548548625', 'rangulo@bellesens.com' FROM DUAL WHERE @emp_8 IS NULL;
+SET @emp_8 = (SELECT id_empresa FROM Empresa WHERE ruc = '20548548625' LIMIT 1);
+
+SET @emp_9 = (SELECT id_empresa FROM Empresa WHERE ruc = '10097219210' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'RIVAS ARONI NORMA CECILIA', 'NCECILRIVAS@GMAIL.COM', 'Importado Excel' FROM DUAL WHERE @emp_9 IS NULL;
+SET @last_cliente = IFNULL(@emp_9, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'RIVAS ARONI NORMA CECILIA', '10097219210', 'NCECILRIVAS@GMAIL.COM' FROM DUAL WHERE @emp_9 IS NULL;
+SET @emp_9 = (SELECT id_empresa FROM Empresa WHERE ruc = '10097219210' LIMIT 1);
+
+SET @emp_10 = (SELECT id_empresa FROM Empresa WHERE ruc = '10805298958' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'MAMANI YUCRA MARIA ROSA', 'clinicasamariapie@gmail.com', 'Importado Excel' FROM DUAL WHERE @emp_10 IS NULL;
+SET @last_cliente = IFNULL(@emp_10, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'MAMANI YUCRA MARIA ROSA', '10805298958', 'clinicasamariapie@gmail.com' FROM DUAL WHERE @emp_10 IS NULL;
+SET @emp_10 = (SELECT id_empresa FROM Empresa WHERE ruc = '10805298958' LIMIT 1);
+
+SET @emp_11 = (SELECT id_empresa FROM Empresa WHERE ruc = '10453892412' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'Wendy Cruz Salazar', 'wcruzsalazar@gmail.com', 'Importado Excel' FROM DUAL WHERE @emp_11 IS NULL;
+SET @last_cliente = IFNULL(@emp_11, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'Wendy Cruz Salazar', '10453892412', 'wcruzsalazar@gmail.com' FROM DUAL WHERE @emp_11 IS NULL;
+SET @emp_11 = (SELECT id_empresa FROM Empresa WHERE ruc = '10453892412' LIMIT 1);
+
+SET @emp_12 = (SELECT id_empresa FROM Empresa WHERE ruc = '20603297289' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'GRUPO QP SALUD E.I.R.L.', 'juliapamen@gmail.com', 'Importado Excel' FROM DUAL WHERE @emp_12 IS NULL;
+SET @last_cliente = IFNULL(@emp_12, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'GRUPO QP SALUD E.I.R.L.', '20603297289', 'juliapamen@gmail.com' FROM DUAL WHERE @emp_12 IS NULL;
+SET @emp_12 = (SELECT id_empresa FROM Empresa WHERE ruc = '20603297289' LIMIT 1);
+
+SET @emp_13 = (SELECT id_empresa FROM Empresa WHERE ruc = '20428674201' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'ONCOLOGIA SAC', 'juliapamen@gmail.com', 'Importado Excel' FROM DUAL WHERE @emp_13 IS NULL;
+SET @last_cliente = IFNULL(@emp_13, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));
+INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, 'ONCOLOGIA SAC', '20428674201', 'juliapamen@gmail.com' FROM DUAL WHERE @emp_13 IS NULL;
+SET @emp_13 = (SELECT id_empresa FROM Empresa WHERE ruc = '20428674201' LIMIT 1);
+
+SET @emp_14 = (SELECT id_empresa FROM Empresa WHERE ruc = '20477940642' LIMIT 1);
+INSERT INTO Cliente (nombre, email, notas) SELECT 'INSTITUTO INTEGRAL VIDA PLENA', 'institutovidaplena@gmail.com', 'Importado Excel' FROM DUAL WHERE @emp_14 IS NULL;
+SET @last_cliente = IFNULL(@emp_14, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));

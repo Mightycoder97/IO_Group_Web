@@ -33,12 +33,21 @@ function getAll() {
     
     $servicio = $_GET['servicio'] ?? null;
     $estado = $_GET['estado'] ?? null;
+    $fecha_desde = $_GET['fecha_desde'] ?? null;
+    $fecha_hasta = $_GET['fecha_hasta'] ?? null;
     
-    $sql = "SELECT f.*, s.codigo_servicio, se.nombre_comercial as sede_nombre, e.razon_social as empresa_razon_social
+    // Paginación
+    $page = max(1, intval($_GET['page'] ?? 1));
+    $limit = min(500, max(10, intval($_GET['limit'] ?? 100)));
+    $offset = ($page - 1) * $limit;
+    
+    // Consulta optimizada - solo campos esenciales
+    $sql = "SELECT f.id_factura, f.numero_factura, f.fecha_emision, f.monto_total, 
+            f.estado, f.metodo_pago, f.id_servicio,
+            s.codigo_servicio, se.nombre_comercial as sede_nombre
             FROM Factura f
             INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
             INNER JOIN Sede se ON s.id_sede = se.id_sede
-            INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             WHERE 1=1";
     $params = [];
     
@@ -52,14 +61,34 @@ function getAll() {
         $params[] = $estado;
     }
     
-    $sql .= " ORDER BY f.fecha_emision DESC";
+    if ($fecha_desde) {
+        $sql .= " AND f.fecha_emision >= ?";
+        $params[] = $fecha_desde;
+    }
+    
+    if ($fecha_hasta) {
+        $sql .= " AND f.fecha_emision <= ?";
+        $params[] = $fecha_hasta;
+    }
+    
+    // Count total
+    $countSql = preg_replace('/SELECT .* FROM/', 'SELECT COUNT(*) as total FROM', $sql, 1);
+    $totalResult = db()->queryOne($countSql, $params);
+    $total = $totalResult['total'] ?? 0;
+    
+    $sql .= " ORDER BY f.fecha_emision DESC LIMIT ? OFFSET ?";
+    $params[] = $limit;
+    $params[] = $offset;
     
     $data = db()->query($sql, $params);
     
     echo json_encode([
         'success' => true,
         'data' => $data,
-        'total' => count($data)
+        'total' => $total,
+        'page' => $page,
+        'limit' => $limit,
+        'pages' => ceil($total / $limit)
     ]);
 }
 

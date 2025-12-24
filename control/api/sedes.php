@@ -34,9 +34,14 @@ function getAll() {
     $search = $_GET['search'] ?? '';
     $empresa = $_GET['empresa'] ?? null;
     $activo = $_GET['activo'] ?? null;
-    $mapa = $_GET['mapa'] ?? null; // Optimización para mapa
+    $mapa = $_GET['mapa'] ?? null;
     
-    // Si es para el mapa, devolvemos solo campos esenciales y sedes con coordenadas
+    // Paginación
+    $page = max(1, intval($_GET['page'] ?? 1));
+    $limit = min(500, max(10, intval($_GET['limit'] ?? 100)));
+    $offset = ($page - 1) * $limit;
+    
+    // Si es para el mapa, devolvemos solo campos esenciales
     if ($mapa) {
         $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.provincia,
                 s.coordenadas_gps, e.razon_social as empresa_razon_social
@@ -54,18 +59,19 @@ function getAll() {
         return;
     }
     
-    $sql = "SELECT s.*, e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
-            c.nombre as cliente_nombre
+    // Consulta optimizada - solo campos necesarios
+    $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.activo,
+            s.contacto_telefono, s.coordenadas_gps,
+            e.razon_social as empresa_razon_social, e.ruc as empresa_ruc
             FROM Sede s
             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
-            INNER JOIN Cliente c ON e.id_cliente = c.id_cliente
             WHERE 1=1";
     $params = [];
     
     if ($search) {
-        $sql .= " AND (s.nombre_comercial LIKE ? OR s.direccion LIKE ?)";
+        $sql .= " AND (s.nombre_comercial LIKE ? OR s.direccion LIKE ? OR e.razon_social LIKE ?)";
         $searchTerm = "%$search%";
-        $params = array_merge($params, [$searchTerm, $searchTerm]);
+        $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
     }
     
     if ($empresa) {
@@ -78,14 +84,24 @@ function getAll() {
         $params[] = $activo === 'true' ? 1 : 0;
     }
     
-    $sql .= " ORDER BY s.nombre_comercial";
+    // Count total
+    $countSql = preg_replace('/SELECT .* FROM/', 'SELECT COUNT(*) as total FROM', $sql, 1);
+    $totalResult = db()->queryOne($countSql, $params);
+    $total = $totalResult['total'] ?? 0;
+    
+    $sql .= " ORDER BY s.nombre_comercial LIMIT ? OFFSET ?";
+    $params[] = $limit;
+    $params[] = $offset;
     
     $data = db()->query($sql, $params);
     
     echo json_encode([
         'success' => true,
         'data' => $data,
-        'total' => count($data)
+        'total' => $total,
+        'page' => $page,
+        'limit' => $limit,
+        'pages' => ceil($total / $limit)
     ]);
 }
 

@@ -1,0 +1,10 @@
+ANÁLISIS DE FACTURAS DUPLICADAS
+============================================================
+
+Total facturas con número duplicado: 3919
+
+1. MISMO RUC (una factura para múltiples servicios): 2155 (55.0%)
+   Esto CONFIRMA la hipótesis: clientes con varios servicios en una factura.
+
+2. DIFERENTE RUC (coincidencia de numeración): 1764 (45.0%)
+   Esto ocurre por numeración correlativa global de facturas.

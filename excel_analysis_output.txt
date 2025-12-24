@@ -1,0 +1,118 @@
+===== PRIMERAS 15 HOJAS =====
+1. Neocorpus
+2. verse bien
+3. CALDAS MEDINA SAC
+4. jaime pillaca
+5. euqor
+6. apu salud
+7. Med est y belle int ZI medica
+8. prom, prev e salud (2)
+9. prom, prev e salud
+10. belleza y ciencia
+11. norma rivas
+12. maria mamani
+13. wendy cruz
+14. grupo qp 
+15. ONCOLOGIA ESP.
+
+Total de hojas: 1771
+
+
+===== PRIMERA HOJA: Neocorpus =====
+Dimensiones: 80 filas x 13 columnas
+Fila 0: [('Col0', 'NEOCORPUS CLINICA DE CIRUGIA PLASTICA INTEGRAL S.A.C.')]
+Fila 2: [('Col0', 'RUC'), ('Col1', '20511944202'), ('Col6', 'ya no est atendiendo')]
+Fila 3: [('Col0', 'CORREO'), ('Col1', 'JCPONCE33@GMAIL.COM')]
+Fila 4: [('Col0', 'FECHA INICIO'), ('Col1', '13/10/22'), ('Col5', 'RENOVO')]
+Fila 5: [('Col0', 'FECHA PAGO'), ('Col1', 'MONTO'), ('Col2', 'MES DEL SERVICIO'), ('Col3', 'FECHA DE SERVICIO'), ('Col4', 'DESCRIPCIÓN'), ('Col5', 'FORMA DE PAGO'), ('Col6', 'N° SERVICIO'), ('Col7', 'N° FACTURA'), ('Col8', 'N° CONTRATO '), ('Col9', 'N° MANIFIESTO'), ('Col10', 'OBSERVACIÓN'), ('Col11', 'Columna1'), ('Col12', 'Columna2')]
+Fila 6: [('Col0', '2020-10-23 00:00:00'), ('Col1', '94.4'), ('Col2', 'OCTUBRE'), ('Col3', '2020-10-23 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '1'), ('Col7', '1076'), ('Col8', '000145'), ('Col9', '001607'), ('Col10', 'CANCELADO')]
+Fila 7: [('Col0', '2020-11-20 00:00:00'), ('Col1', '94.4'), ('Col2', 'NOVIEMBRE'), ('Col3', '2020-11-19 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '2'), ('Col7', '1247'), ('Col8', '000145'), ('Col9', '001834'), ('Col10', 'CANCELADO')]
+Fila 8: [('Col0', '2020-12-23 00:00:00'), ('Col1', '94.4'), ('Col2', 'DICIEMBRE'), ('Col3', '2020-12-18 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '3'), ('Col7', '1497'), ('Col8', '000145'), ('Col9', '002220'), ('Col10', 'CANCELADO')]
+Fila 9: [('Col0', '2021-01-25 00:00:00'), ('Col1', '94.4'), ('Col2', 'ENERO'), ('Col3', '2021-01-18 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '4'), ('Col7', '1713'), ('Col8', '000145'), ('Col9', '002596'), ('Col10', 'CANCELADO')]
+Fila 10: [('Col0', '2021-03-23 00:00:00'), ('Col1', '94.4'), ('Col2', 'MARZO'), ('Col3', '2021-03-19 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '5'), ('Col7', '00000169'), ('Col8', '000145'), ('Col9', '003585'), ('Col10', 'CANCELADO')]
+Fila 11: [('Col0', '2021-04-22 00:00:00'), ('Col1', '94.4'), ('Col2', 'ABRIL'), ('Col3', '2021-04-20 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '6'), ('Col7', '00000455'), ('Col8', '000145'), ('Col9', '002858'), ('Col10', 'CANCELADO')]
+Fila 12: [('Col0', '2021-07-13 00:00:00'), ('Col1', '94.4'), ('Col2', 'JUNIO'), ('Col3', '2021-06-21 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '7'), ('Col7', '1171'), ('Col8', '000145'), ('Col9', '004285'), ('Col10', 'CANCELADO')]
+Fila 13: [('Col0', '2021-08-03 00:00:00'), ('Col1', '94.4'), ('Col2', 'JULIO'), ('Col3', '2021-07-22 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '8'), ('Col7', '1658'), ('Col8', '000145'), ('Col9', '004788'), ('Col10', 'CANCELADO')]
+Fila 14: [('Col0', '2021-08-20 00:00:00'), ('Col1', '94.4'), ('Col2', 'AGOSTO'), ('Col3', '2021-08-20 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '9'), ('Col7', '2624'), ('Col8', '000145'), ('Col9', '5342'), ('Col10', 'CANCELADO')]
+Fila 15: [('Col0', '2021-09-29 00:00:00'), ('Col1', '94.40'), ('Col2', 'SEPTIEMBRE'), ('Col3', '2021-09-23 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '10'), ('Col7', '2624'), ('Col8', '000145'), ('Col9', '3820'), ('Col10', 'CANCELADO')]
+Fila 16: [('Col0', '2021-11-23 00:00:00'), ('Col1', '94.40'), ('Col2', 'OCTUBRE'), ('Col3', '2021-10-18 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '11'), ('Col7', '3073'), ('Col8', '000145'), ('Col9', '6744'), ('Col10', 'cANCELADO')]
+Fila 17: [('Col0', '2021-11-23 00:00:00'), ('Col1', '94.40'), ('Col2', 'NOVIEMBRE'), ('Col3', '2021-11-17 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '12'), ('Col7', '3759'), ('Col8', '000145'), ('Col9', '7550'), ('Col10', 'cANCELADO')]
+Fila 18: [('Col0', '2021-12-24 00:00:00'), ('Col1', '94.40'), ('Col2', 'DICIEMBRE'), ('Col3', '2021-12-17 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '13'), ('Col7', '4412'), ('Col8', '000145'), ('Col9', '8481'), ('Col10', 'cANCELADO')]
+Fila 19: [('Col0', '2022-03-03 00:00:00'), ('Col1', '94.40'), ('Col2', 'FEBRERO'), ('Col3', '2022-02-01 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '14'), ('Col7', '5233'), ('Col9', '10009'), ('Col10', 'CANCELADO')]
+Fila 20: [('Col0', '2022-04-20 00:00:00'), ('Col1', '94.40'), ('Col2', 'MARZO'), ('Col3', '2022-03-18 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '15'), ('Col7', '6172'), ('Col9', '11683'), ('Col10', 'CANCELADO')]
+Fila 21: [('Col0', '2022-05-19 00:00:00'), ('Col1', '94.40'), ('Col2', 'ABRIL'), ('Col3', '2022-04-22 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '16'), ('Col7', '6867'), ('Col9', '12597'), ('Col10', 'CANCELADO')]
+Fila 22: [('Col0', '2022-05-31 00:00:00'), ('Col1', '94.40'), ('Col2', 'MAYO'), ('Col3', '2022-05-31 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '17'), ('Col7', '7902'), ('Col9', '14045'), ('Col10', 'CANCELADO')]
+Fila 23: [('Col0', '2022-07-25 00:00:00'), ('Col1', '94.41'), ('Col2', 'JUNIO'), ('Col3', '2022-06-24 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '18'), ('Col7', '\t8532'), ('Col9', '14761'), ('Col10', 'CANCELADO')]
+Fila 24: [('Col0', '2022-07-25 00:00:00'), ('Col1', '94.40'), ('Col2', 'JULIO'), ('Col3', '2022-07-18 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '19'), ('Col7', '\t9116'), ('Col9', '15519'), ('Col10', 'CANCELADO')]
+Fila 25: [('Col0', '2022-09-14 00:00:00'), ('Col1', '94.4'), ('Col2', 'AGOSTO'), ('Col3', '2022-08-19 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '20'), ('Col7', '9974'), ('Col9', '16551'), ('Col10', 'CANCELADO'), ('Col11', 'yape')]
+Fila 26: [('Col0', '2022-09-21 00:00:00'), ('Col1', '94.4'), ('Col2', 'SEPTIEMBRE'), ('Col3', '2022-09-13 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '21'), ('Col7', '10599'), ('Col9', '17231'), ('Col10', 'CANCELADO'), ('Col11', 'yape')]
+Fila 27: [('Col0', '27/10/22'), ('Col1', '94.4'), ('Col2', 'OCTUBRE'), ('Col3', '2022-12-10 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '22'), ('Col7', '11488'), ('Col9', '18211'), ('Col10', 'CANCELADO'), ('Col11', 'yape')]
+Fila 28: [('Col0', '27/10/22'), ('Col1', '94.4'), ('Col2', 'OCTUBRE'), ('Col3', '2022-12-10 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '23'), ('Col7', '11488'), ('Col9', '18408'), ('Col10', 'CANCELADO'), ('Col11', 'yape'), ('Col12', 'MEDICAMENTOS VENCIDOS ')]
+Fila 29: [('Col0', '14/12/22'), ('Col1', '94.4'), ('Col2', 'NOVIEMBRE'), ('Col3', '2022-11-11 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '24'), ('Col7', '12433'), ('Col9', '19291'), ('Col10', 'CANCELADO'), ('Col11', 'yape')]
+
+
+===== SEGUNDA HOJA: verse bien =====
+Dimensiones: 165 filas x 14 columnas
+Fila 0: [('Col0', 'VERSE BIEN CENTRO DE CIRUGIA ESTETICA INTEGRAL SAC')]
+Fila 2: [('Col0', 'RUC'), ('Col1', '20553898294')]
+Fila 3: [('Col0', 'CORREO'), ('Col1', 'CHELAZF@HOTMAIL.COM'), ('Col8', '150.00 mensual igv  13KG')]
+Fila 4: [('Col0', 'FECHA INICIO'), ('Col1', '2025-04-23 00:00:00')]
+Fila 5: [('Col0', 'FECHA PAGO'), ('Col1', 'MONTO'), ('Col2', 'MES DEL SERVICIO'), ('Col3', 'FECHA DE SERVICIO'), ('Col4', 'DESCRIPCIÓN'), ('Col5', 'FORMA DE PAGO'), ('Col6', 'N° SERVICIO'), ('Col7', 'N° FACTURA'), ('Col8', 'N° CONTRATO '), ('Col9', 'N° MANIFIESTO'), ('Col10', 'Columna2'), ('Col11', 'OBSERVACIÓN'), ('Col12', 'Columna1'), ('Col13', 'Columna12')]
+Fila 6: [('Col0', '2020-11-23 00:00:00'), ('Col1', '150'), ('Col2', 'NOVIEMBRE'), ('Col3', '2020-11-19 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '1'), ('Col7', '1243'), ('Col8', '000'), ('Col9', '001832'), ('Col11', 'cancelado ')]
+Fila 7: [('Col0', '2020-12-30 00:00:00'), ('Col1', '150'), ('Col2', 'DICIEMBRE'), ('Col3', '2020-12-18 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '2'), ('Col7', '1494'), ('Col8', '000'), ('Col9', '002223'), ('Col11', 'cancelado ')]
+Fila 8: [('Col0', '2021-01-28 00:00:00'), ('Col1', '150'), ('Col2', 'ENERO'), ('Col3', '2021-01-18 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '3'), ('Col7', '1716'), ('Col8', '000'), ('Col9', '002599'), ('Col11', 'cancelado ')]
+Fila 9: [('Col0', '2021-02-27 00:00:00'), ('Col1', '150'), ('Col2', 'FEBRERO'), ('Col3', '2021-02-18 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '4'), ('Col7', '1964'), ('Col8', '000'), ('Col9', '002863'), ('Col11', 'cancelado ')]
+Fila 10: [('Col0', '2021-04-02 00:00:00'), ('Col1', '150'), ('Col2', 'MARZO'), ('Col3', '2021-03-19 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '5'), ('Col7', '00000174'), ('Col8', '000'), ('Col9', '003592'), ('Col11', 'cancelado ')]
+Fila 11: [('Col0', '2021-05-13 00:00:00'), ('Col1', '150'), ('Col2', 'ABRIL'), ('Col3', '2021-04-20 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '6'), ('Col7', '00000450'), ('Col8', '000'), ('Col9', '003390'), ('Col11', 'cancelado ')]
+Fila 12: [('Col0', '2021-06-10 00:00:00'), ('Col1', '150'), ('Col2', 'MAYO'), ('Col3', '2021-05-20 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '7'), ('Col7', '727'), ('Col8', '000'), ('Col9', '003814'), ('Col11', 'cancelado ')]
+Fila 13: [('Col0', '2021-07-13 00:00:00'), ('Col1', '150'), ('Col2', 'JUNIO'), ('Col3', '2021-06-22 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '8'), ('Col7', '1162'), ('Col8', '000'), ('Col9', '004263'), ('Col11', 'cancelado ')]
+Fila 14: [('Col0', '2021-08-12 00:00:00'), ('Col1', '150'), ('Col2', 'JULIO'), ('Col3', '2021-07-22 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '9'), ('Col7', '1665'), ('Col8', '000'), ('Col9', '004790'), ('Col11', 'cancelado ')]
+Fila 15: [('Col0', '2021-09-15 00:00:00'), ('Col1', '150'), ('Col2', 'AGOSTO'), ('Col3', '2021-08-20 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '10'), ('Col7', '2392'), ('Col8', '000'), ('Col9', '5347'), ('Col11', 'cancelado ')]
+Fila 16: [('Col0', '2021-10-07 00:00:00'), ('Col1', '150'), ('Col2', 'SEPTIEMBRE'), ('Col3', '2021-09-21 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '11'), ('Col7', '2563'), ('Col8', '000'), ('Col9', '6042'), ('Col11', 'cancelado ')]
+Fila 17: [('Col0', '2021-11-22 00:00:00'), ('Col1', '150'), ('Col2', 'OCTUBRE'), ('Col3', '2021-10-14 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '12'), ('Col7', '3010'), ('Col8', '000'), ('Col9', '6682'), ('Col11', 'cancelado ')]
+Fila 18: [('Col0', '2021-11-22 00:00:00'), ('Col1', '150'), ('Col2', 'NOVIEMBRE'), ('Col3', '2021-11-13 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '13'), ('Col7', '3708'), ('Col8', '000'), ('Col9', '7492'), ('Col11', 'cancelado ')]
+Fila 19: [('Col0', '2021-12-31 00:00:00'), ('Col1', '150'), ('Col2', 'DICIEMBRE'), ('Col3', '2021-12-17 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '14'), ('Col7', '4408'), ('Col8', '000'), ('Col9', '8470'), ('Col11', 'cancelado ')]
+Fila 20: [('Col0', '2022-03-21 00:00:00'), ('Col1', '150'), ('Col2', 'ENERO'), ('Col3', '2022-01-17 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '15'), ('Col7', '4977'), ('Col8', '000'), ('Col9', '9762(GUIA)'), ('Col11', 'cancelado '), ('Col12', 'REGULARIZAR MANIFEISTO ')]
+Fila 21: [('Col0', '2022-03-21 00:00:00'), ('Col1', '150'), ('Col2', 'FEBRERO'), ('Col3', '2022-02-15 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '16'), ('Col7', '5570'), ('Col9', '9555'), ('Col11', 'cancelado ')]
+Fila 22: [('Col0', '2022-03-21 00:00:00'), ('Col1', '150'), ('Col2', 'MARZO'), ('Col3', '2022-03-17 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '17'), ('Col7', '6111'), ('Col9', '11656'), ('Col11', 'cancelado ')]
+Fila 23: [('Col0', '2022-05-22 00:00:00'), ('Col1', '150'), ('Col2', 'ABRIL'), ('Col3', '2022-04-21 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '18'), ('Col7', '\t6862'), ('Col9', '12564'), ('Col11', 'cancelado ')]
+Fila 24: [('Col0', '2022-05-22 00:00:00'), ('Col1', '150'), ('Col2', 'MAYO'), ('Col3', '2022-05-11 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '19'), ('Col7', '7361'), ('Col9', '13290'), ('Col11', 'cancelado ')]
+Fila 25: [('Col0', '2022-07-25 00:00:00'), ('Col1', '150'), ('Col2', 'JUNIO'), ('Col3', '2022-06-11 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '20'), ('Col7', '\t8295'), ('Col9', '14372'), ('Col11', 'cancelado ')]
+Fila 26: [('Col0', '2022-07-25 00:00:00'), ('Col1', '150'), ('Col2', 'JULIO'), ('Col3', '2022-07-12 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '21'), ('Col7', '\t9042'), ('Col9', '15308'), ('Col11', 'cancelado ')]
+Fila 27: [('Col0', '2022-09-21 00:00:00'), ('Col1', '150'), ('Col2', 'AGOSTO'), ('Col3', '2022-08-17 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '22'), ('Col7', '9933'), ('Col9', '16416'), ('Col11', 'cancelado '), ('Col12', 'yape')]
+Fila 28: [('Col0', '2022-09-21 00:00:00'), ('Col1', '150'), ('Col2', 'SEPTIEMBRE'), ('Col3', '2022-09-13 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '23'), ('Col7', '10600'), ('Col9', '17206'), ('Col11', 'cancelado '), ('Col12', 'yape')]
+Fila 29: [('Col0', '2022-03-11 00:00:00'), ('Col1', '150'), ('Col2', 'OCTUBRE'), ('Col3', '14/10/22'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'TRANSFERENCIA'), ('Col6', '24'), ('Col7', '\t11540'), ('Col9', '18276'), ('Col11', 'cancelado '), ('Col12', 'yape')]
+
+
+===== TERCERA HOJA: CALDAS MEDINA SAC =====
+Dimensiones: 269 filas x 13 columnas
+Fila 0: [('Col0', 'CALDASMEDINA S.A.C.')]
+Fila 1: [('Col0', 'nombre comercial')]
+Fila 2: [('Col0', 'RUC'), ('Col1', '20606251255')]
+Fila 3: [('Col0', 'CORREO'), ('Col1', 'centromedicocalmedic@hotmail.com'), ('Col4', '90.00 soles mensual inlcuido igv 10KG')]
+Fila 4: [('Col0', 'FECHA INICIO'), ('Col1', '2023-10-30 00:00:00')]
+Fila 5: [('Col0', 'FECHA PAGO'), ('Col1', 'MONTO'), ('Col2', 'MES DEL SERVICIO'), ('Col3', 'FECHA DE SERVICIO'), ('Col4', 'DESCRIPCIÓN'), ('Col5', 'FORMA DE PAGO'), ('Col6', 'N° SERVICIO'), ('Col7', 'N° FACTURA'), ('Col8', 'N° CONTRATO '), ('Col9', 'N° MANIFIESTO'), ('Col10', 'OBSERVACIÓN'), ('Col11', 'Columna1'), ('Col12', 'Columna2')]
+Fila 6: [('Col0', '2019-08-27 00:00:00'), ('Col1', '80'), ('Col2', 'AGOSTO'), ('Col3', '2020-08-27 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '1'), ('Col7', '738'), ('Col9', '001130'), ('Col10', 'CANCELADO')]
+Fila 7: [('Col0', '2020-09-29 00:00:00'), ('Col1', '80'), ('Col2', 'SEPTIEMBRE'), ('Col3', '2020-09-29 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '2'), ('Col7', '1082'), ('Col9', '001374'), ('Col10', 'CANCELADO')]
+Fila 8: [('Col0', '2020-10-27 00:00:00'), ('Col1', '80'), ('Col2', 'OCTUBRE'), ('Col3', '2020-10-27 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '3'), ('Col7', '1097'), ('Col9', '001632'), ('Col10', 'CANCELADO')]
+Fila 9: [('Col0', '2020-11-26 00:00:00'), ('Col1', '80'), ('Col2', 'NOVIEMBRE'), ('Col3', '2020-11-26 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '4'), ('Col7', '1359'), ('Col9', '001930'), ('Col10', 'CANCELADO')]
+Fila 10: [('Col0', '2020-12-26 00:00:00'), ('Col1', '80'), ('Col2', 'DICIEMBRE'), ('Col3', '2020-12-26 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '5'), ('Col7', '1555'), ('Col9', '002300'), ('Col10', 'CANCELADO')]
+Fila 11: [('Col0', '2021-01-26 00:00:00'), ('Col1', '80'), ('Col2', 'ENERO'), ('Col3', '2021-01-26 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '6'), ('Col7', '1788'), ('Col9', '2623'), ('Col10', 'CANCELADO')]
+Fila 12: [('Col0', '2021-02-25 00:00:00'), ('Col1', '80'), ('Col2', 'FEBRERO'), ('Col3', '2021-02-25 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '7'), ('Col7', '2034'), ('Col9', '2950'), ('Col10', 'CANCELADO')]
+Fila 13: [('Col0', '2021-03-26 00:00:00'), ('Col1', '80'), ('Col2', 'MARZO'), ('Col3', '2021-03-26 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '8'), ('Col7', '00000259'), ('Col9', '3137'), ('Col10', 'CANCELADO')]
+Fila 14: [('Col0', '2021-04-28 00:00:00'), ('Col1', '80'), ('Col2', 'ABRIL'), ('Col3', '2021-04-28 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '9'), ('Col7', '00000550'), ('Col9', '3559'), ('Col10', 'CANCELADO')]
+Fila 15: [('Col0', '2021-05-29 00:00:00'), ('Col1', '80'), ('Col2', 'MAYO'), ('Col3', '2021-05-29 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '10'), ('Col7', '843'), ('Col9', '3938'), ('Col10', 'CANCELADO')]
+Fila 16: [('Col0', '2021-06-28 00:00:00'), ('Col1', '80'), ('Col2', 'JUNIO'), ('Col3', '2021-06-28 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '11'), ('Col7', '1264'), ('Col9', '4443'), ('Col10', 'CANCELADO')]
+Fila 17: [('Col0', '2021-07-30 00:00:00'), ('Col1', '80'), ('Col2', 'JULIO'), ('Col3', '2021-07-30 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '12'), ('Col7', '1704'), ('Col9', '4938'), ('Col10', 'PENDIENTE S/ 30.00 SOLES PARA AGOSTO')]
+Fila 18: [('Col0', '2021-08-28 00:00:00'), ('Col1', '80'), ('Col2', 'AGOSTO'), ('Col3', '2021-08-28 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '13'), ('Col7', '2097'), ('Col9', '5587'), ('Col10', 'CANCELADO')]
+Fila 19: [('Col0', '29/29/21'), ('Col1', '80'), ('Col2', 'SEPTIEMBRE'), ('Col3', '2021-09-29 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '14'), ('Col7', '2731'), ('Col9', '6288'), ('Col10', 'CANCELADO')]
+Fila 20: [('Col0', '2021-10-29 00:00:00'), ('Col1', '80'), ('Col2', 'OCTUBRE'), ('Col3', '2021-10-29 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '15'), ('Col7', '3366'), ('Col9', '6978'), ('Col10', 'cANCELADO')]
+Fila 21: [('Col0', '2021-12-30 00:00:00'), ('Col1', '80'), ('Col2', 'DICIEMBRE'), ('Col3', '2021-12-30 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '16'), ('Col7', '4567'), ('Col9', '8862'), ('Col10', 'cANCELADO')]
+Fila 22: [('Col0', '2022-01-29 00:00:00'), ('Col1', '80'), ('Col2', 'ENERO'), ('Col3', '2022-01-29 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '17'), ('Col7', '5172'), ('Col9', '9933'), ('Col10', 'CANCELADO')]
+Fila 23: [('Col0', '2022-02-28 00:00:00'), ('Col1', '80'), ('Col2', 'FEBRERO'), ('Col3', '2022-02-28 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '18'), ('Col7', '5950'), ('Col9', '11163'), ('Col10', 'CANCELADO')]
+Fila 24: [('Col0', '2022-03-30 00:00:00'), ('Col1', '80'), ('Col2', 'MARZO'), ('Col3', '2022-03-30 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '49'), ('Col7', '6445'), ('Col9', '12065'), ('Col10', 'CANCELADO')]
+Fila 25: [('Col0', '2022-05-24 00:00:00'), ('Col1', '80'), ('Col2', 'MAYO'), ('Col3', '2022-05-24 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '50'), ('Col7', '\t7831'), ('Col9', '13810'), ('Col10', 'CANCELADO')]
+Fila 26: [('Col0', '2022-07-23 00:00:00'), ('Col1', '80'), ('Col2', 'JULIO'), ('Col3', '2022-07-23 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '51'), ('Col7', '\t9269'), ('Col9', '15775'), ('Col10', 'CANCELADO')]
+Fila 27: [('Col0', '2022-08-23 00:00:00'), ('Col1', '80'), ('Col2', 'AGOSTO'), ('Col3', '2022-08-23 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '52'), ('Col7', '\t10040'), ('Col9', '16645'), ('Col10', 'CANCELADO')]
+Fila 28: [('Col0', '2022-09-24 00:00:00'), ('Col1', '80'), ('Col2', 'SEPTIEMBRE'), ('Col3', '2022-09-24 00:00:00'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '53'), ('Col7', '\t10819'), ('Col9', '17579'), ('Col10', 'CANCELADO')]
+Fila 29: [('Col0', '24/10/22'), ('Col1', '80'), ('Col2', 'OCTUBRE'), ('Col3', '24/10/22'), ('Col4', 'GESTION DE RR.SS'), ('Col5', 'EFECTIVO'), ('Col6', '54'), ('Col7', '\t11428'), ('Col9', '18610'), ('Col10', 'CANCELADO')]
