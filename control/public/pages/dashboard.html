@@ -558,7 +558,7 @@
         }
 
         // Buscar clientes cercanos a una ubicación
-        function findNearbyClients(lat, lng, radiusKm = 2) {
+        function findNearbyClients(lat, lng, radiusKm = 1) {
             const nearby = [];
             Object.values(sedesData).forEach(sede => {
                 const parts = sede.coordenadas_gps?.split(',');
@@ -581,10 +581,10 @@
             const container = document.getElementById('nearbyResults');
 
             if (nearby.length === 0) {
-                container.innerHTML = '<div class="alert alert-info mb-0 py-2"><i class="bi bi-info-circle"></i> No hay clientes en un radio de 2 km</div>';
+                container.innerHTML = '<div class="alert alert-info mb-0 py-2"><i class="bi bi-info-circle"></i> No hay clientes en un radio de 1 km</div>';
             } else {
                 container.innerHTML = `
-                    <div class="text-muted small mb-2"><i class="bi bi-check-circle text-success"></i> ${nearby.length} cliente(s) en un radio de 2 km:</div>
+                    <div class="text-muted small mb-2"><i class="bi bi-check-circle text-success"></i> ${nearby.length} cliente(s) en un radio de 1 km:</div>
                     ${nearby.slice(0, 10).map(s => `
                         <div class="nearby-item" onclick="zoomToSede(${s.lat}, ${s.lng}, ${s.id_sede})" style="cursor:pointer;">
                             <span class="distance">${s.distance < 1 ? (s.distance * 1000).toFixed(0) + ' m' : s.distance.toFixed(2) + ' km'}</span>
@@ -783,9 +783,9 @@
                 fillOpacity: 1
             }).addTo(dashboardMap);
 
-            // Circulo de radio de 2km
+            // Circulo de radio de 1km
             searchCircle = L.circle([lat, lng], {
-                radius: 2000,
+                radius: 1000,
                 color: '#2563eb',
                 fillColor: '#2563eb',
                 fillOpacity: 0.1,
@@ -805,7 +805,7 @@
             dashboardMap.setView([lat, lng], 14);
 
             // Buscar clientes cercanos
-            const nearby = findNearbyClients(lat, lng, 2);
+            const nearby = findNearbyClients(lat, lng, 1);
             showNearbyResults(nearby, lat, lng);
 
             // Mostrar boton de limpiar
