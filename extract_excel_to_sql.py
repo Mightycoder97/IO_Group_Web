@@ -34,6 +34,13 @@ PLANTA_INFO = {
     'tipo_tratamiento': 'Incineracion'
 }
 
+# Filtro de años para servicios
+ANIO_MINIMO = 2024
+ANIO_MAXIMO = 2025
+
+# Meses sin servicio para considerar cliente inactivo
+MESES_INACTIVIDAD = 6
+
 def limpiar_string_sql(s):
     """Limpia y escapa strings para usar dentro de SQL VALUES"""
     if pd.isna(s) or s is None:
@@ -102,15 +109,42 @@ def parsear_fecha(fecha_val):
     return None
 
 def parsear_monto(monto_val):
-    """Convierte monto a decimal"""
+    """Convierte monto a decimal
+    
+    Valida que no sea una fecha y que esté en rango razonable (0-100,000)
+    """
     if pd.isna(monto_val) or monto_val is None:
+        return None
+    
+    # Si es un datetime, rechazar (no es un monto)
+    if 'datetime' in str(type(monto_val)).lower():
         return None
     
     try:
         monto_str = str(monto_val).strip()
+        
+        # Rechazar si parece una fecha (contiene - y empieza con 20XX o 19XX)
+        if '-' in monto_str and (monto_str.startswith('20') or monto_str.startswith('19')):
+            return None
+        
+        # Rechazar si contiene formato de hora
+        if ':' in monto_str:
+            return None
+        
         monto_str = monto_str.replace(',', '.')
         monto_str = re.sub(r'[^\d.]', '', monto_str)
-        return float(monto_str) if monto_str else None
+        
+        if not monto_str:
+            return None
+            
+        monto = float(monto_str)
+        
+        # Validar rango razonable (0 a 100,000 soles)
+        # Si es mayor, probablemente es una fecha mal parseada
+        if monto > 100000 or monto < 0:
+            return None
+            
+        return monto
     except:
         return None
 
@@ -141,20 +175,45 @@ def extraer_peso(observ_col, kilos_col=None):
     return peso
 
 def mapear_estado_pago(observacion):
-    """Mapea observación a estado de factura"""
+    """Mapea observación a estado de factura
+    
+    PAGADA si: CANCELADO, CANCELADA, PAGADO, PAGADA, YAPE, PLIN, BCP, BBVA, 
+               INTERBANK, SCOTIABANK, DEPOSITO, TRANSFERIDO
+    EMITIDA (pendiente) si: POR PAGAR, PENDIENTE, POR COBRAR, o vacío
+    ANULADA si: ANULADO, ANULADA
+    """
     if pd.isna(observacion) or observacion is None:
-        return 'emitida'
+        return 'emitida'  # Por defecto pendiente
     
     obs_upper = str(observacion).upper().strip()
     
-    if 'CANCEL' in obs_upper:
-        return 'pagada'
-    elif 'PENDIENTE' in obs_upper:
+    # Si está vacío, es pendiente
+    if not obs_upper:
         return 'emitida'
-    elif 'ANULAD' in obs_upper:
+    
+    # Verificar si indica pago realizado
+    indicadores_pago = [
+        'CANCEL', 'PAGAD', 'YAPE', 'PLIN', 'BCP', 'BBVA', 
+        'INTERBANK', 'SCOTIABANK', 'BANCO', 'DEPOSITO', 
+        'DEPÓSITO', 'TRANSFERIDO', 'ABONADO'
+    ]
+    
+    for indicador in indicadores_pago:
+        if indicador in obs_upper:
+            return 'pagada'
+    
+    # Verificar si indica pendiente
+    indicadores_pendiente = ['POR PAGAR', 'PENDIENTE', 'POR COBRAR', 'DEBE', 'DEUDA']
+    for indicador in indicadores_pendiente:
+        if indicador in obs_upper:
+            return 'emitida'
+    
+    # Verificar anulación
+    if 'ANULAD' in obs_upper:
         return 'anulada'
-    else:
-        return 'pagada'
+    
+    # Por defecto, si no reconoce nada, es pendiente (emitida)
+    return 'emitida'
 
 def mapear_metodo_pago(forma_pago):
     """Limpia y estandariza forma de pago"""
@@ -281,6 +340,16 @@ def extraer_registros(df, fila_encabezados):
             'estado_pago': mapear_estado_pago(row.iloc[10] if len(row) > 10 else None)
         }
         
+        # Filtrar solo servicios de años permitidos (2024-2025)
+        fecha_ref = registro['fecha_servicio'] or registro['fecha_pago']
+        if fecha_ref:
+            try:
+                anio = int(fecha_ref.split('-')[0])
+                if anio < ANIO_MINIMO or anio > ANIO_MAXIMO:
+                    continue  # Saltar registros fuera del rango de años
+            except:
+                pass
+        
         if registro['num_factura'] or registro['num_servicio'] or registro['fecha_servicio']:
             registros.append(registro)
     
@@ -327,7 +396,8 @@ def main():
                 empresas[ruc] = {
                     'razon_social': cabecera['razon_social'] or limpiar_string_sql(sheet_name),
                     'email': cabecera['email'],
-                    'sheet_name': sheet_name
+                    'sheet_name': sheet_name,
+                    'ultima_fecha_servicio': None  # Para rastrear inactividad
                 }
             
             sede_info = {
@@ -351,16 +421,28 @@ def main():
                 if reg['num_contrato'] and not contrato_info['codigo_contrato']:
                     contrato_info['codigo_contrato'] = reg['num_contrato']
                 
+                # Determinar si tiene manifiesto para estado del servicio
+                tiene_manifiesto = bool(reg['num_manifiesto'])
+                tiene_fecha_servicio = bool(reg['fecha_servicio'])
+                
                 servicio_info = {
                     'sede_idx': sede_idx,
                     'codigo_servicio': reg['num_servicio'],
                     'fecha_programada': reg['fecha_servicio'] or reg['fecha_pago'],
                     'fecha_ejecucion': reg['fecha_servicio'],
                     'descripcion': reg['descripcion'],
-                    'ruc': ruc
+                    'ruc': ruc,
+                    'tiene_manifiesto': tiene_manifiesto,
+                    'tiene_fecha_servicio': tiene_fecha_servicio
                 }
                 servicios.append(servicio_info)
                 servicio_idx = len(servicios)
+                
+                # Actualizar última fecha de servicio para la empresa
+                fecha_serv = reg['fecha_servicio'] or reg['fecha_pago']
+                if fecha_serv:
+                    if empresas[ruc]['ultima_fecha_servicio'] is None or fecha_serv > empresas[ruc]['ultima_fecha_servicio']:
+                        empresas[ruc]['ultima_fecha_servicio'] = fecha_serv
                 
                 if reg['num_manifiesto']:
                     manifiesto_info = {
@@ -432,6 +514,13 @@ def main():
         f.write("-- CLIENTES Y EMPRESAS\n")
         
         ruc_to_empresa_var = {}
+        from datetime import timedelta
+        fecha_limite_inactividad = datetime.now() - timedelta(days=MESES_INACTIVIDAD * 30)
+        fecha_limite_str = fecha_limite_inactividad.strftime('%Y-%m-%d')
+        
+        empresas_activas = 0
+        empresas_inactivas = 0
+        
         for i, (ruc, emp) in enumerate(empresas.items()):
             var_name = f"@emp_{i}"
             ruc_to_empresa_var[ruc] = var_name
@@ -439,11 +528,23 @@ def main():
             razon = (emp['razon_social'] or 'Sin Nombre')[:100]
             email = (emp['email'] or '')[:100]
             
+            # Determinar si la empresa esta activa (servicio en los ultimos 6 meses)
+            ultima_fecha = emp.get('ultima_fecha_servicio')
+            if ultima_fecha and ultima_fecha >= fecha_limite_str:
+                activo = 1
+                empresas_activas += 1
+            else:
+                activo = 0
+                empresas_inactivas += 1
+            
             f.write(f"SET {var_name} = (SELECT id_empresa FROM Empresa WHERE ruc = '{ruc}' LIMIT 1);\n")
             f.write(f"INSERT INTO Cliente (nombre, email, notas) SELECT '{razon}', '{email}', 'Importado Excel' FROM DUAL WHERE {var_name} IS NULL;\n")
             f.write(f"SET @last_cliente = IFNULL({var_name}, (SELECT id_cliente FROM Cliente ORDER BY id_cliente DESC LIMIT 1));\n")
-            f.write(f"INSERT INTO Empresa (id_cliente, razon_social, ruc, email) SELECT @last_cliente, '{razon}', '{ruc}', '{email}' FROM DUAL WHERE {var_name} IS NULL;\n")
+            f.write(f"INSERT INTO Empresa (id_cliente, razon_social, ruc, email, activo) SELECT @last_cliente, '{razon}', '{ruc}', '{email}', {activo} FROM DUAL WHERE {var_name} IS NULL;\n")
             f.write(f"SET {var_name} = (SELECT id_empresa FROM Empresa WHERE ruc = '{ruc}' LIMIT 1);\n\n")
+        
+        print(f"  Empresas activas: {empresas_activas}")
+        print(f"  Empresas inactivas: {empresas_inactivas}")
         
         # 3. Sedes
         f.write("-- SEDES\n")
@@ -487,8 +588,13 @@ def main():
             codigo_serv = (serv['codigo_servicio'] or f'SRV-{serv_idx:06d}')[:50]
             desc = (serv['descripcion'] or 'GESTION DE RR.SS')[:200]
             
+            # Estado: completado SOLO si tiene fecha de servicio Y manifiesto
+            tiene_manifiesto = serv.get('tiene_manifiesto', False)
+            tiene_fecha = serv.get('tiene_fecha_servicio', False)
+            estado_servicio = 'completado' if (tiene_fecha and tiene_manifiesto) else 'programado'
+            
             f.write(f"INSERT INTO Servicio (id_sede, id_planta, codigo_servicio, fecha_programada, fecha_ejecucion, estado, observaciones) ")
-            f.write(f"VALUES ({sede_var}, @id_planta_default, '{codigo_serv}', '{fecha_prog}', '{fecha_ejec}', 'completado', '{desc}');\n")
+            f.write(f"VALUES ({sede_var}, @id_planta_default, '{codigo_serv}', '{fecha_prog}', '{fecha_ejec}', '{estado_servicio}', '{desc}');\n")
             f.write(f"SET @serv_{serv_idx} = LAST_INSERT_ID();\n")
             
             # Manifiesto
