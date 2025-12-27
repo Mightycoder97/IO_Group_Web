@@ -215,6 +215,15 @@
             display: flex;
             align-items: baseline;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .old-price {
+            font-size: 1.5rem;
+            color: var(--gray-600);
+            text-decoration: line-through;
+            opacity: 0.7;
         }
 
         .currency {
@@ -920,8 +929,9 @@
                             <i class="fas fa-star me-1"></i> Oferta Especial
                         </span>
                         <div class="pricing-amount">
+                            <span class="old-price">S/.100</span>
                             <span class="currency">S/.</span>
-                            <span class="price">64.90</span>
+                            <span class="price">65</span>
                             <span class="period">/mes</span>
                         </div>
                         <p class="pricing-description">
