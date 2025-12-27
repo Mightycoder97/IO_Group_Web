@@ -79,6 +79,25 @@
             overflow-x: hidden;
         }
 
+        /* ===== LANDING HEADER ===== */
+        .landing-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 0;
+            z-index: 100;
+        }
+
+        .landing-header img {
+            height: 45px;
+            transition: transform 0.3s ease;
+        }
+
+        .landing-header a:hover img {
+            transform: scale(1.05);
+        }
+
         /* ===== LANDING HERO ===== */
         .landing-hero {
             min-height: 100vh;
@@ -87,6 +106,7 @@
             position: relative;
             background: var(--gradient-dark);
             overflow: hidden;
+            padding-top: 80px;
         }
 
         .landing-hero::before {
@@ -895,6 +915,15 @@
 </head>
 
 <body>
+    <!-- Header with Logo -->
+    <header class="landing-header">
+        <div class="container">
+            <a href="../index.html" title="Ir a página principal">
+                <img src="../img/logos/logo-principal.png" alt="IO Group">
+            </a>
+        </div>
+    </header>
+
     <!-- Hero Section -->
     <section class="landing-hero">
         <div class="container">
