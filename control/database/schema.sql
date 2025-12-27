@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS Usuario (
 CREATE TABLE IF NOT EXISTS Cliente (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
+    tipo_documento ENUM('DNI', 'Carnet de Extranjeria', 'RUC', 'Otro') DEFAULT 'DNI',
     dni VARCHAR(15),
     telefono VARCHAR(20),
     email VARCHAR(100),
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS Cliente (
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 
 -- ============================================
 -- TABLA: Empresa
