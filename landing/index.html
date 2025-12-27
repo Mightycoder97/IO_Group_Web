@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Servicio de recojo de residuos peligrosos para Odontólogos y Veterinarios. Solo S/.75/mes. Incluye contenedor, bolsa roja y toda la documentación legal.">
+    <meta name="keywords" content="residuos peligrosos, odontólogos, veterinarios, recojo residuos, Lima, Perú, RESPEL">
+    <meta name="author" content="IO Group">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Recojo de Residuos Peligrosos | S/.75/mes | IO Group">
+    <meta property="og:description"
+        content="Servicio mensual para Odontólogos y Veterinarios. Incluye contenedor, documentación y recojo hasta 10kg.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_PE">
+
+    <title>Recojo de Residuos Peligrosos para Odontólogos y Veterinarios | IO Group</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
+
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+    <!-- Google Fonts - Optimized -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #EA4517;
+            --primary-dark: #B70207;
+            --primary-light: #FF6B42;
+            --secondary: #B70207;
+            --accent: #4F601A;
+            --dark: #1A1A2E;
+            --dark-light: #16213E;
+            --gray-600: #6c757d;
+            --gray-800: #343a40;
+            --white: #FFFFFF;
+            --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            --gradient-dark: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 30px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background-color: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* ===== LANDING HERO ===== */
+        .landing-hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            background: var(--gradient-dark);
+            overflow: hidden;
+        }
+
+        .landing-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 150%;
+            background: radial-gradient(ellipse, rgba(234, 69, 23, 0.15) 0%, transparent 70%);
+            animation: pulse-glow 4s ease-in-out infinite alternate;
+        }
+
+        .landing-hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 60%;
+            height: 100%;
+            background: radial-gradient(ellipse, rgba(183, 2, 7, 0.1) 0%, transparent 60%);
+            animation: pulse-glow 5s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .landing-hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .landing-hero h1 span {
+            background: linear-gradient(90deg, #FFD54F, #FF8A65);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.35rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 18px;
+            border-radius: var(--radius-xl);
+            color: var(--white);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .hero-badge i {
+            color: var(--primary-light);
+        }
+
+        /* ===== PRICING CARD ===== */
+        .pricing-hero-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .pricing-hero-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .pricing-hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--gradient-primary);
+        }
+
+        .pricing-tag {
+            display: inline-block;
+            background: var(--gradient-primary);
+            color: var(--white);
+            padding: 6px 16px;
+            border-radius: var(--radius-xl);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .pricing-amount {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+
+        .currency {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-right: 5px;
+        }
+
+        .price {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1;
+        }
+
+        .period {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            margin-left: 8px;
+        }
+
+        .pricing-description {
+            color: var(--gray-600);
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        .pricing-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .pricing-features li:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-features li i {
+            color: #28a745;
+            font-size: 1.1rem;
+            margin-top: 2px;
+        }
+
+        .pricing-features li span {
+            color: var(--gray-800);
+        }
+
+        .btn-cta {
+            display: block;
+            width: 100%;
+            padding: 16px 30px;
+            background: var(--gradient-primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(234, 69, 23, 0.3);
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(234, 69, 23, 0.4);
+            color: var(--white);
+        }
+
+        .btn-cta i {
+            margin-right: 8px;
+        }
+
+        /* ===== BENEFITS SECTION ===== */
+        .benefits-section {
+            padding: 100px 0;
+            background: #F8F9FA;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 15px;
+        }
+
+        .section-title h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-primary);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        .section-title p {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .benefit-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 35px 30px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            height: 100%;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .benefit-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(234, 69, 23, 0.1) 0%, rgba(183, 2, 7, 0.1) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .benefit-card:hover .benefit-icon {
+            background: var(--gradient-primary);
+            color: var(--white);
+            transform: scale(1.1);
+        }
+
+        .benefit-card h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 12px;
+        }
+
+        .benefit-card p {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* ===== DOCUMENTS SECTION ===== */
+        .documents-section {
+            padding: 100px 0;
+            background: var(--white);
+        }
+
+        .document-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 25px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+        }
+
+        .document-card:hover {
+            transform: translateX(10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .document-icon {
+            width: 60px;
+            height: 60px;
+            min-width: 60px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .document-info h5 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+
+        .document-info p {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* ===== FORM SECTION ===== */
+        .form-section {
+            padding: 100px 0;
+            background: var(--gradient-dark);
+            position: relative;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: radial-gradient(ellipse at right, rgba(234, 69, 23, 0.1) 0%, transparent 70%);
+        }
+
+        .form-section .section-title h2,
+        .form-section .section-title p {
+            color: var(--white);
+        }
+
+        .form-section .section-title p {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .lead-form {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 50px;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            z-index: 2;
+        }
+
+        .form-floating {
+            margin-bottom: 20px;
+        }
+
+        .form-floating .form-control,
+        .form-floating .form-select {
+            border-radius: var(--radius-sm);
+            border: 2px solid #e9ecef;
+            padding: 20px 15px;
+            height: auto;
+            font-size: 1rem;
+        }
+
+        .form-floating .form-control:focus,
+        .form-floating .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(234, 69, 23, 0.1);
+        }
+
+        .form-floating label {
+            padding: 20px 15px;
+        }
+
+        .form-check {
+            margin: 20px 0;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .form-check-label {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .form-check-label a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px 30px;
+            background: var(--gradient-primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(234, 69, 23, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(234, 69, 23, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-benefits {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .form-benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-md);
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-benefit-item i {
+            font-size: 2rem;
+            color: var(--primary-light);
+        }
+
+        .form-benefit-item div h5 {
+            color: var(--white);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .form-benefit-item div p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* ===== FOOTER ===== */
+        .landing-footer {
+            background: var(--dark);
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .landing-footer img {
+            height: 40px;
+            margin-bottom: 20px;
+        }
+
+        .footer-contact {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-contact a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-contact a:hover {
+            color: var(--primary-light);
+        }
+
+        .footer-contact a i {
+            color: var(--primary-light);
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        /* ===== WHATSAPP BUTTON ===== */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 2rem;
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(37, 211, 102, 0.5);
+            color: var(--white);
+        }
+
+        /* ===== ALERT MESSAGES ===== */
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 991px) {
+            .landing-hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .pricing-hero-card {
+                margin-top: 50px;
+            }
+
+            .lead-form {
+                padding: 30px;
+            }
+
+            .form-benefits {
+                margin-top: 40px;
+            }
+
+            .benefits-section,
+            .documents-section,
+            .form-section {
+                padding: 60px 0;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .landing-hero {
+                padding: 60px 0 40px;
+                min-height: auto;
+            }
+
+            .landing-hero h1 {
+                font-size: 1.75rem;
+                line-height: 1.2;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .hero-badges {
+                gap: 8px;
+                margin-bottom: 20px;
+            }
+
+            .hero-badge {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+
+            .pricing-hero-card {
+                padding: 25px;
+                margin-top: 30px;
+            }
+
+            .price {
+                font-size: 2.8rem;
+            }
+
+            .currency {
+                font-size: 1.2rem;
+            }
+
+            .period {
+                font-size: 0.95rem;
+            }
+
+            .pricing-features li {
+                padding: 10px 0;
+                font-size: 0.9rem;
+            }
+
+            .section-title {
+                margin-bottom: 40px;
+            }
+
+            .section-title h2 {
+                font-size: 1.6rem;
+            }
+
+            .section-title p {
+                font-size: 0.95rem;
+            }
+
+            .benefits-section,
+            .documents-section,
+            .form-section {
+                padding: 50px 0;
+            }
+
+            .benefit-card {
+                padding: 25px 20px;
+            }
+
+            .benefit-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .benefit-card h4 {
+                font-size: 1.05rem;
+            }
+
+            .benefit-card p {
+                font-size: 0.85rem;
+            }
+
+            .document-card {
+                padding: 18px;
+                gap: 15px;
+            }
+
+            .document-icon {
+                width: 50px;
+                height: 50px;
+                min-width: 50px;
+                font-size: 1.2rem;
+            }
+
+            .document-info h5 {
+                font-size: 0.95rem;
+            }
+
+            .document-info p {
+                font-size: 0.8rem;
+            }
+
+            .lead-form {
+                padding: 25px 20px;
+            }
+
+            .form-floating .form-control,
+            .form-floating .form-select {
+                padding: 16px 12px;
+                font-size: 16px;
+                /* Prevents iOS zoom */
+            }
+
+            .form-floating label {
+                padding: 16px 12px;
+                font-size: 0.9rem;
+            }
+
+            .btn-cta,
+            .btn-submit {
+                padding: 14px 24px;
+                font-size: 1rem;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+
+            .form-benefit-item {
+                padding: 15px;
+                gap: 12px;
+            }
+
+            .form-benefit-item i {
+                font-size: 1.5rem;
+            }
+
+            .form-benefit-item div h5 {
+                font-size: 0.95rem;
+            }
+
+            .form-benefit-item div p {
+                font-size: 0.8rem;
+            }
+
+            .footer-contact {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .footer-contact a {
+                font-size: 0.95rem;
+            }
+
+            .whatsapp-float {
+                bottom: 20px;
+                right: 20px;
+                width: 55px;
+                height: 55px;
+                font-size: 1.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .landing-hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .hero-badges {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .pricing-hero-card {
+                padding: 20px;
+            }
+
+            .price {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+
+            .benefit-card:hover,
+            .document-card:hover,
+            .pricing-hero-card:hover {
+                transform: none;
+            }
+
+            .benefit-card:hover .benefit-icon {
+                transform: none;
+                background: linear-gradient(135deg, rgba(234, 69, 23, 0.1) 0%, rgba(183, 2, 7, 0.1) 100%);
+                color: var(--primary);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Section -->
+    <section class="landing-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1>Recojo de <span>Residuos Peligrosos</span> para tu Consultorio</h1>
+                        <p class="hero-subtitle">
+                            Servicio mensual especializado para <strong>Odontólogos</strong> y
+                            <strong>Veterinarios</strong>.
+                            Cumple con la normativa sanitaria sin complicaciones.
+                        </p>
+                        <div class="hero-badges">
+                            <span class="hero-badge">
+                                <i class="fas fa-certificate"></i> EO-RS Autorizada
+                            </span>
+                            <span class="hero-badge">
+                                <i class="fas fa-truck"></i> Recojo a domicilio
+                            </span>
+                            <span class="hero-badge">
+                                <i class="fas fa-file-alt"></i> Documentación incluida
+                            </span>
+                        </div>
+                        <a href="#formulario" class="btn-cta d-inline-block" style="width: auto; padding: 16px 40px;">
+                            <i class="fas fa-paper-plane"></i>Solicitar Información
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="pricing-hero-card">
+                        <span class="pricing-tag">
+                            <i class="fas fa-star me-1"></i> Oferta Especial
+                        </span>
+                        <div class="pricing-amount">
+                            <span class="currency">S/.</span>
+                            <span class="price">75</span>
+                            <span class="period">/mes</span>
+                        </div>
+                        <p class="pricing-description">
+                            Para Odontólogos y Veterinarios en Lima Metropolitana
+                        </p>
+                        <ul class="pricing-features">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span><strong>Servicio Mensual</strong> de recojo programado</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span><strong>Máximo 10kg</strong> de residuos por servicio</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span><strong>Contrato anual</strong> con precio fijo garantizado</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span><strong>Contenedor</strong> especial incluido</span>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <span><strong>Bolsa roja de 140L</strong> incluida</span>
+                            </li>
+                        </ul>
+                        <a href="#formulario" class="btn-cta">
+                            <i class="fas fa-arrow-right"></i>¡Lo Quiero!
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>¿Qué incluye el servicio?</h2>
+                <p>Todo lo que necesitas para cumplir con la normativa de manejo de residuos peligrosos</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <h4>Contenedor Especializado</h4>
+                        <p>Contenedor de bioseguridad de alta resistencia para almacenamiento seguro de residuos</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h4>Bolsa Roja 140L</h4>
+                        <p>Bolsa roja de alta resistencia según normas técnicas para residuos biocontaminados</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-truck-pickup"></i>
+                        </div>
+                        <h4>Recojo a Domicilio</h4>
+                        <p>Personal capacitado recoge los residuos directamente en tu consultorio</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="benefit-card">
+                        <div class="benefit-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <h4>Tratamiento Final</h4>
+                        <p>Incineración y disposición final en plantas autorizadas por DIGESA</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documents Section -->
+    <section class="documents-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Documentación Legal Incluida</h2>
+                <p>Toda la documentación que necesitas para cumplir con las fiscalizaciones</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="document-card">
+                        <div class="document-icon">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                        <div class="document-info">
+                            <h5>Manifiesto de Recojo</h5>
+                            <p>Manifiesto de Recojo de Residuos Peligrosos según normativa vigente</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="document-card">
+                        <div class="document-icon">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <div class="document-info">
+                            <h5>Guía de Transporte</h5>
+                            <p>Guía electrónica de Transporte de Residuos Peligrosos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="document-card">
+                        <div class="document-icon">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <div class="document-info">
+                            <h5>Contrato de Servicio</h5>
+                            <p>Contrato formal que respalda el servicio de gestión de residuos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Form Section -->
+    <section class="form-section" id="formulario">
+        <div class="container">
+            <div class="section-title">
+                <h2>Solicita tu Cotización</h2>
+                <p>Déjanos tus datos y un asesor se comunicará contigo en menos de 24 horas</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <form class="lead-form" id="leadForm">
+                        <div id="formMessage"></div>
+
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="nombre" name="nombre"
+                                placeholder="Tu nombre completo" required>
+                            <label for="nombre"><i class="fas fa-user me-2"></i>Nombre Completo</label>
+                        </div>
+
+                        <div class="form-floating">
+                            <select class="form-select" id="tipo" name="tipo" required>
+                                <option value="" selected disabled>Selecciona tu profesión</option>
+                                <option value="Odontólogo">Odontólogo</option>
+                                <option value="Veterinario">Veterinario</option>
+                                <option value="Otros/Empresa">Otros / Empresa</option>
+                            </select>
+                            <label for="tipo"><i class="fas fa-briefcase-medical me-2"></i>Tipo de Profesional</label>
+                        </div>
+
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="establecimiento" name="establecimiento"
+                                placeholder="Nombre de tu consultorio" required>
+                            <label for="establecimiento"><i class="fas fa-clinic-medical me-2"></i>Nombre del
+                                Establecimiento</label>
+                        </div>
+
+                        <div class="form-floating">
+                            <input type="tel" class="form-control" id="telefono" name="telefono"
+                                placeholder="999 999 999" required pattern="[0-9]{9}">
+                            <label for="telefono"><i class="fas fa-phone me-2"></i>Teléfono / WhatsApp</label>
+                        </div>
+
+                        <div class="form-floating">
+                            <input type="email" class="form-control" id="email" name="email"
+                                placeholder="correo@ejemplo.com" required>
+                            <label for="email"><i class="fas fa-envelope me-2"></i>Correo Electrónico</label>
+                        </div>
+
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="distrito" name="distrito" placeholder="Distrito"
+                                required>
+                            <label for="distrito"><i class="fas fa-map-marker-alt me-2"></i>Distrito</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="acepto" name="acepto" required>
+                            <label class="form-check-label" for="acepto">
+                                Acepto que IO Group me contacte para brindarme información sobre sus servicios.
+                                <a href="../contacto.html" target="_blank">Política de privacidad</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <i class="fas fa-paper-plane me-2"></i>Solicitar Cotización
+                        </button>
+                    </form>
+                </div>
+                <div class="col-lg-5 offset-lg-1">
+                    <div class="form-benefits">
+                        <div class="form-benefit-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h5>Respuesta Rápida</h5>
+                                <p>Te contactamos en menos de 24 horas hábiles</p>
+                            </div>
+                        </div>
+                        <div class="form-benefit-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <h5>Empresa Autorizada</h5>
+                                <p>EO-RS registrada ante el MINAM con todas las certificaciones</p>
+                            </div>
+                        </div>
+                        <div class="form-benefit-item">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            <div>
+                                <h5>Sin Costos Ocultos</h5>
+                                <p>El precio incluye todo: contenedor, bolsas y documentación</p>
+                            </div>
+                        </div>
+                        <div class="form-benefit-item">
+                            <i class="fas fa-headset"></i>
+                            <div>
+                                <h5>Soporte Continuo</h5>
+                                <p>Atención personalizada durante todo el contrato</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="container">
+            <img src="../img/logos/logo-principal.png" alt="IO Group" loading="lazy">
+            <div class="footer-contact">
+                <a href="tel:+51997571262">
+                    <i class="fas fa-phone-alt"></i> +51 997 571 262
+                </a>
+                <a href="mailto:naenciso@iogroup.pe">
+                    <i class="fas fa-envelope"></i> naenciso@iogroup.pe
+                </a>
+                <a href="https://wa.me/51997571262" target="_blank" rel="noopener">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+            </div>
+            <p class="footer-copyright">
+                &copy; 2025 IO Group. Todos los derechos reservados.
+            </p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/51997571262?text=Hola,%20me%20interesa%20el%20servicio%20de%20recojo%20de%20residuos%20para%20mi%20consultorio"
+        class="whatsapp-float" target="_blank" rel="noopener" title="Contáctanos por WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Form Handling Script -->
+    <script>
+        // Initialize EmailJS with your public key
+        // You need to create a free account at https://www.emailjs.com/
+        // Then create a service and template, and replace these values
+        (function () {
+            emailjs.init('YOUR_PUBLIC_KEY'); // Replace with your EmailJS public key
+        })();
+
+        document.getElementById('leadForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const formMessage = document.getElementById('formMessage');
+
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+
+            // Collect form data
+            const formData = {
+                nombre: document.getElementById('nombre').value,
+                tipo: document.getElementById('tipo').value,
+                establecimiento: document.getElementById('establecimiento').value,
+                telefono: document.getElementById('telefono').value,
+                email: document.getElementById('email').value,
+                distrito: document.getElementById('distrito').value,
+                fecha: new Date().toLocaleString('es-PE'),
+                origen: 'Landing Page - Odontólogos y Veterinarios'
+            };
+
+            // Email template parameters
+            const emailParams = {
+                to_emails: 'sebastian3197@gmail.com, pedroretamozo0@gmail.com',
+                from_name: formData.nombre,
+                from_email: formData.email,
+                subject: `Nuevo Lead Landing: ${formData.tipo} - ${formData.establecimiento}`,
+                nombre: formData.nombre,
+                tipo: formData.tipo,
+                establecimiento: formData.establecimiento,
+                telefono: formData.telefono,
+                email: formData.email,
+                distrito: formData.distrito,
+                fecha: formData.fecha,
+                origen: formData.origen,
+                message: `
+                    NUEVO LEAD - LANDING PAGE RESIDUOS PELIGROSOS
+                    =============================================
+                    
+                    Nombre: ${formData.nombre}
+                    Tipo: ${formData.tipo}
+                    Establecimiento: ${formData.establecimiento}
+                    Teléfono: ${formData.telefono}
+                    Email: ${formData.email}
+                    Distrito: ${formData.distrito}
+                    
+                    Fecha: ${formData.fecha}
+                    Origen: ${formData.origen}
+                `
+            };
+
+            try {
+                // Method 1: Try EmailJS first (requires setup)
+                // Uncomment and configure after setting up EmailJS:
+                // await emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', emailParams);
+
+                // Method 2: Send via FormSubmit.co (no setup required, uses their service)
+                const formSubmitData = new FormData();
+                formSubmitData.append('nombre', formData.nombre);
+                formSubmitData.append('tipo', formData.tipo);
+                formSubmitData.append('establecimiento', formData.establecimiento);
+                formSubmitData.append('telefono', formData.telefono);
+                formSubmitData.append('email', formData.email);
+                formSubmitData.append('distrito', formData.distrito);
+                formSubmitData.append('fecha', formData.fecha);
+                formSubmitData.append('origen', formData.origen);
+                formSubmitData.append('_subject', `Nuevo Lead Landing: ${formData.tipo} - ${formData.establecimiento}`);
+                formSubmitData.append('_cc', 'pedroretamozo0@gmail.com');
+
+                await fetch('https://formsubmit.co/ajax/sebastian3197@gmail.com', {
+                    method: 'POST',
+                    body: formSubmitData
+                });
+
+                // Show success message
+                formMessage.innerHTML = `
+                    <div class="alert-success">
+                        <i class="fas fa-check-circle fa-2x mb-3"></i>
+                        <h5>¡Solicitud Enviada!</h5>
+                        <p class="mb-0">Gracias por tu interés. Un asesor se comunicará contigo en menos de 24 horas.</p>
+                    </div>
+                `;
+
+                // Reset form
+                this.reset();
+
+                // Track conversion (if analytics is available)
+                if (typeof gtag === 'function') {
+                    gtag('event', 'generate_lead', {
+                        'event_category': 'engagement',
+                        'event_label': formData.tipo
+                    });
+                }
+
+            } catch (error) {
+                formMessage.innerHTML = `
+                    <div class="alert-error">
+                        <i class="fas fa-exclamation-circle fa-2x mb-3"></i>
+                        <h5>Error al enviar</h5>
+                        <p class="mb-0">Hubo un problema. Por favor, contáctanos directamente por WhatsApp.</p>
+                    </div>
+                `;
+            }
+
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Solicitar Cotización';
+
+            // Scroll to message
+            formMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Phone number formatting
+        document.getElementById('telefono').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 9) value = value.slice(0, 9);
+            e.target.value = value;
+        });
+    </script>
+</body>
+
+</html>
