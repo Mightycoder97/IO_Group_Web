@@ -89,7 +89,7 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Código</th>
+                                    <th>Mes</th>
                                     <th>Fecha</th>
                                     <th>Sede</th>
                                     <th>Empresa</th>
@@ -180,6 +180,15 @@
             }
         }
 
+        // Función para obtener el nombre del mes
+        function getMonthName(dateStr) {
+            if (!dateStr) return '-';
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const date = new Date(dateStr);
+            return meses[date.getMonth()];
+        }
+
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             if (data.length === 0) {
@@ -188,7 +197,7 @@
             }
             tbody.innerHTML = data.map(s => `
                 <tr>
-                    <td><strong>${s.codigo_servicio || '-'}</strong></td>
+                    <td><strong>${getMonthName(s.fecha_programada)}</strong></td>
                     <td>${formatDate(s.fecha_programada)}</td>
                     <td>${s.sede_nombre}</td>
                     <td>${s.empresa_razon_social}</td>
