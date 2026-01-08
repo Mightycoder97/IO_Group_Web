@@ -169,7 +169,7 @@
                     // Inicializar ordenamiento de columnas
                     if (!tableSorter) {
                         tableSorter = new TableSort('tableBody', {
-                            columns: ['fecha_programada', 'fecha_programada', 'sede_nombre', 'empresa_razon_social', 'planta_nombre', 'peso_kg', 'estado', null],
+                            columns: ['fecha_programada:0', 'fecha_programada:1', 'sede_nombre', 'empresa_razon_social', 'planta_nombre', 'peso_kg', 'estado', null],
                             onSort: (sortedData) => renderTable(sortedData)
                         });
                     }
@@ -180,13 +180,21 @@
             }
         }
 
-        // Función para obtener el nombre del mes
+        // Función para obtener el nombre del mes de servicio
+        // Si el día es >= 15, corresponde al mes siguiente
         function getMonthName(dateStr) {
             if (!dateStr) return '-';
             const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const date = new Date(dateStr);
-            return meses[date.getMonth()];
+            const date = new Date(dateStr + 'T00:00:00');
+            let month = date.getMonth();
+            const day = date.getDate();
+
+            // Si el día es >= 15, el servicio corresponde al mes siguiente
+            if (day >= 15) {
+                month = (month + 1) % 12;
+            }
+            return meses[month];
         }
 
         function renderTable(data) {
