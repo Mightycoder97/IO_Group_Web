@@ -45,7 +45,7 @@ function getAll() {
     $offset = ($page - 1) * $limit;
     
     // Consulta optimizada con índices - incluye IDs de documentos relacionados
-    $sql = "SELECT s.id_servicio, s.codigo_servicio, s.fecha_programada, s.fecha_ejecucion, 
+    $sql = "SELECT s.id_servicio, s.codigo_servicio, s.mes_servicio, s.fecha_programada, s.fecha_ejecucion, 
             s.estado, s.id_sede, s.id_planta,
             se.nombre_comercial as sede_nombre,
             e.razon_social as empresa_razon_social,

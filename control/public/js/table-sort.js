@@ -61,9 +61,6 @@ class TableSort {
     }
 
     sort(column, thElement) {
-        // Extraer nombre real de la columna (formato 'column:index' -> 'column')
-        const realColumn = column.includes(':') ? column.split(':')[0] : column;
-
         // Determinar dirección
         if (this.currentSort.column === column) {
             this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
@@ -91,8 +88,8 @@ class TableSort {
 
         // Ordenar datos
         const sortedData = [...this.data].sort((a, b) => {
-            let valueA = a[realColumn];
-            let valueB = b[realColumn];
+            let valueA = a[column];
+            let valueB = b[column];
 
             // Manejar valores nulos/undefined
             if (valueA === null || valueA === undefined) valueA = '';
