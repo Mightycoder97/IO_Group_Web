@@ -169,7 +169,7 @@
                     // Inicializar ordenamiento de columnas
                     if (!tableSorter) {
                         tableSorter = new TableSort('tableBody', {
-                            columns: ['codigo_servicio', 'fecha_programada', 'sede_nombre', 'empresa_razon_social', 'planta_nombre', 'peso_kg', 'estado', null],
+                            columns: ['fecha_programada', 'fecha_programada', 'sede_nombre', 'empresa_razon_social', 'planta_nombre', 'peso_kg', 'estado', null],
                             onSort: (sortedData) => renderTable(sortedData)
                         });
                     }

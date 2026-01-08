@@ -95,6 +95,16 @@ class TableSort {
             if (valueA === null || valueA === undefined) valueA = '';
             if (valueB === null || valueB === undefined) valueB = '';
 
+            // Detectar si son fechas (formato YYYY-MM-DD o ISO)
+            const dateRegex = /^\d{4}-\d{2}-\d{2}/;
+            if (dateRegex.test(valueA) && dateRegex.test(valueB)) {
+                const dateA = new Date(valueA);
+                const dateB = new Date(valueB);
+                return this.currentSort.direction === 'asc'
+                    ? dateA - dateB
+                    : dateB - dateA;
+            }
+
             // Intentar comparación numérica
             const numA = parseFloat(valueA);
             const numB = parseFloat(valueB);
