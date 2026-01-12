@@ -23,8 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // Configuration
 $destinatario = 'admin@iogroup.pe';
+$destinatario_cc = 'naenciso@iogroup.pe'; // Backup recipient
 $remitente_noreply = 'noreply@iogroup.pe';
 $nombre_empresa = 'IO Group';
+
+// Enable error logging for debugging
+error_log("Contact form submission started at " . date('Y-m-d H:i:s'));
 
 // Get form data
 $tipo_cliente = $_POST['tipo_cliente'] ?? '';
@@ -162,10 +166,15 @@ $headers_admin = "MIME-Version: 1.0\r\n";
 $headers_admin .= "Content-type: text/html; charset=UTF-8\r\n";
 $headers_admin .= "From: {$nombre_empresa} <{$remitente_noreply}>\r\n";
 $headers_admin .= "Reply-To: {$email}\r\n";
+$headers_admin .= "Cc: {$destinatario_cc}\r\n";
 $headers_admin .= "X-Mailer: PHP/" . phpversion();
 
 // Send email to administrator
 $enviado_admin = mail($destinatario, $asunto_admin, $mensaje_admin, $headers_admin);
+
+// Log the result for debugging
+error_log("Email to admin ({$destinatario}): " . ($enviado_admin ? "SUCCESS" : "FAILED"));
+error_log("Subject: {$asunto_admin}");
 
 // Prepare confirmation email for user
 $asunto_usuario = "Hemos recibido tu solicitud - IO Group";
