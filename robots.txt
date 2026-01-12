@@ -1,0 +1,20 @@
+# robots.txt for IO Group - iogroup.pe
+# Generated: 2026-01-12
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.iogroup.pe/sitemap.xml
+
+# Disallow admin/control areas
+Disallow: /control/
+Disallow: /api/
+
+# Disallow temporary files
+Disallow: /*.sql$
+Disallow: /*.xlsx$
+Disallow: /*.csv$
+Disallow: /*.txt$
+Disallow: /.git/
+Disallow: /.venv/
