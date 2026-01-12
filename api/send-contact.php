@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Configuration
-$destinatario = 'naenciso@iogroup.pe';
+$destinatario = 'admin@iogroup.pe';
 $remitente_noreply = 'noreply@iogroup.pe';
 $nombre_empresa = 'IO Group';
 
