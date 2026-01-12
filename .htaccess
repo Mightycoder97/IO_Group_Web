@@ -1,13 +1,22 @@
 # Enable URL Rewriting
 RewriteEngine On
 
+# Special case: /blog should serve blog.html (not the blog/ directory)
+RewriteRule ^blog/?$ blog.html [L]
+
 # Remove .html extension from URLs
 # Example: /contacto loads contacto.html
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}.html -f
 RewriteRule ^(.*)$ $1.html [L]
 
-# Redirect .html URLs to clean URLs (optional - for SEO)
+# Handle blog articles: /blog/article-name loads blog/article-name.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^blog/(.*)$ blog/$1.html [L]
+
+# Redirect .html URLs to clean URLs (for SEO)
 # This redirects /contacto.html to /contacto
 RewriteCond %{THE_REQUEST} /([^.]+)\.html [NC]
 RewriteRule ^ /%1 [NC,L,R=301]
