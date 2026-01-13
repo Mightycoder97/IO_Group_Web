@@ -44,6 +44,9 @@ function getSidebarHTML() {
             <div class="nav-section"><div class="nav-section-title">Finanzas</div></div>
             <a href="../facturas/listar.html" class="nav-item"><i class="bi bi-receipt"></i> Facturas</a>
             
+            <div class="nav-section"><div class="nav-section-title">Ventas</div></div>
+            <a href="../prospectos/listar.html" class="nav-item"><i class="bi bi-person-hearts"></i> Prospectos</a>
+            
             <div class="nav-section"><div class="nav-section-title">Herramientas</div></div>
             <a href="../mapa/index.html" class="nav-item"><i class="bi bi-map"></i> Mapa de Sedes</a>
             <a href="../reportes/index.html" class="nav-item"><i class="bi bi-graph-up"></i> Reportes</a>

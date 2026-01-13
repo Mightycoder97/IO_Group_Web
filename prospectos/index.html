@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6MBEGPZ5TK"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-6MBEGPZ5TK');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Registro de Prospectos | IO Group</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS (Free Maps) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+
+    <style>
+        :root {
+            --primary: #EA4517;
+            --primary-dark: #B70207;
+            --primary-light: #FF6B42;
+            --secondary: #B70207;
+            --dark: #1A1A2E;
+            --dark-light: #16213E;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-600: #6c757d;
+            --gray-800: #343a40;
+            --white: #FFFFFF;
+            --success: #28a745;
+            --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            --gradient-dark: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: var(--gray-100);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .page-header {
+            background: var(--gradient-dark);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-md);
+        }
+
+        .page-header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .page-header img {
+            height: 40px;
+        }
+
+        .header-title {
+            color: var(--white);
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title i {
+            color: var(--primary-light);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px 0 60px;
+        }
+
+        .form-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            background: var(--gradient-primary);
+            padding: 25px 30px;
+            color: var(--white);
+            text-align: center;
+        }
+
+        .form-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .form-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .form-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-label .required {
+            color: var(--primary);
+        }
+
+        .form-control,
+        .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--white);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(234, 69, 23, 0.1);
+        }
+
+        .form-control.error,
+        .form-select.error {
+            border-color: #dc3545;
+        }
+
+        .form-control::placeholder {
+            color: #adb5bd;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Section Divider */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 30px 0 20px;
+            color: var(--gray-600);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 16px 30px;
+            background: var(--gradient-primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(234, 69, 23, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(234, 69, 23, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-submit .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-submit.loading .btn-text {
+            display: none;
+        }
+
+        .btn-submit.loading .spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert i {
+            margin-right: 10px;
+        }
+
+        /* Success State */
+        .success-state {
+            display: none;
+            text-align: center;
+            padding: 40px 30px;
+        }
+
+        .success-state.show {
+            display: block;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2.5rem;
+            color: white;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-state h2 {
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .success-state p {
+            color: var(--gray-600);
+            margin-bottom: 25px;
+        }
+
+        .btn-new {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-new:hover {
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* Hide form when success */
+        .form-content.hidden {
+            display: none;
+        }
+
+        /* Footer */
+        .page-footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray-600);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 576px) {
+            .form-body {
+                padding: 20px;
+            }
+
+            .form-header {
+                padding: 20px;
+            }
+
+            .form-header h1 {
+                font-size: 1.3rem;
+            }
+
+            .header-title span {
+                display: none;
+            }
+
+            .page-header img {
+                height: 35px;
+            }
+        }
+
+        /* ===== MAP STYLES ===== */
+        .location-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            padding-right: 45px;
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .search-box .search-icon:hover {
+            color: var(--primary);
+        }
+
+        .search-box .search-icon.loading {
+            animation: spin 0.8s linear infinite;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-top: none;
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--gray-200);
+            transition: background 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: var(--gray-100);
+        }
+
+        .search-result-item i {
+            color: var(--primary);
+            margin-right: 10px;
+        }
+
+        #map {
+            height: 250px;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--gray-200);
+            margin-bottom: 15px;
+        }
+
+        .map-instructions {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .map-instructions i {
+            color: var(--primary);
+        }
+
+        .coordinates-display {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .coordinate-item {
+            flex: 1;
+            min-width: 120px;
+            background: var(--gray-100);
+            padding: 10px 15px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+        }
+
+        .coordinate-item label {
+            display: block;
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .coordinate-item span {
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        .btn-use-location {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: var(--gray-100);
+            border: 2px dashed var(--gray-200);
+            border-radius: var(--radius-sm);
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .btn-use-location:hover {
+            background: rgba(234, 69, 23, 0.05);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-use-location.loading {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        @media (max-width: 576px) {
+            #map {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <a href="/" title="Ir al inicio">
+                <img src="../img/logos/logo-principal.png" alt="IO Group" width="120" height="18">
+            </a>
+            <div class="header-title">
+                <i class="fas fa-user-plus"></i>
+                <span>Registro de Prospectos</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card">
+                <div class="form-header">
+                    <h1><i class="fas fa-clipboard-list me-2"></i>Nuevo Prospecto</h1>
+                    <p>Complete los datos del cliente potencial</p>
+                </div>
+
+                <div class="form-body">
+                    <!-- Alert Messages -->
+                    <div class="alert alert-error" id="alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="error-message">Ocurrió un error. Por favor intente nuevamente.</span>
+                    </div>
+
+                    <!-- Form Content -->
+                    <div class="form-content" id="form-content">
+                        <form id="prospect-form">
+                            <!-- Datos del Prospecto -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Nombre del Contacto <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="nombre" name="nombre"
+                                    placeholder="Ej: Juan Pérez García" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Razón Social / Empresa <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="razonSocial" name="razonSocial"
+                                    placeholder="Ej: Clínica Dental San Juan S.A.C." required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">RUC</label>
+                                <input type="text" class="form-control" id="ruc" name="ruc"
+                                    placeholder="Ej: 20123456789" maxlength="11" pattern="[0-9]{11}">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            Teléfono <span class="required">*</span>
+                                        </label>
+                                        <input type="tel" class="form-control" id="telefono" name="telefono"
+                                            placeholder="Ej: 987654321" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Correo Electrónico</label>
+                                        <input type="email" class="form-control" id="email" name="email"
+                                            placeholder="Ej: contacto@empresa.com">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="section-divider">
+                                <span>Ubicación</span>
+                            </div>
+
+                            <div class="location-wrapper">
+                                <!-- Location Search Box -->
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        Buscar Dirección <span class="required">*</span>
+                                    </label>
+                                    <div class="search-box">
+                                        <input type="text" class="form-control" id="direccionSearch"
+                                            placeholder="Buscar: Av. Primavera 123, Surco, Lima" autocomplete="off">
+                                        <i class="fas fa-search search-icon" id="searchIcon"></i>
+                                        <div class="search-results" id="searchResults"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Use Current Location Button -->
+                                <button type="button" class="btn-use-location" id="btnUseLocation">
+                                    <i class="fas fa-location-crosshairs"></i>
+                                    Usar mi ubicación actual
+                                </button>
+
+                                <!-- Map Container -->
+                                <div class="map-instructions">
+                                    <i class="fas fa-hand-pointer"></i>
+                                    <span>También puedes hacer clic en el mapa para ajustar la ubicación</span>
+                                </div>
+                                <div id="map"></div>
+
+                                <!-- Coordinates Display -->
+                                <div class="coordinates-display">
+                                    <div class="coordinate-item">
+                                        <label>Latitud</label>
+                                        <span id="latDisplay">-12.0464</span>
+                                    </div>
+                                    <div class="coordinate-item">
+                                        <label>Longitud</label>
+                                        <span id="lngDisplay">-77.0428</span>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden fields for form submission -->
+                                <input type="hidden" id="direccion" name="direccion">
+                                <input type="hidden" id="distrito" name="distrito">
+                                <input type="hidden" id="latitud" name="latitud" value="-12.0464">
+                                <input type="hidden" id="longitud" name="longitud" value="-77.0428">
+                            </div>
+
+
+                            <div class="section-divider">
+                                <span>Información del Negocio</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Tipo de Negocio <span class="required">*</span>
+                                </label>
+                                <select class="form-select" id="tipoNegocio" name="tipoNegocio" required>
+                                    <option value="">Seleccione una opción</option>
+                                    <option value="Odontólogo">Odontólogo / Clínica Dental</option>
+                                    <option value="Veterinario">Veterinario / Clínica Veterinaria</option>
+                                    <option value="Laboratorio">Laboratorio Clínico</option>
+                                    <option value="Centro Médico">Centro Médico / Policlínico</option>
+                                    <option value="Hospital">Hospital / Clínica</option>
+                                    <option value="Farmacia">Farmacia / Botica</option>
+                                    <option value="Spa/Estética">Spa / Centro Estético</option>
+                                    <option value="Tatuajes">Estudio de Tatuajes</option>
+                                    <option value="Industrial">Empresa Industrial</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Observaciones / Notas</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones"
+                                    placeholder="Ej: Interesado en servicio mensual, actualmente no tiene proveedor..."></textarea>
+                            </div>
+
+                            <div class="section-divider">
+                                <span>Datos del Vendedor</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Nombre del Vendedor <span class="required">*</span>
+                                </label>
+                                <select class="form-select" id="vendedor" name="vendedor" required>
+                                    <option value="">Seleccione vendedor</option>
+                                    <option value="Pedro Retamozo">Pedro Retamozo</option>
+                                    <option value="Nancy Enciso">Nancy Enciso</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn-submit" id="btn-submit">
+                                <span class="btn-text">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Registrar Prospecto
+                                </span>
+                                <span class="spinner"></span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Success State -->
+                    <div class="success-state" id="success-state">
+                        <div class="success-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <h2>¡Prospecto Registrado!</h2>
+                        <p>Los datos han sido guardados correctamente en el sistema.</p>
+                        <button class="btn-new" id="btn-new">
+                            <i class="fas fa-plus"></i>
+                            Registrar Otro Prospecto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+        <p>&copy; 2025 IO Group. Sistema interno de registro de prospectos.</p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Leaflet JS (Free Maps) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Map Functionality -->
+    <script>
+        /**
+         * Map Location Search - IO Group
+         * Uses Leaflet + OpenStreetMap (Free) + Nominatim (Free Geocoding)
+         */
+        (function () {
+            'use strict';
+
+            // Configuration
+            const MAP_CONFIG = {
+                defaultLat: -12.0464,
+                defaultLng: -77.0428,
+                defaultZoom: 13,
+                searchDelay: 500,
+                nominatimUrl: 'https://nominatim.openstreetmap.org'
+            };
+
+            // Map variables
+            let map, marker;
+            let searchTimeout;
+
+            // DOM Elements
+            const searchInput = document.getElementById('direccionSearch');
+            const searchIcon = document.getElementById('searchIcon');
+            const searchResults = document.getElementById('searchResults');
+            const btnUseLocation = document.getElementById('btnUseLocation');
+            const latDisplay = document.getElementById('latDisplay');
+            const lngDisplay = document.getElementById('lngDisplay');
+            const latInput = document.getElementById('latitud');
+            const lngInput = document.getElementById('longitud');
+            const direccionInput = document.getElementById('direccion');
+            const distritoInput = document.getElementById('distrito');
+
+            // Initialize map when DOM is ready
+            function initMap() {
+                // Create map
+                map = L.map('map').setView([MAP_CONFIG.defaultLat, MAP_CONFIG.defaultLng], MAP_CONFIG.defaultZoom);
+
+                // Add OpenStreetMap tiles (Free)
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+
+                // Add default marker
+                marker = L.marker([MAP_CONFIG.defaultLat, MAP_CONFIG.defaultLng], {
+                    draggable: true
+                }).addTo(map);
+
+                // Marker drag event
+                marker.on('dragend', function (e) {
+                    const position = e.target.getLatLng();
+                    updateCoordinates(position.lat, position.lng);
+                    reverseGeocode(position.lat, position.lng);
+                });
+
+                // Map click event
+                map.on('click', function (e) {
+                    const { lat, lng } = e.latlng;
+                    marker.setLatLng([lat, lng]);
+                    updateCoordinates(lat, lng);
+                    reverseGeocode(lat, lng);
+                });
+
+                // Search input events
+                searchInput.addEventListener('input', handleSearchInput);
+                searchInput.addEventListener('focus', () => {
+                    if (searchResults.children.length > 0) {
+                        searchResults.classList.add('show');
+                    }
+                });
+
+                // Click outside to close results
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.search-box')) {
+                        searchResults.classList.remove('show');
+                    }
+                });
+
+                // Search icon click
+                searchIcon.addEventListener('click', () => {
+                    if (searchInput.value.trim()) {
+                        performSearch(searchInput.value.trim());
+                    }
+                });
+
+                // Enter key search
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (searchInput.value.trim()) {
+                            performSearch(searchInput.value.trim());
+                        }
+                    }
+                });
+
+                // Use current location button
+                btnUseLocation.addEventListener('click', useCurrentLocation);
+            }
+
+            // Handle search input with debounce
+            function handleSearchInput() {
+                clearTimeout(searchTimeout);
+                const query = searchInput.value.trim();
+
+                if (query.length < 3) {
+                    searchResults.classList.remove('show');
+                    return;
+                }
+
+                searchTimeout = setTimeout(() => {
+                    performSearch(query);
+                }, MAP_CONFIG.searchDelay);
+            }
+
+            // Perform search using Nominatim
+            async function performSearch(query) {
+                searchIcon.classList.add('loading');
+                searchIcon.classList.remove('fa-search');
+                searchIcon.classList.add('fa-spinner');
+
+                try {
+                    const response = await fetch(
+                        `${MAP_CONFIG.nominatimUrl}/search?` + new URLSearchParams({
+                            q: query + ', Lima, Peru',
+                            format: 'json',
+                            addressdetails: 1,
+                            limit: 5,
+                            countrycodes: 'pe'
+                        }),
+                        {
+                            headers: {
+                                'Accept-Language': 'es'
+                            }
+                        }
+                    );
+
+                    const data = await response.json();
+                    displaySearchResults(data);
+
+                } catch (error) {
+                    console.error('Search error:', error);
+                    searchResults.innerHTML = '<div class="search-result-item">Error en la búsqueda</div>';
+                    searchResults.classList.add('show');
+                } finally {
+                    searchIcon.classList.remove('loading', 'fa-spinner');
+                    searchIcon.classList.add('fa-search');
+                }
+            }
+
+            // Display search results
+            function displaySearchResults(results) {
+                searchResults.innerHTML = '';
+
+                if (results.length === 0) {
+                    searchResults.innerHTML = '<div class="search-result-item">No se encontraron resultados</div>';
+                    searchResults.classList.add('show');
+                    return;
+                }
+
+                results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.className = 'search-result-item';
+                    item.innerHTML = `<i class="fas fa-map-marker-alt"></i>${result.display_name}`;
+                    item.addEventListener('click', () => selectLocation(result));
+                    searchResults.appendChild(item);
+                });
+
+                searchResults.classList.add('show');
+            }
+
+            // Select a location from search results
+            function selectLocation(result) {
+                const lat = parseFloat(result.lat);
+                const lng = parseFloat(result.lon);
+
+                // Update map
+                map.setView([lat, lng], 17);
+                marker.setLatLng([lat, lng]);
+
+                // Update coordinates
+                updateCoordinates(lat, lng);
+
+                // Update address fields
+                updateAddressFields(result);
+
+                // Update search input and close results
+                searchInput.value = result.display_name;
+                searchResults.classList.remove('show');
+            }
+
+            // Update coordinate displays and hidden inputs
+            function updateCoordinates(lat, lng) {
+                const latRounded = lat.toFixed(6);
+                const lngRounded = lng.toFixed(6);
+
+                latDisplay.textContent = latRounded;
+                lngDisplay.textContent = lngRounded;
+                latInput.value = latRounded;
+                lngInput.value = lngRounded;
+            }
+
+            // Update address fields from geocoding result
+            function updateAddressFields(result) {
+                const address = result.address || {};
+
+                // Build full address
+                const addressParts = [];
+                if (address.road) addressParts.push(address.road);
+                if (address.house_number) addressParts.push(address.house_number);
+                if (address.suburb) addressParts.push(address.suburb);
+
+                direccionInput.value = addressParts.join(', ') || result.display_name.split(',')[0];
+
+                // Extract district
+                const distrito = address.suburb || address.neighbourhood ||
+                    address.city_district || address.town ||
+                    address.city || '';
+                distritoInput.value = distrito;
+            }
+
+            // Reverse geocode from coordinates
+            async function reverseGeocode(lat, lng) {
+                try {
+                    const response = await fetch(
+                        `${MAP_CONFIG.nominatimUrl}/reverse?` + new URLSearchParams({
+                            lat: lat,
+                            lon: lng,
+                            format: 'json',
+                            addressdetails: 1
+                        }),
+                        {
+                            headers: {
+                                'Accept-Language': 'es'
+                            }
+                        }
+                    );
+
+                    const data = await response.json();
+                    if (data && data.address) {
+                        updateAddressFields(data);
+                        searchInput.value = data.display_name;
+                    }
+
+                } catch (error) {
+                    console.error('Reverse geocode error:', error);
+                }
+            }
+
+            // Use current location (GPS)
+            function useCurrentLocation() {
+                if (!navigator.geolocation) {
+                    alert('La geolocalización no está disponible en tu navegador.');
+                    return;
+                }
+
+                btnUseLocation.classList.add('loading');
+                btnUseLocation.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obteniendo ubicación...';
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+
+                        // Update map
+                        map.setView([latitude, longitude], 17);
+                        marker.setLatLng([latitude, longitude]);
+
+                        // Update coordinates
+                        updateCoordinates(latitude, longitude);
+
+                        // Reverse geocode
+                        reverseGeocode(latitude, longitude);
+
+                        // Reset button
+                        btnUseLocation.classList.remove('loading');
+                        btnUseLocation.innerHTML = '<i class="fas fa-location-crosshairs"></i> Usar mi ubicación actual';
+                    },
+                    (error) => {
+                        console.error('Geolocation error:', error);
+                        let message = 'No se pudo obtener la ubicación.';
+                        if (error.code === 1) {
+                            message = 'Permiso de ubicación denegado. Por favor habilita la ubicación.';
+                        }
+                        alert(message);
+
+                        // Reset button
+                        btnUseLocation.classList.remove('loading');
+                        btnUseLocation.innerHTML = '<i class="fas fa-location-crosshairs"></i> Usar mi ubicación actual';
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 60000
+                    }
+                );
+            }
+
+            // Initialize when ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initMap);
+            } else {
+                initMap();
+            }
+
+        })();
+    </script>
+
+
+    <script>
+        /**
+         * Prospect Registration Form - IO Group
+         * Sends data to local API
+         */
+        (function () {
+            'use strict';
+
+            // Configuration - API endpoint
+            const CONFIG = {
+                // API endpoint for prospect registration
+                apiUrl: '/control/api/prospectos.php'
+            };
+
+            // DOM Elements
+            const form = document.getElementById('prospect-form');
+            const formContent = document.getElementById('form-content');
+            const successState = document.getElementById('success-state');
+            const submitBtn = document.getElementById('btn-submit');
+            const alertError = document.getElementById('alert-error');
+            const errorMessage = document.getElementById('error-message');
+            const btnNew = document.getElementById('btn-new');
+
+            // Form fields
+            const fields = {
+                nombre: document.getElementById('nombre'),
+                razonSocial: document.getElementById('razonSocial'),
+                ruc: document.getElementById('ruc'),
+                telefono: document.getElementById('telefono'),
+                email: document.getElementById('email'),
+                direccion: document.getElementById('direccion'),
+                distrito: document.getElementById('distrito'),
+                latitud: document.getElementById('latitud'),
+                longitud: document.getElementById('longitud'),
+                tipoNegocio: document.getElementById('tipoNegocio'),
+                observaciones: document.getElementById('observaciones'),
+                vendedor: document.getElementById('vendedor')
+            };
+
+            // Initialize
+            function init() {
+                form.addEventListener('submit', handleSubmit);
+                btnNew.addEventListener('click', resetForm);
+
+                // Clear error on input
+                Object.values(fields).forEach(field => {
+                    if (field) {
+                        field.addEventListener('input', () => {
+                            field.classList.remove('error');
+                            hideError();
+                        });
+                    }
+                });
+
+                // Load saved vendor from localStorage
+                const savedVendor = localStorage.getItem('iogroup_vendedor');
+                if (savedVendor && fields.vendedor) {
+                    fields.vendedor.value = savedVendor;
+                }
+            }
+
+            // Handle form submission
+            async function handleSubmit(e) {
+                e.preventDefault();
+
+                // Validate required fields
+                const requiredFields = ['nombre', 'razonSocial', 'telefono', 'distrito', 'tipoNegocio', 'vendedor'];
+                let hasError = false;
+
+                requiredFields.forEach(fieldName => {
+                    const field = fields[fieldName];
+                    if (!field.value.trim()) {
+                        field.classList.add('error');
+                        hasError = true;
+                    }
+                });
+
+                if (hasError) {
+                    showError('Por favor complete todos los campos obligatorios.');
+                    return;
+                }
+
+                // Validate email format if provided
+                if (fields.email.value && !isValidEmail(fields.email.value)) {
+                    fields.email.classList.add('error');
+                    showError('Por favor ingrese un correo electrónico válido.');
+                    return;
+                }
+
+                // Validate RUC format if provided
+                if (fields.ruc.value && !/^[0-9]{11}$/.test(fields.ruc.value)) {
+                    fields.ruc.classList.add('error');
+                    showError('El RUC debe tener 11 dígitos numéricos.');
+                    return;
+                }
+
+                // Show loading
+                setLoading(true);
+                hideError();
+
+                // Prepare data
+                const data = {
+                    nombre: fields.nombre.value.trim(),
+                    razonSocial: fields.razonSocial.value.trim(),
+                    ruc: fields.ruc.value.trim() || 'No especificado',
+                    telefono: fields.telefono.value.trim(),
+                    email: fields.email.value.trim() || 'No especificado',
+                    direccion: fields.direccion.value.trim() || 'No especificada',
+                    distrito: fields.distrito.value.trim(),
+                    latitud: fields.latitud.value || '-12.0464',
+                    longitud: fields.longitud.value || '-77.0428',
+                    tipoNegocio: fields.tipoNegocio.value,
+                    observaciones: fields.observaciones.value.trim() || 'Sin observaciones',
+                    vendedor: fields.vendedor.value,
+                    fechaRegistro: new Date().toLocaleString('es-PE', {
+                        timeZone: 'America/Lima',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
+                };
+
+                try {
+                    // Save vendor preference
+                    localStorage.setItem('iogroup_vendedor', data.vendedor);
+
+                    // Send to local API
+                    const response = await fetch(CONFIG.apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Show success
+                        showSuccess();
+
+                        // Track event
+                        trackEvent('prospect_registered', data.tipoNegocio);
+                    } else {
+                        throw new Error(result.message || 'Error al registrar prospecto');
+                    }
+
+                } catch (error) {
+                    console.error('Error submitting form:', error);
+                    showError('Error de conexión. Por favor intente nuevamente.');
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            // Validate email
+            function isValidEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
+
+            // Set loading state
+            function setLoading(loading) {
+                submitBtn.disabled = loading;
+                submitBtn.classList.toggle('loading', loading);
+            }
+
+            // Show error
+            function showError(message) {
+                errorMessage.textContent = message;
+                alertError.classList.add('show');
+                // Scroll to error
+                alertError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Hide error
+            function hideError() {
+                alertError.classList.remove('show');
+            }
+
+            // Show success state
+            function showSuccess() {
+                formContent.classList.add('hidden');
+                successState.classList.add('show');
+                successState.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Reset form for new entry
+            function resetForm() {
+                form.reset();
+                formContent.classList.remove('hidden');
+                successState.classList.remove('show');
+                hideError();
+
+                // Restore saved vendor
+                const savedVendor = localStorage.getItem('iogroup_vendedor');
+                if (savedVendor && fields.vendedor) {
+                    fields.vendedor.value = savedVendor;
+                }
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // Track events for analytics
+            function trackEvent(eventName, label) {
+                if (typeof gtag === 'function') {
+                    gtag('event', eventName, {
+                        'event_category': 'Prospectos',
+                        'event_label': label
+                    });
+                }
+            }
+
+            // Initialize when ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+</body>
+
+</html>
