@@ -14,43 +14,76 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Sidebar template for all pages
+// Sidebar template with permission filtering
 function getSidebarHTML() {
+    const user = getUser();
+    const isAdmin = user?.rol === 'admin';
+
+    // Helper to check if module is allowed
+    const canView = (modulo) => {
+        if (isAdmin) return true;
+        return user?.permisos?.[modulo]?.ver === true;
+    };
+
+    // Helper to generate nav item
+    const navItem = (href, icon, label, modulo) => {
+        if (!canView(modulo)) return '';
+        return `<a href="${href}" class="nav-item"><i class="bi bi-${icon}"></i> ${label}</a>`;
+    };
+
+    // Helper to generate section (only if has visible items)
+    const section = (title, items) => {
+        const visibleItems = items.filter(i => i);
+        if (visibleItems.length === 0) return '';
+        return `<div class="nav-section"><div class="nav-section-title">${title}</div></div>${visibleItems.join('')}`;
+    };
+
     return `
         <div class="sidebar-header">
             <i class="bi bi-recycle" style="font-size: 2rem; color: #81C784;"></i>
             <h2 style="color: white; font-size: 1.1rem; margin: 0.5rem 0 0 0;">IO Control</h2>
         </div>
         <nav class="sidebar-nav">
-            <a href="../dashboard.html" class="nav-item"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            ${navItem('../dashboard.html', 'speedometer2', 'Dashboard', 'dashboard')}
             
-            <div class="nav-section"><div class="nav-section-title">Clientes</div></div>
-            <a href="../clientes/listar.html" class="nav-item"><i class="bi bi-people"></i> Clientes</a>
-            <a href="../empresas/listar.html" class="nav-item"><i class="bi bi-building"></i> Empresas</a>
-            <a href="../sedes/listar.html" class="nav-item"><i class="bi bi-geo-alt"></i> Sedes</a>
-            <a href="../contratos/listar.html" class="nav-item"><i class="bi bi-file-earmark-text"></i> Contratos</a>
+            ${section('Clientes', [
+        navItem('../clientes/listar.html', 'people', 'Clientes', 'clientes'),
+        navItem('../empresas/listar.html', 'building', 'Empresas', 'empresas'),
+        navItem('../sedes/listar.html', 'geo-alt', 'Sedes', 'sedes'),
+        navItem('../contratos/listar.html', 'file-earmark-text', 'Contratos', 'contratos')
+    ])}
             
-            <div class="nav-section"><div class="nav-section-title">Operaciones</div></div>
-            <a href="../servicios/listar.html" class="nav-item"><i class="bi bi-box-seam"></i> Servicios</a>
-            <a href="../rutas/listar.html" class="nav-item"><i class="bi bi-signpost-2"></i> Rutas</a>
-            <a href="../manifiestos/listar.html" class="nav-item"><i class="bi bi-journal-text"></i> Manifiestos</a>
-            <a href="../guias/listar.html" class="nav-item"><i class="bi bi-file-earmark"></i> Guías</a>
+            ${section('Operaciones', [
+        navItem('../servicios/listar.html', 'box-seam', 'Servicios', 'servicios'),
+        navItem('../rutas/listar.html', 'signpost-2', 'Rutas', 'rutas'),
+        navItem('../manifiestos/listar.html', 'journal-text', 'Manifiestos', 'manifiestos'),
+        navItem('../guias/listar.html', 'file-earmark', 'Guías', 'guias')
+    ])}
             
-            <div class="nav-section"><div class="nav-section-title">Recursos</div></div>
-            <a href="../empleados/listar.html" class="nav-item"><i class="bi bi-person-badge"></i> Empleados</a>
-            <a href="../vehiculos/listar.html" class="nav-item"><i class="bi bi-truck"></i> Vehículos</a>
-            <a href="../plantas/listar.html" class="nav-item"><i class="bi bi-factory"></i> Plantas</a>
+            ${section('Recursos', [
+        navItem('../empleados/listar.html', 'person-badge', 'Empleados', 'empleados'),
+        navItem('../vehiculos/listar.html', 'truck', 'Vehículos', 'vehiculos'),
+        navItem('../plantas/listar.html', 'factory', 'Plantas', 'plantas')
+    ])}
             
-            <div class="nav-section"><div class="nav-section-title">Finanzas</div></div>
-            <a href="../facturas/listar.html" class="nav-item"><i class="bi bi-receipt"></i> Facturas</a>
+            ${section('Finanzas', [
+        navItem('../facturas/listar.html', 'receipt', 'Facturas', 'facturas')
+    ])}
             
-            <div class="nav-section"><div class="nav-section-title">Ventas</div></div>
-            <a href="../prospectos/listar.html" class="nav-item"><i class="bi bi-person-hearts"></i> Prospectos</a>
+            ${section('Ventas', [
+        navItem('../prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos')
+    ])}
             
-            <div class="nav-section"><div class="nav-section-title">Herramientas</div></div>
-            <a href="../mapa/index.html" class="nav-item"><i class="bi bi-map"></i> Mapa de Sedes</a>
-            <a href="../reportes/index.html" class="nav-item"><i class="bi bi-graph-up"></i> Reportes</a>
-            <a href="../alertas/index.html" class="nav-item"><i class="bi bi-bell"></i> Alertas</a>
+            ${section('Herramientas', [
+        navItem('../mapa/index.html', 'map', 'Mapa de Sedes', 'mapa'),
+        navItem('../reportes/index.html', 'graph-up', 'Reportes', 'reportes'),
+        navItem('../alertas/index.html', 'bell', 'Alertas', 'alertas')
+    ])}
+            
+            ${isAdmin ? `
+            <div class="nav-section"><div class="nav-section-title">Administración</div></div>
+            <a href="../usuarios/listar.html" class="nav-item"><i class="bi bi-people-fill"></i> Usuarios</a>
+            ` : ''}
         </nav>
     `;
 }

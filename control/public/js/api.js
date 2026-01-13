@@ -129,6 +129,41 @@ function canEdit() {
     return hasRole('admin', 'editor');
 }
 
+/**
+ * Check if user can view specific module
+ */
+function canViewModule(modulo) {
+    const user = getUser();
+    if (!user) return false;
+    if (user.rol === 'admin') return true;
+    if (!user.permisos) return false;
+    return user.permisos[modulo]?.ver === true;
+}
+
+/**
+ * Check if user can edit specific module
+ */
+function canEditModule(modulo) {
+    const user = getUser();
+    if (!user) return false;
+    if (user.rol === 'admin') return true;
+    if (!user.permisos) return false;
+    return user.permisos[modulo]?.editar === true;
+}
+
+/**
+ * Get list of modules user can view
+ */
+function getAllowedModules() {
+    const user = getUser();
+    if (!user) return [];
+    if (user.rol === 'admin') return null; // null = all modules
+    if (!user.permisos) return [];
+    return Object.entries(user.permisos)
+        .filter(([_, perm]) => perm.ver)
+        .map(([modulo, _]) => modulo);
+}
+
 // UI Helpers
 function showToast(message, type = 'success') {
     const container = document.querySelector('.toast-container') || createToastContainer();

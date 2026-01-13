@@ -96,6 +96,19 @@ function login() {
         [$user['id_usuario']]
     );
 
+    // Get user permissions
+    $permisos = [];
+    $permisosDb = db()->query(
+        "SELECT modulo, puede_ver, puede_editar FROM UsuarioPermiso WHERE id_usuario = ?",
+        [$user['id_usuario']]
+    );
+    foreach ($permisosDb as $p) {
+        $permisos[$p['modulo']] = [
+            'ver' => (bool)$p['puede_ver'],
+            'editar' => (bool)$p['puede_editar']
+        ];
+    }
+
     // Generate token
     $token = JWT::generate([
         'id' => $user['id_usuario'],
@@ -119,7 +132,8 @@ function login() {
             'username' => $user['username'],
             'nombre' => $user['nombre_completo'],
             'rol' => $user['rol'],
-            'email' => $user['email']
+            'email' => $user['email'],
+            'permisos' => $permisos
         ]
     ]);
 }
