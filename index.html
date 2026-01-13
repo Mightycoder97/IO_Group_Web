@@ -720,22 +720,29 @@
             <p class="newsletter-subtitle">en tu primer servicio de gestión de residuos peligrosos</p>
 
             <div class="newsletter-discount">
-                <div class="discount-value">15% OFF</div>
-                <div class="discount-text">Solo para nuevos suscriptores</div>
+                <div class="discount-value">15% DESCUENTO</div>
+                <div class="discount-text">Solo para nuevos clientes</div>
             </div>
 
             <div class="newsletter-error" id="newsletter-error"></div>
 
             <form class="newsletter-form" id="newsletter-form">
                 <div class="form-group">
-                    <input type="text" id="newsletter-name" placeholder="Tu nombre (opcional)" autocomplete="name">
+                    <input type="text" id="newsletter-name" placeholder="Nombre *" autocomplete="name" required>
                 </div>
                 <div class="form-group">
-                    <input type="email" id="newsletter-email" placeholder="Tu correo electrónico *" required
-                        autocomplete="email">
+                    <input type="text" id="newsletter-company" placeholder="Razón Social *" autocomplete="organization"
+                        required>
+                </div>
+                <div class="form-group">
+                    <input type="tel" id="newsletter-phone" placeholder="Teléfono *" autocomplete="tel" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="newsletter-email" placeholder="Correo electrónico *" autocomplete="email"
+                        required>
                 </div>
                 <button type="submit" class="newsletter-submit">
-                    <span class="btn-text"><i class="fas fa-envelope me-2"></i>Obtener mi descuento</span>
+                    <span class="btn-text"><i class="fas fa-paper-plane me-2"></i>Obtener mi descuento</span>
                     <span class="spinner"></span>
                 </button>
             </form>
@@ -751,13 +758,9 @@
                 <div class="success-icon">
                     <i class="fas fa-check"></i>
                 </div>
-                <h3 class="success-title">¡Felicidades!</h3>
-                <p class="success-message">Tu suscripción ha sido confirmada. Te hemos enviado tu código de descuento
-                    por correo.</p>
-                <div class="discount-code-box">
-                    <div class="discount-code-label">TU CÓDIGO DE DESCUENTO:</div>
-                    <div class="discount-code-value">IOGROUP15-XXXX</div>
-                </div>
+                <h3 class="success-title">¡Gracias por registrarte!</h3>
+                <p class="success-message">Nos pondremos en contacto contigo pronto con tu código de descuento del 15%.
+                </p>
                 <button class="success-close-btn">Continuar navegando</button>
             </div>
         </div>

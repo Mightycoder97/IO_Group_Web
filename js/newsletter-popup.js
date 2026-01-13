@@ -1,6 +1,7 @@
 /**
  * Newsletter Popup - IO Group
- * Sistema de Suscripción con Descuento 15%
+ * Sistema de Captura de Leads con Descuento 15%
+ * Envía datos a Google Sheets
  */
 
 (function () {
@@ -8,15 +9,16 @@
 
     // Configuration
     const CONFIG = {
-        delay: 0,                       // Show immediately (was 8000 for production)
+        delay: 0,                       // Show immediately (set to 8000 for production)
         storageKey: 'iogroup_newsletter_shown',
         storageExpiry: 7,               // Days before showing again
-        apiEndpoint: '/api/newsletter-subscribe.php',
-        testMode: true                  // Set to false for production
+        testMode: true,                 // Set to false for production
+        // Google Sheets Web App URL - REPLACE WITH YOUR OWN AFTER SETUP
+        googleSheetsUrl: 'YOUR_GOOGLE_SHEETS_WEB_APP_URL'
     };
 
     // DOM Elements
-    let overlay, popup, form, emailInput, nameInput, submitBtn, closeBtn, skipLink, errorEl;
+    let overlay, popup, form, emailInput, nameInput, companyInput, phoneInput, submitBtn, closeBtn, skipLink, errorEl;
 
     /**
      * Initialize the newsletter popup
@@ -101,6 +103,8 @@
         form = popup.querySelector('.newsletter-form');
         emailInput = popup.querySelector('#newsletter-email');
         nameInput = popup.querySelector('#newsletter-name');
+        companyInput = popup.querySelector('#newsletter-company');
+        phoneInput = popup.querySelector('#newsletter-phone');
         submitBtn = popup.querySelector('.newsletter-submit');
         closeBtn = popup.querySelector('.newsletter-close');
         skipLink = popup.querySelector('.newsletter-skip');
@@ -161,9 +165,13 @@
         form.addEventListener('submit', handleSubmit);
 
         // Remove error on input
-        emailInput.addEventListener('input', () => {
-            emailInput.classList.remove('error');
-            hideError();
+        [emailInput, nameInput, companyInput, phoneInput].forEach(input => {
+            if (input) {
+                input.addEventListener('input', () => {
+                    input.classList.remove('error');
+                    hideError();
+                });
+            }
         });
     }
 
@@ -173,14 +181,33 @@
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const email = emailInput.value.trim();
         const nombre = nameInput.value.trim();
+        const razonSocial = companyInput.value.trim();
+        const telefono = phoneInput.value.trim();
+        const email = emailInput.value.trim();
 
-        // Validate email
+        // Validate fields
+        let hasError = false;
+
+        if (!nombre) {
+            nameInput.classList.add('error');
+            hasError = true;
+        }
+        if (!razonSocial) {
+            companyInput.classList.add('error');
+            hasError = true;
+        }
+        if (!telefono) {
+            phoneInput.classList.add('error');
+            hasError = true;
+        }
         if (!email || !isValidEmail(email)) {
             emailInput.classList.add('error');
-            showError('Por favor, ingresa un correo electrónico válido.');
-            emailInput.focus();
+            hasError = true;
+        }
+
+        if (hasError) {
+            showError('Por favor, completa todos los campos correctamente.');
             return;
         }
 
@@ -188,25 +215,27 @@
         setLoading(true);
 
         try {
-            const response = await fetch(CONFIG.apiEndpoint, {
+            // Send to Google Sheets
+            const response = await fetch(CONFIG.googleSheetsUrl, {
                 method: 'POST',
+                mode: 'no-cors', // Required for Google Apps Script
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
-                body: new URLSearchParams({
-                    email: email,
+                body: JSON.stringify({
                     nombre: nombre,
-                    pagina_origen: window.location.pathname
+                    razonSocial: razonSocial,
+                    telefono: telefono,
+                    email: email,
+                    fecha: new Date().toLocaleString('es-PE'),
+                    pagina: window.location.pathname
                 })
             });
 
-            const data = await response.json();
+            // Since mode is 'no-cors', we can't check response status
+            // We assume success and show the success message
+            showSuccess();
 
-            if (data.success) {
-                showSuccess(data.discount_code);
-            } else {
-                showError(data.message || 'Hubo un error. Por favor, intenta nuevamente.');
-            }
         } catch (error) {
             console.error('Newsletter subscription error:', error);
             showError('Error de conexión. Por favor, intenta nuevamente.');
@@ -249,13 +278,7 @@
     /**
      * Show success state
      */
-    function showSuccess(discountCode) {
-        // Update discount code in success message
-        const codeEl = popup.querySelector('.discount-code-value');
-        if (codeEl && discountCode) {
-            codeEl.textContent = discountCode;
-        }
-
+    function showSuccess() {
         // Switch to success state
         popup.classList.add('success');
 

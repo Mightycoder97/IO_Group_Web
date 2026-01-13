@@ -58,9 +58,6 @@
     <!-- Custom CSS -->
     <link href="css/styles.css" rel="stylesheet">
 
-    <!-- Newsletter Popup CSS -->
-    <link href="css/newsletter-popup.css" rel="stylesheet">
-
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
     {
@@ -598,71 +595,11 @@
         <i class="fab fa-whatsapp"></i>
     </a>
 
-    <!-- Newsletter Popup -->
-    <div class="newsletter-overlay" id="newsletter-overlay"></div>
-    <div class="newsletter-popup" id="newsletter-popup">
-        <button class="newsletter-close" aria-label="Cerrar">
-            <i class="fas fa-times"></i>
-        </button>
-        <div class="newsletter-content">
-            <div class="newsletter-badge">
-                <i class="fas fa-gift"></i>
-                <span>OFERTA EXCLUSIVA</span>
-            </div>
-            <h2 class="newsletter-title">Obtén un <span class="highlight">15% de descuento</span></h2>
-            <p class="newsletter-subtitle">en tu primer servicio de gestión de residuos peligrosos</p>
-
-            <div class="newsletter-discount">
-                <div class="discount-value">15% OFF</div>
-                <div class="discount-text">Solo para nuevos suscriptores</div>
-            </div>
-
-            <div class="newsletter-error" id="newsletter-error"></div>
-
-            <form class="newsletter-form" id="newsletter-form">
-                <div class="form-group">
-                    <input type="text" id="newsletter-name" placeholder="Tu nombre (opcional)" autocomplete="name">
-                </div>
-                <div class="form-group">
-                    <input type="email" id="newsletter-email" placeholder="Tu correo electrónico *" required
-                        autocomplete="email">
-                </div>
-                <button type="submit" class="newsletter-submit">
-                    <span class="btn-text"><i class="fas fa-envelope me-2"></i>Obtener mi descuento</span>
-                    <span class="spinner"></span>
-                </button>
-            </form>
-
-            <p class="newsletter-privacy">
-                <i class="fas fa-lock"></i> Tus datos están seguros. No spam.
-            </p>
-
-            <span class="newsletter-skip">No gracias, continuar navegando</span>
-
-            <div class="newsletter-success">
-                <div class="success-icon">
-                    <i class="fas fa-check"></i>
-                </div>
-                <h3 class="success-title">¡Felicidades!</h3>
-                <p class="success-message">Tu suscripción ha sido confirmada. Te hemos enviado tu código de descuento
-                    por correo.</p>
-                <div class="discount-code-box">
-                    <div class="discount-code-label">TU CÓDIGO DE DESCUENTO:</div>
-                    <div class="discount-code-value">IOGROUP15-XXXX</div>
-                </div>
-                <button class="success-close-btn">Continuar navegando</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Custom JS -->
     <script src="js/main.js"></script>
-
-    <!-- Newsletter Popup JS -->
-    <script src="js/newsletter-popup.js"></script>
 </body>
 
 </html>
