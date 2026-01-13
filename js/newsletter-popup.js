@@ -8,10 +8,11 @@
 
     // Configuration
     const CONFIG = {
-        delay: 8000,                    // Show after 8 seconds
+        delay: 0,                       // Show immediately (was 8000 for production)
         storageKey: 'iogroup_newsletter_shown',
         storageExpiry: 7,               // Days before showing again
-        apiEndpoint: '/api/newsletter-subscribe.php'
+        apiEndpoint: '/api/newsletter-subscribe.php',
+        testMode: true                  // Set to false for production
     };
 
     // DOM Elements
@@ -38,6 +39,11 @@
      * Check if popup should be displayed
      */
     function shouldShowPopup() {
+        // In test mode, always show the popup
+        if (CONFIG.testMode) {
+            return true;
+        }
+
         const stored = localStorage.getItem(CONFIG.storageKey);
         if (!stored) return true;
 
