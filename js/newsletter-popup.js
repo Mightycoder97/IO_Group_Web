@@ -9,7 +9,8 @@
 
     // Configuration
     const CONFIG = {
-        delay: 0,                       // Show immediately (set to 8000 for production)
+        triggerOnScroll: true,          // Show on first scroll
+        scrollThreshold: 50,            // Minimum pixels to scroll before showing
         storageKey: 'iogroup_newsletter_shown',
         storageExpiry: 7,               // Days before showing again
         testMode: true,                 // Set to false for production
@@ -19,6 +20,7 @@
 
     // DOM Elements
     let overlay, popup, form, emailInput, nameInput, companyInput, phoneInput, submitBtn, closeBtn, skipLink, errorEl;
+    let hasTriggered = false;
 
     /**
      * Initialize the newsletter popup
@@ -81,10 +83,33 @@
     }
 
     /**
-     * Setup popup after delay
+     * Setup popup trigger - listen for first scroll
      */
     function setup() {
-        setTimeout(showPopup, CONFIG.delay);
+        if (CONFIG.triggerOnScroll) {
+            // Add scroll listener
+            window.addEventListener('scroll', onFirstScroll, { passive: true });
+        } else {
+            // Fallback: show immediately
+            showPopup();
+        }
+    }
+
+    /**
+     * Handle first scroll event
+     */
+    function onFirstScroll() {
+        // Check if already triggered
+        if (hasTriggered) return;
+
+        // Check if scrolled past threshold
+        if (window.scrollY >= CONFIG.scrollThreshold) {
+            hasTriggered = true;
+            // Remove scroll listener
+            window.removeEventListener('scroll', onFirstScroll);
+            // Show popup
+            showPopup();
+        }
     }
 
     /**
