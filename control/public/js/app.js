@@ -19,6 +19,9 @@ function getSidebarHTML() {
     const user = getUser();
     const isAdmin = user?.rol === 'admin';
 
+    // Base path for pages
+    const base = getBasePath() + '/pages/';
+
     // Helper to check if module is allowed
     const canView = (modulo) => {
         if (isAdmin) return true;
@@ -28,7 +31,7 @@ function getSidebarHTML() {
     // Helper to generate nav item
     const navItem = (href, icon, label, modulo) => {
         if (!canView(modulo)) return '';
-        return `<a href="${href}" class="nav-item"><i class="bi bi-${icon}"></i> ${label}</a>`;
+        return `<a href="${base}${href}" class="nav-item"><i class="bi bi-${icon}"></i> ${label}</a>`;
     };
 
     // Helper to generate section (only if has visible items)
@@ -44,45 +47,45 @@ function getSidebarHTML() {
             <h2 style="color: white; font-size: 1.1rem; margin: 0.5rem 0 0 0;">IO Control</h2>
         </div>
         <nav class="sidebar-nav">
-            ${navItem('../dashboard.html', 'speedometer2', 'Dashboard', 'dashboard')}
+            ${navItem('dashboard.html', 'speedometer2', 'Dashboard', 'dashboard')}
             
             ${section('Clientes', [
-        navItem('../clientes/listar.html', 'people', 'Clientes', 'clientes'),
-        navItem('../empresas/listar.html', 'building', 'Empresas', 'empresas'),
-        navItem('../sedes/listar.html', 'geo-alt', 'Sedes', 'sedes'),
-        navItem('../contratos/listar.html', 'file-earmark-text', 'Contratos', 'contratos')
+        navItem('clientes/listar.html', 'people', 'Clientes', 'clientes'),
+        navItem('empresas/listar.html', 'building', 'Empresas', 'empresas'),
+        navItem('sedes/listar.html', 'geo-alt', 'Sedes', 'sedes'),
+        navItem('contratos/listar.html', 'file-earmark-text', 'Contratos', 'contratos')
     ])}
             
             ${section('Operaciones', [
-        navItem('../servicios/listar.html', 'box-seam', 'Servicios', 'servicios'),
-        navItem('../rutas/listar.html', 'signpost-2', 'Rutas', 'rutas'),
-        navItem('../manifiestos/listar.html', 'journal-text', 'Manifiestos', 'manifiestos'),
-        navItem('../guias/listar.html', 'file-earmark', 'Guías', 'guias')
+        navItem('servicios/listar.html', 'box-seam', 'Servicios', 'servicios'),
+        navItem('rutas/listar.html', 'signpost-2', 'Rutas', 'rutas'),
+        navItem('manifiestos/listar.html', 'journal-text', 'Manifiestos', 'manifiestos'),
+        navItem('guias/listar.html', 'file-earmark', 'Guías', 'guias')
     ])}
             
             ${section('Recursos', [
-        navItem('../empleados/listar.html', 'person-badge', 'Empleados', 'empleados'),
-        navItem('../vehiculos/listar.html', 'truck', 'Vehículos', 'vehiculos'),
-        navItem('../plantas/listar.html', 'factory', 'Plantas', 'plantas')
+        navItem('empleados/listar.html', 'person-badge', 'Empleados', 'empleados'),
+        navItem('vehiculos/listar.html', 'truck', 'Vehículos', 'vehiculos'),
+        navItem('plantas/listar.html', 'factory', 'Plantas', 'plantas')
     ])}
             
             ${section('Finanzas', [
-        navItem('../facturas/listar.html', 'receipt', 'Facturas', 'facturas')
+        navItem('facturas/listar.html', 'receipt', 'Facturas', 'facturas')
     ])}
             
             ${section('Ventas', [
-        navItem('../prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos')
+        navItem('prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos')
     ])}
             
             ${section('Herramientas', [
-        navItem('../mapa/index.html', 'map', 'Mapa de Sedes', 'mapa'),
-        navItem('../reportes/index.html', 'graph-up', 'Reportes', 'reportes'),
-        navItem('../alertas/index.html', 'bell', 'Alertas', 'alertas')
+        navItem('mapa/index.html', 'map', 'Mapa de Sedes', 'mapa'),
+        navItem('reportes/index.html', 'graph-up', 'Reportes', 'reportes'),
+        navItem('alertas/index.html', 'bell', 'Alertas', 'alertas')
     ])}
             
             ${isAdmin ? `
             <div class="nav-section"><div class="nav-section-title">Administración</div></div>
-            <a href="../usuarios/listar.html" class="nav-item"><i class="bi bi-people-fill"></i> Usuarios</a>
+            <a href="${base}usuarios/listar.html" class="nav-item"><i class="bi bi-people-fill"></i> Usuarios</a>
             ` : ''}
         </nav>
     `;
