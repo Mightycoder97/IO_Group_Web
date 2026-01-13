@@ -88,11 +88,22 @@ const api = {
     delete(endpoint) { return this.request('DELETE', endpoint); }
 };
 
-// Get base path helper
+// Get base path helper (works for both server and local file access)
 function getBasePath() {
     const path = window.location.pathname;
+    const isLocal = window.location.protocol === 'file:';
+
+    if (isLocal) {
+        // For local file access, find the path up to /control/public
+        const match = path.match(/^(.*\/control\/public)/);
+        if (match) {
+            return match[1];
+        }
+    }
+
+    // For server access
     if (path.includes('/control/')) {
-        return '/control';
+        return '/control/public';
     }
     return '';
 }
