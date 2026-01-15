@@ -6,13 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Prospectos - IO Control</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../../../css/global.css" rel="stylesheet">
-
 </head>
 
 <body class="control-app">
@@ -44,160 +42,122 @@
                     </div>
                 </div>
             </nav>
+
             <div class="content-area">
-                <!-- Stats Row - Clickable Status Cards -->
-                <div class="stats-row" id="statsRow">
-                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('')">
-                        <div class="stat-value text-primary" id="statTotal">--</div>
-                        <div class="stat-label">Total</div>
-                    </div>
-                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('nuevo')">
-                        <div class="stat-value text-secondary" id="statNuevo">--</div>
-                        <div class="stat-label">Nuevo</div>
-                    </div>
-                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('contactado')">
-                        <div class="stat-value text-info" id="statContactado">--</div>
-                        <div class="stat-label">Contactado</div>
-                    </div>
-                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('interesado')">
-                        <div class="stat-value text-warning" id="statInteresado">--</div>
-                        <div class="stat-label">Interesado</div>
-                    </div>
-                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('negociando')">
-                        <div class="stat-value" style="color: #fd7e14;" id="statNegociando">--</div>
-                        <div class="stat-label">Negociando</div>
-                    </div>
-                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('ganado')">
-                        <div class="stat-value text-success" id="statGanado">--</div>
-                        <div class="stat-label">Ganado</div>
-                    </div>
-                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('perdido')">
-                        <div class="stat-value text-danger" id="statPerdido">--</div>
-                        <div class="stat-label">Perdido</div>
-                    </div>
-                </div>
-                <!-- Header with filters -->
-                <div class="table-container mb-3">
-                    <div class="table-header">
-                        <div class="d-flex align-items-center gap-3">
-                            <h5 class="table-title mb-0"><i class="bi bi-person-hearts"></i> Prospectos CRM</h5>
-                            <div class="view-toggle">
-                                <button class="btn btn-outline-secondary btn-sm active" id="btnKanban"
-                                    onclick="setView('kanban')">
-                                    <i class="bi bi-kanban"></i>
-                                </button>
-                                <button class="btn btn-outline-secondary btn-sm" id="btnTable"
-                                    onclick="setView('table')">
-                                    <i class="bi bi-table"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <!-- Desktop Filters -->
-                        <div class="d-flex gap-2 flex-wrap desktop-filters">
-                            <select class="form-select form-select-sm" id="filterEstado" style="width: 140px;">
-                                <option value="">Todos los estados</option>
-                                <option value="nuevo">Nuevo</option>
-                                <option value="contactado">Contactado</option>
-                                <option value="interesado">Interesado</option>
-                                <option value="negociando">Negociando</option>
-                                <option value="ganado">Ganado</option>
-                                <option value="perdido">Perdido</option>
-                            </select>
-                            <select class="form-select form-select-sm" id="filterVendedor" style="width: 150px;">
-                                <option value="">Todos los vendedores</option>
-                            </select>
-                            <input type="text" class="form-control form-control-sm" id="searchInput"
-                                placeholder="Buscar..." style="width: 180px;">
-                            <a href="formulario.html" class="btn btn-primary btn-sm" id="btnNew">
-                                <i class="bi bi-plus"></i> Nuevo
-                            </a>
-                        </div>
-                        <!-- Mobile Filters -->
-                        <div class="mobile-filters">
-                            <div class="filter-row">
-                                <select class="form-select form-select-sm" id="filterEstadoMobile">
-                                    <option value="">Estado</option>
-                                    <option value="nuevo">Nuevo</option>
-                                    <option value="contactado">Contactado</option>
-                                    <option value="interesado">Interesado</option>
-                                    <option value="negociando">Negociando</option>
-                                    <option value="ganado">Ganado</option>
-                                    <option value="perdido">Perdido</option>
-                                </select>
-                                <input type="text" class="form-control form-control-sm" id="searchInputMobile"
-                                    placeholder="Buscar...">
-                            </div>
+                <!-- Compact Header -->
+                <div class="crm-header">
+                    <div class="crm-header-left">
+                        <h4 class="crm-title"><i class="bi bi-people"></i> Prospectos</h4>
+                        <div class="view-toggle">
+                            <button class="btn btn-sm active" id="btnKanban" onclick="setView('kanban')"
+                                title="Vista Kanban">
+                                <i class="bi bi-kanban"></i>
+                            </button>
+                            <button class="btn btn-sm" id="btnTable" onclick="setView('table')" title="Vista Tabla">
+                                <i class="bi bi-table"></i>
+                            </button>
                         </div>
                     </div>
+                    <div class="crm-header-right">
+                        <div class="search-box">
+                            <i class="bi bi-search"></i>
+                            <input type="text" id="searchInput" placeholder="Buscar prospecto..." class="form-control">
+                        </div>
+                        <select class="form-select" id="filterEstado">
+                            <option value="">Todos</option>
+                            <option value="nuevo">Nuevo</option>
+                            <option value="contactado">Contactado</option>
+                            <option value="interesado">Interesado</option>
+                            <option value="negociando">Negociando</option>
+                            <option value="ganado">Ganado</option>
+                            <option value="perdido">Perdido</option>
+                        </select>
+                        <a href="formulario.html" class="btn btn-primary btn-new">
+                            <i class="bi bi-plus-lg"></i> <span>Nuevo</span>
+                        </a>
+                    </div>
                 </div>
-                <!-- Kanban Scroll Hint (mobile only) -->
-                <div class="kanban-scroll-hint">
-                    <i class="bi bi-arrow-left-right"></i> Desliza para ver más columnas
+
+                <!-- Mobile Search (shown on small screens) -->
+                <div class="mobile-search">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchInputMobile" placeholder="Buscar..." class="form-control">
+                    </div>
                 </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <i class="bi bi-person-plus"></i>
+                    <h5>No hay prospectos</h5>
+                    <p>Crea tu primer prospecto para comenzar a gestionar tu pipeline de ventas.</p>
+                    <a href="formulario.html" class="btn btn-primary"><i class="bi bi-plus"></i> Crear Prospecto</a>
+                </div>
+
                 <!-- Kanban View -->
-                <div id="kanbanView" class="kanban-container">
-                    <div class="kanban-column">
-                        <div class="kanban-header nuevo">
-                            <span class="kanban-title"><i class="bi bi-circle"></i> Nuevo</span>
-                            <span class="kanban-count" id="countNuevo">0</span>
+                <div id="kanbanView" class="kanban-wrapper">
+                    <div class="kanban-container">
+                        <div class="kanban-column" data-estado="nuevo">
+                            <div class="kanban-header">
+                                <span class="kanban-title"><span class="status-dot nuevo"></span> Nuevo</span>
+                                <span class="kanban-count" id="countNuevo">0</span>
+                            </div>
+                            <div class="kanban-cards" id="cardsNuevo"></div>
                         </div>
-                        <div class="kanban-cards" id="cardsNuevo"></div>
-                    </div>
-                    <div class="kanban-column">
-                        <div class="kanban-header contactado">
-                            <span class="kanban-title"><i class="bi bi-telephone"></i> Contactado</span>
-                            <span class="kanban-count" id="countContactado">0</span>
+                        <div class="kanban-column" data-estado="contactado">
+                            <div class="kanban-header">
+                                <span class="kanban-title"><span class="status-dot contactado"></span> Contactado</span>
+                                <span class="kanban-count" id="countContactado">0</span>
+                            </div>
+                            <div class="kanban-cards" id="cardsContactado"></div>
                         </div>
-                        <div class="kanban-cards" id="cardsContactado"></div>
-                    </div>
-                    <div class="kanban-column">
-                        <div class="kanban-header interesado">
-                            <span class="kanban-title"><i class="bi bi-star"></i> Interesado</span>
-                            <span class="kanban-count" id="countInteresado">0</span>
+                        <div class="kanban-column" data-estado="interesado">
+                            <div class="kanban-header">
+                                <span class="kanban-title"><span class="status-dot interesado"></span> Interesado</span>
+                                <span class="kanban-count" id="countInteresado">0</span>
+                            </div>
+                            <div class="kanban-cards" id="cardsInteresado"></div>
                         </div>
-                        <div class="kanban-cards" id="cardsInteresado"></div>
-                    </div>
-                    <div class="kanban-column">
-                        <div class="kanban-header negociando">
-                            <span class="kanban-title"><i class="bi bi-chat-dots"></i> Negociando</span>
-                            <span class="kanban-count" id="countNegociando">0</span>
+                        <div class="kanban-column" data-estado="negociando">
+                            <div class="kanban-header">
+                                <span class="kanban-title"><span class="status-dot negociando"></span> Negociando</span>
+                                <span class="kanban-count" id="countNegociando">0</span>
+                            </div>
+                            <div class="kanban-cards" id="cardsNegociando"></div>
                         </div>
-                        <div class="kanban-cards" id="cardsNegociando"></div>
-                    </div>
-                    <div class="kanban-column">
-                        <div class="kanban-header ganado">
-                            <span class="kanban-title"><i class="bi bi-trophy"></i> Ganado</span>
-                            <span class="kanban-count" id="countGanado">0</span>
+                        <div class="kanban-column" data-estado="ganado">
+                            <div class="kanban-header">
+                                <span class="kanban-title"><span class="status-dot ganado"></span> Ganado</span>
+                                <span class="kanban-count" id="countGanado">0</span>
+                            </div>
+                            <div class="kanban-cards" id="cardsGanado"></div>
                         </div>
-                        <div class="kanban-cards" id="cardsGanado"></div>
-                    </div>
-                    <div class="kanban-column">
-                        <div class="kanban-header perdido">
-                            <span class="kanban-title"><i class="bi bi-x-circle"></i> Perdido</span>
-                            <span class="kanban-count" id="countPerdido">0</span>
+                        <div class="kanban-column" data-estado="perdido">
+                            <div class="kanban-header">
+                                <span class="kanban-title"><span class="status-dot perdido"></span> Perdido</span>
+                                <span class="kanban-count" id="countPerdido">0</span>
+                            </div>
+                            <div class="kanban-cards" id="cardsPerdido"></div>
                         </div>
-                        <div class="kanban-cards" id="cardsPerdido"></div>
                     </div>
                 </div>
-                <!-- Table View (hidden by default) -->
-                <div id="tableView" class="table-container" style="display: none;">
+
+                <!-- Table View -->
+                <div id="tableView" class="table-wrapper" style="display: none;">
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Nombre</th>
+                                    <th>Contacto</th>
                                     <th>Empresa</th>
-                                    <th>Teléfono</th>
-                                    <th>Tipo</th>
-                                    <th>Vendedor</th>
+                                    <th class="d-none d-md-table-cell">Teléfono</th>
                                     <th>Estado</th>
-                                    <th>Fecha</th>
-                                    <th width="100">Acciones</th>
+                                    <th width="140">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <tr>
-                                    <td colspan="8" class="text-center py-4">Cargando...</td>
+                                    <td colspan="5" class="text-center py-4">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -206,71 +166,51 @@
             </div>
         </main>
     </div>
-    <!-- Floating Action Button for Mobile -->
+
+    <!-- FAB for Mobile -->
     <a href="formulario.html" class="fab-new" id="fabNew" aria-label="Nuevo Prospecto">
-        <i class="bi bi-plus"></i>
+        <i class="bi bi-plus-lg"></i>
     </a>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js"></script>
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('prospectos');
+
         let allData = [];
         let currentView = 'kanban';
-        const currentUser = getUser();
-        const currentUserName = currentUser?.nombre_completo || currentUser?.nombre || currentUser?.username || '';
-        // Check if user owns this prospect
-        function isOwnProspect(vendedor) {
-            if (!currentUserName) return false;
-            return vendedor?.toLowerCase() === currentUserName.toLowerCase();
-        }
+
+        // Load data
         async function loadData() {
             try {
-                const vendedor = document.getElementById('filterVendedor').value;
                 const estado = document.getElementById('filterEstado').value;
                 const search = document.getElementById('searchInput').value;
+
                 let url = '/prospectos?';
-                if (vendedor) url += `vendedor=${encodeURIComponent(vendedor)}&`;
                 if (estado) url += `estado=${encodeURIComponent(estado)}&`;
                 if (search) url += `search=${encodeURIComponent(search)}&`;
+
                 const result = await api.get(url);
                 if (result.success) {
-                    allData = result.data;
+                    allData = result.data || [];
+                    updateEmptyState();
                     renderView();
                 }
             } catch (err) {
+                console.error('Error loading data:', err);
                 showToast('Error cargando datos', 'danger');
             }
         }
-        async function loadStats() {
-            try {
-                const result = await api.get('/prospectos');
-                if (result.success) {
-                    const data = result.data;
-                    document.getElementById('statTotal').textContent = data.length;
-                    const estados = ['nuevo', 'contactado', 'interesado', 'negociando', 'ganado', 'perdido'];
-                    estados.forEach(estado => {
-                        const count = data.filter(p => p.estado === estado).length;
-                        const el = document.getElementById('stat' + capitalize(estado));
-                        if (el) el.textContent = count;
-                    });
-                    // Load unique vendedores for filter
-                    const vendedores = [...new Set(data.map(p => p.vendedor).filter(v => v))];
-                    const vendedorSelect = document.getElementById('filterVendedor');
-                    vendedorSelect.innerHTML = '<option value="">Todos los vendedores</option>' +
-                        vendedores.map(v => `<option value="${v}">${v}</option>`).join('');
-                }
-            } catch (err) {
-                console.error('Error loading stats:', err);
-            }
+
+        function updateEmptyState() {
+            const isEmpty = allData.length === 0;
+            document.getElementById('emptyState').style.display = isEmpty ? 'flex' : 'none';
+            document.getElementById('kanbanView').style.display = isEmpty ? 'none' : (currentView === 'kanban' ? 'block' : 'none');
+            document.getElementById('tableView').style.display = isEmpty ? 'none' : (currentView === 'table' ? 'block' : 'none');
         }
-        function filterByEstado(estado) {
-            document.getElementById('filterEstado').value = estado;
-            document.getElementById('filterEstadoMobile').value = estado;
-            setView('table');
-            loadData();
-        }
+
         function renderView() {
             if (currentView === 'kanban') {
                 renderKanban();
@@ -278,113 +218,116 @@
                 renderTable();
             }
         }
+
         function renderKanban() {
             const estados = ['nuevo', 'contactado', 'interesado', 'negociando', 'ganado', 'perdido'];
+
             estados.forEach(estado => {
                 const items = allData.filter(p => p.estado === estado);
                 const container = document.getElementById('cards' + capitalize(estado));
                 const countEl = document.getElementById('count' + capitalize(estado));
+
                 countEl.textContent = items.length;
+
                 if (items.length === 0) {
-                    container.innerHTML = '<div class="text-center text-muted py-3"><small>Sin prospectos</small></div>';
+                    container.innerHTML = '<div class="kanban-empty">Sin prospectos</div>';
                     return;
                 }
+
                 container.innerHTML = items.map(p => `
-                    <div class="prospect-card" onclick="window.location.href='formulario.html?id=${p.id_prospecto}'">
-                        <div class="prospect-name">${p.nombre_contacto}</div>
-                        <div class="prospect-company">${p.razon_social || 'Sin empresa'}</div>
-                        <div class="prospect-meta">
-                            <span><i class="bi bi-geo-alt"></i> ${p.distrito || '-'}</span>
-                            <span><i class="bi bi-briefcase"></i> ${p.tipo_negocio || '-'}</span>
+                    <div class="prospect-card" data-id="${p.id_prospecto}">
+                        <div class="prospect-header" onclick="window.location.href='formulario.html?id=${p.id_prospecto}'">
+                            <div class="prospect-name">${p.nombre_contacto}</div>
+                            <div class="prospect-company">${p.razon_social || 'Sin empresa'}</div>
                         </div>
-                        <div class="prospect-meta mt-2">
-                            <span><i class="bi bi-person"></i> ${p.vendedor}</span>
+                        <div class="prospect-info">
+                            ${p.distrito ? `<span class="info-item"><i class="bi bi-geo-alt"></i> ${p.distrito}</span>` : ''}
+                            ${p.tipo_negocio ? `<span class="info-item"><i class="bi bi-briefcase"></i> ${p.tipo_negocio}</span>` : ''}
                         </div>
+                        ${p.telefono ? `
+                        <div class="prospect-actions">
+                            <a href="tel:${p.telefono}" class="action-btn call" title="Llamar">
+                                <i class="bi bi-telephone-fill"></i>
+                            </a>
+                            <a href="https://wa.me/51${p.telefono.replace(/\D/g, '')}" target="_blank" class="action-btn whatsapp" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            <span class="phone-number">${p.telefono}</span>
+                        </div>
+                        ` : '<div class="prospect-actions no-phone"><span class="text-muted">Sin teléfono</span></div>'}
                     </div>
                 `).join('');
             });
         }
+
         function renderTable() {
             const tbody = document.getElementById('tableBody');
+
             if (allData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No hay prospectos</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No hay prospectos</td></tr>';
                 return;
             }
-            const estadoBadge = {
+
+            const estadoColors = {
                 'nuevo': 'secondary',
-                'contactado': 'primary',
+                'contactado': 'info',
                 'interesado': 'warning',
-                'negociando': 'info',
+                'negociando': 'primary',
                 'ganado': 'success',
                 'perdido': 'danger'
             };
+
             tbody.innerHTML = allData.map(p => `
                 <tr>
-                    <td><strong>${p.nombre_contacto}</strong></td>
-                    <td>${p.razon_social || '-'}</td>
-                    <td>${p.telefono || '-'}</td>
-                    <td><span class="badge bg-light text-dark">${p.tipo_negocio || '-'}</span></td>
-                    <td>${p.vendedor}</td>
-                    <td><span class="badge bg-${estadoBadge[p.estado] || 'secondary'}">${capitalize(p.estado)}</span></td>
-                    <td>${formatDate(p.fecha_creacion)}</td>
                     <td>
-                        ${isOwnProspect(p.vendedor)
-                    ? `<a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-primary btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
-                               <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${p.id_prospecto})" title="Eliminar"><i class="bi bi-trash"></i></button>`
-                    : `<a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-secondary btn-action" title="Ver detalle"><i class="bi bi-eye"></i></a>`}
+                        <a href="formulario.html?id=${p.id_prospecto}" class="text-decoration-none">
+                            <strong>${p.nombre_contacto}</strong>
+                        </a>
+                    </td>
+                    <td>${p.razon_social || '<span class="text-muted">-</span>'}</td>
+                    <td class="d-none d-md-table-cell">
+                        ${p.telefono ? `<a href="tel:${p.telefono}" class="text-decoration-none">${p.telefono}</a>` : '<span class="text-muted">-</span>'}
+                    </td>
+                    <td><span class="badge bg-${estadoColors[p.estado] || 'secondary'}">${capitalize(p.estado)}</span></td>
+                    <td>
+                        <div class="table-actions">
+                            ${p.telefono ? `
+                                <a href="tel:${p.telefono}" class="btn btn-sm btn-outline-primary" title="Llamar"><i class="bi bi-telephone"></i></a>
+                                <a href="https://wa.me/51${p.telefono.replace(/\D/g, '')}" target="_blank" class="btn btn-sm btn-outline-success" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                            ` : ''}
+                            <a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+                        </div>
                     </td>
                 </tr>
             `).join('');
         }
+
         function setView(view) {
             currentView = view;
             document.getElementById('btnKanban').classList.toggle('active', view === 'kanban');
             document.getElementById('btnTable').classList.toggle('active', view === 'table');
-            document.getElementById('kanbanView').style.display = view === 'kanban' ? 'flex' : 'none';
-            document.getElementById('tableView').style.display = view === 'table' ? 'block' : 'none';
+            updateEmptyState();
             renderView();
         }
+
         function capitalize(str) {
+            if (!str) return '';
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        }
-        async function deleteItem(id) {
-            if (!confirmDelete()) return;
-            try {
-                const result = await api.delete(`/prospectos/${id}`);
-                if (result.success) {
-                    showToast('Prospecto eliminado');
-                    loadData();
-                    loadStats();
-                } else {
-                    showToast(result.message, 'danger');
-                }
-            } catch (err) {
-                showToast('Error eliminando', 'danger');
-            }
-        }
-        // Event listeners for desktop filters
-        document.getElementById('filterEstado').addEventListener('change', function () {
-            document.getElementById('filterEstadoMobile').value = this.value;
-            loadData();
-        });
+
+        // Event listeners
+        document.getElementById('filterEstado').addEventListener('change', loadData);
+
         document.getElementById('searchInput').addEventListener('input', debounce(function () {
             document.getElementById('searchInputMobile').value = this.value;
             loadData();
         }, 300));
-        // Event listeners for mobile filters (sync with desktop)
-        document.getElementById('filterEstadoMobile').addEventListener('change', function () {
-            document.getElementById('filterEstado').value = this.value;
-            loadData();
-        });
+
         document.getElementById('searchInputMobile').addEventListener('input', debounce(function () {
             document.getElementById('searchInput').value = this.value;
             loadData();
         }, 300));
+
         function debounce(func, wait) {
             let timeout;
             return function (...args) {
@@ -392,9 +335,9 @@
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
         }
+
         // Initial load
         loadData();
-        loadStats();
     </script>
 </body>
 

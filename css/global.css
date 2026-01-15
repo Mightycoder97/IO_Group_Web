@@ -1463,8 +1463,400 @@ a:hover {
         height: 50px;
         font-size: 1.3rem;
     }
+}
 
-    .control-app .stats-row {
-        grid-template-columns: repeat(2, 1fr);
+/* ================= CRM REDESIGN STYLES ================= */
+
+/* CRM Header */
+.control-app .crm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.control-app .crm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.control-app .crm-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-app .crm-title i {
+    color: #1B5E20;
+}
+
+.control-app .crm-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.control-app .search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.control-app .search-box i {
+    position: absolute;
+    left: 12px;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.control-app .search-box input {
+    padding-left: 36px;
+    border-radius: 20px;
+    border: 1px solid #e0e0e0;
+    background: #f8f9fa;
+    width: 200px;
+    font-size: 0.9rem;
+}
+
+.control-app .search-box input:focus {
+    background: #fff;
+    border-color: #1B5E20;
+    box-shadow: 0 0 0 2px rgba(27, 94, 32, 0.1);
+}
+
+.control-app .crm-header-right .form-select {
+    width: 120px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+}
+
+.control-app .btn-new {
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 500;
+}
+
+/* View Toggle */
+.control-app .view-toggle {
+    display: flex;
+    background: #f1f3f4;
+    border-radius: 8px;
+    padding: 3px;
+}
+
+.control-app .view-toggle .btn {
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    border-radius: 6px;
+}
+
+.control-app .view-toggle .btn.active {
+    background: #fff;
+    color: #1B5E20;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.control-app .view-toggle .btn:hover:not(.active) {
+    color: #212529;
+}
+
+/* Mobile Search */
+.control-app .mobile-search {
+    display: none;
+    margin-bottom: 16px;
+}
+
+.control-app .mobile-search .search-box {
+    width: 100%;
+}
+
+.control-app .mobile-search .search-box input {
+    width: 100%;
+}
+
+/* Status Dots */
+.control-app .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+.control-app .status-dot.nuevo {
+    background: #6c757d;
+}
+
+.control-app .status-dot.contactado {
+    background: #0dcaf0;
+}
+
+.control-app .status-dot.interesado {
+    background: #ffc107;
+}
+
+.control-app .status-dot.negociando {
+    background: #0d6efd;
+}
+
+.control-app .status-dot.ganado {
+    background: #198754;
+}
+
+.control-app .status-dot.perdido {
+    background: #dc3545;
+}
+
+/* Kanban Wrapper */
+.control-app .kanban-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+/* Improved Kanban Cards */
+.control-app .prospect-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    margin-bottom: 10px;
+    transition: all 0.15s ease;
+    overflow: hidden;
+}
+
+.control-app .prospect-card:hover {
+    border-color: #1B5E20;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.control-app .prospect-header {
+    padding: 14px;
+    cursor: pointer;
+}
+
+.control-app .prospect-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #212529;
+    margin-bottom: 2px;
+}
+
+.control-app .prospect-company {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.control-app .prospect-info {
+    padding: 0 14px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.control-app .prospect-info .info-item {
+    font-size: 0.75rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.control-app .prospect-info .info-item i {
+    font-size: 0.8rem;
+}
+
+/* Prospect Actions (Call/WhatsApp) */
+.control-app .prospect-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.control-app .prospect-actions.no-phone {
+    justify-content: center;
+}
+
+.control-app .action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    font-size: 1rem;
+}
+
+.control-app .action-btn.call {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.control-app .action-btn.call:hover {
+    background: #1976d2;
+    color: #fff;
+}
+
+.control-app .action-btn.whatsapp {
+    background: #e8f5e9;
+    color: #25d366;
+}
+
+.control-app .action-btn.whatsapp:hover {
+    background: #25d366;
+    color: #fff;
+}
+
+.control-app .phone-number {
+    font-size: 0.85rem;
+    color: #495057;
+    margin-left: auto;
+    font-weight: 500;
+}
+
+/* Kanban Empty */
+.control-app .kanban-empty {
+    text-align: center;
+    color: #adb5bd;
+    padding: 30px 15px;
+    font-size: 0.85rem;
+}
+
+/* Table Actions */
+.control-app .table-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.control-app .table-actions .btn {
+    padding: 4px 8px;
+}
+
+/* Table Wrapper */
+.control-app .table-wrapper {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.control-app .table-wrapper .table {
+    margin: 0;
+}
+
+.control-app .table-wrapper thead th {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e0e0e0;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #495057;
+    padding: 12px 16px;
+}
+
+.control-app .table-wrapper tbody td {
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+/* Empty State */
+.control-app .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+.control-app .empty-state i {
+    font-size: 4rem;
+    color: #dee2e6;
+    margin-bottom: 16px;
+}
+
+.control-app .empty-state h5 {
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.control-app .empty-state p {
+    color: #6c757d;
+    max-width: 300px;
+    margin-bottom: 20px;
+}
+
+/* Mobile Responsive - CRM */
+@media (max-width: 992px) {
+
+    .control-app .crm-header-right .form-select,
+    .control-app .search-box {
+        display: none;
+    }
+
+    .control-app .mobile-search {
+        display: block;
+    }
+
+    .control-app .btn-new span {
+        display: none;
+    }
+
+    .control-app .btn-new {
+        padding: 8px 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .control-app .crm-header {
+        margin-bottom: 12px;
+    }
+
+    .control-app .crm-title {
+        font-size: 1.1rem;
+    }
+
+    .control-app .kanban-column {
+        min-width: 260px;
+    }
+
+    .control-app .prospect-card {
+        margin-bottom: 8px;
+    }
+
+    .control-app .action-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 576px) {
+    .control-app .crm-header-left {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .control-app .crm-header-right {
+        display: none;
     }
 }
