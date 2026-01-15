@@ -19,6 +19,13 @@
             gap: 15px;
             overflow-x: auto;
             padding-bottom: 15px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .kanban-container::-webkit-scrollbar {
+            display: none;
         }
 
         .kanban-column {
@@ -27,6 +34,8 @@
             background: #f8f9fa;
             border-radius: 12px;
             padding: 15px;
+            scroll-snap-align: start;
+            flex-shrink: 0;
         }
 
         .kanban-header {
@@ -92,11 +101,17 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            touch-action: manipulation;
         }
 
         .prospect-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .prospect-card:active {
+            transform: scale(0.98);
+            background: #f8f9fa;
         }
 
         .prospect-name {
@@ -165,9 +180,280 @@
             color: #6c757d;
         }
 
+        /* Floating Action Button */
+        .fab-new {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.4);
+            font-size: 1.5rem;
+            z-index: 1000;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .fab-new:active {
+            transform: scale(0.95);
+        }
+
+        /* Mobile Header Filters */
+        .mobile-filters {
+            display: none;
+            width: 100%;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-row>* {
+            flex: 1;
+        }
+
+        /* Quick filter chips for mobile */
+        .quick-filters {
+            display: none;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .quick-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .quick-filter-chip {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: #f1f3f5;
+            border: none;
+            font-size: 0.8rem;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .quick-filter-chip.active {
+            background: #1B5E20;
+            color: white;
+        }
+
+        /* Kanban scroll indicator */
+        .kanban-scroll-hint {
+            display: none;
+            text-align: center;
+            padding: 8px;
+            color: #6c757d;
+            font-size: 0.75rem;
+        }
+
+        .kanban-scroll-hint i {
+            animation: swipe-hint 1.5s ease-in-out infinite;
+        }
+
+        @keyframes swipe-hint {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(8px);
+            }
+        }
+
+        /* ==================== MOBILE OPTIMIZATIONS ==================== */
         @media (max-width: 768px) {
+
+            /* Stats row horizontal scroll */
+            .stats-row {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                gap: 10px;
+                margin-bottom: 12px;
+                padding-bottom: 5px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .stats-row::-webkit-scrollbar {
+                display: none;
+            }
+
+            .stat-card {
+                min-width: 120px;
+                padding: 12px 16px;
+                flex-shrink: 0;
+            }
+
+            .stat-value {
+                font-size: 1.4rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            /* Header reorganization */
+            .table-header {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .table-header>div:first-child {
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .table-title {
+                font-size: 1rem;
+            }
+
+            /* Hide desktop "Nuevo" button, show FAB */
+            #btnNew {
+                display: none !important;
+            }
+
+            .fab-new {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Show mobile filters */
+            .mobile-filters {
+                display: block;
+            }
+
+            /* Hide desktop filters */
+            .desktop-filters {
+                display: none !important;
+            }
+
+            /* Kanban optimizations */
+            .kanban-container {
+                gap: 10px;
+                padding: 0 5px 15px 5px;
+                margin: 0 -12px;
+            }
+
             .kanban-column {
-                min-width: 260px;
+                min-width: calc(85vw - 20px);
+                max-width: calc(85vw - 20px);
+                padding: 12px;
+            }
+
+            .kanban-column:first-child {
+                margin-left: 12px;
+            }
+
+            .kanban-column:last-child {
+                margin-right: 12px;
+            }
+
+            .kanban-cards {
+                max-height: 55vh;
+            }
+
+            .kanban-scroll-hint {
+                display: block;
+            }
+
+            .prospect-card {
+                padding: 14px;
+            }
+
+            .prospect-name {
+                font-size: 1rem;
+            }
+
+            .prospect-company {
+                font-size: 0.9rem;
+            }
+
+            .prospect-meta {
+                font-size: 0.8rem;
+                gap: 10px;
+            }
+
+            /* Table view optimizations */
+            .table th,
+            .table td {
+                padding: 10px 8px;
+                font-size: 0.8rem;
+            }
+
+            /* Hide less important columns */
+            .table th:nth-child(3),
+            .table td:nth-child(3),
+            .table th:nth-child(5),
+            .table td:nth-child(5),
+            .table th:nth-child(7),
+            .table td:nth-child(7) {
+                display: none;
+            }
+
+            /* View toggle */
+            .view-toggle .btn {
+                width: 40px;
+                height: 40px;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .view-toggle .btn i {
+                font-size: 1rem;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 576px) {
+            .kanban-column {
+                min-width: calc(90vw - 16px);
+                max-width: calc(90vw - 16px);
+            }
+
+            .stat-card {
+                min-width: 100px;
+                padding: 10px 12px;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+
+            .fab-new {
+                bottom: 16px;
+                right: 16px;
+                width: 52px;
+                height: 52px;
+            }
+
+            .table th:nth-child(4),
+            .table td:nth-child(4) {
+                display: none;
             }
         }
     </style>
@@ -236,7 +522,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="d-flex gap-2 flex-wrap">
+                        <!-- Desktop Filters -->
+                        <div class="d-flex gap-2 flex-wrap desktop-filters">
                             <select class="form-select form-select-sm" id="filterVendedor" style="width: 150px;">
                                 <option value="">Todos los vendedores</option>
                                 <option value="Pedro Retamozo">Pedro Retamozo</option>
@@ -248,7 +535,24 @@
                                 <i class="bi bi-plus"></i> Nuevo
                             </a>
                         </div>
+                        <!-- Mobile Filters -->
+                        <div class="mobile-filters">
+                            <div class="filter-row">
+                                <select class="form-select form-select-sm" id="filterVendedorMobile">
+                                    <option value="">Vendedor</option>
+                                    <option value="Pedro Retamozo">Pedro</option>
+                                    <option value="Nancy Enciso">Nancy</option>
+                                </select>
+                                <input type="text" class="form-control form-control-sm" id="searchInputMobile"
+                                    placeholder="Buscar...">
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Kanban Scroll Hint (mobile only) -->
+                <div class="kanban-scroll-hint">
+                    <i class="bi bi-arrow-left-right"></i> Desliza para ver más columnas
                 </div>
 
                 <!-- Kanban View -->
@@ -324,6 +628,11 @@
             </div>
         </main>
     </div>
+
+    <!-- Floating Action Button for Mobile -->
+    <a href="formulario.html" class="fab-new" id="fabNew" aria-label="Nuevo Prospecto">
+        <i class="bi bi-plus"></i>
+    </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
@@ -481,9 +790,25 @@
             }
         }
 
-        // Event listeners
-        document.getElementById('filterVendedor').addEventListener('change', loadData);
-        document.getElementById('searchInput').addEventListener('input', debounce(loadData, 300));
+        // Event listeners for desktop filters
+        document.getElementById('filterVendedor').addEventListener('change', function () {
+            document.getElementById('filterVendedorMobile').value = this.value;
+            loadData();
+        });
+        document.getElementById('searchInput').addEventListener('input', debounce(function () {
+            document.getElementById('searchInputMobile').value = this.value;
+            loadData();
+        }, 300));
+
+        // Event listeners for mobile filters (sync with desktop)
+        document.getElementById('filterVendedorMobile').addEventListener('change', function () {
+            document.getElementById('filterVendedor').value = this.value;
+            loadData();
+        });
+        document.getElementById('searchInputMobile').addEventListener('input', debounce(function () {
+            document.getElementById('searchInput').value = this.value;
+            loadData();
+        }, 300));
 
         function debounce(func, wait) {
             let timeout;
@@ -491,6 +816,11 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(() => func.apply(this, args), wait);
             };
+        }
+
+        // Hide FAB if can't edit
+        if (!canEdit()) {
+            document.getElementById('fabNew').style.display = 'none';
         }
 
         // Initial load

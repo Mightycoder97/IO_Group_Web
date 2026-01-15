@@ -93,6 +93,221 @@
         .info-value {
             flex: 1;
         }
+
+        /* Mobile Sticky Action Bar */
+        .mobile-action-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 16px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            gap: 10px;
+        }
+
+        .mobile-action-bar .btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 1rem;
+        }
+
+        /* Quick State Selector for Mobile */
+        .mobile-estado-section {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .estado-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .estado-chip {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 2px solid #e9ecef;
+            background: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .estado-chip.active {
+            border-color: #1B5E20;
+            background: #E8F5E9;
+        }
+
+        .estado-chip.nuevo.active {
+            border-color: #6c757d;
+            background: #e9ecef;
+        }
+
+        .estado-chip.contactado.active {
+            border-color: #0d6efd;
+            background: #cfe2ff;
+        }
+
+        .estado-chip.interesado.active {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .estado-chip.negociando.active {
+            border-color: #fd7e14;
+            background: #ffe5d0;
+        }
+
+        .estado-chip.ganado.active {
+            border-color: #198754;
+            background: #d1e7dd;
+        }
+
+        .estado-chip.perdido.active {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        /* ==================== MOBILE OPTIMIZATIONS ==================== */
+        @media (max-width: 992px) {
+
+            /* Reorder columns on tablet/mobile - action cards first */
+            .content-area>.row {
+                flex-direction: column-reverse;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            /* Show mobile action bar, hide form buttons */
+            .mobile-action-bar {
+                display: flex;
+            }
+
+            .form-action-buttons {
+                display: none !important;
+            }
+
+            /* Show mobile estado section */
+            .mobile-estado-section {
+                display: block;
+            }
+
+            /* Hide desktop estado card */
+            #estadoCard {
+                display: none !important;
+            }
+
+            /* Add bottom padding for sticky bar */
+            .content-area {
+                padding-bottom: 80px;
+            }
+
+            /* Compact header */
+            .card-header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .estado-badge {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            /* Form optimizations */
+            .row>[class*="col-md-"] {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .mb-3 {
+                margin-bottom: 12px !important;
+            }
+
+            .form-label {
+                font-size: 0.85rem;
+                margin-bottom: 4px;
+            }
+
+            /* Map adjustments */
+            #map {
+                height: 200px;
+                margin-bottom: 12px;
+            }
+
+            /* Hide lat/lng inputs on mobile, keep functional */
+            .coords-row {
+                display: none;
+            }
+
+            /* Section titles */
+            .section-title {
+                font-size: 0.8rem;
+                margin-bottom: 12px;
+                margin-top: 20px;
+            }
+
+            /* Info card compact */
+            .info-row {
+                font-size: 0.85rem;
+            }
+
+            .info-label {
+                width: 90px;
+            }
+
+            /* Quick action buttons */
+            #actionsCard .card-body {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            #actionsCard .btn {
+                flex: 1;
+                min-width: 45%;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 576px) {
+            .estado-badge {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+
+            #map {
+                height: 180px;
+            }
+
+            .mobile-action-bar {
+                padding: 10px 12px;
+            }
+
+            .mobile-action-bar .btn {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+
+            /* Input sizing for iOS */
+            .form-control,
+            .form-select {
+                font-size: 16px;
+            }
+        }
+
+        /* Safe area support for notched phones */
+        @supports (padding: max(0px)) {
+            .mobile-action-bar {
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
+            }
+        }
     </style>
 </head>
 
@@ -208,7 +423,7 @@
 
                                     <div id="map"></div>
 
-                                    <div class="row">
+                                    <div class="row coords-row">
                                         <div class="col-6 mb-3">
                                             <label class="form-label">Latitud</label>
                                             <input type="text" class="form-control" id="latitud" readonly>
@@ -239,7 +454,7 @@
                                             placeholder="Ej: 15/01 - Llamado, pidió cotización. 18/01 - Enviada cotización..."></textarea>
                                     </div>
 
-                                    <div class="d-flex gap-2 mt-4">
+                                    <div class="d-flex gap-2 mt-4 form-action-buttons">
                                         <button type="submit" class="btn btn-primary">
                                             <i class="bi bi-check-lg"></i> Guardar
                                         </button>
@@ -304,6 +519,16 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Mobile Sticky Action Bar -->
+    <div class="mobile-action-bar">
+        <a href="listar.html" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Cancelar
+        </a>
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('form').requestSubmit()">
+            <i class="bi bi-check-lg"></i> Guardar
+        </button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
