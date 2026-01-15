@@ -13,6 +13,22 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../css/styles.css" rel="stylesheet">
     <style>
+        /* CRITICAL: Prevent page-level horizontal overflow on mobile */
+        html,
+        body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        .main-content {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        .content-area {
+            overflow-x: hidden;
+        }
+
         /* Kanban Board Styles */
         .kanban-container {
             display: flex;
@@ -22,6 +38,7 @@
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
+            max-width: 100%;
         }
 
         .kanban-container::-webkit-scrollbar {
@@ -283,41 +300,75 @@
         /* ==================== MOBILE OPTIMIZATIONS ==================== */
         @media (max-width: 768px) {
 
-            /* Stats row horizontal scroll */
-            .stats-row {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                gap: 10px;
-                margin-bottom: 12px;
-                padding-bottom: 5px;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
+            /* COMPACT HEADER - Hide breadcrumbs, show only page title */
+            .top-nav {
+                padding: 8px 12px;
             }
 
-            .stats-row::-webkit-scrollbar {
+            .breadcrumb-container nav {
                 display: none;
             }
 
+            .breadcrumb-container::after {
+                content: 'Prospectos';
+                font-weight: 600;
+                font-size: 1.1rem;
+                color: #212121;
+            }
+
+            .toggle-sidebar {
+                margin-right: 8px;
+            }
+
+            .user-menu {
+                gap: 4px;
+            }
+
+            .user-menu .dropdown {
+                display: none;
+            }
+
+            /* ULTRA COMPACT STATS - Single row */
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+
             .stat-card {
-                min-width: 120px;
-                padding: 12px 16px;
-                flex-shrink: 0;
+                min-width: unset;
+                padding: 10px;
+                text-align: center;
             }
 
             .stat-value {
-                font-size: 1.4rem;
+                font-size: 1.2rem;
+                line-height: 1.2;
             }
 
             .stat-label {
-                font-size: 0.75rem;
+                font-size: 0.65rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
-            /* Header reorganization */
+            /* CONTENT AREA - Less padding */
+            .content-area {
+                padding: 8px;
+            }
+
+            /* SIMPLIFIED HEADER */
+            .table-container.mb-3 {
+                margin-bottom: 8px !important;
+            }
+
             .table-header {
                 flex-direction: column;
                 align-items: stretch !important;
-                gap: 10px;
-                padding: 12px;
+                gap: 8px;
+                padding: 10px;
             }
 
             .table-header>div:first-child {
@@ -326,7 +377,11 @@
             }
 
             .table-title {
-                font-size: 1rem;
+                font-size: 0.95rem;
+            }
+
+            .table-title i {
+                display: none;
             }
 
             /* Hide desktop "Nuevo" button, show FAB */
@@ -343,6 +398,18 @@
             /* Show mobile filters */
             .mobile-filters {
                 display: block;
+                margin-top: 8px;
+                padding-top: 8px;
+            }
+
+            .filter-row {
+                gap: 6px;
+            }
+
+            .filter-row .form-select,
+            .filter-row .form-control {
+                padding: 8px 10px;
+                font-size: 14px;
             }
 
             /* Hide desktop filters */
@@ -350,60 +417,72 @@
                 display: none !important;
             }
 
-            /* Kanban optimizations */
+            /* KANBAN - Full width columns */
+            .kanban-scroll-hint {
+                display: block;
+                padding: 4px;
+                margin-bottom: 4px;
+            }
+
             .kanban-container {
-                gap: 10px;
-                padding: 0 5px 15px 5px;
-                margin: 0 -12px;
+                gap: 8px;
+                padding: 0;
+                margin: 0 -8px;
             }
 
             .kanban-column {
-                min-width: calc(85vw - 20px);
-                max-width: calc(85vw - 20px);
-                padding: 12px;
-            }
-
-            .kanban-column:first-child {
-                margin-left: 12px;
+                min-width: calc(88vw);
+                max-width: calc(88vw);
+                padding: 10px;
+                margin-left: 8px;
             }
 
             .kanban-column:last-child {
-                margin-right: 12px;
+                margin-right: 8px;
+            }
+
+            .kanban-header {
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+            }
+
+            .kanban-title {
+                font-size: 0.85rem;
             }
 
             .kanban-cards {
-                max-height: 55vh;
-            }
-
-            .kanban-scroll-hint {
-                display: block;
+                max-height: 50vh;
+                gap: 8px;
             }
 
             .prospect-card {
-                padding: 14px;
+                padding: 12px;
             }
 
             .prospect-name {
-                font-size: 1rem;
+                font-size: 0.95rem;
             }
 
             .prospect-company {
-                font-size: 0.9rem;
+                font-size: 0.8rem;
+                margin-bottom: 6px;
             }
 
             .prospect-meta {
-                font-size: 0.8rem;
-                gap: 10px;
+                font-size: 0.75rem;
+                gap: 8px;
             }
 
-            /* Table view optimizations */
+            /* TABLE VIEW */
             .table th,
             .table td {
-                padding: 10px 8px;
-                font-size: 0.8rem;
+                padding: 8px 6px;
+                font-size: 0.75rem;
             }
 
             /* Hide less important columns */
+            .table th:nth-child(2),
+            .table td:nth-child(2),
             .table th:nth-child(3),
             .table td:nth-child(3),
             .table th:nth-child(5),
@@ -413,10 +492,10 @@
                 display: none;
             }
 
-            /* View toggle */
+            /* View toggle - smaller */
             .view-toggle .btn {
-                width: 40px;
-                height: 40px;
+                width: 36px;
+                height: 36px;
                 padding: 0;
                 display: flex;
                 align-items: center;
@@ -424,36 +503,46 @@
             }
 
             .view-toggle .btn i {
-                font-size: 1rem;
+                font-size: 0.9rem;
             }
         }
 
         /* Extra small screens */
         @media (max-width: 576px) {
             .kanban-column {
-                min-width: calc(90vw - 16px);
-                max-width: calc(90vw - 16px);
-            }
-
-            .stat-card {
-                min-width: 100px;
-                padding: 10px 12px;
+                min-width: calc(92vw);
+                max-width: calc(92vw);
             }
 
             .stat-value {
-                font-size: 1.2rem;
+                font-size: 1rem;
+            }
+
+            .stat-label {
+                font-size: 0.6rem;
             }
 
             .fab-new {
                 bottom: 16px;
                 right: 16px;
-                width: 52px;
-                height: 52px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.3rem;
             }
 
+            /* Show only name and estado in table */
             .table th:nth-child(4),
             .table td:nth-child(4) {
                 display: none;
+            }
+
+            .table th:nth-child(8),
+            .table td:nth-child(8) {
+                padding: 6px 4px;
+            }
+
+            .btn-action {
+                padding: 4px 6px;
             }
         }
     </style>
