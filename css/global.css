@@ -76,6 +76,12 @@
     box-sizing: border-box;
 }
 
+/* CRITICAL: Prevent horizontal overflow on all pages */
+html {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
 body {
     font-family: var(--font-family);
     font-size: 16px;
@@ -83,11 +89,14 @@ body {
     color: var(--gray-700);
     background-color: var(--white);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 body.control-app {
     background-color: var(--control-bg);
     color: var(--control-text);
+    overflow-x: hidden;
 }
 
 h1,
@@ -560,6 +569,8 @@ a:hover {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
+    max-width: calc(100vw - 260px);
 }
 
 /* Top Navigation */
@@ -620,6 +631,7 @@ a:hover {
     padding: 24px;
     flex: 1;
     overflow-x: hidden;
+    max-width: 100%;
 }
 
 /* Cards */
@@ -828,11 +840,18 @@ a:hover {
 
     .control-app .main-content {
         margin-left: 0;
+        max-width: 100vw;
     }
 
     .control-app .top-nav {
         margin-left: 0;
         padding: 10px 16px;
+    }
+
+    /* Prevent any element from causing horizontal scroll */
+    .control-app .content-area {
+        max-width: 100%;
+        overflow-x: hidden;
     }
 }
 
