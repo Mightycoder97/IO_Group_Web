@@ -91,6 +91,83 @@
             border-bottom: 1px solid #e9ecef;
         }
 
+        /* Address autocomplete */
+        .address-container {
+            position: relative;
+        }
+
+        .address-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+        }
+
+        .address-suggestions.active {
+            display: block;
+        }
+
+        .address-suggestion {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.9rem;
+        }
+
+        .address-suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .address-suggestion:hover {
+            background: #f8f9fa;
+        }
+
+        .address-suggestion .main-text {
+            font-weight: 500;
+            color: #212529;
+        }
+
+        .address-suggestion .secondary-text {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .btn-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-location.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-location.loading i {
+            animation: spin 1s linear infinite;
+        }
+
         .info-row {
             display: flex;
             margin-bottom: 10px;
@@ -485,7 +562,18 @@
                                     <div class="row">
                                         <div class="col-md-8 mb-3">
                                             <label class="form-label">Dirección</label>
-                                            <input type="text" class="form-control" id="direccion">
+                                            <div class="address-container">
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="direccion"
+                                                        placeholder="Buscar dirección..." autocomplete="off">
+                                                    <button type="button" class="btn btn-outline-primary btn-location"
+                                                        id="btnMyLocation" title="Usar mi ubicación actual">
+                                                        <i class="bi bi-geo-alt-fill"></i>
+                                                        <span class="d-none d-sm-inline">Mi ubicación</span>
+                                                    </button>
+                                                </div>
+                                                <div class="address-suggestions" id="addressSuggestions"></div>
+                                            </div>
                                         </div>
                                         <div class="col-md-4 mb-3">
                                             <label class="form-label">Distrito</label>
@@ -782,6 +870,195 @@
                 }
             } catch (err) {
                 showToast('Error eliminando', 'danger');
+            }
+        }
+
+        // ==================== ADDRESS AUTOCOMPLETE & GEOLOCATION ====================
+
+        const direccionInput = document.getElementById('direccion');
+        const suggestionsBox = document.getElementById('addressSuggestions');
+        const btnMyLocation = document.getElementById('btnMyLocation');
+        let searchTimeout = null;
+
+        // Address search with Photon API (more accurate than Nominatim)
+        async function searchAddress(query) {
+            if (query.length < 3) {
+                suggestionsBox.classList.remove('active');
+                return;
+            }
+
+            try {
+                // Photon API - prioritize Peru results
+                const response = await fetch(
+                    `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ', Peru')}&limit=6&lang=es`
+                );
+                const data = await response.json();
+
+                if (data.features && data.features.length > 0) {
+                    renderSuggestions(data.features);
+                } else {
+                    suggestionsBox.classList.remove('active');
+                }
+            } catch (err) {
+                console.error('Error searching address:', err);
+                suggestionsBox.classList.remove('active');
+            }
+        }
+
+        function renderSuggestions(features) {
+            suggestionsBox.innerHTML = features.map((f, i) => {
+                const p = f.properties;
+                const mainText = p.name || p.street || '';
+                const parts = [];
+                if (p.street && p.street !== mainText) parts.push(p.street);
+                if (p.housenumber) parts.push(p.housenumber);
+                if (p.district) parts.push(p.district);
+                if (p.city) parts.push(p.city);
+                if (p.state) parts.push(p.state);
+                const secondaryText = parts.join(', ');
+
+                return `
+                    <div class="address-suggestion" data-index="${i}">
+                        <div class="main-text"><i class="bi bi-geo-alt text-primary me-1"></i>${mainText}</div>
+                        ${secondaryText ? `<div class="secondary-text">${secondaryText}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Store features for selection
+            suggestionsBox._features = features;
+            suggestionsBox.classList.add('active');
+        }
+
+        // Handle suggestion click
+        suggestionsBox.addEventListener('click', function (e) {
+            const suggestion = e.target.closest('.address-suggestion');
+            if (!suggestion) return;
+
+            const index = parseInt(suggestion.dataset.index);
+            const feature = suggestionsBox._features[index];
+            selectAddress(feature);
+        });
+
+        function selectAddress(feature) {
+            const p = feature.properties;
+            const coords = feature.geometry.coordinates;
+
+            // Build full address
+            const addressParts = [];
+            if (p.name) addressParts.push(p.name);
+            if (p.street) addressParts.push(p.street);
+            if (p.housenumber) addressParts.push(p.housenumber);
+
+            direccionInput.value = addressParts.join(' ') || p.name || '';
+
+            // Set district
+            const distrito = p.district || p.suburb || p.city || '';
+            document.getElementById('distrito').value = distrito;
+
+            // Update map and coordinates
+            const lat = coords[1];
+            const lng = coords[0];
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 17);
+            document.getElementById('latitud').value = lat.toFixed(6);
+            document.getElementById('longitud').value = lng.toFixed(6);
+
+            suggestionsBox.classList.remove('active');
+        }
+
+        // Debounced search on input
+        direccionInput.addEventListener('input', function () {
+            if (searchTimeout) clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => searchAddress(this.value), 300);
+        });
+
+        // Hide suggestions on blur (with delay to allow click)
+        direccionInput.addEventListener('blur', function () {
+            setTimeout(() => suggestionsBox.classList.remove('active'), 200);
+        });
+
+        // Show suggestions on focus if there's text
+        direccionInput.addEventListener('focus', function () {
+            if (this.value.length >= 3 && suggestionsBox.innerHTML) {
+                suggestionsBox.classList.add('active');
+            }
+        });
+
+        // ==================== GEOLOCATION (Use my location) ====================
+
+        btnMyLocation.addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                showToast('Tu navegador no soporta geolocalización', 'warning');
+                return;
+            }
+
+            // Show loading state
+            this.classList.add('loading');
+            this.querySelector('i').className = 'bi bi-arrow-repeat';
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Update map and marker
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng], 17);
+                    document.getElementById('latitud').value = lat.toFixed(6);
+                    document.getElementById('longitud').value = lng.toFixed(6);
+
+                    // Reverse geocode to get address
+                    await reverseGeocode(lat, lng);
+
+                    // Reset button
+                    this.classList.remove('loading');
+                    this.querySelector('i').className = 'bi bi-geo-alt-fill';
+                    showToast('Ubicación obtenida', 'success');
+                },
+                (error) => {
+                    this.classList.remove('loading');
+                    this.querySelector('i').className = 'bi bi-geo-alt-fill';
+
+                    let message = 'Error obteniendo ubicación';
+                    if (error.code === 1) message = 'Permiso de ubicación denegado';
+                    else if (error.code === 2) message = 'Ubicación no disponible';
+                    else if (error.code === 3) message = 'Tiempo de espera agotado';
+
+                    showToast(message, 'danger');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
+        });
+
+        // Reverse geocode using Nominatim (free reverse geocoding)
+        async function reverseGeocode(lat, lng) {
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=es`
+                );
+                const data = await response.json();
+
+                if (data && data.address) {
+                    const a = data.address;
+
+                    // Build address from components
+                    const addressParts = [];
+                    if (a.road) addressParts.push(a.road);
+                    if (a.house_number) addressParts.push(a.house_number);
+
+                    direccionInput.value = addressParts.join(' ') || data.display_name?.split(',')[0] || '';
+
+                    // Set district
+                    const distrito = a.suburb || a.neighbourhood || a.city_district || a.town || a.city || '';
+                    document.getElementById('distrito').value = distrito;
+                }
+            } catch (err) {
+                console.error('Error in reverse geocoding:', err);
             }
         }
 
