@@ -52,7 +52,7 @@
                             <h5 class="table-title mb-0"><i class="bi bi-file-earmark"></i> Guías de Remisión</h5>
                             <small class="text-muted" id="recordCount"></small>
                         </div>
-                        <div class="d-flex gap-2 flex-wrap">
+                        <div class="d-flex gap-2 flex-wrap desktop-filters">
                             <input type="text" class="form-control form-control-sm" id="searchInput"
                                 placeholder="Buscar..." style="width: 180px;">
                             <select class="form-select form-select-sm" id="limitSelect" style="width: 90px;">
@@ -60,9 +60,16 @@
                                 <option value="50" selected>50</option>
                                 <option value="100">100</option>
                             </select>
-                            <a href="formulario.html" class="btn btn-primary btn-sm" id="btnNew"><i
+                            <a href="formulario.html" class="btn btn-primary btn-sm btn-new-desktop" id="btnNew"><i
                                     class="bi bi-plus"></i>
                                 Nueva</a>
+                        </div>
+                        <!-- Mobile Filters -->
+                        <div class="mobile-filters">
+                            <div class="filter-row">
+                                <input type="text" class="form-control form-control-sm" id="searchInputMobile"
+                                    placeholder="Buscar guía...">
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -71,9 +78,9 @@
                                 <tr>
                                     <th>Serie - Número</th>
                                     <th>Sede</th>
-                                    <th>Fecha Emisión</th>
-                                    <th>Partida</th>
-                                    <th>Llegada</th>
+                                    <th class="hide-on-mobile">Fecha Emisión</th>
+                                    <th class="hide-on-mobile">Partida</th>
+                                    <th class="hide-on-mobile">Llegada</th>
                                     <th width="100">Acciones</th>
                                 </tr>
                             </thead>
@@ -95,6 +102,11 @@
             </div>
         </main>
     </div>
+
+    <!-- FAB for mobile -->
+    <a href="formulario.html" class="fab" id="fabNew" aria-label="Nueva Guía">
+        <i class="bi bi-plus"></i>
+    </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>

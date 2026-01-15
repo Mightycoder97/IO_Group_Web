@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -51,12 +51,21 @@
                         <div>
                             <h5 class="table-title mb-0"><i class="bi bi-signpost-2"></i> Rutas</h5>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 desktop-filters">
                             <input type="date" class="form-control" id="fechaFilter" style="width: 150px;">
                             <input type="text" class="form-control" id="searchInput" placeholder="Buscar..."
                                 style="width: 150px;">
-                            <a href="formulario.html" class="btn btn-primary" id="btnNew"><i class="bi bi-plus"></i>
+                            <a href="formulario.html" class="btn btn-primary btn-new-desktop" id="btnNew"><i
+                                    class="bi bi-plus"></i>
                                 Nueva</a>
+                        </div>
+                        <!-- Mobile Filters -->
+                        <div class="mobile-filters">
+                            <div class="filter-row">
+                                <input type="date" class="form-control form-control-sm" id="fechaFilterMobile">
+                                <input type="text" class="form-control form-control-sm" id="searchInputMobile"
+                                    placeholder="Buscar ruta...">
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -65,9 +74,9 @@
                                 <tr>
                                     <th>Código</th>
                                     <th>Vehículo</th>
-                                    <th>Fecha</th>
-                                    <th>Horario</th>
-                                    <th>Km</th>
+                                    <th class="hide-on-mobile">Fecha</th>
+                                    <th class="hide-on-mobile">Horario</th>
+                                    <th class="hide-on-mobile">Km</th>
                                     <th>Estado</th>
                                     <th width="100">Acciones</th>
                                 </tr>
@@ -83,6 +92,11 @@
             </div>
         </main>
     </div>
+
+    <!-- FAB for mobile -->
+    <a href="formulario.html" class="fab" id="fabNew" aria-label="Nueva Ruta">
+        <i class="bi bi-plus"></i>
+    </a>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
