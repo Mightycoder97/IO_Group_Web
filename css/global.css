@@ -1149,98 +1149,322 @@ a:hover {
 
 
 /* ================= PROSPECTOS MODULE STYLES ================= */
-.kanban-container {
+
+/* Stats Row */
+.control-app .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.control-app .stat-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    min-width: 100px;
+    flex: 1;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+.control-app .stat-card:hover {
+    border-color: #1B5E20;
+    box-shadow: 0 3px 8px rgba(27, 94, 32, 0.15);
+}
+
+.control-app .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.control-app .stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* Table Container */
+.control-app .table-container {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.control-app .table-header {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.control-app .table-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #212529;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* View Toggle */
+.control-app .view-toggle {
+    display: flex;
+    gap: 4px;
+}
+
+.control-app .view-toggle .btn.active {
+    background-color: #1B5E20;
+    border-color: #1B5E20;
+    color: #fff;
+}
+
+/* Kanban Styles */
+.control-app .kanban-container {
     display: flex;
     gap: 15px;
     overflow-x: auto;
-    padding-bottom: 15px;
+    padding: 15px 0;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
 
-.kanban-container::-webkit-scrollbar {
+.control-app .kanban-container::-webkit-scrollbar {
     display: none;
 }
 
-.kanban-column {
+.control-app .kanban-column {
     min-width: 280px;
     max-width: 300px;
-    background: var(--gray-100);
-    border-radius: 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
     padding: 15px;
     scroll-snap-align: start;
     flex-shrink: 0;
+    border: 1px solid #e9ecef;
 }
 
-.kanban-header {
+.control-app .kanban-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     padding-bottom: 10px;
-    border-bottom: 2px solid var(--gray-400);
+    border-bottom: 3px solid #6c757d;
 }
 
-.prospect-card {
-    background: var(--white);
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: var(--shadow-sm);
-    cursor: pointer;
-    border: 1px solid var(--border);
-    margin-bottom: 10px;
+.control-app .kanban-header.nuevo {
+    border-bottom-color: #6c757d;
 }
 
-.prospect-card:hover {
-    border-color: var(--primary);
+.control-app .kanban-header.contactado {
+    border-bottom-color: #0d6efd;
 }
 
-.address-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid var(--gray-400);
-    border-radius: 0 0 8px 8px;
-    z-index: 1000;
-    max-height: 200px;
+.control-app .kanban-header.interesado {
+    border-bottom-color: #ffc107;
+}
+
+.control-app .kanban-header.negociando {
+    border-bottom-color: #fd7e14;
+}
+
+.control-app .kanban-header.ganado {
+    border-bottom-color: #198754;
+}
+
+.control-app .kanban-header.perdido {
+    border-bottom-color: #dc3545;
+}
+
+.control-app .kanban-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-app .kanban-count {
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.control-app .kanban-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 55vh;
     overflow-y: auto;
-    display: none;
 }
 
-.address-suggestion {
-    padding: 8px 12px;
+/* Prospect Card */
+.control-app .prospect-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     cursor: pointer;
-    border-bottom: 1px solid var(--gray-200);
+    border: 1px solid #e9ecef;
+    transition: all 0.15s ease;
 }
 
-.address-suggestion:hover {
-    background: var(--gray-100);
+.control-app .prospect-card:hover {
+    border-color: #1B5E20;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
 }
 
-.mobile-action-bar {
+.control-app .prospect-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+    color: #212529;
+}
+
+.control-app .prospect-company {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.control-app .prospect-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.75rem;
+}
+
+.control-app .prospect-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #6c757d;
+}
+
+.control-app .prospect-meta i {
+    font-size: 0.8rem;
+}
+
+/* Floating Action Button - Prospectos */
+.control-app .fab-new {
     display: none;
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    padding: 10px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 100;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #1B5E20;
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(27, 94, 32, 0.35);
+    font-size: 1.5rem;
+    z-index: 1000;
+    cursor: pointer;
+    text-decoration: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.control-app .fab-new:hover {
+    background: #145214;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(27, 94, 32, 0.45);
+}
+
+/* Desktop Filters */
+.control-app .desktop-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Mobile Filters */
+.control-app .mobile-filters {
+    display: none;
+    width: 100%;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Mobile Responsive - Prospectos */
+@media (max-width: 992px) {
+    .control-app .fab-new {
+        display: flex;
+    }
+
+    .control-app .btn-new-desktop {
+        display: none !important;
+    }
 }
 
 @media (max-width: 768px) {
-    .mobile-action-bar {
-        display: flex;
+    .control-app .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .control-app .stat-card {
+        min-width: unset;
+        padding: 10px;
+    }
+
+    .control-app .stat-value {
+        font-size: 1.2rem;
+    }
+
+    .control-app .stat-label {
+        font-size: 0.65rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .control-app .table-header {
+        flex-direction: column;
+        align-items: stretch;
         gap: 10px;
+        padding: 12px;
     }
 
-    .mobile-action-bar .btn {
-        flex: 1;
+    .control-app .desktop-filters {
+        display: none !important;
     }
 
-    .content-area {
-        padding-bottom: 70px;
+    .control-app .mobile-filters {
+        display: block;
+    }
+
+    .control-app .kanban-column {
+        min-width: 260px;
+    }
+}
+
+@media (max-width: 576px) {
+    .control-app .fab-new {
+        bottom: 16px;
+        right: 16px;
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+
+    .control-app .stats-row {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
