@@ -1248,28 +1248,18 @@ a:hover {
 
 /* Kanban Styles */
 .control-app .kanban-container {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
     padding: 15px 0;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-}
-
-.control-app .kanban-container::-webkit-scrollbar {
-    display: none;
 }
 
 .control-app .kanban-column {
-    min-width: 280px;
-    max-width: 300px;
     background: #f8f9fa;
     border-radius: 10px;
     padding: 15px;
-    scroll-snap-align: start;
-    flex-shrink: 0;
     border: 1px solid #e9ecef;
+    min-height: 200px;
 }
 
 .control-app .kanban-header {
@@ -1890,9 +1880,10 @@ a:hover {
         font-size: 1.1rem;
     }
 
-    /* Kanban adjustments */
-    .control-app .kanban-column {
-        min-width: 260px;
+    /* Kanban adjustments - 2 columns on tablet */
+    .control-app .kanban-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 
     .control-app .prospect-card {
@@ -1942,9 +1933,13 @@ a:hover {
         padding: 5px 10px;
     }
 
-    /* Kanban smaller cards */
+    /* Kanban - 1 column on small mobile */
+    .control-app .kanban-container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
     .control-app .kanban-column {
-        min-width: 240px;
         padding: 12px;
     }
 
