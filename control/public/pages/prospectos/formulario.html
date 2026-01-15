@@ -410,54 +410,32 @@
             icon.className = 'spinner-border spinner-border-sm';
             btn.disabled = true;
             try {
-                // apis.net.pe API
-                const url = `https://api.apis.net.pe/v2/sunat/ruc?numero=${ruc}`;
-                const headers = {
-                    'Accept': 'application/json'
-                };
-                if (APIS_TOKEN) {
-                    headers['Authorization'] = `Bearer ${APIS_TOKEN}`;
-                }
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: headers
-                });
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('API Response Error:', response.status, errorText);
-                    throw new Error(`API Error: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log('SUNAT API Response:', data);
-                // Handle different response field names
-                const razonSocial = data.razonSocial || data.nombre || data.nombreORazonSocial || '';
-                const direccion = data.direccion || data.direccionCompleta || data.direccionFiscal || '';
-                const distrito = data.distrito || '';
-                const departamento = data.departamento || '';
-                const provincia = data.provincia || '';
-                if (razonSocial) {
-                    document.getElementById('razon_social').value = razonSocial;
-                    if (direccion) {
-                        // Build full address with distrito if available
-                        let fullAddress = direccion;
-                        if (distrito && !direccion.toLowerCase().includes(distrito.toLowerCase())) {
-                            fullAddress += ', ' + distrito;
+                // Use local PHP proxy to avoid CORS issues
+                const response = await fetch(`/api/sunat-ruc.php?ruc=${ruc}`);
+                const result = await response.json();
+                console.log('SUNAT Proxy Response:', result);
+                if (result.success && result.data) {
+                    const data = result.data;
+                    if (data.razonSocial) {
+                        document.getElementById('razon_social').value = data.razonSocial;
+                    }
+                    if (data.direccion) {
+                        let fullAddress = data.direccion;
+                        if (data.distrito && !data.direccion.toLowerCase().includes(data.distrito.toLowerCase())) {
+                            fullAddress += ', ' + data.distrito;
                         }
                         document.getElementById('direccion').value = fullAddress;
-                        // Try to geocode this address
                         searchAddress(fullAddress);
                     }
-                    if (distrito) document.getElementById('distrito').value = distrito;
-                    if (departamento) document.getElementById('departamento').value = departamento;
+                    if (data.distrito) document.getElementById('distrito').value = data.distrito;
+                    if (data.departamento) document.getElementById('departamento').value = data.departamento;
                     showToast('Datos encontrados en SUNAT', 'success');
-                } else if (data.error || data.message) {
-                    showToast(data.message || data.error || 'RUC no encontrado', 'warning');
                 } else {
-                    showToast('No se encontraron datos para este RUC', 'warning');
+                    showToast(result.error || 'No se encontraron datos para este RUC', 'warning');
                 }
             } catch (err) {
                 console.error('Error searching RUC:', err);
-                showToast('Error al consultar SUNAT. Verifique su conexión o token.', 'warning');
+                showToast('Error al consultar SUNAT. Verifique su conexión.', 'warning');
             } finally {
                 icon.className = originalClass;
                 btn.disabled = false;
