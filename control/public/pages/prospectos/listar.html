@@ -580,19 +580,35 @@
             </nav>
 
             <div class="content-area">
-                <!-- Stats Row -->
+                <!-- Stats Row - Clickable Status Cards -->
                 <div class="stats-row" id="statsRow">
-                    <div class="stat-card">
+                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('')">
                         <div class="stat-value text-primary" id="statTotal">--</div>
-                        <div class="stat-label">Total Prospectos</div>
+                        <div class="stat-label">Total</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value text-success" id="statMes">--</div>
-                        <div class="stat-label">Este Mes</div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('nuevo')">
+                        <div class="stat-value text-secondary" id="statNuevo">--</div>
+                        <div class="stat-label">Nuevo</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value text-warning" id="statConversion">--%</div>
-                        <div class="stat-label">Tasa Conversión</div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('contactado')">
+                        <div class="stat-value text-info" id="statContactado">--</div>
+                        <div class="stat-label">Contactado</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('interesado')">
+                        <div class="stat-value text-warning" id="statInteresado">--</div>
+                        <div class="stat-label">Interesado</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('negociando')">
+                        <div class="stat-value" style="color: #fd7e14;" id="statNegociando">--</div>
+                        <div class="stat-label">Negociando</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('ganado')">
+                        <div class="stat-value text-success" id="statGanado">--</div>
+                        <div class="stat-label">Ganado</div>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer;" onclick="filterByEstado('perdido')">
+                        <div class="stat-value text-danger" id="statPerdido">--</div>
+                        <div class="stat-label">Perdido</div>
                     </div>
                 </div>
 
@@ -614,10 +630,17 @@
                         </div>
                         <!-- Desktop Filters -->
                         <div class="d-flex gap-2 flex-wrap desktop-filters">
+                            <select class="form-select form-select-sm" id="filterEstado" style="width: 140px;">
+                                <option value="">Todos los estados</option>
+                                <option value="nuevo">Nuevo</option>
+                                <option value="contactado">Contactado</option>
+                                <option value="interesado">Interesado</option>
+                                <option value="negociando">Negociando</option>
+                                <option value="ganado">Ganado</option>
+                                <option value="perdido">Perdido</option>
+                            </select>
                             <select class="form-select form-select-sm" id="filterVendedor" style="width: 150px;">
                                 <option value="">Todos los vendedores</option>
-                                <option value="Pedro Retamozo">Pedro Retamozo</option>
-                                <option value="Nancy Enciso">Nancy Enciso</option>
                             </select>
                             <input type="text" class="form-control form-control-sm" id="searchInput"
                                 placeholder="Buscar..." style="width: 180px;">
@@ -628,10 +651,14 @@
                         <!-- Mobile Filters -->
                         <div class="mobile-filters">
                             <div class="filter-row">
-                                <select class="form-select form-select-sm" id="filterVendedorMobile">
-                                    <option value="">Vendedor</option>
-                                    <option value="Pedro Retamozo">Pedro</option>
-                                    <option value="Nancy Enciso">Nancy</option>
+                                <select class="form-select form-select-sm" id="filterEstadoMobile">
+                                    <option value="">Estado</option>
+                                    <option value="nuevo">Nuevo</option>
+                                    <option value="contactado">Contactado</option>
+                                    <option value="interesado">Interesado</option>
+                                    <option value="negociando">Negociando</option>
+                                    <option value="ganado">Ganado</option>
+                                    <option value="perdido">Perdido</option>
                                 </select>
                                 <input type="text" class="form-control form-control-sm" id="searchInputMobile"
                                     placeholder="Buscar...">
@@ -731,18 +758,28 @@
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('prospectos');
 
-        if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
+        if (!isOwnProspect(p.vendedor)) document.getElementById('btnNew').style.display = 'none';
 
         let allData = [];
         let currentView = 'kanban';
+        const currentUser = getUser();
+        const currentUserName = currentUser?.nombre_completo || currentUser?.nombre || currentUser?.username || '';
+
+        // Check if user owns this prospect
+        function isOwnProspect(vendedor) {
+            if (!currentUserName) return false;
+            return vendedor?.toLowerCase() === currentUserName.toLowerCase();
+        }
 
         async function loadData() {
             try {
                 const vendedor = document.getElementById('filterVendedor').value;
+                const estado = document.getElementById('filterEstado').value;
                 const search = document.getElementById('searchInput').value;
 
                 let url = '/prospectos?';
                 if (vendedor) url += `vendedor=${encodeURIComponent(vendedor)}&`;
+                if (estado) url += `estado=${encodeURIComponent(estado)}&`;
                 if (search) url += `search=${encodeURIComponent(search)}&`;
 
                 const result = await api.get(url);
@@ -757,16 +794,32 @@
 
         async function loadStats() {
             try {
-                const result = await api.get('/prospectos?action=stats');
+                const result = await api.get('/prospectos');
                 if (result.success) {
-                    const stats = result.data;
-                    document.getElementById('statTotal').textContent = stats.total;
-                    document.getElementById('statMes').textContent = stats.mes_actual?.total || 0;
-                    document.getElementById('statConversion').textContent = stats.tasa_conversion + '%';
+                    const data = result.data;
+                    document.getElementById('statTotal').textContent = data.length;
+                    const estados = ['nuevo', 'contactado', 'interesado', 'negociando', 'ganado', 'perdido'];
+                    estados.forEach(estado => {
+                        const count = data.filter(p => p.estado === estado).length;
+                        const el = document.getElementById('stat' + capitalize(estado));
+                        if (el) el.textContent = count;
+                    });
+                    // Load unique vendedores for filter
+                    const vendedores = [...new Set(data.map(p => p.vendedor).filter(v => v))];
+                    const vendedorSelect = document.getElementById('filterVendedor');
+                    vendedorSelect.innerHTML = '<option value="">Todos los vendedores</option>' +
+                        vendedores.map(v => `<option value="${v}">${v}</option>`).join('');
                 }
             } catch (err) {
                 console.error('Error loading stats:', err);
             }
+        }
+
+        function filterByEstado(estado) {
+            document.getElementById('filterEstado').value = estado;
+            document.getElementById('filterEstadoMobile').value = estado;
+            setView('table');
+            loadData();
         }
 
         function renderView() {
@@ -837,7 +890,7 @@
                         <a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-primary btn-action">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${p.id_prospecto})">
+                        ${isOwnProspect(p.vendedor) ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${p.id_prospecto})">
                             <i class="bi bi-trash"></i>
                         </button>` : ''}
                     </td>
@@ -881,8 +934,8 @@
         }
 
         // Event listeners for desktop filters
-        document.getElementById('filterVendedor').addEventListener('change', function () {
-            document.getElementById('filterVendedorMobile').value = this.value;
+        document.getElementById('filterEstado').addEventListener('change', function () {
+            document.getElementById('filterEstadoMobile').value = this.value;
             loadData();
         });
         document.getElementById('searchInput').addEventListener('input', debounce(function () {
@@ -891,8 +944,8 @@
         }, 300));
 
         // Event listeners for mobile filters (sync with desktop)
-        document.getElementById('filterVendedorMobile').addEventListener('change', function () {
-            document.getElementById('filterVendedor').value = this.value;
+        document.getElementById('filterEstadoMobile').addEventListener('change', function () {
+            document.getElementById('filterEstado').value = this.value;
             loadData();
         });
         document.getElementById('searchInputMobile').addEventListener('input', debounce(function () {
@@ -909,7 +962,7 @@
         }
 
         // Hide FAB if can't edit
-        if (!canEdit()) {
+        if (!isOwnProspect(p.vendedor)) {
             document.getElementById('fabNew').style.display = 'none';
         }
 

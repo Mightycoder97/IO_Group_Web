@@ -518,6 +518,10 @@
                                         <div class="col-md-4 mb-3">
                                             <label class="form-label">RUC</label>
                                             <input type="text" class="form-control" id="ruc" maxlength="11">
+                                            <div class="form-text text-warning" id="rucWarning" style="display: none;">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                                <span id="rucWarningText"></span>
+                                            </div>
                                         </div>
                                         <div class="col-md-4 mb-3">
                                             <label class="form-label">Teléfono <span
@@ -531,7 +535,7 @@
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-12 mb-3">
                                             <label class="form-label">Tipo de Negocio</label>
                                             <select class="form-select" id="tipo_negocio">
                                                 <option value="Odontólogo">Odontólogo / Clínica Dental</option>
@@ -543,15 +547,6 @@
                                                 <option value="Spa/Estética">Spa / Centro Estético</option>
                                                 <option value="Tatuajes">Estudio de Tatuajes</option>
                                                 <option value="Industrial">Empresa Industrial</option>
-                                                <option value="Otro">Otro</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Vendedor <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-select" id="vendedor" required>
-                                                <option value="Pedro Retamozo">Pedro Retamozo</option>
-                                                <option value="Nancy Enciso">Nancy Enciso</option>
                                                 <option value="Otro">Otro</option>
                                             </select>
                                         </div>
@@ -764,7 +759,7 @@
             document.getElementById('direccion').value = data.direccion || '';
             document.getElementById('distrito').value = data.distrito || '';
             document.getElementById('tipo_negocio').value = data.tipo_negocio || 'Otro';
-            document.getElementById('vendedor').value = data.vendedor || '';
+            // vendedor is auto-assigned, no field needed
             document.getElementById('observaciones').value = data.observaciones || '';
             document.getElementById('fecha_siguiente_contacto').value = data.fecha_siguiente_contacto || '';
             document.getElementById('notas_seguimiento').value = data.notas_seguimiento || '';
@@ -816,7 +811,7 @@
                 latitud: document.getElementById('latitud').value,
                 longitud: document.getElementById('longitud').value,
                 tipo_negocio: document.getElementById('tipo_negocio').value,
-                vendedor: document.getElementById('vendedor').value,
+                vendedor: (function () { const u = getUser(); return id && currentData?.vendedor ? currentData.vendedor : (u?.nombre_completo || u?.nombre || u?.username || 'Usuario'); })(),
                 observaciones: document.getElementById('observaciones').value,
                 fecha_siguiente_contacto: document.getElementById('fecha_siguiente_contacto').value,
                 notas_seguimiento: document.getElementById('notas_seguimiento').value
@@ -833,7 +828,7 @@
                 if (result.success) {
                     showToast(id ? 'Prospecto actualizado' : 'Prospecto creado');
                     if (!id) {
-                        window.location.href = `formulario.html?id=${result.id}`;
+                        window.location.href = 'listar.html';
                     }
                 } else {
                     showToast(result.message, 'danger');
@@ -873,7 +868,7 @@
             }
         }
 
-        // ==================== ADDRESS AUTOCOMPLETE & GEOLOCATION ====================
+        // ==================== RUC DUPLICATE CHECK ====================\r\n        const rucInput = document.getElementById('ruc');\r\n        const rucWarning = document.getElementById('rucWarning');\r\n        const rucWarningText = document.getElementById('rucWarningText');\r\n        let rucCheckTimeout = null;\r\n\r\n        async function checkRucDuplicate(ruc) {\r\n            if (!ruc || ruc.length < 11) {\r\n                rucWarning.style.display = 'none';\r\n                return;\r\n            }\r\n            try {\r\n                const result = await api.get(`/prospectos?ruc=${encodeURIComponent(ruc)}`);\r\n                if (result.success && result.data && result.data.length > 0) {\r\n                    const duplicates = result.data.filter(p => !id || p.id_prospecto != id);\r\n                    if (duplicates.length > 0) {\r\n                        rucWarningText.textContent = 'Este RUC ya existe: ' + duplicates.map(p => p.nombre_contacto).join(', ');\r\n                        rucWarning.style.display = 'block';\r\n                        return;\r\n                    }\r\n                }\r\n                rucWarning.style.display = 'none';\r\n            } catch (err) { console.error('Error checking RUC:', err); }\r\n        }\r\n\r\n        rucInput.addEventListener('input', function() {\r\n            if (rucCheckTimeout) clearTimeout(rucCheckTimeout);\r\n            rucCheckTimeout = setTimeout(() => checkRucDuplicate(this.value), 500);\r\n        });\r\n\r\n        // ==================== ADDRESS AUTOCOMPLETE & GEOLOCATION ====================
 
         const direccionInput = document.getElementById('direccion');
         const suggestionsBox = document.getElementById('addressSuggestions');
