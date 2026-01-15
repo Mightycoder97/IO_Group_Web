@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -11,8 +12,9 @@
     <link href="../../../../css/global.css" rel="stylesheet">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    
+
 </head>
+
 <body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
@@ -396,9 +398,9 @@
         // Get your free token at: https://apis.net.pe/
         const APIS_TOKEN = 'sk_12866.VCQaSeG78qshfzt3EFgmgfEXO7PH4HEI'; // Ingrese aquí su token de ApisPeru
         async function searchRuc() {
-            const ruc = rucInput.value;
-            if (!ruc || ruc.length !== 11) {
-                showToast('El RUC debe tener 11 dígitos', 'warning');
+            const ruc = rucInput.value.trim();
+            if (!ruc || ruc.length !== 11 || !/^\d{11}$/.test(ruc)) {
+                showToast('El RUC debe tener exactamente 11 dígitos numéricos', 'warning');
                 return;
             }
             const btn = document.getElementById('btnSearchRuc');
@@ -408,35 +410,54 @@
             icon.className = 'spinner-border spinner-border-sm';
             btn.disabled = true;
             try {
-                // Use ApisPeru (requires token for production)
-                // Fallback demo URL or standard URL
-                const url = `https://api.apis.net.pe/v1/ruc?numero=${ruc}`;
-                const headers = {};
+                // apis.net.pe API
+                const url = `https://api.apis.net.pe/v2/sunat/ruc?numero=${ruc}`;
+                const headers = {
+                    'Accept': 'application/json'
+                };
                 if (APIS_TOKEN) {
                     headers['Authorization'] = `Bearer ${APIS_TOKEN}`;
                 }
-                // Note: without token this might fail or have strict limits
-                const response = await fetch(url, { headers });
-                if (!response.ok) throw new Error('API Error');
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: headers
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Response Error:', response.status, errorText);
+                    throw new Error(`API Error: ${response.status}`);
+                }
                 const data = await response.json();
-                if (data && (data.nombre || data.razonSocial)) {
-                    document.getElementById('razon_social').value = data.nombre || data.razonSocial;
-                    // Fill finding data if available
-                    if (data.direccion || data.direccionFiscal) {
-                        const dir = data.direccion || data.direccionFiscal;
-                        document.getElementById('direccion').value = dir;
+                console.log('SUNAT API Response:', data);
+                // Handle different response field names
+                const razonSocial = data.razonSocial || data.nombre || data.nombreORazonSocial || '';
+                const direccion = data.direccion || data.direccionCompleta || data.direccionFiscal || '';
+                const distrito = data.distrito || '';
+                const departamento = data.departamento || '';
+                const provincia = data.provincia || '';
+                if (razonSocial) {
+                    document.getElementById('razon_social').value = razonSocial;
+                    if (direccion) {
+                        // Build full address with distrito if available
+                        let fullAddress = direccion;
+                        if (distrito && !direccion.toLowerCase().includes(distrito.toLowerCase())) {
+                            fullAddress += ', ' + distrito;
+                        }
+                        document.getElementById('direccion').value = fullAddress;
                         // Try to geocode this address
-                        searchAddress(dir);
+                        searchAddress(fullAddress);
                     }
-                    if (data.distrito) document.getElementById('distrito').value = data.distrito;
-                    if (data.departamento) document.getElementById('departamento').value = data.departamento;
-                    showToast('Datos encontrados en SUNAT');
+                    if (distrito) document.getElementById('distrito').value = distrito;
+                    if (departamento) document.getElementById('departamento').value = departamento;
+                    showToast('Datos encontrados en SUNAT', 'success');
+                } else if (data.error || data.message) {
+                    showToast(data.message || data.error || 'RUC no encontrado', 'warning');
                 } else {
                     showToast('No se encontraron datos para este RUC', 'warning');
                 }
             } catch (err) {
                 console.error('Error searching RUC:', err);
-                showToast('Error al consultar SUNAT (Verifique token/limites)', 'warning');
+                showToast('Error al consultar SUNAT. Verifique su conexión o token.', 'warning');
             } finally {
                 icon.className = originalClass;
                 btn.disabled = false;
@@ -623,4 +644,5 @@
         loadData();
     </script>
 </body>
+
 </html>
