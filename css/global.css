@@ -1806,18 +1806,33 @@ a:hover {
     margin-bottom: 20px;
 }
 
-/* Mobile Responsive - CRM */
+/* ================= MOBILE RESPONSIVE - CRM ================= */
+
+/* Tablet and below (992px) */
 @media (max-width: 992px) {
 
-    .control-app .crm-header-right .form-select,
-    .control-app .search-box {
-        display: none;
+    /* Hide desktop search and filter, show mobile search */
+    .control-app .crm-header-right .search-box,
+    .control-app .crm-header-right .form-select {
+        display: none !important;
     }
 
     .control-app .mobile-search {
-        display: block;
+        display: block !important;
+        margin-bottom: 16px;
     }
 
+    .control-app .mobile-search .search-box {
+        display: flex !important;
+        width: 100%;
+        position: relative;
+    }
+
+    .control-app .mobile-search input {
+        width: 100%;
+    }
+
+    /* Simplify new button */
     .control-app .btn-new span {
         display: none;
     }
@@ -1825,17 +1840,38 @@ a:hover {
     .control-app .btn-new {
         padding: 8px 12px;
     }
+
+    /* Show FAB */
+    .control-app .fab-new {
+        display: flex !important;
+    }
 }
 
+/* Mobile (768px) */
 @media (max-width: 768px) {
+
+    /* Header adjustments */
     .control-app .crm-header {
+        flex-wrap: wrap !important;
+        gap: 12px;
         margin-bottom: 12px;
+    }
+
+    .control-app .crm-header-left {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .control-app .crm-header-right {
+        width: 100%;
+        justify-content: flex-end;
     }
 
     .control-app .crm-title {
         font-size: 1.1rem;
     }
 
+    /* Kanban adjustments */
     .control-app .kanban-column {
         min-width: 260px;
     }
@@ -1844,19 +1880,85 @@ a:hover {
         margin-bottom: 8px;
     }
 
+    /* Bigger touch targets */
     .control-app .action-btn {
-        width: 40px;
-        height: 40px;
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+    }
+
+    /* Content area padding */
+    .control-app .content-area {
+        padding: 16px;
+        padding-bottom: 80px;
+    }
+
+    /* Mobile filters below header */
+    .control-app .mobile-search {
+        display: flex !important;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .control-app .mobile-search .search-box {
+        flex: 1;
     }
 }
 
+/* Small mobile (576px) */
 @media (max-width: 576px) {
-    .control-app .crm-header-left {
-        width: 100%;
-        justify-content: space-between;
+    .control-app .crm-header-right {
+        display: none !important;
     }
 
-    .control-app .crm-header-right {
-        display: none;
+    .control-app .crm-header-left {
+        width: 100%;
+    }
+
+    .control-app .crm-title {
+        font-size: 1rem;
+    }
+
+    .control-app .view-toggle .btn {
+        padding: 5px 10px;
+    }
+
+    /* Kanban smaller cards */
+    .control-app .kanban-column {
+        min-width: 240px;
+        padding: 12px;
+    }
+
+    .control-app .prospect-header {
+        padding: 12px;
+    }
+
+    .control-app .prospect-info {
+        padding: 0 12px 8px;
+    }
+
+    .control-app .prospect-actions {
+        padding: 8px 12px;
+    }
+
+    /* FAB adjustment */
+    .control-app .fab-new {
+        bottom: 16px;
+        right: 16px;
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+
+    /* Table adjustments */
+    .control-app .table-wrapper tbody td,
+    .control-app .table-wrapper thead th {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+
+    .control-app .table-actions .btn {
+        padding: 3px 6px;
+        font-size: 0.8rem;
     }
 }
