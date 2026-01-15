@@ -887,12 +887,10 @@
                     <td><span class="badge bg-${estadoBadge[p.estado] || 'secondary'}">${capitalize(p.estado)}</span></td>
                     <td>${formatDate(p.fecha_creacion)}</td>
                     <td>
-                        <a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-primary btn-action">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        ${isOwnProspect(p.vendedor) ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${p.id_prospecto})">
-                            <i class="bi bi-trash"></i>
-                        </button>` : ''}
+                        ${isOwnProspect(p.vendedor)
+                    ? `<a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-primary btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
+                               <button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${p.id_prospecto})" title="Eliminar"><i class="bi bi-trash"></i></button>`
+                    : `<a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-secondary btn-action" title="Ver detalle"><i class="bi bi-eye"></i></a>`}
                     </td>
                 </tr>
             `).join('');

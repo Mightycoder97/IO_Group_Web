@@ -517,7 +517,14 @@
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
                                             <label class="form-label">RUC</label>
-                                            <input type="text" class="form-control" id="ruc" maxlength="11">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="ruc" maxlength="11"
+                                                    placeholder="Ingrese RUC">
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                    onclick="searchRuc()" id="btnSearchRuc" title="Buscar en SUNAT">
+                                                    <i class="bi bi-search"></i>
+                                                </button>
+                                            </div>
                                             <div class="form-text text-warning" id="rucWarning" style="display: none;">
                                                 <i class="bi bi-exclamation-triangle"></i>
                                                 <span id="rucWarningText"></span>
@@ -868,7 +875,100 @@
             }
         }
 
-        // ==================== RUC DUPLICATE CHECK ====================\r\n        const rucInput = document.getElementById('ruc');\r\n        const rucWarning = document.getElementById('rucWarning');\r\n        const rucWarningText = document.getElementById('rucWarningText');\r\n        let rucCheckTimeout = null;\r\n\r\n        async function checkRucDuplicate(ruc) {\r\n            if (!ruc || ruc.length < 11) {\r\n                rucWarning.style.display = 'none';\r\n                return;\r\n            }\r\n            try {\r\n                const result = await api.get(`/prospectos?ruc=${encodeURIComponent(ruc)}`);\r\n                if (result.success && result.data && result.data.length > 0) {\r\n                    const duplicates = result.data.filter(p => !id || p.id_prospecto != id);\r\n                    if (duplicates.length > 0) {\r\n                        rucWarningText.textContent = 'Este RUC ya existe: ' + duplicates.map(p => p.nombre_contacto).join(', ');\r\n                        rucWarning.style.display = 'block';\r\n                        return;\r\n                    }\r\n                }\r\n                rucWarning.style.display = 'none';\r\n            } catch (err) { console.error('Error checking RUC:', err); }\r\n        }\r\n\r\n        rucInput.addEventListener('input', function() {\r\n            if (rucCheckTimeout) clearTimeout(rucCheckTimeout);\r\n            rucCheckTimeout = setTimeout(() => checkRucDuplicate(this.value), 500);\r\n        });\r\n\r\n        // ==================== ADDRESS AUTOCOMPLETE & GEOLOCATION ====================
+        // ==================== RUC DUPLICATE CHECK & SUNAT SEARCH ====================
+        const rucInput = document.getElementById('ruc');
+        const rucWarning = document.getElementById('rucWarning');
+        const rucWarningText = document.getElementById('rucWarningText');
+        let rucCheckTimeout = null;
+
+        // Configuration for SUNAT API
+        // Get your free token at: https://apis.net.pe/
+        const APIS_TOKEN = ''; // Ingrese aquí su token de ApisPeru
+
+        async function searchRuc() {
+            const ruc = rucInput.value;
+            if (!ruc || ruc.length !== 11) {
+                showToast('El RUC debe tener 11 dígitos', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnSearchRuc');
+            const icon = btn.querySelector('i');
+            const originalClass = icon.className;
+
+            // Show loading
+            icon.className = 'spinner-border spinner-border-sm';
+            btn.disabled = true;
+
+            try {
+                // Use ApisPeru (requires token for production)
+                // Fallback demo URL or standard URL
+                const url = `https://api.apis.net.pe/v1/ruc?numero=${ruc}`;
+                const headers = {};
+
+                if (APIS_TOKEN) {
+                    headers['Authorization'] = `Bearer ${APIS_TOKEN}`;
+                }
+
+                // Note: without token this might fail or have strict limits
+                const response = await fetch(url, { headers });
+
+                if (!response.ok) throw new Error('API Error');
+
+                const data = await response.json();
+
+                if (data && (data.nombre || data.razonSocial)) {
+                    document.getElementById('razon_social').value = data.nombre || data.razonSocial;
+
+                    // Fill finding data if available
+                    if (data.direccion || data.direccionFiscal) {
+                        const dir = data.direccion || data.direccionFiscal;
+                        document.getElementById('direccion').value = dir;
+                        // Try to geocode this address
+                        searchAddress(dir);
+                    }
+
+                    if (data.distrito) document.getElementById('distrito').value = data.distrito;
+                    if (data.departamento) document.getElementById('departamento').value = data.departamento;
+
+                    showToast('Datos encontrados en SUNAT');
+                } else {
+                    showToast('No se encontraron datos para este RUC', 'warning');
+                }
+            } catch (err) {
+                console.error('Error searching RUC:', err);
+                showToast('Error al consultar SUNAT (Verifique token/limites)', 'warning');
+            } finally {
+                icon.className = originalClass;
+                btn.disabled = false;
+            }
+        }
+
+        async function checkRucDuplicate(ruc) {
+            if (!ruc || ruc.length < 11) {
+                rucWarning.style.display = 'none';
+                return;
+            }
+            try {
+                const result = await api.get(`/prospectos?ruc=${encodeURIComponent(ruc)}`);
+                if (result.success && result.data && result.data.length > 0) {
+                    const duplicates = result.data.filter(p => !id || p.id_prospecto != id);
+                    if (duplicates.length > 0) {
+                        rucWarningText.textContent = 'Este RUC ya existe: ' + duplicates.map(p => p.nombre_contacto).join(', ');
+                        rucWarning.style.display = 'block';
+                        return;
+                    }
+                }
+                rucWarning.style.display = 'none';
+            } catch (err) { console.error('Error checking RUC:', err); }
+        }
+
+        rucInput.addEventListener('input', function () {
+            if (rucCheckTimeout) clearTimeout(rucCheckTimeout);
+            rucCheckTimeout = setTimeout(() => checkRucDuplicate(this.value), 500);
+        });
+
+        // ==================== ADDRESS AUTOCOMPLETE & GEOLOCATION ====================
 
         const direccionInput = document.getElementById('direccion');
         const suggestionsBox = document.getElementById('addressSuggestions');
