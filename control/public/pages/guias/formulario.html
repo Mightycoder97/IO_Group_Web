@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -12,10 +11,9 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../css/styles.css" rel="stylesheet">
+    <link href="../../../../css/global.css" rel="stylesheet">
 </head>
-
-<body>
+<body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
@@ -42,7 +40,6 @@
                     </div>
                 </div>
             </nav>
-
             <div class="content-area">
                 <div class="card">
                     <div class="card-header">
@@ -82,7 +79,6 @@
                                     <textarea class="form-control" id="observaciones" rows="2"></textarea>
                                 </div>
                             </div>
-
                             <div class="mt-4">
                                 <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i>
                                     Guardar</button>
@@ -94,16 +90,13 @@
             </div>
         </main>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js"></script>
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('guias');
-
         const id = getUrlParam('id');
-
         // Load servicios
         async function loadServicios() {
             try {
@@ -117,15 +110,12 @@
             }
         }
         loadServicios();
-
         document.getElementById('fecha_emision').value = new Date().toISOString().split('T')[0];
-
         if (id) {
             document.getElementById('pageTitle').textContent = 'Editar Guía';
             document.getElementById('formTitle').textContent = 'Editar Guía de Remisión';
             loadData();
         }
-
         async function loadData() {
             try {
                 const result = await api.get(`/guias/${id}`);
@@ -144,10 +134,8 @@
                 showToast('Error cargando datos', 'danger');
             }
         }
-
         document.getElementById('dataForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-
             const data = {
                 id_servicio: document.getElementById('id_servicio').value,
                 serie: document.getElementById('serie').value || null,
@@ -157,12 +145,10 @@
                 punto_llegada: document.getElementById('punto_llegada').value || null,
                 observaciones: document.getElementById('observaciones').value || null
             };
-
             try {
                 const result = id
                     ? await api.put(`/guias/${id}`, data)
                     : await api.post('/guias', data);
-
                 if (result.success) {
                     showToast(id ? 'Guía actualizada' : 'Guía creada');
                     window.location.href = 'listar.html';
@@ -175,5 +161,4 @@
         });
     </script>
 </body>
-
 </html>

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -9,33 +8,28 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../css/styles.css" rel="stylesheet">
+    <link href="../../../../css/global.css" rel="stylesheet">
     <style>
         .permisos-table {
             font-size: 0.9rem;
         }
-
         .permisos-table th {
             background: #f8f9fa;
             font-weight: 600;
         }
-
         .grupo-header {
             background: #e9ecef;
             font-weight: 600;
             color: #495057;
         }
-
         .check-cell {
             text-align: center;
             width: 80px;
         }
-
         .form-check-input {
             width: 1.2rem;
             height: 1.2rem;
         }
-
         .preset-buttons {
             display: flex;
             gap: 10px;
@@ -43,8 +37,7 @@
         }
     </style>
 </head>
-
-<body>
+<body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
@@ -74,7 +67,6 @@
                     </div>
                 </div>
             </nav>
-
             <div class="content-area">
                 <div class="row">
                     <!-- Datos del Usuario -->
@@ -94,25 +86,21 @@
                                                 pattern="[a-zA-Z0-9_]+" title="Solo letras, números y guión bajo">
                                         </div>
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Nombre Completo <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="nombre_completo" required>
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Email</label>
                                         <input type="email" class="form-control" id="email">
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Contraseña <span class="text-danger"
                                                 id="passRequired">*</span></label>
                                         <input type="password" class="form-control" id="password" minlength="6">
                                         <small class="text-muted" id="passHelp">Mínimo 6 caracteres</small>
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Rol</label>
                                         <select class="form-select" id="rol">
@@ -123,12 +111,10 @@
                                         <small class="text-muted">Los admin tienen acceso a todos los módulos
                                             automáticamente</small>
                                     </div>
-
                                     <div class="mb-3 form-check" id="activoCheck" style="display: none;">
                                         <input type="checkbox" class="form-check-input" id="activo" checked>
                                         <label class="form-check-label" for="activo">Usuario activo</label>
                                     </div>
-
                                     <div class="d-flex gap-2">
                                         <button type="submit" class="btn btn-primary">
                                             <i class="bi bi-check-lg"></i> Guardar
@@ -139,7 +125,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Permisos -->
                     <div class="col-lg-7">
                         <div class="card">
@@ -162,7 +147,6 @@
                                         <i class="bi bi-x-circle"></i> Quitar todos
                                     </button>
                                 </div>
-
                                 <div class="table-responsive">
                                     <table class="table table-bordered permisos-table" id="permisosTable">
                                         <thead>
@@ -183,28 +167,23 @@
             </div>
         </main>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js"></script>
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('usuarios');
-
         // Only admin can access
         const currentUser = getUser();
         if (currentUser?.rol !== 'admin') {
             window.location.href = '../dashboard.html';
         }
-
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         let modulos = [];
         let currentData = null;
-
         // Load on start
         loadModulos();
-
         async function loadModulos() {
             try {
                 const result = await api.get('/usuarios?action=modulos');
@@ -217,12 +196,10 @@
                 showToast('Error cargando módulos', 'danger');
             }
         }
-
         function renderPermisosTable() {
             const tbody = document.getElementById('permisosBody');
             let currentGrupo = '';
             let html = '';
-
             modulos.forEach(m => {
                 if (m.grupo !== currentGrupo) {
                     currentGrupo = m.grupo;
@@ -240,10 +217,8 @@
                     </tr>
                 `;
             });
-
             tbody.innerHTML = html;
         }
-
         async function loadUser() {
             try {
                 const result = await api.get(`/usuarios/${id}`);
@@ -260,7 +235,6 @@
                 showToast('Error cargando usuario', 'danger');
             }
         }
-
         function fillForm(data) {
             document.getElementById('username').value = data.username;
             document.getElementById('username').readOnly = true;
@@ -268,7 +242,6 @@
             document.getElementById('email').value = data.email || '';
             document.getElementById('rol').value = data.rol;
             document.getElementById('activo').checked = data.activo;
-
             // Fill permissions
             if (data.permisos) {
                 Object.entries(data.permisos).forEach(([modulo, perm]) => {
@@ -280,11 +253,9 @@
             }
             updateCount();
         }
-
         function setPreset(tipo) {
             // Clear all
             document.querySelectorAll('.perm-ver, .perm-editar').forEach(cb => cb.checked = false);
-
             if (tipo === 'vendedor') {
                 // Solo prospectos
                 const verProspectos = document.querySelector('.perm-ver[data-modulo="prospectos"]');
@@ -302,12 +273,10 @@
             }
             updateCount();
         }
-
         function updateCount() {
             const count = document.querySelectorAll('.perm-ver:checked').length;
             document.getElementById('permisosCount').textContent = count + ' módulos';
         }
-
         function getPermissions() {
             const permisos = {};
             document.querySelectorAll('.perm-ver').forEach(cb => {
@@ -320,11 +289,9 @@
             });
             return permisos;
         }
-
         // Form submit
         document.getElementById('form').addEventListener('submit', async function (e) {
             e.preventDefault();
-
             const data = {
                 username: document.getElementById('username').value.trim(),
                 nombre_completo: document.getElementById('nombre_completo').value.trim(),
@@ -332,7 +299,6 @@
                 rol: document.getElementById('rol').value,
                 permisos: getPermissions()
             };
-
             // Password
             const password = document.getElementById('password').value;
             if (password) {
@@ -341,12 +307,10 @@
                 showToast('La contraseña es requerida', 'danger');
                 return;
             }
-
             // Activo
             if (id) {
                 data.activo = document.getElementById('activo').checked;
             }
-
             try {
                 let result;
                 if (id) {
@@ -354,7 +318,6 @@
                 } else {
                     result = await api.post('/usuarios', data);
                 }
-
                 if (result.success) {
                     showToast(result.message);
                     setTimeout(() => window.location.href = 'listar.html', 1000);
@@ -365,7 +328,6 @@
                 showToast('Error guardando usuario', 'danger');
             }
         });
-
         // Auto-fill all permissions when admin is selected
         document.getElementById('rol').addEventListener('change', function () {
             if (this.value === 'admin') {
@@ -375,5 +337,4 @@
         });
     </script>
 </body>
-
 </html>

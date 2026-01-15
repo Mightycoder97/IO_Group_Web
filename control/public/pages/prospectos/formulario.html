@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -9,7 +8,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../css/styles.css" rel="stylesheet">
+    <link href="../../../../css/global.css" rel="stylesheet">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <style>
@@ -19,67 +18,55 @@
             overflow-x: hidden;
             max-width: 100vw;
         }
-
         .main-content {
             overflow-x: hidden;
             max-width: 100%;
         }
-
         .estado-badge {
             padding: 8px 16px;
             border-radius: 20px;
             font-weight: 600;
             font-size: 0.9rem;
         }
-
         .estado-nuevo {
             background: #e9ecef;
             color: #495057;
         }
-
         .estado-contactado {
             background: #cfe2ff;
             color: #084298;
         }
-
         .estado-interesado {
             background: #fff3cd;
             color: #664d03;
         }
-
         .estado-negociando {
             background: #ffe5d0;
             color: #984c0c;
         }
-
         .estado-ganado {
             background: #d1e7dd;
             color: #0f5132;
         }
-
         .estado-perdido {
             background: #f8d7da;
             color: #842029;
         }
-
         #map {
             height: 250px;
             border-radius: 8px;
             margin-bottom: 15px;
         }
-
         .estado-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 15px;
         }
-
         .estado-buttons .btn {
             flex: 1;
             min-width: 100px;
         }
-
         .section-title {
             font-size: 0.9rem;
             font-weight: 600;
@@ -90,12 +77,10 @@
             padding-bottom: 10px;
             border-bottom: 1px solid #e9ecef;
         }
-
         /* Address autocomplete */
         .address-container {
             position: relative;
         }
-
         .address-suggestions {
             position: absolute;
             top: 100%;
@@ -111,78 +96,63 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             display: none;
         }
-
         .address-suggestions.active {
             display: block;
         }
-
         .address-suggestion {
             padding: 10px 12px;
             cursor: pointer;
             border-bottom: 1px solid #f1f1f1;
             font-size: 0.9rem;
         }
-
         .address-suggestion:last-child {
             border-bottom: none;
         }
-
         .address-suggestion:hover {
             background: #f8f9fa;
         }
-
         .address-suggestion .main-text {
             font-weight: 500;
             color: #212529;
         }
-
         .address-suggestion .secondary-text {
             font-size: 0.8rem;
             color: #6c757d;
             margin-top: 2px;
         }
-
         .btn-location {
             display: flex;
             align-items: center;
             gap: 6px;
             white-space: nowrap;
         }
-
         .btn-location.loading {
             pointer-events: none;
             opacity: 0.7;
         }
-
         @keyframes spin {
             from {
                 transform: rotate(0deg);
             }
-
             to {
                 transform: rotate(360deg);
             }
         }
-
         .btn-location.loading i {
             animation: spin 1s linear infinite;
         }
-
         .info-row {
             display: flex;
             margin-bottom: 10px;
         }
-
         .info-label {
             width: 120px;
             font-weight: 500;
             color: #6c757d;
         }
-
         .info-value {
             flex: 1;
         }
-
         /* Mobile Sticky Action Bar */
         .mobile-action-bar {
             display: none;
@@ -196,25 +166,21 @@
             z-index: 1000;
             gap: 10px;
         }
-
         .mobile-action-bar .btn {
             flex: 1;
             padding: 12px;
             font-size: 1rem;
         }
-
         /* Quick State Selector for Mobile */
         .mobile-estado-section {
             display: none;
             margin-bottom: 16px;
         }
-
         .estado-chips {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
-
         .estado-chip {
             padding: 8px 14px;
             border-radius: 20px;
@@ -227,156 +193,125 @@
             align-items: center;
             gap: 6px;
         }
-
         .estado-chip.active {
             border-color: #1B5E20;
             background: #E8F5E9;
         }
-
         .estado-chip.nuevo.active {
             border-color: #6c757d;
             background: #e9ecef;
         }
-
         .estado-chip.contactado.active {
             border-color: #0d6efd;
             background: #cfe2ff;
         }
-
         .estado-chip.interesado.active {
             border-color: #ffc107;
             background: #fff3cd;
         }
-
         .estado-chip.negociando.active {
             border-color: #fd7e14;
             background: #ffe5d0;
         }
-
         .estado-chip.ganado.active {
             border-color: #198754;
             background: #d1e7dd;
         }
-
         .estado-chip.perdido.active {
             border-color: #dc3545;
             background: #f8d7da;
         }
-
         /* ==================== MOBILE OPTIMIZATIONS ==================== */
         @media (max-width: 992px) {
-
             /* Reorder columns on tablet/mobile - action cards first */
             .content-area>.row {
                 flex-direction: column-reverse;
             }
         }
-
         @media (max-width: 768px) {
-
             /* COMPACT HEADER */
             .top-nav {
                 padding: 8px 12px;
             }
-
             .breadcrumb-container nav {
                 display: none;
             }
-
             .breadcrumb-container::after {
                 content: 'Prospecto';
                 font-weight: 600;
                 font-size: 1.1rem;
                 color: #212121;
             }
-
             .user-menu {
                 gap: 4px;
             }
-
             /* Only hide username text, keep icon and dropdown accessible */
             .user-menu .dropdown #userName {
                 display: none;
             }
-
             /* CONTENT AREA - Less padding */
             .content-area {
                 padding: 8px;
                 padding-bottom: 80px;
             }
-
             /* Show mobile action bar */
             .mobile-action-bar {
                 display: flex;
             }
-
             .form-action-buttons {
                 display: none !important;
             }
-
             /* Hide desktop estado card */
             #estadoCard {
                 display: none !important;
             }
-
             /* Card optimizations */
             .card {
                 border-radius: 10px;
             }
-
             .card-header {
                 padding: 10px 12px;
                 font-size: 0.9rem;
             }
-
             .card-body {
                 padding: 12px;
             }
-
             .estado-badge {
                 padding: 4px 10px;
                 font-size: 0.75rem;
             }
-
             /* Form fields - tighter spacing */
             .row {
                 margin-left: -6px;
                 margin-right: -6px;
             }
-
             .row>[class*="col-"] {
                 padding-left: 6px;
                 padding-right: 6px;
             }
-
             .mb-3 {
                 margin-bottom: 10px !important;
             }
-
             .form-label {
                 font-size: 0.8rem;
                 margin-bottom: 3px;
                 font-weight: 500;
             }
-
             .form-control,
             .form-select {
                 padding: 8px 10px;
                 font-size: 16px;
             }
-
             /* SMALLER MAP */
             #map {
                 height: 150px;
                 margin-bottom: 10px;
                 border-radius: 6px;
             }
-
             /* Hide coords on mobile */
             .coords-row {
                 display: none;
             }
-
             /* Section titles - smaller */
             .section-title {
                 font-size: 0.75rem;
@@ -384,73 +319,59 @@
                 margin-top: 16px;
                 padding-bottom: 8px;
             }
-
             /* Textarea smaller */
             textarea.form-control {
                 min-height: 60px;
             }
-
             /* Info card compact */
             #infoCard {
                 margin-bottom: 10px;
             }
-
             .info-row {
                 font-size: 0.8rem;
                 margin-bottom: 6px;
             }
-
             .info-label {
                 width: 80px;
             }
-
             /* Quick action buttons - horizontal */
             #actionsCard .card-body {
                 display: flex;
                 gap: 8px;
                 padding: 10px;
             }
-
             #actionsCard .btn {
                 flex: 1;
                 padding: 10px 8px;
                 font-size: 0.85rem;
             }
-
             #actionsCard .btn i {
                 margin-right: 4px;
             }
         }
-
         /* Extra small screens */
         @media (max-width: 576px) {
             #map {
                 height: 130px;
             }
-
             .card-header {
                 padding: 8px 10px;
             }
-
             .card-body {
                 padding: 10px;
             }
-
             .mobile-action-bar {
                 padding: 8px 10px;
                 gap: 8px;
             }
-
             .mobile-action-bar .btn {
                 padding: 10px 8px;
                 font-size: 0.85rem;
             }
-
             .section-title {
                 margin-top: 12px;
             }
         }
-
         /* Safe area support for notched phones */
         @supports (padding: max(0px)) {
             .mobile-action-bar {
@@ -459,8 +380,7 @@
         }
     </style>
 </head>
-
-<body>
+<body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
@@ -490,7 +410,6 @@
                     </div>
                 </div>
             </nav>
-
             <div class="content-area">
                 <div class="row">
                     <!-- Left Column: Form -->
@@ -513,7 +432,6 @@
                                             <input type="text" class="form-control" id="razon_social">
                                         </div>
                                     </div>
-
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
                                             <label class="form-label">RUC</label>
@@ -540,7 +458,6 @@
                                             <input type="email" class="form-control" id="email">
                                         </div>
                                     </div>
-
                                     <div class="row">
                                         <div class="col-12 mb-3">
                                             <label class="form-label">Tipo de Negocio</label>
@@ -558,9 +475,7 @@
                                             </select>
                                         </div>
                                     </div>
-
                                     <h6 class="section-title mt-4"><i class="bi bi-geo-alt"></i> Ubicación</h6>
-
                                     <div class="row">
                                         <div class="col-md-8 mb-3">
                                             <label class="form-label">Dirección</label>
@@ -582,9 +497,7 @@
                                             <input type="text" class="form-control" id="distrito">
                                         </div>
                                     </div>
-
                                     <div id="map"></div>
-
                                     <div class="row coords-row">
                                         <div class="col-6 mb-3">
                                             <label class="form-label">Latitud</label>
@@ -595,27 +508,22 @@
                                             <input type="text" class="form-control" id="longitud" readonly>
                                         </div>
                                     </div>
-
                                     <h6 class="section-title mt-4"><i class="bi bi-chat-left-text"></i> Notas</h6>
-
                                     <div class="mb-3">
                                         <label class="form-label">Observaciones</label>
                                         <textarea class="form-control" id="observaciones" rows="2"></textarea>
                                     </div>
-
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">Fecha Próximo Contacto</label>
                                             <input type="date" class="form-control" id="fecha_siguiente_contacto">
                                         </div>
                                     </div>
-
                                     <div class="mb-3">
                                         <label class="form-label">Notas de Seguimiento</label>
                                         <textarea class="form-control" id="notas_seguimiento" rows="3"
                                             placeholder="Ej: 15/01 - Llamado, pidió cotización. 18/01 - Enviada cotización..."></textarea>
                                     </div>
-
                                     <div class="d-flex gap-2 mt-4 form-action-buttons">
                                         <button type="submit" class="btn btn-primary">
                                             <i class="bi bi-check-lg"></i> Guardar
@@ -626,7 +534,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Right Column: Estado & Actions -->
                     <div class="col-lg-4">
                         <div class="card mb-4" id="estadoCard" style="display: none;">
@@ -647,7 +554,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <div class="card mb-4" id="infoCard" style="display: none;">
                             <div class="card-header">
                                 <i class="bi bi-info-circle"></i> Información
@@ -663,7 +569,6 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="card" id="actionsCard" style="display: none;">
                             <div class="card-header">
                                 <i class="bi bi-lightning"></i> Acciones Rápidas
@@ -682,7 +587,6 @@
             </div>
         </main>
     </div>
-
     <!-- Mobile Sticky Action Bar -->
     <div class="mobile-action-bar">
         <a href="listar.html" class="btn btn-outline-secondary">
@@ -692,7 +596,6 @@
             <i class="bi bi-check-lg"></i> Guardar
         </button>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="../../js/api.js"></script>
@@ -700,52 +603,42 @@
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('prospectos');
-
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         let map, marker;
         let currentData = null;
-
         // Initialize map
         function initMap(lat = -12.0464, lng = -77.0428) {
             if (map) map.remove();
-
             map = L.map('map').setView([lat, lng], 15);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap'
             }).addTo(map);
-
             marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-
             marker.on('dragend', function (e) {
                 const pos = e.target.getLatLng();
                 document.getElementById('latitud').value = pos.lat.toFixed(6);
                 document.getElementById('longitud').value = pos.lng.toFixed(6);
             });
-
             map.on('click', function (e) {
                 marker.setLatLng(e.latlng);
                 document.getElementById('latitud').value = e.latlng.lat.toFixed(6);
                 document.getElementById('longitud').value = e.latlng.lng.toFixed(6);
             });
-
             document.getElementById('latitud').value = lat.toFixed(6);
             document.getElementById('longitud').value = lng.toFixed(6);
         }
-
         // Load data if editing
         async function loadData() {
             if (!id) {
                 initMap();
                 return;
             }
-
             try {
                 const result = await api.get(`/prospectos/${id}`);
                 if (result.success) {
                     currentData = result.data;
                     fillForm(result.data);
-
                     // Show edit-only elements
                     document.getElementById('estadoCard').style.display = 'block';
                     document.getElementById('infoCard').style.display = 'block';
@@ -756,7 +649,6 @@
                 showToast('Error cargando datos', 'danger');
             }
         }
-
         function fillForm(data) {
             document.getElementById('nombre_contacto').value = data.nombre_contacto || '';
             document.getElementById('razon_social').value = data.razon_social || '';
@@ -770,43 +662,35 @@
             document.getElementById('observaciones').value = data.observaciones || '';
             document.getElementById('fecha_siguiente_contacto').value = data.fecha_siguiente_contacto || '';
             document.getElementById('notas_seguimiento').value = data.notas_seguimiento || '';
-
             // Estado
             document.getElementById('estadoSelect').value = data.estado;
             updateEstadoBadge(data.estado);
-
             // Info
             document.getElementById('infoCreado').textContent = formatDateTime(data.fecha_creacion);
             document.getElementById('infoModificado').textContent = formatDateTime(data.fecha_modificacion);
-
             // WhatsApp link
             if (data.telefono) {
                 const phone = data.telefono.replace(/\D/g, '');
                 document.getElementById('btnWhatsApp').href = `https://wa.me/51${phone}`;
             }
-
             // Map
             const lat = parseFloat(data.latitud) || -12.0464;
             const lng = parseFloat(data.longitud) || -77.0428;
             initMap(lat, lng);
         }
-
         function updateEstadoBadge(estado) {
             const badge = document.getElementById('estadoBadge');
             badge.textContent = estado.charAt(0).toUpperCase() + estado.slice(1);
             badge.className = 'estado-badge estado-' + estado;
         }
-
         function formatDateTime(dateStr) {
             if (!dateStr) return '-';
             const date = new Date(dateStr);
             return date.toLocaleDateString('es-PE') + ' ' + date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
         }
-
         // Form submit
         document.getElementById('form').addEventListener('submit', async function (e) {
             e.preventDefault();
-
             const data = {
                 nombre_contacto: document.getElementById('nombre_contacto').value,
                 razon_social: document.getElementById('razon_social').value,
@@ -823,7 +707,6 @@
                 fecha_siguiente_contacto: document.getElementById('fecha_siguiente_contacto').value,
                 notas_seguimiento: document.getElementById('notas_seguimiento').value
             };
-
             try {
                 let result;
                 if (id) {
@@ -831,7 +714,6 @@
                 } else {
                     result = await api.post('/prospectos', data);
                 }
-
                 if (result.success) {
                     showToast(id ? 'Prospecto actualizado' : 'Prospecto creado');
                     if (!id) {
@@ -844,7 +726,6 @@
                 showToast('Error guardando', 'danger');
             }
         });
-
         async function updateEstado() {
             const estado = document.getElementById('estadoSelect').value;
             try {
@@ -859,7 +740,6 @@
                 showToast('Error actualizando estado', 'danger');
             }
         }
-
         async function deleteProspecto() {
             if (!confirmDelete()) return;
             try {
@@ -874,52 +754,40 @@
                 showToast('Error eliminando', 'danger');
             }
         }
-
         // ==================== RUC DUPLICATE CHECK & SUNAT SEARCH ====================
         const rucInput = document.getElementById('ruc');
         const rucWarning = document.getElementById('rucWarning');
         const rucWarningText = document.getElementById('rucWarningText');
         let rucCheckTimeout = null;
-
         // Configuration for SUNAT API
         // Get your free token at: https://apis.net.pe/
         const APIS_TOKEN = 'sk_12866.VCQaSeG78qshfzt3EFgmgfEXO7PH4HEI'; // Ingrese aquí su token de ApisPeru
-
         async function searchRuc() {
             const ruc = rucInput.value;
             if (!ruc || ruc.length !== 11) {
                 showToast('El RUC debe tener 11 dígitos', 'warning');
                 return;
             }
-
             const btn = document.getElementById('btnSearchRuc');
             const icon = btn.querySelector('i');
             const originalClass = icon.className;
-
             // Show loading
             icon.className = 'spinner-border spinner-border-sm';
             btn.disabled = true;
-
             try {
                 // Use ApisPeru (requires token for production)
                 // Fallback demo URL or standard URL
                 const url = `https://api.apis.net.pe/v1/ruc?numero=${ruc}`;
                 const headers = {};
-
                 if (APIS_TOKEN) {
                     headers['Authorization'] = `Bearer ${APIS_TOKEN}`;
                 }
-
                 // Note: without token this might fail or have strict limits
                 const response = await fetch(url, { headers });
-
                 if (!response.ok) throw new Error('API Error');
-
                 const data = await response.json();
-
                 if (data && (data.nombre || data.razonSocial)) {
                     document.getElementById('razon_social').value = data.nombre || data.razonSocial;
-
                     // Fill finding data if available
                     if (data.direccion || data.direccionFiscal) {
                         const dir = data.direccion || data.direccionFiscal;
@@ -927,10 +795,8 @@
                         // Try to geocode this address
                         searchAddress(dir);
                     }
-
                     if (data.distrito) document.getElementById('distrito').value = data.distrito;
                     if (data.departamento) document.getElementById('departamento').value = data.departamento;
-
                     showToast('Datos encontrados en SUNAT');
                 } else {
                     showToast('No se encontraron datos para este RUC', 'warning');
@@ -943,7 +809,6 @@
                 btn.disabled = false;
             }
         }
-
         async function checkRucDuplicate(ruc) {
             if (!ruc || ruc.length < 11) {
                 rucWarning.style.display = 'none';
@@ -962,33 +827,27 @@
                 rucWarning.style.display = 'none';
             } catch (err) { console.error('Error checking RUC:', err); }
         }
-
         rucInput.addEventListener('input', function () {
             if (rucCheckTimeout) clearTimeout(rucCheckTimeout);
             rucCheckTimeout = setTimeout(() => checkRucDuplicate(this.value), 500);
         });
-
         // ==================== ADDRESS AUTOCOMPLETE & GEOLOCATION ====================
-
         const direccionInput = document.getElementById('direccion');
         const suggestionsBox = document.getElementById('addressSuggestions');
         const btnMyLocation = document.getElementById('btnMyLocation');
         let searchTimeout = null;
-
         // Address search with Photon API (more accurate than Nominatim)
         async function searchAddress(query) {
             if (query.length < 3) {
                 suggestionsBox.classList.remove('active');
                 return;
             }
-
             try {
                 // Photon API - prioritize Peru results
                 const response = await fetch(
                     `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ', Peru')}&limit=6`
                 );
                 const data = await response.json();
-
                 if (data.features && data.features.length > 0) {
                     renderSuggestions(data.features);
                 } else {
@@ -999,7 +858,6 @@
                 suggestionsBox.classList.remove('active');
             }
         }
-
         function renderSuggestions(features) {
             suggestionsBox.innerHTML = features.map((f, i) => {
                 const p = f.properties;
@@ -1011,7 +869,6 @@
                 if (p.city) parts.push(p.city);
                 if (p.state) parts.push(p.state);
                 const secondaryText = parts.join(', ');
-
                 return `
                     <div class="address-suggestion" data-index="${i}">
                         <div class="main-text"><i class="bi bi-geo-alt text-primary me-1"></i>${mainText}</div>
@@ -1019,38 +876,30 @@
                     </div>
                 `;
             }).join('');
-
             // Store features for selection
             suggestionsBox._features = features;
             suggestionsBox.classList.add('active');
         }
-
         // Handle suggestion click
         suggestionsBox.addEventListener('click', function (e) {
             const suggestion = e.target.closest('.address-suggestion');
             if (!suggestion) return;
-
             const index = parseInt(suggestion.dataset.index);
             const feature = suggestionsBox._features[index];
             selectAddress(feature);
         });
-
         function selectAddress(feature) {
             const p = feature.properties;
             const coords = feature.geometry.coordinates;
-
             // Build full address
             const addressParts = [];
             if (p.name) addressParts.push(p.name);
             if (p.street) addressParts.push(p.street);
             if (p.housenumber) addressParts.push(p.housenumber);
-
             direccionInput.value = addressParts.join(' ') || p.name || '';
-
             // Set district
             const distrito = p.district || p.suburb || p.city || '';
             document.getElementById('distrito').value = distrito;
-
             // Update map and coordinates
             const lat = coords[1];
             const lng = coords[0];
@@ -1058,54 +907,43 @@
             map.setView([lat, lng], 17);
             document.getElementById('latitud').value = lat.toFixed(6);
             document.getElementById('longitud').value = lng.toFixed(6);
-
             suggestionsBox.classList.remove('active');
         }
-
         // Debounced search on input
         direccionInput.addEventListener('input', function () {
             if (searchTimeout) clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => searchAddress(this.value), 300);
         });
-
         // Hide suggestions on blur (with delay to allow click)
         direccionInput.addEventListener('blur', function () {
             setTimeout(() => suggestionsBox.classList.remove('active'), 200);
         });
-
         // Show suggestions on focus if there's text
         direccionInput.addEventListener('focus', function () {
             if (this.value.length >= 3 && suggestionsBox.innerHTML) {
                 suggestionsBox.classList.add('active');
             }
         });
-
         // ==================== GEOLOCATION (Use my location) ====================
-
         btnMyLocation.addEventListener('click', function () {
             if (!navigator.geolocation) {
                 showToast('Tu navegador no soporta geolocalización', 'warning');
                 return;
             }
-
             // Show loading state
             this.classList.add('loading');
             this.querySelector('i').className = 'bi bi-arrow-repeat';
-
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-
                     // Update map and marker
                     marker.setLatLng([lat, lng]);
                     map.setView([lat, lng], 17);
                     document.getElementById('latitud').value = lat.toFixed(6);
                     document.getElementById('longitud').value = lng.toFixed(6);
-
                     // Reverse geocode to get address
                     await reverseGeocode(lat, lng);
-
                     // Reset button
                     this.classList.remove('loading');
                     this.querySelector('i').className = 'bi bi-geo-alt-fill';
@@ -1114,12 +952,10 @@
                 (error) => {
                     this.classList.remove('loading');
                     this.querySelector('i').className = 'bi bi-geo-alt-fill';
-
                     let message = 'Error obteniendo ubicación';
                     if (error.code === 1) message = 'Permiso de ubicación denegado';
                     else if (error.code === 2) message = 'Ubicación no disponible';
                     else if (error.code === 3) message = 'Tiempo de espera agotado';
-
                     showToast(message, 'danger');
                 },
                 {
@@ -1129,7 +965,6 @@
                 }
             );
         });
-
         // Reverse geocode using Nominatim (free reverse geocoding)
         async function reverseGeocode(lat, lng) {
             try {
@@ -1137,17 +972,13 @@
                     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=es`
                 );
                 const data = await response.json();
-
                 if (data && data.address) {
                     const a = data.address;
-
                     // Build address from components
                     const addressParts = [];
                     if (a.road) addressParts.push(a.road);
                     if (a.house_number) addressParts.push(a.house_number);
-
                     direccionInput.value = addressParts.join(' ') || data.display_name?.split(',')[0] || '';
-
                     // Set district
                     const distrito = a.suburb || a.neighbourhood || a.city_district || a.town || a.city || '';
                     document.getElementById('distrito').value = distrito;
@@ -1156,9 +987,7 @@
                 console.error('Error in reverse geocoding:', err);
             }
         }
-
         loadData();
     </script>
 </body>
-
 </html>
