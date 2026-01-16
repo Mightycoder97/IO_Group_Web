@@ -642,11 +642,11 @@ a:hover {
 }
 
 .footer-brand {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .footer-brand img {
-    height: 45px;
+    height: 32px;
     width: auto;
     filter: brightness(0) invert(1);
     opacity: 0.9;
