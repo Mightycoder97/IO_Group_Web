@@ -273,15 +273,41 @@
                 const result = await api.get(`/prospectos/${id}`);
                 if (result.success) {
                     currentData = result.data;
+                    const esOwner = result.data.es_propietario;
+
                     fillForm(result.data);
-                    // Show edit-only elements
-                    document.getElementById('estadoCard').style.display = 'block';
-                    document.getElementById('infoCard').style.display = 'block';
-                    document.getElementById('actionsCard').style.display = 'block';
                     document.getElementById('pageTitle').textContent = result.data.nombre_contacto;
+
+                    // Show edit-only elements only for owner
+                    if (esOwner) {
+                        document.getElementById('estadoCard').style.display = 'block';
+                        document.getElementById('actionsCard').style.display = 'block';
+                    } else {
+                        // Disable form for non-owners
+                        disableForm();
+                        showToast('Solo puede ver este prospecto. Solo el creador puede editarlo.', 'warning');
+                    }
+                    document.getElementById('infoCard').style.display = 'block';
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        // Disable all form inputs for non-owners
+        function disableForm() {
+            const form = document.getElementById('form');
+            const inputs = form.querySelectorAll('input, select, textarea, button');
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+            // Hide save buttons
+            document.querySelector('.form-action-buttons').style.display = 'none';
+            document.querySelector('.mobile-action-bar').style.display = 'none';
+            // Add read-only badge to header
+            const header = document.querySelector('.card-header span');
+            if (header) {
+                header.innerHTML = '<i class="bi bi-eye"></i> Vista de Prospecto (Solo lectura)';
             }
         }
         function fillForm(data) {

@@ -257,17 +257,17 @@
                             ${p.distrito ? `<span class="info-item"><i class="bi bi-geo-alt"></i> ${p.distrito}</span>` : ''}
                             ${p.tipo_negocio ? `<span class="info-item"><i class="bi bi-briefcase"></i> ${p.tipo_negocio}</span>` : ''}
                         </div>
-                        ${p.telefono ? `
+                        ${p.es_propietario && p.telefono ? `
                         <div class="prospect-actions">
                             <a href="tel:${p.telefono}" class="action-btn call" title="Llamar">
                                 <i class="bi bi-telephone-fill"></i>
                             </a>
-                            <a href="https://wa.me/51${p.telefono.replace(/\D/g, '')}" target="_blank" class="action-btn whatsapp" title="WhatsApp">
+                            <a href="https://wa.me/51${p.telefono.replace(/\\D/g, '')}" target="_blank" class="action-btn whatsapp" title="WhatsApp">
                                 <i class="bi bi-whatsapp"></i>
                             </a>
                             <span class="phone-number">${p.telefono}</span>
                         </div>
-                        ` : '<div class="prospect-actions no-phone"><span class="text-muted">Sin teléfono</span></div>'}
+                        ` : '<div class="prospect-actions no-phone"><span class="text-muted"><i class="bi bi-lock"></i> ${p.es_propietario ? "Sin teléfono" : "Contacto oculto"}</span></div>'}
                     </div>
                 `).join('');
             });
@@ -299,16 +299,16 @@
                     </td>
                     <td>${p.razon_social || '<span class="text-muted">-</span>'}</td>
                     <td class="d-none d-md-table-cell">
-                        ${p.telefono ? `<a href="tel:${p.telefono}" class="text-decoration-none">${p.telefono}</a>` : '<span class="text-muted">-</span>'}
+                        ${p.es_propietario && p.telefono ? `<a href="tel:${p.telefono}" class="text-decoration-none">${p.telefono}</a>` : '<span class="text-muted"><i class="bi bi-lock"></i></span>'}
                     </td>
                     <td><span class="badge bg-${estadoColors[p.estado] || 'secondary'}">${capitalize(p.estado)}</span></td>
                     <td>
                         <div class="table-actions">
-                            ${p.telefono ? `
+                            ${p.es_propietario && p.telefono ? `
                                 <a href="tel:${p.telefono}" class="btn btn-sm btn-outline-primary" title="Llamar"><i class="bi bi-telephone"></i></a>
                                 <a href="https://wa.me/51${p.telefono.replace(/\D/g, '')}" target="_blank" class="btn btn-sm btn-outline-success" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
                             ` : ''}
-                            <a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+                            <a href="formulario.html?id=${p.id_prospecto}" class="btn btn-sm btn-outline-secondary" title="${p.es_propietario ? 'Editar' : 'Ver'}"><i class="bi bi-${p.es_propietario ? 'pencil' : 'eye'}"></i></a>
                         </div>
                     </td>
                 </tr>

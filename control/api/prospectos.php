@@ -48,10 +48,22 @@ switch ($method) {
 }
 
 /**
+ * Helper function to check if current user is the owner of a prospecto
+ */
+function isOwner($prospecto, $user) {
+    if (!$prospecto || !$user) return false;
+    $vendedor = $prospecto['vendedor'] ?? '';
+    $userName = $user['nombre_completo'] ?? $user['nombre'] ?? $user['username'] ?? '';
+    return strtolower(trim($vendedor)) === strtolower(trim($userName));
+}
+
+/**
  * Get all prospectos with filters
+ * Hides phone number for non-owners
  */
 function getAll() {
-    canView();
+    $user = canView();
+    $userName = $user['nombre_completo'] ?? $user['nombre'] ?? $user['username'] ?? '';
     
     $search = $_GET['search'] ?? '';
     $estado = $_GET['estado'] ?? null;
@@ -86,6 +98,15 @@ function getAll() {
     
     $data = db()->query($sql, $params);
     
+    // Add ownership flag and hide phone for non-owners
+    foreach ($data as &$prospecto) {
+        $esOwner = isOwner($prospecto, $user);
+        $prospecto['es_propietario'] = $esOwner;
+        if (!$esOwner) {
+            $prospecto['telefono'] = null; // Hide phone for non-owners
+        }
+    }
+    
     echo json_encode([
         'success' => true,
         'data' => $data,
@@ -95,9 +116,10 @@ function getAll() {
 
 /**
  * Get single prospecto
+ * Non-owners cannot see phone number
  */
 function getOne($id) {
-    canView();
+    $user = canView();
     
     $prospecto = db()->queryOne("SELECT * FROM Prospecto WHERE id_prospecto = ?", [$id]);
     
@@ -105,6 +127,14 @@ function getOne($id) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Prospecto no encontrado']);
         return;
+    }
+    
+    $esOwner = isOwner($prospecto, $user);
+    $prospecto['es_propietario'] = $esOwner;
+    
+    // Hide phone for non-owners
+    if (!$esOwner) {
+        $prospecto['telefono'] = null;
     }
     
     echo json_encode([
@@ -195,7 +225,7 @@ function create() {
 }
 
 /**
- * Update prospecto (requires auth)
+ * Update prospecto (requires auth and ownership)
  */
 function update($id) {
     $user = canEdit();
@@ -213,6 +243,13 @@ function update($id) {
     if (!$existing) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Prospecto no encontrado']);
+        return;
+    }
+    
+    // Check ownership - only owner can edit
+    if (!isOwner($existing, $user)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tiene permisos para editar este prospecto']);
         return;
     }
     
@@ -259,7 +296,7 @@ function update($id) {
 }
 
 /**
- * Update only estado
+ * Update only estado (requires ownership)
  */
 function updateEstado($id) {
     $user = canEdit();
@@ -293,6 +330,13 @@ function updateEstado($id) {
         return;
     }
     
+    // Check ownership - only owner can update estado
+    if (!isOwner($existing, $user)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tiene permisos para modificar este prospecto']);
+        return;
+    }
+    
     db()->execute(
         "UPDATE Prospecto SET estado = ?, fecha_modificacion = NOW() WHERE id_prospecto = ?",
         [$estado, $id]
@@ -312,7 +356,7 @@ function updateEstado($id) {
 }
 
 /**
- * Delete prospecto
+ * Delete prospecto (requires ownership)
  */
 function delete($id) {
     $user = canEdit();
@@ -327,6 +371,13 @@ function delete($id) {
     if (!$existing) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Prospecto no encontrado']);
+        return;
+    }
+    
+    // Check ownership - only owner can delete
+    if (!isOwner($existing, $user)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'No tiene permisos para eliminar este prospecto']);
         return;
     }
     
