@@ -58,27 +58,36 @@ function initNavbar() {
     });
 }
 
-// ===== SCROLL ANIMATIONS =====
+// ===== SCROLL ANIMATIONS - Apple Style Reveal =====
 function initScrollAnimations() {
     const observerOptions = {
         root: null,
-        rootMargin: '0px',
+        rootMargin: '0px 0px -80px 0px',
         threshold: 0.1
     };
 
     const observer = new IntersectionObserver(function (entries, observer) {
         entries.forEach(function (entry) {
             if (entry.isIntersecting) {
-                entry.target.classList.add('animate-fadeInUp');
-                observer.unobserve(entry.target);
+                entry.target.classList.add('active');
+                // Keep observing for elements that might need re-animation
+                // For one-time animations, uncomment: observer.unobserve(entry.target);
             }
         });
     }, observerOptions);
 
-    // Observar elementos con la clase .animate-on-scroll
-    const animatedElements = document.querySelectorAll('.animate-on-scroll');
-    animatedElements.forEach(function (el) {
+    // Observe all reveal elements
+    const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale, .animate-on-scroll');
+    revealElements.forEach(function (el) {
         observer.observe(el);
+    });
+
+    // Also handle service cards with stagger effect
+    const serviceCards = document.querySelectorAll('.service-card');
+    serviceCards.forEach(function (card, index) {
+        card.classList.add('reveal');
+        card.style.transitionDelay = `${index * 0.1}s`;
+        observer.observe(card);
     });
 }
 
