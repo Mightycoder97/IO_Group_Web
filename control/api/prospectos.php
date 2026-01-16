@@ -98,13 +98,9 @@ function getAll() {
     
     $data = db()->query($sql, $params);
     
-    // Add ownership flag and hide phone for non-owners
+    // Add ownership flag
     foreach ($data as &$prospecto) {
-        $esOwner = isOwner($prospecto, $user);
-        $prospecto['es_propietario'] = $esOwner;
-        if (!$esOwner) {
-            $prospecto['telefono'] = null; // Hide phone for non-owners
-        }
+        $prospecto['es_propietario'] = isOwner($prospecto, $user);
     }
     
     echo json_encode([
@@ -116,7 +112,7 @@ function getAll() {
 
 /**
  * Get single prospecto
- * Non-owners cannot see phone number
+ * Adds ownership flag for edit restrictions
  */
 function getOne($id) {
     $user = canView();
@@ -129,13 +125,7 @@ function getOne($id) {
         return;
     }
     
-    $esOwner = isOwner($prospecto, $user);
-    $prospecto['es_propietario'] = $esOwner;
-    
-    // Hide phone for non-owners
-    if (!$esOwner) {
-        $prospecto['telefono'] = null;
-    }
+    $prospecto['es_propietario'] = isOwner($prospecto, $user);
     
     echo json_encode([
         'success' => true,
