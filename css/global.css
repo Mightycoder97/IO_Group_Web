@@ -355,11 +355,14 @@ a:hover {
 /* Hero Section - Clean & Professional */
 .hero {
     position: relative;
-    padding: 80px 0;
+    min-height: 70vh;
+    padding: 140px 0 80px;
     background-color: var(--dark);
     background-size: cover;
-    background-position: center;
+    background-position: center top;
     color: var(--white);
+    display: flex;
+    align-items: center;
 }
 
 .hero-overlay {
@@ -368,7 +371,7 @@ a:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to bottom, rgba(17, 24, 39, 0.85), rgba(17, 24, 39, 0.95));
+    background: linear-gradient(to bottom, rgba(17, 24, 39, 0.5), rgba(17, 24, 39, 0.65));
 }
 
 .hero-content {
