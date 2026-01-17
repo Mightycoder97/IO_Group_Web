@@ -94,6 +94,12 @@ function getDashboard() {
          WHERE MONTH(fecha_programada) = MONTH(CURDATE()) AND YEAR(fecha_programada) = YEAR(CURDATE())"
     )['count'];
     
+    // Rutas este mes
+    $rutasMes = db()->queryOne(
+        "SELECT COUNT(*) as count FROM Ruta 
+         WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE())"
+    )['count'];
+    
     echo json_encode([
         'success' => true,
         'data' => [
@@ -105,7 +111,8 @@ function getDashboard() {
             'monto_pendiente' => floatval($pagosPendientes['monto_total']),
             'facturas_pendientes' => intval($pagosPendientes['total_facturas']),
             'ingresos_mes' => floatval($ingresosMes),
-            'servicios_mes' => intval($serviciosMes)
+            'servicios_mes' => intval($serviciosMes),
+            'rutas_mes' => intval($rutasMes)
         ]
     ]);
 }

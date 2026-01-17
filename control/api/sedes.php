@@ -61,7 +61,7 @@ function getAll() {
     
     // Consulta optimizada - solo campos necesarios
     $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.activo,
-            s.contacto_telefono, s.coordenadas_gps,
+            s.contacto_nombre, s.contacto_telefono, s.coordenadas_gps,
             e.razon_social as empresa_razon_social, e.ruc as empresa_ruc
             FROM Sede s
             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa

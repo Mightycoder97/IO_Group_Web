@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,9 +20,11 @@
             border-radius: 8px;
             border: 1px solid #dee2e6;
         }
+
         .map-container {
             position: relative;
         }
+
         .map-instructions {
             background: rgba(0, 0, 0, 0.7);
             color: white;
@@ -33,9 +36,11 @@
             z-index: 1000;
             font-size: 12px;
         }
+
         .address-search {
             position: relative;
         }
+
         .address-suggestions {
             position: absolute;
             top: 100%;
@@ -50,22 +55,27 @@
             overflow-y: auto;
             display: none;
         }
+
         .address-suggestions.show {
             display: block;
         }
+
         .suggestion-item {
             padding: 10px 12px;
             cursor: pointer;
             border-bottom: 1px solid #f0f0f0;
         }
+
         .suggestion-item:hover {
             background: #f8f9fa;
         }
+
         .suggestion-item:last-child {
             border-bottom: none;
         }
     </style>
 </head>
+
 <body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
@@ -96,20 +106,96 @@
             <div class="content-area">
                 <div class="card">
                     <div class="card-header">
-                        <i class="bi bi-geo-alt"></i> <span id="formTitle">Nueva Sede</span>
+                        <i class="bi bi-people"></i> <span id="formTitle">Nuevo Cliente</span>
                     </div>
                     <div class="card-body">
                         <form id="dataForm">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Empresa *</label>
-                                    <select class="form-select" id="id_empresa" required>
-                                        <option value="">Seleccione...</option>
+                            <!-- Mode Toggle (only for new) -->
+                            <div class="row g-3 mb-3" id="modeToggle">
+                                <div class="col-12">
+                                    <div class="btn-group w-100" role="group">
+                                        <input type="radio" class="btn-check" name="clientMode" id="modeNew" value="new"
+                                            checked>
+                                        <label class="btn btn-outline-primary" for="modeNew"><i
+                                                class="bi bi-plus-circle"></i> Cliente Nuevo</label>
+                                        <input type="radio" class="btn-check" name="clientMode" id="modeExisting"
+                                            value="existing">
+                                        <label class="btn btn-outline-secondary" for="modeExisting"><i
+                                                class="bi bi-search"></i> Empresa Existente</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION: Existing Empresa Select (hidden by default) -->
+                            <div class="row g-3 mb-3" id="existingEmpresaSection" style="display: none;">
+                                <div class="col-12">
+                                    <label class="form-label">Seleccionar Empresa *</label>
+                                    <select class="form-select" id="id_empresa">
+                                        <option value="">Seleccione empresa existente...</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <!-- SECTION: New Cliente + Empresa (visible by default) -->
+                            <div id="newClientSection">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-12">
+                                        <h6 class="text-primary"><i class="bi bi-person"></i> Datos del Titular</h6>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nombre Completo *</label>
+                                        <input type="text" class="form-control" id="cliente_nombre"
+                                            placeholder="Ej: Juan Carlos Pérez López">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">DNI/CE</label>
+                                        <input type="text" class="form-control" id="cliente_dni" maxlength="12">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Teléfono</label>
+                                        <input type="text" class="form-control" id="cliente_telefono">
+                                    </div>
+                                </div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12">
+                                        <h6 class="text-primary"><i class="bi bi-building"></i> Datos de la Empresa</h6>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Razón Social *</label>
+                                        <input type="text" class="form-control" id="empresa_razon_social"
+                                            placeholder="Ej: Clínica Dental Sonrisa SAC">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">RUC *</label>
+                                        <input type="text" class="form-control" id="empresa_ruc" maxlength="11"
+                                            placeholder="20XXXXXXXXX">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Tipo</label>
+                                        <select class="form-select" id="empresa_tipo">
+                                            <option value="clinica_dental">Clínica Dental</option>
+                                            <option value="veterinaria">Veterinaria</option>
+                                            <option value="laboratorio">Laboratorio</option>
+                                            <option value="hospital">Hospital</option>
+                                            <option value="otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">Dirección Fiscal</label>
+                                        <input type="text" class="form-control" id="empresa_direccion_fiscal">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION: Sede (Point of Service) -->
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <h6 class="text-success"><i class="bi bi-geo-alt"></i> Punto de Recojo (Sede)</h6>
                                 </div>
                                 <div class="col-md-12">
                                     <label class="form-label">Nombre Comercial *</label>
-                                    <input type="text" class="form-control" id="nombre_comercial" required>
+                                    <input type="text" class="form-control" id="nombre_comercial" required
+                                        placeholder="Ej: Clínica Sonrisa - Miraflores">
                                 </div>
                                 <div class="col-md-12 address-search">
                                     <label class="form-label">Dirección * <small class="text-muted">(escribe para
@@ -310,10 +396,13 @@
                 const result = await api.get('/empresas');
                 if (result.success) {
                     const select = document.getElementById('id_empresa');
-                    select.innerHTML = '<option value="">Seleccione...</option>' +
+                    select.innerHTML = '<option value="">Seleccione empresa existente...</option>' +
                         result.data.map(e => `<option value="${e.id_empresa}">${e.razon_social} (${e.ruc})</option>`).join('');
                     if (empresaParam) {
                         select.value = empresaParam;
+                        // If coming from empresa, switch to existing mode
+                        document.getElementById('modeExisting').checked = true;
+                        toggleClientMode();
                     }
                 }
             } catch (err) {
@@ -321,10 +410,25 @@
             }
         }
         loadEmpresas();
+
+        // ========== MODE TOGGLE ==========
+        function toggleClientMode() {
+            const isNewMode = document.getElementById('modeNew').checked;
+            document.getElementById('newClientSection').style.display = isNewMode ? 'block' : 'none';
+            document.getElementById('existingEmpresaSection').style.display = isNewMode ? 'none' : 'block';
+        }
+        document.querySelectorAll('input[name="clientMode"]').forEach(radio => {
+            radio.addEventListener('change', toggleClientMode);
+        });
+
         // ========== EDIT MODE ==========
         if (id) {
-            document.getElementById('pageTitle').textContent = 'Editar Sede';
-            document.getElementById('formTitle').textContent = 'Editar Sede';
+            document.getElementById('pageTitle').textContent = 'Editar Cliente';
+            document.getElementById('formTitle').textContent = 'Editar Cliente';
+            // Hide mode toggle in edit mode
+            document.getElementById('modeToggle').style.display = 'none';
+            document.getElementById('newClientSection').style.display = 'none';
+            document.getElementById('existingEmpresaSection').style.display = 'block';
             loadData();
         }
         async function loadData() {
@@ -359,8 +463,11 @@
         // ========== FORM SUBMIT ==========
         document.getElementById('dataForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            const data = {
-                id_empresa: document.getElementById('id_empresa').value,
+
+            const isNewMode = document.getElementById('modeNew').checked && !id;
+
+            // Build sede data
+            const sedeData = {
                 nombre_comercial: document.getElementById('nombre_comercial').value,
                 direccion: document.getElementById('direccion').value,
                 distrito: document.getElementById('distrito').value || null,
@@ -372,13 +479,56 @@
                 contacto_telefono: document.getElementById('contacto_telefono').value || null,
                 contacto_email: document.getElementById('contacto_email').value || null
             };
+
             try {
-                const result = id
-                    ? await api.put(`/sedes/${id}`, data)
-                    : await api.post('/sedes', data);
+                let result;
+
+                if (id) {
+                    // Edit existing sede
+                    sedeData.id_empresa = document.getElementById('id_empresa').value;
+                    result = await api.put(`/sedes/${id}`, sedeData);
+                } else if (isNewMode) {
+                    // Create new cliente + empresa + sede
+                    const unifiedData = {
+                        cliente: {
+                            nombre_completo: document.getElementById('cliente_nombre').value,
+                            documento: document.getElementById('cliente_dni').value || null,
+                            telefono: document.getElementById('cliente_telefono').value || null
+                        },
+                        empresa: {
+                            razon_social: document.getElementById('empresa_razon_social').value,
+                            ruc: document.getElementById('empresa_ruc').value,
+                            tipo_empresa: document.getElementById('empresa_tipo').value,
+                            direccion_fiscal: document.getElementById('empresa_direccion_fiscal').value || null
+                        },
+                        sede: sedeData
+                    };
+
+                    // Validation
+                    if (!unifiedData.cliente.nombre_completo || !unifiedData.empresa.razon_social || !unifiedData.empresa.ruc) {
+                        showToast('Complete los datos del titular y empresa', 'warning');
+                        return;
+                    }
+
+                    result = await api.post('/sedes-unified', unifiedData);
+                } else {
+                    // Create sede with existing empresa
+                    sedeData.id_empresa = document.getElementById('id_empresa').value;
+                    if (!sedeData.id_empresa) {
+                        showToast('Seleccione una empresa', 'warning');
+                        return;
+                    }
+                    result = await api.post('/sedes', sedeData);
+                }
+
                 if (result.success) {
-                    showToast(id ? 'Sede actualizada' : 'Sede creada');
-                    window.location.href = 'listar.html';
+                    showToast(id ? 'Cliente actualizado' : 'Cliente creado correctamente');
+                    // Redirect to cartilla if new, list if edit
+                    if (!id && result.sede_id) {
+                        window.location.href = `cartilla.html?id=${result.sede_id}`;
+                    } else {
+                        window.location.href = 'listar.html';
+                    }
                 } else {
                     showToast(result.message, 'danger');
                 }
@@ -388,4 +538,5 @@
         });
     </script>
 </body>
+
 </html>

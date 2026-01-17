@@ -50,31 +50,26 @@ function getSidebarHTML() {
             ${navItem('dashboard.html', 'speedometer2', 'Dashboard', 'dashboard')}
             
             ${section('Clientes', [
-        navItem('clientes/listar.html', 'people', 'Clientes', 'clientes'),
-        navItem('empresas/listar.html', 'building', 'Empresas', 'empresas'),
-        navItem('sedes/listar.html', 'geo-alt', 'Sedes', 'sedes'),
-        navItem('contratos/listar.html', 'file-earmark-text', 'Contratos', 'contratos')
+        navItem('sedes/listar.html', 'geo-alt', 'Clientes', 'sedes'),
+        navItem('prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos')
     ])}
             
-            ${section('Operaciones', [
-        navItem('servicios/listar.html', 'box-seam', 'Servicios', 'servicios'),
+            ${section('Logístico', [
         navItem('rutas/listar.html', 'signpost-2', 'Rutas', 'rutas'),
+        navItem('servicios/listar.html', 'box-seam', 'Servicios', 'servicios'),
         navItem('manifiestos/listar.html', 'journal-text', 'Manifiestos', 'manifiestos'),
         navItem('guias/listar.html', 'file-earmark', 'Guías', 'guias')
     ])}
             
-            ${section('Recursos', [
-        navItem('empleados/listar.html', 'person-badge', 'Empleados', 'empleados'),
+            ${section('Financiero', [
+        navItem('facturas/listar.html', 'receipt', 'Facturas', 'facturas'),
+        navItem('cobranza/listar.html', 'cash-coin', 'Cobranza', 'cobranza')
+    ])}
+            
+            ${section('Configuración', [
         navItem('vehiculos/listar.html', 'truck', 'Vehículos', 'vehiculos'),
-        navItem('plantas/listar.html', 'factory', 'Plantas', 'plantas')
-    ])}
-            
-            ${section('Finanzas', [
-        navItem('facturas/listar.html', 'receipt', 'Facturas', 'facturas')
-    ])}
-            
-            ${section('Ventas', [
-        navItem('prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos')
+        navItem('plantas/listar.html', 'factory', 'Plantas', 'plantas'),
+        navItem('empleados/listar.html', 'person-badge', 'Empleados', 'empleados')
     ])}
             
             ${section('Herramientas', [
