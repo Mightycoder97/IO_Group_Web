@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,6 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
 </head>
+
 <body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
@@ -48,8 +50,9 @@
                     <div class="card-body">
                         <form id="dataForm">
                             <div class="row g-3">
+                                <!-- Cliente y Código -->
                                 <div class="col-md-8">
-                                    <label class="form-label">Sede *</label>
+                                    <label class="form-label">Cliente (Sede) *</label>
                                     <select class="form-select" id="id_sede" required>
                                         <option value="">Seleccione...</option>
                                     </select>
@@ -59,15 +62,39 @@
                                     <input type="text" class="form-control" id="codigo_contrato"
                                         placeholder="CS-2024-001">
                                 </div>
-                                <div class="col-md-4">
+
+                                <!-- Fechas y Estado -->
+                                <div class="col-md-3">
                                     <label class="form-label">Fecha Inicio *</label>
                                     <input type="date" class="form-control" id="fecha_inicio" required>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Fecha Fin</label>
                                     <input type="date" class="form-control" id="fecha_fin">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label">Renovación Auto</label>
+                                    <select class="form-select" id="renovacion_automatica">
+                                        <option value="1">Sí</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Estado</label>
+                                    <select class="form-select" id="estado_contrato">
+                                        <option value="vigente">Vigente</option>
+                                        <option value="pendiente_firma">Pendiente Firma</option>
+                                        <option value="vencido">Vencido</option>
+                                        <option value="cancelado">Cancelado</option>
+                                    </select>
+                                </div>
+
+                                <!-- Servicio -->
+                                <div class="col-12">
+                                    <h6 class="mt-2"><i class="bi bi-gear"></i> Condiciones del Servicio</h6>
+                                    <hr class="mt-1">
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label">Frecuencia *</label>
                                     <select class="form-select" id="frecuencia" required>
                                         <option value="">Seleccione...</option>
@@ -80,9 +107,32 @@
                                         <option value="eventual">Eventual</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Peso Límite (Kg)</label>
-                                    <input type="number" step="0.01" class="form-control" id="peso_limite_kg">
+                                <div class="col-md-3">
+                                    <label class="form-label">Tipo de Residuo</label>
+                                    <select class="form-select" id="tipo_residuo">
+                                        <option value="biocontaminado">Biocontaminado</option>
+                                        <option value="especial">Especial</option>
+                                        <option value="punzocortante">Punzocortante</option>
+                                        <option value="mixto">Mixto</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Peso Máx. (Kg)</label>
+                                    <input type="number" step="0.01" class="form-control" id="peso_limite_kg"
+                                        placeholder="10">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Contenedor Incluido</label>
+                                    <select class="form-select" id="contenedor_incluido">
+                                        <option value="1">Sí</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                </div>
+
+                                <!-- Tarifa -->
+                                <div class="col-12">
+                                    <h6 class="mt-2"><i class="bi bi-currency-dollar"></i> Tarifa</h6>
+                                    <hr class="mt-1">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Tarifa (S/) *</label>
@@ -96,9 +146,46 @@
                                         <option value="mensual_fijo">Mensual Fijo</option>
                                     </select>
                                 </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Incluye IGV</label>
+                                    <select class="form-select" id="incluye_igv">
+                                        <option value="1">Sí</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                </div>
+
+                                <!-- Documento Escaneado -->
+                                <div class="col-12">
+                                    <h6 class="mt-2"><i class="bi bi-file-pdf"></i> Documento Escaneado</h6>
+                                    <hr class="mt-1">
+                                </div>
+                                <div class="col-12">
+                                    <div class="upload-area border rounded p-4 text-center" id="uploadArea"
+                                        style="border-style: dashed !important; cursor: pointer;">
+                                        <i class="bi bi-cloud-arrow-up fs-1 text-muted"></i>
+                                        <p class="mb-1">Arrastra el PDF aquí o haz clic para seleccionar</p>
+                                        <small class="text-muted">Máximo 10MB - Solo archivos PDF</small>
+                                        <input type="file" id="archivo_pdf" accept=".pdf" style="display: none;">
+                                    </div>
+                                    <div id="filePreview" class="mt-2 p-2 bg-light rounded" style="display: none;">
+                                        <i class="bi bi-file-pdf text-danger"></i>
+                                        <span id="fileName"></span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger float-end"
+                                            onclick="removeFile()">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    <div id="existingPdf" class="mt-2" style="display: none;">
+                                        <a href="#" id="pdfLink" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-file-pdf"></i> Ver Contrato PDF
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Observaciones -->
                                 <div class="col-12">
                                     <label class="form-label">Observaciones</label>
-                                    <textarea class="form-control" id="observaciones" rows="3"></textarea>
+                                    <textarea class="form-control" id="observaciones" rows="2"></textarea>
                                 </div>
                             </div>
                             <div class="mt-4">
@@ -120,7 +207,57 @@
         initPage('contratos');
         const id = getUrlParam('id');
         const sedeParam = getUrlParam('sede');
-        // Load sedes for select
+        let selectedFile = null;
+
+        // ========== PDF UPLOAD HANDLING ==========
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('archivo_pdf');
+        const filePreview = document.getElementById('filePreview');
+        const fileName = document.getElementById('fileName');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('border-primary');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('border-primary');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-primary');
+            const files = e.dataTransfer.files;
+            if (files.length && files[0].type === 'application/pdf') {
+                handleFile(files[0]);
+            } else {
+                showToast('Solo se permiten archivos PDF', 'warning');
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('El archivo no puede superar 10MB', 'danger');
+                return;
+            }
+            selectedFile = file;
+            fileName.textContent = file.name;
+            filePreview.style.display = 'block';
+            uploadArea.style.display = 'none';
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            fileInput.value = '';
+            filePreview.style.display = 'none';
+            uploadArea.style.display = 'block';
+        }
+
+        // ========== LOAD SEDES ==========
         async function loadSedes() {
             try {
                 const result = await api.get('/sedes');
@@ -137,31 +274,48 @@
             }
         }
         loadSedes();
+
+        // ========== EDIT MODE ==========
         if (id) {
             document.getElementById('pageTitle').textContent = 'Editar Contrato';
             document.getElementById('formTitle').textContent = 'Editar Contrato de Servicio';
             loadData();
         }
+
         async function loadData() {
             try {
                 const result = await api.get(`/contratos/${id}`);
                 if (result.success) {
+                    const d = result.data;
                     setTimeout(() => {
-                        document.getElementById('id_sede').value = result.data.id_sede || '';
+                        document.getElementById('id_sede').value = d.id_sede || '';
                     }, 500);
-                    document.getElementById('codigo_contrato').value = result.data.codigo_contrato || '';
-                    document.getElementById('fecha_inicio').value = result.data.fecha_inicio || '';
-                    document.getElementById('fecha_fin').value = result.data.fecha_fin || '';
-                    document.getElementById('frecuencia').value = result.data.frecuencia || '';
-                    document.getElementById('peso_limite_kg').value = result.data.peso_limite_kg || '';
-                    document.getElementById('tarifa').value = result.data.tarifa || '';
-                    document.getElementById('tipo_tarifa').value = result.data.tipo_tarifa || 'por_servicio';
-                    document.getElementById('observaciones').value = result.data.observaciones || '';
+                    document.getElementById('codigo_contrato').value = d.codigo_contrato || '';
+                    document.getElementById('fecha_inicio').value = d.fecha_inicio || '';
+                    document.getElementById('fecha_fin').value = d.fecha_fin || '';
+                    document.getElementById('frecuencia').value = d.frecuencia || '';
+                    document.getElementById('peso_limite_kg').value = d.peso_limite_kg || '';
+                    document.getElementById('tarifa').value = d.tarifa || '';
+                    document.getElementById('tipo_tarifa').value = d.tipo_tarifa || 'por_servicio';
+                    document.getElementById('observaciones').value = d.observaciones || '';
+                    // New fields
+                    document.getElementById('renovacion_automatica').value = d.renovacion_automatica || '1';
+                    document.getElementById('estado_contrato').value = d.estado || 'vigente';
+                    document.getElementById('tipo_residuo').value = d.tipo_residuo || 'biocontaminado';
+                    document.getElementById('contenedor_incluido').value = d.contenedor_incluido || '1';
+                    document.getElementById('incluye_igv').value = d.incluye_igv || '1';
+                    // Show existing PDF link
+                    if (d.archivo_pdf) {
+                        document.getElementById('existingPdf').style.display = 'block';
+                        document.getElementById('pdfLink').href = d.archivo_pdf;
+                    }
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
             }
         }
+
+        // ========== FORM SUBMIT ==========
         document.getElementById('dataForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const data = {
@@ -173,15 +327,31 @@
                 peso_limite_kg: document.getElementById('peso_limite_kg').value || null,
                 tarifa: document.getElementById('tarifa').value,
                 tipo_tarifa: document.getElementById('tipo_tarifa').value,
-                observaciones: document.getElementById('observaciones').value || null
+                observaciones: document.getElementById('observaciones').value || null,
+                // New fields
+                renovacion_automatica: document.getElementById('renovacion_automatica').value,
+                estado: document.getElementById('estado_contrato').value,
+                tipo_residuo: document.getElementById('tipo_residuo').value,
+                contenedor_incluido: document.getElementById('contenedor_incluido').value,
+                incluye_igv: document.getElementById('incluye_igv').value
             };
             try {
                 const result = id
                     ? await api.put(`/contratos/${id}`, data)
                     : await api.post('/contratos', data);
                 if (result.success) {
+                    // Upload PDF if selected (would need backend support)
+                    if (selectedFile) {
+                        // TODO: Implement file upload to server
+                        console.log('PDF to upload:', selectedFile.name);
+                    }
                     showToast(id ? 'Contrato actualizado' : 'Contrato creado');
-                    window.location.href = 'listar.html';
+                    // Navigate back to cartilla if came from sede
+                    if (sedeParam) {
+                        window.location.href = `../sedes/cartilla.html?id=${sedeParam}`;
+                    } else {
+                        window.location.href = 'listar.html';
+                    }
                 } else {
                     showToast(result.message, 'danger');
                 }
@@ -191,4 +361,5 @@
         });
     </script>
 </body>
+
 </html>
