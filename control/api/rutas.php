@@ -34,9 +34,15 @@ function getAll() {
     $vehiculo = $_GET['vehiculo'] ?? null;
     $estado = $_GET['estado'] ?? null;
     $fecha = $_GET['fecha'] ?? null;
+    $mes = $_GET['mes'] ?? null;
+    $anio = $_GET['anio'] ?? null;
+    $distrito = $_GET['distrito'] ?? null;
     
     $sql = "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca, v.modelo as vehiculo_modelo,
-            (SELECT COUNT(*) FROM Servicio s WHERE s.id_ruta = r.id_ruta) as total_servicios
+            (SELECT COUNT(*) FROM Servicio s WHERE s.id_ruta = r.id_ruta) as total_servicios,
+            (SELECT COUNT(DISTINCT s2.id_sede) FROM Servicio s2 WHERE s2.id_ruta = r.id_ruta) as sedes_count,
+            (SELECT GROUP_CONCAT(DISTINCT se.distrito) FROM Servicio s3 
+             INNER JOIN Sede se ON s3.id_sede = se.id_sede WHERE s3.id_ruta = r.id_ruta) as distritos
             FROM Ruta r
             INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
             WHERE 1=1";
@@ -57,9 +63,24 @@ function getAll() {
         $params[] = $fecha;
     }
     
+    // Month/Year filter for calendar view
+    if ($mes && $anio) {
+        $sql .= " AND MONTH(r.fecha) = ? AND YEAR(r.fecha) = ?";
+        $params[] = $mes;
+        $params[] = $anio;
+    }
+    
     $sql .= " ORDER BY r.fecha DESC, r.hora_salida DESC";
     
     $data = db()->query($sql, $params);
+    
+    // Post-filter by distrito if needed (more efficient with smaller data sets)
+    if ($distrito && $distrito !== 'todos') {
+        $data = array_filter($data, function($r) use ($distrito) {
+            return strpos($r['distritos'] ?? '', $distrito) !== false;
+        });
+        $data = array_values($data);
+    }
     
     echo json_encode([
         'success' => true,

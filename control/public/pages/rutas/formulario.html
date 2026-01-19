@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,6 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
 </head>
+
 <body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
@@ -92,6 +94,59 @@
                                     <input type="text" class="form-control" id="observaciones">
                                 </div>
                             </div>
+
+                            <!-- Sedes Section - Only visible in edit mode -->
+                            <div id="sedesSection" class="mt-4" style="display: none;">
+                                <h6><i class="bi bi-geo-alt"></i> Clientes en esta Ruta</h6>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <div class="card">
+                                            <div class="card-header py-2">
+                                                <small class="fw-bold">Clientes Disponibles</small>
+                                                <input type="text" class="form-control form-control-sm mt-2"
+                                                    id="sedeSearch" placeholder="Buscar cliente...">
+                                            </div>
+                                            <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
+                                                <div class="list-group list-group-flush" id="sedesDisponibles">
+                                                    <div class="text-center py-3 text-muted">Cargando...</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                        <div class="d-flex flex-column gap-2">
+                                            <button type="button" class="btn btn-outline-primary"
+                                                onclick="addSelectedSede()">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                onclick="removeSelectedSede()">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="card">
+                                            <div
+                                                class="card-header py-2 d-flex justify-content-between align-items-center">
+                                                <small class="fw-bold">En Ruta (<span id="sedesCount">0</span>)</small>
+                                                <button type="button" class="btn btn-success btn-sm"
+                                                    onclick="sendWhatsAppAll()">
+                                                    <i class="bi bi-whatsapp"></i> Confirmar Todos
+                                                </button>
+                                            </div>
+                                            <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
+                                                <div class="list-group list-group-flush" id="sedesEnRuta">
+                                                    <div class="text-center py-3 text-muted">Arrastra clientes aquí
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="mt-4">
                                 <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i>
                                     Guardar</button>
@@ -110,6 +165,13 @@
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('rutas');
         const id = getUrlParam('id');
+
+        let allSedes = [];
+        let sedesEnRuta = [];
+        let selectedDisponible = null;
+        let selectedEnRuta = null;
+        let rutaFecha = '';
+
         // Load vehiculos
         async function loadVehiculos() {
             try {
@@ -124,33 +186,193 @@
             }
         }
         loadVehiculos();
+
         // Set default date to today
         document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+
+        // Edit mode
         if (id) {
             document.getElementById('pageTitle').textContent = 'Editar Ruta';
             document.getElementById('formTitle').textContent = 'Editar Ruta';
+            document.getElementById('sedesSection').style.display = 'block';
             loadData();
+            loadSedes();
         }
+
         async function loadData() {
             try {
                 const result = await api.get(`/rutas/${id}`);
                 if (result.success) {
+                    const d = result.data;
+                    rutaFecha = d.fecha;
                     setTimeout(() => {
-                        document.getElementById('id_vehiculo').value = result.data.id_vehiculo || '';
+                        document.getElementById('id_vehiculo').value = d.id_vehiculo || '';
                     }, 500);
-                    document.getElementById('codigo_ruta').value = result.data.codigo_ruta || '';
-                    document.getElementById('fecha').value = result.data.fecha || '';
-                    document.getElementById('hora_salida').value = result.data.hora_salida || '';
-                    document.getElementById('hora_retorno').value = result.data.hora_retorno || '';
-                    document.getElementById('km_inicial').value = result.data.km_inicial || '';
-                    document.getElementById('km_final').value = result.data.km_final || '';
-                    document.getElementById('estado').value = result.data.estado || 'programada';
-                    document.getElementById('observaciones').value = result.data.observaciones || '';
+                    document.getElementById('codigo_ruta').value = d.codigo_ruta || '';
+                    document.getElementById('fecha').value = d.fecha || '';
+                    document.getElementById('hora_salida').value = d.hora_salida || '';
+                    document.getElementById('hora_retorno').value = d.hora_retorno || '';
+                    document.getElementById('km_inicial').value = d.km_inicial || '';
+                    document.getElementById('km_final').value = d.km_final || '';
+                    document.getElementById('estado').value = d.estado || 'programada';
+                    document.getElementById('observaciones').value = d.observaciones || '';
+
+                    // Load servicios (sedes en ruta)
+                    if (d.servicios) {
+                        sedesEnRuta = d.servicios.map(s => ({
+                            id_sede: s.id_sede,
+                            id_servicio: s.id_servicio,
+                            nombre_comercial: s.sede_nombre,
+                            telefono: s.telefono || '',
+                            direccion: s.direccion || '',
+                            distrito: s.distrito || ''
+                        }));
+                        renderSedesEnRuta();
+                    }
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
             }
         }
+
+        async function loadSedes() {
+            try {
+                const result = await api.get('/sedes');
+                if (result.success) {
+                    allSedes = result.data;
+                    renderSedesDisponibles();
+                }
+            } catch (err) {
+                console.error('Error loading sedes:', err);
+            }
+        }
+
+        function renderSedesDisponibles(filter = '') {
+            const container = document.getElementById('sedesDisponibles');
+            const enRutaIds = sedesEnRuta.map(s => s.id_sede);
+            let sedes = allSedes.filter(s => !enRutaIds.includes(s.id_sede));
+
+            if (filter) {
+                const term = filter.toLowerCase();
+                sedes = sedes.filter(s =>
+                    s.nombre_comercial?.toLowerCase().includes(term) ||
+                    s.distrito?.toLowerCase().includes(term)
+                );
+            }
+
+            if (sedes.length === 0) {
+                container.innerHTML = '<div class="text-center py-3 text-muted">Sin clientes disponibles</div>';
+                return;
+            }
+
+            container.innerHTML = sedes.map(s => `
+                <div class="list-group-item list-group-item-action" 
+                     data-id="${s.id_sede}" onclick="selectDisponible(${s.id_sede})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${s.nombre_comercial}</strong><br>
+                            <small class="text-muted">${s.distrito || ''}</small>
+                        </div>
+                        <i class="bi bi-plus-circle text-primary"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSedesEnRuta() {
+            const container = document.getElementById('sedesEnRuta');
+            document.getElementById('sedesCount').textContent = sedesEnRuta.length;
+
+            if (sedesEnRuta.length === 0) {
+                container.innerHTML = '<div class="text-center py-3 text-muted">Sin clientes asignados</div>';
+                return;
+            }
+
+            container.innerHTML = sedesEnRuta.map((s, i) => `
+                <div class="list-group-item" data-id="${s.id_sede}" onclick="selectEnRuta(${s.id_sede})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary me-1">${i + 1}</span>
+                            <strong>${s.nombre_comercial}</strong><br>
+                            <small class="text-muted">${s.direccion || ''}</small>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-success" onclick="sendWhatsApp(${s.id_sede}, event)" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectDisponible(id) {
+            selectedDisponible = id;
+            document.querySelectorAll('#sedesDisponibles .list-group-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.id == id);
+            });
+        }
+
+        function selectEnRuta(id) {
+            selectedEnRuta = id;
+            document.querySelectorAll('#sedesEnRuta .list-group-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.id == id);
+            });
+        }
+
+        function addSelectedSede() {
+            if (!selectedDisponible) return;
+            const sede = allSedes.find(s => s.id_sede == selectedDisponible);
+            if (sede) {
+                sedesEnRuta.push(sede);
+                selectedDisponible = null;
+                renderSedesDisponibles(document.getElementById('sedeSearch').value);
+                renderSedesEnRuta();
+            }
+        }
+
+        function removeSelectedSede() {
+            if (!selectedEnRuta) return;
+            sedesEnRuta = sedesEnRuta.filter(s => s.id_sede != selectedEnRuta);
+            selectedEnRuta = null;
+            renderSedesDisponibles(document.getElementById('sedeSearch').value);
+            renderSedesEnRuta();
+        }
+
+        // Search filter
+        document.getElementById('sedeSearch')?.addEventListener('input', function (e) {
+            renderSedesDisponibles(e.target.value);
+        });
+
+        // WhatsApp functions
+        function sendWhatsApp(sedeId, event) {
+            event?.stopPropagation();
+            const sede = sedesEnRuta.find(s => s.id_sede == sedeId) || allSedes.find(s => s.id_sede == sedeId);
+            if (!sede || !sede.telefono) {
+                showToast('Cliente sin teléfono registrado', 'warning');
+                return;
+            }
+            const fecha = document.getElementById('fecha').value;
+            const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-PE') : 'mañana';
+            const mensaje = `Hola ${sede.nombre_comercial}, somos de IO Group. Confirmamos su recojo de residuos programado para el ${fechaFormateada}. ¿Puede confirmar disponibilidad?`;
+            const phone = sede.telefono.replace(/\D/g, '');
+            const url = `https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, '_blank');
+        }
+
+        function sendWhatsAppAll() {
+            if (sedesEnRuta.length === 0) {
+                showToast('No hay clientes en la ruta', 'warning');
+                return;
+            }
+            sedesEnRuta.forEach((sede, i) => {
+                if (sede.telefono) {
+                    setTimeout(() => sendWhatsApp(sede.id_sede), i * 1500);
+                }
+            });
+        }
+
+        // Form submit
         document.getElementById('dataForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const data = {
@@ -162,7 +384,8 @@
                 km_inicial: document.getElementById('km_inicial').value || null,
                 km_final: document.getElementById('km_final').value || null,
                 estado: document.getElementById('estado').value,
-                observaciones: document.getElementById('observaciones').value || null
+                observaciones: document.getElementById('observaciones').value || null,
+                sedes: sedesEnRuta.map(s => s.id_sede)
             };
             try {
                 const result = id
@@ -180,4 +403,5 @@
         });
     </script>
 </body>
+
 </html>

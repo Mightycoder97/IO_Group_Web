@@ -55,6 +55,7 @@ function getSidebarHTML() {
     ])}
             
             ${section('Logístico', [
+        navItem('calendario/index.html', 'calendar3', 'Calendario', 'rutas'),
         navItem('rutas/listar.html', 'signpost-2', 'Rutas', 'rutas'),
         navItem('servicios/listar.html', 'box-seam', 'Servicios', 'servicios'),
         navItem('manifiestos/listar.html', 'journal-text', 'Manifiestos', 'manifiestos'),
