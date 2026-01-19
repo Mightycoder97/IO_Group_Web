@@ -129,6 +129,7 @@ function create() {
     
     $id_vehiculo = $data['id_vehiculo'] ?? null;
     $fecha = $data['fecha'] ?? null;
+    $sedes = $data['sedes'] ?? [];
     
     if (empty($id_vehiculo) || empty($fecha)) {
         http_response_code(400);
@@ -136,30 +137,58 @@ function create() {
         return;
     }
     
-    $id = db()->insert(
-        "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, hora_salida, hora_retorno, km_inicial, km_final, estado, observaciones) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-            $id_vehiculo,
-            $data['codigo_ruta'] ?? null,
-            $fecha,
-            $data['hora_salida'] ?? null,
-            $data['hora_retorno'] ?? null,
-            $data['km_inicial'] ?? null,
-            $data['km_final'] ?? null,
-            $data['estado'] ?? 'programada',
-            $data['observaciones'] ?? null
-        ]
+    // Check if route already exists for this vehicle and date
+    $existing = db()->queryOne(
+        "SELECT id_ruta FROM Ruta WHERE id_vehiculo = ? AND fecha = ?",
+        [$id_vehiculo, $fecha]
     );
     
+    if ($existing) {
+        // Update existing route - delete old services first
+        $id = $existing['id_ruta'];
+        db()->execute("DELETE FROM Servicio WHERE id_ruta = ?", [$id]);
+        
+        db()->execute(
+            "UPDATE Ruta SET estado = ?, observaciones = ?, fecha_modificacion = NOW() WHERE id_ruta = ?",
+            [$data['estado'] ?? 'programada', $data['observaciones'] ?? null, $id]
+        );
+    } else {
+        // Create new route
+        $id = db()->insert(
+            "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, hora_salida, hora_retorno, km_inicial, km_final, estado, observaciones) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                $id_vehiculo,
+                $data['codigo_ruta'] ?? null,
+                $fecha,
+                $data['hora_salida'] ?? null,
+                $data['hora_retorno'] ?? null,
+                $data['km_inicial'] ?? null,
+                $data['km_final'] ?? null,
+                $data['estado'] ?? 'programada',
+                $data['observaciones'] ?? null
+            ]
+        );
+    }
+    
+    // Create services for each sede
+    if (!empty($sedes)) {
+        foreach ($sedes as $orden => $id_sede) {
+            db()->insert(
+                "INSERT INTO Servicio (id_ruta, id_sede, fecha_programada, estado) VALUES (?, ?, ?, 'pendiente')",
+                [$id, $id_sede, $fecha]
+            );
+        }
+    }
+    
     db()->execute(
-        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Ruta', ?, 'INSERT', ?)",
-        [$user['id'], $id, json_encode($data)]
+        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Ruta', ?, ?, ?)",
+        [$user['id'], $id, $existing ? 'UPDATE' : 'INSERT', json_encode($data)]
     );
     
     echo json_encode([
         'success' => true,
-        'message' => 'Ruta creada exitosamente',
+        'message' => $existing ? 'Ruta actualizada' : 'Ruta creada exitosamente',
         'id' => $id
     ]);
 }

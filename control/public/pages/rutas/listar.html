@@ -315,7 +315,7 @@
 
         async function loadClientes() {
             try {
-                const result = await api.get('/sedes');
+                const result = await api.get('/sedes?limit=1000');
                 if (result.success) {
                     allClientes = result.data;
                     allClientes.forEach(c => {
