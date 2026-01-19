@@ -495,8 +495,8 @@
             }
 
             selectedDisponibles.forEach(id => {
-                const cliente = allClientes.find(c => c.id_sede === id);
-                if (cliente && !clientesEnRuta.find(c => c.id_sede === id)) {
+                const cliente = allClientes.find(c => parseInt(c.id_sede) === parseInt(id));
+                if (cliente && !clientesEnRuta.find(c => parseInt(c.id_sede) === parseInt(id))) {
                     clientesEnRuta.push(cliente);
                 }
             });
