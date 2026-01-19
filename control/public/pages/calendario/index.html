@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Calendario de Recojo - IO Group</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -25,16 +24,14 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .calendar-nav {
             display: flex;
             gap: 8px;
             align-items: center;
-        }
-
-        .calendar-nav .btn {
-            padding: 6px 12px;
         }
 
         .month-title {
@@ -59,21 +56,24 @@
         }
 
         .calendar-day {
-            min-height: 100px;
-            border: 1px solid #eee;
+            min-height: 90px;
+            border: 2px solid #eee;
             border-radius: 8px;
             padding: 8px;
             background: #fafafa;
+            cursor: pointer;
             transition: all 0.2s;
         }
 
         .calendar-day:hover {
-            background: #f0f0f0;
+            border-color: #2e7d32;
+            background: #f5f5f5;
         }
 
         .calendar-day.empty {
             background: transparent;
             border: none;
+            cursor: default;
         }
 
         .calendar-day.today {
@@ -83,94 +83,80 @@
 
         .day-number {
             font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-        }
-
-        .day-routes {
+            font-size: 0.85rem;
+            margin-bottom: 4px;
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .route-badge {
-            font-size: 0.7rem;
-            padding: 3px 6px;
-            border-radius: 4px;
-            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 4px;
-            cursor: pointer;
         }
 
-        .route-badge.programada {
+        .day-name {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .distrito-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+        }
+
+        .distrito-chip {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
             background: #e3f2fd;
             color: #1565c0;
         }
 
-        .route-badge.en_curso {
-            background: #fff3e0;
-            color: #ef6c00;
+        .distrito-chip.selected {
+            background: #1565c0;
+            color: white;
         }
 
-        .route-badge.completada {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .route-count {
-            font-size: 0.65rem;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 1px 4px;
-            border-radius: 3px;
-        }
-
-        .distrito-filter {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .distrito-chip {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            border: 1px solid #ddd;
+        /* Sidebar de distritos */
+        .distritos-panel {
             background: white;
-            transition: all 0.2s;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        .distrito-chip:hover {
+        .distrito-item {
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ddd;
+        }
+
+        .distrito-item:hover {
             background: #f5f5f5;
         }
 
-        .distrito-chip.active {
+        .distrito-item.active {
             background: #2e7d32;
             color: white;
             border-color: #2e7d32;
         }
 
-        .resumen-card {
-            background: linear-gradient(135deg, #1B5E20, #2E7D32);
-            color: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
+        .distrito-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
         }
 
-        .resumen-stat {
-            text-align: center;
-        }
-
-        .resumen-stat h3 {
-            font-size: 2rem;
-            margin: 0;
-        }
-
-        .resumen-stat small {
-            opacity: 0.85;
+        .instructions {
+            background: #fff3cd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
         }
 
         @media (max-width: 768px) {
@@ -179,13 +165,13 @@
                 padding: 4px;
             }
 
-            .route-badge {
-                font-size: 0.6rem;
-                padding: 2px 4px;
+            .day-number {
+                font-size: 0.75rem;
             }
 
-            .calendar-day-header {
-                font-size: 0.7rem;
+            .distrito-chip {
+                font-size: 0.55rem;
+                padding: 1px 4px;
             }
         }
     </style>
@@ -206,9 +192,6 @@
                     </nav>
                 </div>
                 <div class="user-menu">
-                    <a href="../alertas/index.html" class="btn btn-light alert-badge">
-                        <i class="bi bi-bell"></i><span class="badge bg-danger" id="alertCount">0</span>
-                    </a>
                     <div class="dropdown">
                         <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
@@ -221,49 +204,46 @@
                 </div>
             </nav>
             <div class="content-area">
-                <!-- Resumen -->
-                <div class="resumen-card">
-                    <div class="row">
-                        <div class="col-4 resumen-stat">
-                            <h3 id="totalRutas">0</h3>
-                            <small>Rutas del Mes</small>
-                        </div>
-                        <div class="col-4 resumen-stat">
-                            <h3 id="rutasCompletadas">0</h3>
-                            <small>Completadas</small>
-                        </div>
-                        <div class="col-4 resumen-stat">
-                            <h3 id="rutasPendientes">0</h3>
-                            <small>Pendientes</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filtros por Distrito -->
-                <div class="distrito-filter" id="distritoFilter">
-                    <span class="distrito-chip active" data-distrito="todos">Todos</span>
-                </div>
-
-                <!-- Calendario -->
-                <div class="calendar-container">
-                    <div class="calendar-header">
-                        <div class="calendar-nav">
-                            <button class="btn btn-outline-secondary" onclick="prevMonth()">
-                                <i class="bi bi-chevron-left"></i>
+                <div class="row">
+                    <!-- Panel de Distritos -->
+                    <div class="col-lg-3 mb-3">
+                        <div class="distritos-panel">
+                            <h6><i class="bi bi-geo-alt"></i> Distritos</h6>
+                            <div class="instructions">
+                                <i class="bi bi-info-circle"></i>
+                                Selecciona un distrito y luego haz clic en los días para asignarlo.
+                            </div>
+                            <div id="distritosList">
+                                <div class="text-muted small">Cargando distritos...</div>
+                            </div>
+                            <hr>
+                            <button class="btn btn-success w-100 mb-2" onclick="saveCalendario()">
+                                <i class="bi bi-check"></i> Guardar Calendario
                             </button>
-                            <h4 class="month-title" id="monthTitle">Enero 2026</h4>
-                            <button class="btn btn-outline-secondary" onclick="nextMonth()">
-                                <i class="bi bi-chevron-right"></i>
+                            <button class="btn btn-outline-secondary w-100" onclick="copyFromPreviousMonth()">
+                                <i class="bi bi-files"></i> Copiar Mes Anterior
                             </button>
                         </div>
-                        <div>
-                            <a href="../rutas/formulario.html" class="btn btn-primary">
-                                <i class="bi bi-plus"></i> Nueva Ruta
-                            </a>
-                        </div>
                     </div>
-                    <div class="calendar-grid" id="calendarGrid">
-                        <!-- Calendar days will be generated here -->
+
+                    <!-- Calendario -->
+                    <div class="col-lg-9">
+                        <div class="calendar-container">
+                            <div class="calendar-header">
+                                <div class="calendar-nav">
+                                    <button class="btn btn-outline-secondary" onclick="prevMonth()">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <h4 class="month-title" id="monthTitle">Enero 2026</h4>
+                                    <button class="btn btn-outline-secondary" onclick="nextMonth()">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="calendar-grid" id="calendarGrid">
+                                <!-- Calendar days will be generated here -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -277,77 +257,108 @@
         initPage('rutas');
 
         let currentDate = new Date();
-        let allRutas = [];
-        let allDistritos = new Set();
-        let selectedDistrito = 'todos';
+        let selectedDistrito = null;
+        let calendarioData = {}; // { "YYYY-MM-DD": ["distrito1", "distrito2"], ... }
+        let allDistritos = [];
 
         const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
+        const distritoColors = {
+            'Miraflores': '#e57373', 'San Isidro': '#64b5f6', 'Surco': '#81c784',
+            'La Molina': '#ffb74d', 'San Borja': '#ba68c8', 'Lince': '#4dd0e1',
+            'Jesús María': '#f06292', 'Magdalena': '#aed581', 'Pueblo Libre': '#ff8a65',
+            'San Miguel': '#90caf9', 'Breña': '#ce93d8', 'Lima': '#ffcc80',
+            'Chorrillos': '#80cbc4', 'Barranco': '#bcaaa4', 'Surquillo': '#ffe082'
+        };
+
         // Navigation
         function prevMonth() {
             currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-            loadRutas();
+            loadCalendario();
         }
 
         function nextMonth() {
             currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-            loadRutas();
+            loadCalendario();
         }
 
-        // Load rutas for current month
-        async function loadRutas() {
+        // Load distritos from sedes
+        async function loadDistritos() {
             try {
-                const year = currentDate.getFullYear();
-                const month = currentDate.getMonth() + 1;
-                const result = await api.get(`/rutas?mes=${month}&anio=${year}`);
+                const result = await api.get('/sedes');
                 if (result.success) {
-                    allRutas = result.data;
-                    updateStats();
-                    extractDistritos();
-                    renderCalendar();
+                    const distritos = new Set();
+                    result.data.forEach(s => {
+                        if (s.distrito) distritos.add(s.distrito);
+                    });
+                    allDistritos = Array.from(distritos).sort();
+                    renderDistritosList();
                 }
             } catch (err) {
-                console.error('Error loading rutas:', err);
+                console.error('Error loading distritos:', err);
             }
         }
 
-        function updateStats() {
-            const total = allRutas.length;
-            const completadas = allRutas.filter(r => r.estado === 'completada').length;
-            const pendientes = allRutas.filter(r => r.estado === 'programada' || r.estado === 'en_curso').length;
+        function renderDistritosList() {
+            const container = document.getElementById('distritosList');
+            if (allDistritos.length === 0) {
+                container.innerHTML = '<div class="text-muted small">No hay distritos configurados</div>';
+                return;
+            }
 
-            document.getElementById('totalRutas').textContent = total;
-            document.getElementById('rutasCompletadas').textContent = completadas;
-            document.getElementById('rutasPendientes').textContent = pendientes;
+            container.innerHTML = allDistritos.map(d => `
+                <div class="distrito-item ${selectedDistrito === d ? 'active' : ''}" 
+                     onclick="selectDistrito('${d}')">
+                    <span>
+                        <span class="distrito-color" style="background: ${distritoColors[d] || '#999'}"></span>
+                        ${d}
+                    </span>
+                    <span class="badge bg-secondary" id="count-${d.replace(/\s/g, '-')}">0</span>
+                </div>
+            `).join('');
+
+            updateDistritoCounts();
         }
 
-        function extractDistritos() {
-            allDistritos.clear();
-            allRutas.forEach(r => {
-                if (r.distrito) allDistritos.add(r.distrito);
+        function selectDistrito(distrito) {
+            selectedDistrito = selectedDistrito === distrito ? null : distrito;
+            renderDistritosList();
+        }
+
+        function updateDistritoCounts() {
+            const counts = {};
+            Object.values(calendarioData).forEach(distritos => {
+                distritos.forEach(d => {
+                    counts[d] = (counts[d] || 0) + 1;
+                });
             });
-            renderDistritoFilter();
-        }
 
-        function renderDistritoFilter() {
-            const container = document.getElementById('distritoFilter');
-            let html = `<span class="distrito-chip ${selectedDistrito === 'todos' ? 'active' : ''}" 
-                         data-distrito="todos" onclick="filterDistrito('todos')">Todos</span>`;
             allDistritos.forEach(d => {
-                html += `<span class="distrito-chip ${selectedDistrito === d ? 'active' : ''}" 
-                          data-distrito="${d}" onclick="filterDistrito('${d}')">${d}</span>`;
+                const el = document.getElementById('count-' + d.replace(/\s/g, '-'));
+                if (el) el.textContent = counts[d] || 0;
             });
-            container.innerHTML = html;
         }
 
-        function filterDistrito(distrito) {
-            selectedDistrito = distrito;
-            renderDistritoFilter();
+        // Load calendario for current month
+        async function loadCalendario() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+
+            try {
+                const result = await api.get(`/calendario?mes=${month}&anio=${year}`);
+                if (result.success && result.data) {
+                    calendarioData = result.data.dias || {};
+                } else {
+                    calendarioData = {};
+                }
+            } catch (err) {
+                calendarioData = {};
+            }
+
             renderCalendar();
+            updateDistritoCounts();
         }
 
         function renderCalendar() {
@@ -377,25 +388,21 @@
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
-
-                // Filter rutas for this day
-                let dayRutas = allRutas.filter(r => r.fecha === dateStr);
-                if (selectedDistrito !== 'todos') {
-                    dayRutas = dayRutas.filter(r => r.distrito === selectedDistrito);
-                }
+                const dayDistritos = calendarioData[dateStr] || [];
+                const dayOfWeek = new Date(year, month, day).getDay();
 
                 html += `
-                    <div class="calendar-day ${isToday ? 'today' : ''}">
-                        <div class="day-number">${day}</div>
-                        <div class="day-routes">
-                            ${dayRutas.slice(0, 3).map(r => `
-                                <a href="../rutas/formulario.html?id=${r.id_ruta}" class="route-badge ${r.estado}">
-                                    <i class="bi bi-truck"></i>
-                                    ${r.vehiculo_placa || 'Ruta'}
-                                    ${r.sedes_count ? `<span class="route-count">${r.sedes_count}</span>` : ''}
-                                </a>
+                    <div class="calendar-day ${isToday ? 'today' : ''}" onclick="toggleDistrito('${dateStr}')">
+                        <div class="day-number">
+                            <span>${day}</span>
+                            <span class="day-name">${diasSemana[dayOfWeek]}</span>
+                        </div>
+                        <div class="distrito-chips">
+                            ${dayDistritos.map(d => `
+                                <span class="distrito-chip" style="background: ${distritoColors[d] || '#e3f2fd'}; color: ${distritoColors[d] ? 'white' : '#1565c0'}">
+                                    ${d.substring(0, 3)}
+                                </span>
                             `).join('')}
-                            ${dayRutas.length > 3 ? `<small class="text-muted">+${dayRutas.length - 3} más</small>` : ''}
                         </div>
                     </div>
                 `;
@@ -404,9 +411,92 @@
             grid.innerHTML = html;
         }
 
+        function toggleDistrito(dateStr) {
+            if (!selectedDistrito) {
+                showToast('Selecciona un distrito primero', 'warning');
+                return;
+            }
+
+            if (!calendarioData[dateStr]) {
+                calendarioData[dateStr] = [];
+            }
+
+            const idx = calendarioData[dateStr].indexOf(selectedDistrito);
+            if (idx >= 0) {
+                calendarioData[dateStr].splice(idx, 1);
+                if (calendarioData[dateStr].length === 0) {
+                    delete calendarioData[dateStr];
+                }
+            } else {
+                calendarioData[dateStr].push(selectedDistrito);
+            }
+
+            renderCalendar();
+            updateDistritoCounts();
+        }
+
+        async function saveCalendario() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+
+            try {
+                const result = await api.post('/calendario', {
+                    mes: month,
+                    anio: year,
+                    dias: calendarioData
+                });
+
+                if (result.success) {
+                    showToast('Calendario guardado correctamente');
+                } else {
+                    showToast(result.message || 'Error al guardar', 'danger');
+                }
+            } catch (err) {
+                showToast('Error al guardar', 'danger');
+            }
+        }
+
+        async function copyFromPreviousMonth() {
+            const prevDate = new Date(currentDate);
+            prevDate.setMonth(prevDate.getMonth() - 1);
+            const prevYear = prevDate.getFullYear();
+            const prevMonth = prevDate.getMonth() + 1;
+
+            try {
+                const result = await api.get(`/calendario?mes=${prevMonth}&anio=${prevYear}`);
+                if (result.success && result.data && result.data.dias) {
+                    // Copy structure but adjust dates to current month
+                    const prevDias = result.data.dias;
+                    const newDias = {};
+
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth();
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                    // Copy by day of month (if day exists in both months)
+                    Object.keys(prevDias).forEach(dateStr => {
+                        const prevDay = parseInt(dateStr.split('-')[2]);
+                        if (prevDay <= daysInMonth) {
+                            const newDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(prevDay).padStart(2, '0')}`;
+                            newDias[newDateStr] = [...prevDias[dateStr]];
+                        }
+                    });
+
+                    calendarioData = newDias;
+                    renderCalendar();
+                    updateDistritoCounts();
+                    showToast('Calendario copiado del mes anterior');
+                } else {
+                    showToast('No hay calendario en el mes anterior', 'warning');
+                }
+            } catch (err) {
+                showToast('Error al copiar', 'danger');
+            }
+        }
+
         // Initialize
-        renderCalendar();
-        loadRutas();
+        loadDistritos();
+        loadCalendario();
     </script>
 </body>
 
