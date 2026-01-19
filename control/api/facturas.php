@@ -42,13 +42,16 @@ function getAll() {
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100)));
     $offset = ($page - 1) * $limit;
     
-    // Consulta optimizada - solo campos esenciales
-    $sql = "SELECT f.id_factura, f.numero_factura, f.fecha_emision, f.monto_total, 
-            f.estado, f.metodo_pago, f.id_servicio,
-            s.codigo_servicio, se.nombre_comercial as sede_nombre, s.id_sede
+    // Consulta optimizada con campos para cobranza
+    $sql = "SELECT f.id_factura, f.serie, f.numero_factura, f.fecha_emision, f.fecha_vencimiento,
+            f.monto_total, f.estado, f.metodo_pago, f.fecha_pago, f.id_servicio,
+            s.codigo_servicio, s.id_sede,
+            se.nombre_comercial as sede_nombre, se.contacto_telefono,
+            e.razon_social as empresa_razon_social
             FROM Factura f
             INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
             INNER JOIN Sede se ON s.id_sede = se.id_sede
+            INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             WHERE 1=1";
     $params = [];
     
