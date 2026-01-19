@@ -205,6 +205,17 @@
                     <a href="historial.html" class="btn btn-outline-secondary">
                         <i class="bi bi-clock-history"></i> Ver Historial
                     </a>
+                    <a href="../calendario/index.html" class="btn btn-outline-primary">
+                        <i class="bi bi-calendar3"></i> Calendario
+                    </a>
+                </div>
+
+                <!-- Distritos del Día (desde Calendario) -->
+                <div class="mb-3 p-3 bg-light rounded" id="distritosDelDia">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <strong><i class="bi bi-geo-alt-fill text-primary"></i> Distritos hoy:</strong>
+                        <span class="text-muted" id="distritosChips">Cargando...</span>
+                    </div>
                 </div>
 
                 <!-- Vehiculo Tabs -->
@@ -296,6 +307,33 @@
         async function init() {
             await loadVehiculos();
             await loadClientes();
+            await loadDistritosDelDia();
+        }
+
+        // Load scheduled districts from calendario
+        async function loadDistritosDelDia() {
+            const fecha = document.getElementById('fechaRuta').value;
+            const [year, month, day] = fecha.split('-');
+
+            try {
+                const result = await api.get(`/calendario?mes=${parseInt(month)}&anio=${year}`);
+                const container = document.getElementById('distritosChips');
+
+                if (result.success && result.data && result.data.dias) {
+                    const distritos = result.data.dias[fecha] || [];
+                    if (distritos.length > 0) {
+                        container.innerHTML = distritos.map(d =>
+                            `<span class="badge bg-primary me-1">${d}</span>`
+                        ).join('');
+                    } else {
+                        container.innerHTML = '<span class="text-muted">No hay distritos programados para este día. <a href="../calendario/index.html">Configurar</a></span>';
+                    }
+                } else {
+                    container.innerHTML = '<span class="text-muted">No hay calendario configurado. <a href="../calendario/index.html">Configurar</a></span>';
+                }
+            } catch (err) {
+                document.getElementById('distritosChips').innerHTML = '<span class="text-muted">Error cargando</span>';
+            }
         }
 
         async function loadVehiculos() {
@@ -586,6 +624,7 @@
         document.getElementById('filterDistrito').addEventListener('change', renderClientesDisponibles);
         document.getElementById('filterSearch').addEventListener('input', renderClientesDisponibles);
         document.getElementById('fechaRuta').addEventListener('change', () => {
+            loadDistritosDelDia();
             if (selectedVehiculo) {
                 selectVehiculo(selectedVehiculo.id_vehiculo);
             }

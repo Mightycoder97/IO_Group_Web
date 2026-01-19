@@ -153,21 +153,19 @@ function create() {
             [$data['estado'] ?? 'programada', $data['observaciones'] ?? null, $id]
         );
     } else {
-        // Create new route
+        // Auto-generate codigo_ruta: R-YYYYMMDD-VID-COUNTER
+        $dateStr = str_replace('-', '', $fecha);
+        $countToday = db()->queryOne(
+            "SELECT COUNT(*) as cnt FROM Ruta WHERE fecha = ?",
+            [$fecha]
+        );
+        $counter = ($countToday['cnt'] ?? 0) + 1;
+        $codigo_ruta = "R-{$dateStr}-{$id_vehiculo}-{$counter}";
+        
+        // Create new route (simplified - only essential fields)
         $id = db()->insert(
-            "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, hora_salida, hora_retorno, km_inicial, km_final, estado, observaciones) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                $id_vehiculo,
-                $data['codigo_ruta'] ?? null,
-                $fecha,
-                $data['hora_salida'] ?? null,
-                $data['hora_retorno'] ?? null,
-                $data['km_inicial'] ?? null,
-                $data['km_final'] ?? null,
-                $data['estado'] ?? 'programada',
-                $data['observaciones'] ?? null
-            ]
+            "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, estado) VALUES (?, ?, ?, 'programada')",
+            [$id_vehiculo, $codigo_ruta, $fecha]
         );
     }
     
