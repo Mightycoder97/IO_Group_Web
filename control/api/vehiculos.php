@@ -97,8 +97,8 @@ function create() {
     }
     
     $id = db()->insert(
-        "INSERT INTO Vehiculo (placa, marca, modelo, anio, color, tonelaje_max, tipo, numero_motor, numero_chasis, fecha_venc_soat, fecha_venc_revision, fecha_venc_mtc) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO Vehiculo (placa, marca, modelo, anio, color, tonelaje_max, tipo, fecha_venc_soat, fecha_venc_revision, fecha_venc_mtc) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             $placa,
             $data['marca'] ?? null,
@@ -107,8 +107,6 @@ function create() {
             $data['color'] ?? null,
             $data['tonelaje_max'] ?? null,
             $data['tipo'] ?? 'camion',
-            $data['numero_motor'] ?? null,
-            $data['numero_chasis'] ?? null,
             $data['fecha_venc_soat'] ?? null,
             $data['fecha_venc_revision'] ?? null,
             $data['fecha_venc_mtc'] ?? null
@@ -167,8 +165,6 @@ function update($id) {
             color = ?,
             tonelaje_max = ?,
             tipo = ?,
-            numero_motor = ?,
-            numero_chasis = ?,
             fecha_venc_soat = ?,
             fecha_venc_revision = ?,
             fecha_venc_mtc = ?,
@@ -183,8 +179,6 @@ function update($id) {
             $data['color'] ?? $existing['color'],
             $data['tonelaje_max'] ?? $existing['tonelaje_max'],
             $data['tipo'] ?? $existing['tipo'],
-            $data['numero_motor'] ?? $existing['numero_motor'],
-            $data['numero_chasis'] ?? $existing['numero_chasis'],
             $data['fecha_venc_soat'] ?? $existing['fecha_venc_soat'],
             $data['fecha_venc_revision'] ?? $existing['fecha_venc_revision'],
             $data['fecha_venc_mtc'] ?? $existing['fecha_venc_mtc'],
