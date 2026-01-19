@@ -5,14 +5,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Rutas - IO Group</title>
-    <!-- Preconnect para optimizar carga -->
+    <title>Asignación de Rutas - IO Group</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+    <style>
+        .vehiculo-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .vehiculo-tab {
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            background: white;
+            border: 2px solid #ddd;
+            transition: all 0.2s;
+            min-width: 180px;
+        }
+
+        .vehiculo-tab:hover {
+            border-color: #2e7d32;
+        }
+
+        .vehiculo-tab.active {
+            background: linear-gradient(135deg, #1B5E20, #2E7D32);
+            color: white;
+            border-color: #1B5E20;
+        }
+
+        .vehiculo-tab .placa {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .vehiculo-tab .info {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .vehiculo-tab .badge {
+            margin-top: 5px;
+        }
+
+        .assignment-container {
+            display: grid;
+            grid-template-columns: 1fr 80px 1fr;
+            gap: 15px;
+            align-items: start;
+        }
+
+        .client-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 15px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .panel-header h6 {
+            margin: 0;
+        }
+
+        .panel-filters {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .client-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .client-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .client-item:hover {
+            background: #f5f5f5;
+        }
+
+        .client-item.selected {
+            background: #e3f2fd;
+        }
+
+        .client-item .name {
+            font-weight: 500;
+        }
+
+        .client-item .details {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+            height: 100%;
+            padding-top: 100px;
+        }
+
+        .action-buttons .btn {
+            padding: 15px;
+        }
+
+        .history-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-top: 20px;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .ruta-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 992px) {
+            .assignment-container {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: row;
+                padding-top: 0;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 
 <body class="control-app">
@@ -25,14 +179,11 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Rutas</li>
+                            <li class="breadcrumb-item active">Asignación de Rutas</li>
                         </ol>
                     </nav>
                 </div>
                 <div class="user-menu">
-                    <a href="../alertas/index.html" class="btn btn-light alert-badge">
-                        <i class="bi bi-bell"></i><span class="badge bg-danger" id="alertCount">0</span>
-                    </a>
                     <div class="dropdown">
                         <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
@@ -45,231 +196,429 @@
                 </div>
             </nav>
             <div class="content-area">
-                <div class="table-container">
-                    <div class="table-header">
-                        <div>
-                            <h5 class="table-title mb-0"><i class="bi bi-signpost-2"></i> Historial de Rutas</h5>
+                <!-- Fecha de Ruta -->
+                <div class="mb-3 d-flex align-items-center gap-3 flex-wrap">
+                    <div>
+                        <label class="form-label mb-0"><strong>Fecha de Ruta:</strong></label>
+                    </div>
+                    <input type="date" class="form-control" id="fechaRuta" style="width: auto;">
+                    <a href="historial.html" class="btn btn-outline-secondary">
+                        <i class="bi bi-clock-history"></i> Ver Historial
+                    </a>
+                </div>
+
+                <!-- Vehiculo Tabs -->
+                <div class="vehiculo-tabs" id="vehiculoTabs">
+                    <div class="text-muted">Cargando vehículos...</div>
+                </div>
+
+                <!-- Assignment Interface -->
+                <div class="assignment-container">
+                    <!-- Clientes Disponibles -->
+                    <div class="client-panel">
+                        <div class="panel-header">
+                            <h6><i class="bi bi-geo-alt"></i> Clientes Disponibles</h6>
                         </div>
-                        <div class="d-flex gap-2 desktop-filters flex-wrap">
-                            <input type="date" class="form-control form-control-sm" id="fechaDesde"
-                                style="width: 130px;" title="Desde">
-                            <input type="date" class="form-control form-control-sm" id="fechaHasta"
-                                style="width: 130px;" title="Hasta">
-                            <select class="form-select form-select-sm" id="vehiculoFilter" style="width: 120px;">
-                                <option value="">Vehículo</option>
+                        <div class="panel-filters">
+                            <select class="form-select form-select-sm" id="filterDistrito" style="width: 150px;">
+                                <option value="">Todos los distritos</option>
                             </select>
-                            <select class="form-select form-select-sm" id="estadoFilter" style="width: 120px;">
-                                <option value="">Estado</option>
-                                <option value="programada">Programada</option>
-                                <option value="en_curso">En Curso</option>
-                                <option value="completada">Completada</option>
-                                <option value="cancelada">Cancelada</option>
-                            </select>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()" title="Limpiar">
-                                <i class="bi bi-x-circle"></i>
-                            </button>
-                            <a href="../calendario/index.html" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-calendar3"></i> Calendario
-                            </a>
-                            <a href="formulario.html" class="btn btn-primary btn-sm" id="btnNew"><i
-                                    class="bi bi-plus"></i> Nueva</a>
+                            <input type="text" class="form-control form-control-sm" id="filterSearch"
+                                placeholder="Buscar..." style="width: 150px;">
                         </div>
-                        <!-- Mobile Filters -->
-                        <div class="mobile-filters">
-                            <div class="filter-row">
-                                <input type="date" class="form-control form-control-sm" id="fechaDesdeMobile">
-                                <select class="form-select form-select-sm" id="estadoFilterMobile">
-                                    <option value="">Estado</option>
-                                    <option value="programada">Programada</option>
-                                    <option value="en_curso">En Curso</option>
-                                    <option value="completada">Completada</option>
-                                </select>
-                            </div>
+                        <div class="client-list" id="clientesDisponibles">
+                            <div class="text-center py-4 text-muted">Selecciona un vehículo</div>
                         </div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Vehículo</th>
-                                    <th class="hide-on-mobile">Fecha</th>
-                                    <th class="hide-on-mobile">Horario</th>
-                                    <th class="hide-on-mobile">Km</th>
-                                    <th>Estado</th>
-                                    <th width="100">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody">
-                                <tr>
-                                    <td colspan="7" class="text-center py-4">Cargando...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="addSelectedClients()" title="Agregar a ruta">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="removeSelectedClients()"
+                            title="Quitar de ruta">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </div>
+
+                    <!-- Clientes en Ruta -->
+                    <div class="client-panel">
+                        <div class="panel-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="bi bi-truck"></i> En Ruta: <span id="vehiculoActual">-</span>
+                            </h6>
+                            <span class="badge bg-primary" id="countEnRuta">0</span>
+                        </div>
+                        <div class="client-list" id="clientesEnRuta">
+                            <div class="text-center py-4 text-muted">Sin clientes asignados</div>
+                        </div>
+                        <div class="ruta-actions">
+                            <button class="btn btn-success flex-grow-1" onclick="saveRuta()">
+                                <i class="bi bi-check"></i> Guardar Ruta
+                            </button>
+                            <button class="btn btn-outline-success" onclick="sendWhatsAppAll()"
+                                title="WhatsApp a todos">
+                                <i class="bi bi-whatsapp"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial del Vehiculo Actual -->
+                <div class="history-panel">
+                    <h6><i class="bi bi-clock-history"></i> Últimas Rutas de este Vehículo</h6>
+                    <div id="vehiculoHistory">
+                        <div class="text-muted small">Selecciona un vehículo para ver su historial</div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-    <!-- FAB for mobile -->
-    <a href="formulario.html" class="fab" id="fabNew" aria-label="Nueva Ruta">
-        <i class="bi bi-plus"></i>
-    </a>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
-    <script src="../../js/table-sort.js"></script>
     <script src="../../js/app.js?v=2.0"></script>
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('rutas');
-        if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
 
-        let allData = [];
-        let tableSorter = null;
+        let vehiculos = [];
+        let selectedVehiculo = null;
+        let allClientes = [];
+        let clientesEnRuta = [];
+        let allDistritos = new Set();
+        let selectedDisponibles = new Set();
+        let selectedEnRuta = new Set();
 
-        // Load vehiculos for filter dropdown
+        // Set today's date
+        document.getElementById('fechaRuta').value = new Date().toISOString().split('T')[0];
+
+        // Load initial data
+        async function init() {
+            await loadVehiculos();
+            await loadClientes();
+        }
+
         async function loadVehiculos() {
             try {
                 const result = await api.get('/vehiculos');
                 if (result.success) {
-                    const select = document.getElementById('vehiculoFilter');
-                    select.innerHTML = '<option value="">Vehículo</option>' +
-                        result.data.map(v => `<option value="${v.id_vehiculo}">${v.placa}</option>`).join('');
+                    vehiculos = result.data;
+                    renderVehiculoTabs();
+                    if (vehiculos.length > 0) {
+                        selectVehiculo(vehiculos[0].id_vehiculo);
+                    }
                 }
             } catch (err) {
                 console.error('Error loading vehiculos:', err);
             }
         }
-        loadVehiculos();
 
-        async function loadData() {
+        async function loadClientes() {
             try {
-                let params = new URLSearchParams();
-                const desde = document.getElementById('fechaDesde').value;
-                const hasta = document.getElementById('fechaHasta').value;
-                const vehiculo = document.getElementById('vehiculoFilter').value;
-                const estado = document.getElementById('estadoFilter').value;
-
-                if (vehiculo) params.append('vehiculo', vehiculo);
-                if (estado) params.append('estado', estado);
-
-                const url = '/rutas' + (params.toString() ? '?' + params.toString() : '');
-                const result = await api.get(url);
-
+                const result = await api.get('/sedes');
                 if (result.success) {
-                    allData = result.data;
-
-                    // Client-side date range filter
-                    if (desde || hasta) {
-                        allData = allData.filter(item => {
-                            const fecha = item.fecha;
-                            if (desde && fecha < desde) return false;
-                            if (hasta && fecha > hasta) return false;
-                            return true;
-                        });
-                    }
-
-                    renderTable(allData);
-                    if (!tableSorter) {
-                        tableSorter = new TableSort('tableBody', {
-                            columns: ['codigo_ruta', 'vehiculo_placa', 'fecha', 'hora_salida', 'km_inicial', 'estado', null],
-                            onSort: (sortedData) => renderTable(sortedData)
-                        });
-                    }
-                    tableSorter.setData(allData);
+                    allClientes = result.data;
+                    allClientes.forEach(c => {
+                        if (c.distrito) allDistritos.add(c.distrito);
+                    });
+                    renderDistritoFilter();
+                    renderClientesDisponibles();
                 }
             } catch (err) {
-                showToast('Error cargando datos', 'danger');
+                console.error('Error loading clientes:', err);
             }
         }
 
-        function formatTime(time) {
-            if (!time) return '-';
-            return time.substring(0, 5);
-        }
-
-        function getEstadoBadge(estado) {
-            const badges = {
-                'programada': 'bg-secondary',
-                'en_curso': 'bg-primary',
-                'completada': 'bg-success',
-                'cancelada': 'bg-danger'
-            };
-            const icons = {
-                'programada': 'bi-clock',
-                'en_curso': 'bi-truck',
-                'completada': 'bi-check-circle',
-                'cancelada': 'bi-x-circle'
-            };
-            return `<span class="badge ${badges[estado] || 'bg-secondary'}"><i class="bi ${icons[estado] || ''}"></i> ${estado}</span>`;
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('tableBody');
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No hay registros</td></tr>';
-                return;
-            }
-            tbody.innerHTML = data.map(item => `
-                <tr>
-                    <td><strong>${item.codigo_ruta || `R-${item.id_ruta}`}</strong>
-                        ${item.sedes_count ? `<br><small class="text-muted">${item.sedes_count} clientes</small>` : ''}</td>
-                    <td>${item.vehiculo_placa || '-'}<br><small class="text-muted">${item.vehiculo_marca || ''} ${item.vehiculo_modelo || ''}</small></td>
-                    <td>${new Date(item.fecha).toLocaleDateString('es-PE')}</td>
-                    <td>${formatTime(item.hora_salida)} - ${formatTime(item.hora_retorno)}</td>
-                    <td>
-                        <small>Inicio: ${item.km_inicial || '-'}</small><br>
-                        <small>Final: ${item.km_final || '-'}</small>
-                    </td>
-                    <td>${getEstadoBadge(item.estado)}</td>
-                    <td>
-                        <a href="formulario.html?id=${item.id_ruta}" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-pencil"></i></a>
-                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_ruta})"><i class="bi bi-trash"></i></button>` : ''}
-                    </td>
-                </tr>
+        function renderVehiculoTabs() {
+            const container = document.getElementById('vehiculoTabs');
+            container.innerHTML = vehiculos.map(v => `
+                <div class="vehiculo-tab ${selectedVehiculo?.id_vehiculo === v.id_vehiculo ? 'active' : ''}" 
+                     onclick="selectVehiculo(${v.id_vehiculo})">
+                    <div class="placa"><i class="bi bi-truck"></i> ${v.placa}</div>
+                    <div class="info">${v.marca || ''} ${v.modelo || ''}</div>
+                    <div class="badge ${v.estado === 'activo' ? 'bg-success' : 'bg-secondary'}" id="badge-${v.id_vehiculo}">
+                        <span id="count-${v.id_vehiculo}">0</span> asignados
+                    </div>
+                </div>
             `).join('');
         }
 
-        // Filter event listeners
-        document.getElementById('fechaDesde').addEventListener('change', loadData);
-        document.getElementById('fechaHasta').addEventListener('change', loadData);
-        document.getElementById('vehiculoFilter').addEventListener('change', loadData);
-        document.getElementById('estadoFilter').addEventListener('change', loadData);
+        async function selectVehiculo(id) {
+            selectedVehiculo = vehiculos.find(v => v.id_vehiculo === id);
+            document.getElementById('vehiculoActual').textContent = selectedVehiculo?.placa || '-';
 
-        // Mobile filter sync
-        document.getElementById('fechaDesdeMobile')?.addEventListener('change', function (e) {
-            document.getElementById('fechaDesde').value = e.target.value;
-            loadData();
-        });
-        document.getElementById('estadoFilterMobile')?.addEventListener('change', function (e) {
-            document.getElementById('estadoFilter').value = e.target.value;
-            loadData();
-        });
+            // Reset selections
+            clientesEnRuta = [];
+            selectedDisponibles.clear();
+            selectedEnRuta.clear();
 
-        function clearFilters() {
-            document.getElementById('fechaDesde').value = '';
-            document.getElementById('fechaHasta').value = '';
-            document.getElementById('vehiculoFilter').value = '';
-            document.getElementById('estadoFilter').value = '';
-            loadData();
+            // Check if route exists for this date/vehicle
+            await loadExistingRoute();
+
+            renderVehiculoTabs();
+            renderClientesDisponibles();
+            renderClientesEnRuta();
+            loadVehiculoHistory();
         }
 
-        async function deleteItem(id) {
-            if (!confirmDelete()) return;
+        async function loadExistingRoute() {
+            const fecha = document.getElementById('fechaRuta').value;
+            if (!selectedVehiculo || !fecha) return;
+
             try {
-                const result = await api.delete(`/rutas/${id}`);
-                if (result.success) {
-                    showToast('Ruta eliminada');
-                    loadData();
-                } else {
-                    showToast(result.message, 'danger');
+                const result = await api.get(`/rutas?vehiculo=${selectedVehiculo.id_vehiculo}&fecha=${fecha}`);
+                if (result.success && result.data.length > 0) {
+                    const ruta = result.data[0];
+                    // Load services for this route
+                    const rutaDetail = await api.get(`/rutas/${ruta.id_ruta}`);
+                    if (rutaDetail.success && rutaDetail.data.servicios) {
+                        clientesEnRuta = rutaDetail.data.servicios.map(s => ({
+                            id_sede: s.id_sede,
+                            nombre_comercial: s.sede_nombre,
+                            distrito: s.distrito || '',
+                            direccion: s.direccion || '',
+                            telefono: s.telefono || ''
+                        }));
+                    }
                 }
             } catch (err) {
-                showToast('Error eliminando', 'danger');
+                console.error('Error loading existing route:', err);
             }
         }
 
-        loadData();
+        function renderDistritoFilter() {
+            const select = document.getElementById('filterDistrito');
+            select.innerHTML = '<option value="">Todos los distritos</option>' +
+                Array.from(allDistritos).sort().map(d => `<option value="${d}">${d}</option>`).join('');
+        }
+
+        function renderClientesDisponibles() {
+            const container = document.getElementById('clientesDisponibles');
+            const distritoFilter = document.getElementById('filterDistrito').value;
+            const searchFilter = document.getElementById('filterSearch').value.toLowerCase();
+
+            // Filter out clients already in route
+            const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
+            let clientes = allClientes.filter(c => !enRutaIds.has(c.id_sede));
+
+            // Apply filters
+            if (distritoFilter) {
+                clientes = clientes.filter(c => c.distrito === distritoFilter);
+            }
+            if (searchFilter) {
+                clientes = clientes.filter(c =>
+                    c.nombre_comercial?.toLowerCase().includes(searchFilter) ||
+                    c.direccion?.toLowerCase().includes(searchFilter)
+                );
+            }
+
+            if (clientes.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted">Sin clientes disponibles</div>';
+                return;
+            }
+
+            container.innerHTML = clientes.map(c => `
+                <div class="client-item ${selectedDisponibles.has(c.id_sede) ? 'selected' : ''}" 
+                     onclick="toggleSelectDisponible(${c.id_sede})">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <div class="name">${c.nombre_comercial}</div>
+                            <div class="details">
+                                <i class="bi bi-geo-alt"></i> ${c.distrito || '-'} | 
+                                ${c.direccion || ''}
+                            </div>
+                        </div>
+                        <div>
+                            <i class="bi ${selectedDisponibles.has(c.id_sede) ? 'bi-check-circle-fill text-primary' : 'bi-circle'}"></i>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderClientesEnRuta() {
+            const container = document.getElementById('clientesEnRuta');
+            document.getElementById('countEnRuta').textContent = clientesEnRuta.length;
+
+            // Update badge on vehicle tab
+            if (selectedVehiculo) {
+                const countEl = document.getElementById(`count-${selectedVehiculo.id_vehiculo}`);
+                if (countEl) countEl.textContent = clientesEnRuta.length;
+            }
+
+            if (clientesEnRuta.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted">Sin clientes asignados</div>';
+                return;
+            }
+
+            container.innerHTML = clientesEnRuta.map((c, i) => `
+                <div class="client-item ${selectedEnRuta.has(c.id_sede) ? 'selected' : ''}" 
+                     onclick="toggleSelectEnRuta(${c.id_sede})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary me-2">${i + 1}</span>
+                            <span class="name">${c.nombre_comercial}</span>
+                            <div class="details">${c.distrito || ''} - ${c.direccion || ''}</div>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-success" onclick="sendWhatsApp(${c.id_sede}, event)" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleSelectDisponible(id) {
+            if (selectedDisponibles.has(id)) {
+                selectedDisponibles.delete(id);
+            } else {
+                selectedDisponibles.add(id);
+            }
+            renderClientesDisponibles();
+        }
+
+        function toggleSelectEnRuta(id) {
+            if (selectedEnRuta.has(id)) {
+                selectedEnRuta.delete(id);
+            } else {
+                selectedEnRuta.add(id);
+            }
+            renderClientesEnRuta();
+        }
+
+        function addSelectedClients() {
+            if (selectedDisponibles.size === 0) {
+                showToast('Selecciona clientes para agregar', 'warning');
+                return;
+            }
+
+            selectedDisponibles.forEach(id => {
+                const cliente = allClientes.find(c => c.id_sede === id);
+                if (cliente && !clientesEnRuta.find(c => c.id_sede === id)) {
+                    clientesEnRuta.push(cliente);
+                }
+            });
+
+            selectedDisponibles.clear();
+            renderClientesDisponibles();
+            renderClientesEnRuta();
+        }
+
+        function removeSelectedClients() {
+            if (selectedEnRuta.size === 0) {
+                showToast('Selecciona clientes para quitar', 'warning');
+                return;
+            }
+
+            clientesEnRuta = clientesEnRuta.filter(c => !selectedEnRuta.has(c.id_sede));
+            selectedEnRuta.clear();
+            renderClientesDisponibles();
+            renderClientesEnRuta();
+        }
+
+        async function saveRuta() {
+            if (!selectedVehiculo) {
+                showToast('Selecciona un vehículo', 'warning');
+                return;
+            }
+
+            const fecha = document.getElementById('fechaRuta').value;
+            if (!fecha) {
+                showToast('Selecciona una fecha', 'warning');
+                return;
+            }
+
+            try {
+                const result = await api.post('/rutas', {
+                    id_vehiculo: selectedVehiculo.id_vehiculo,
+                    fecha: fecha,
+                    estado: 'programada',
+                    sedes: clientesEnRuta.map(c => c.id_sede)
+                });
+
+                if (result.success) {
+                    showToast('Ruta guardada correctamente');
+                    loadVehiculoHistory();
+                } else {
+                    showToast(result.message || 'Error al guardar', 'danger');
+                }
+            } catch (err) {
+                showToast('Error al guardar', 'danger');
+            }
+        }
+
+        async function loadVehiculoHistory() {
+            const container = document.getElementById('vehiculoHistory');
+            if (!selectedVehiculo) {
+                container.innerHTML = '<div class="text-muted small">Selecciona un vehículo</div>';
+                return;
+            }
+
+            try {
+                const result = await api.get(`/rutas?vehiculo=${selectedVehiculo.id_vehiculo}`);
+                if (result.success && result.data.length > 0) {
+                    const lastRoutes = result.data.slice(0, 5);
+                    container.innerHTML = lastRoutes.map(r => `
+                        <div class="history-item">
+                            <div>
+                                <strong>${new Date(r.fecha).toLocaleDateString('es-PE')}</strong>
+                                <span class="badge ${r.estado === 'completada' ? 'bg-success' : r.estado === 'en_curso' ? 'bg-primary' : 'bg-secondary'} ms-2">
+                                    ${r.estado}
+                                </span>
+                                <br><small class="text-muted">${r.sedes_count || 0} clientes</small>
+                            </div>
+                            <a href="formulario.html?id=${r.id_ruta}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="text-muted small">Sin rutas anteriores</div>';
+                }
+            } catch (err) {
+                container.innerHTML = '<div class="text-muted small">Error cargando historial</div>';
+            }
+        }
+
+        // Filter listeners
+        document.getElementById('filterDistrito').addEventListener('change', renderClientesDisponibles);
+        document.getElementById('filterSearch').addEventListener('input', renderClientesDisponibles);
+        document.getElementById('fechaRuta').addEventListener('change', () => {
+            if (selectedVehiculo) {
+                selectVehiculo(selectedVehiculo.id_vehiculo);
+            }
+        });
+
+        // WhatsApp
+        function sendWhatsApp(sedeId, event) {
+            event?.stopPropagation();
+            const cliente = clientesEnRuta.find(c => c.id_sede === sedeId) || allClientes.find(c => c.id_sede === sedeId);
+            if (!cliente || !cliente.telefono) {
+                showToast('Cliente sin teléfono', 'warning');
+                return;
+            }
+            const fecha = document.getElementById('fechaRuta').value;
+            const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-PE') : 'mañana';
+            const mensaje = `Hola ${cliente.nombre_comercial}, somos de IO Group. Confirmamos su recojo de residuos para el ${fechaFormateada}. ¿Puede confirmar?`;
+            const phone = cliente.telefono.replace(/\D/g, '');
+            window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`, '_blank');
+        }
+
+        function sendWhatsAppAll() {
+            if (clientesEnRuta.length === 0) {
+                showToast('No hay clientes en la ruta', 'warning');
+                return;
+            }
+            clientesEnRuta.forEach((c, i) => {
+                if (c.telefono) {
+                    setTimeout(() => sendWhatsApp(c.id_sede), i * 1500);
+                }
+            });
+        }
+
+        init();
     </script>
 </body>
 

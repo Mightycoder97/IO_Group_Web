@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Historial de Rutas - IO Group</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/global.css" rel="stylesheet">
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="listar.html">Rutas</a></li>
+                            <li class="breadcrumb-item active">Historial</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div class="content-area">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>
+                            <h5 class="table-title mb-0"><i class="bi bi-clock-history"></i> Historial de Rutas</h5>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <input type="date" class="form-control form-control-sm" id="fechaDesde"
+                                style="width: 130px;" placeholder="Desde">
+                            <input type="date" class="form-control form-control-sm" id="fechaHasta"
+                                style="width: 130px;" placeholder="Hasta">
+                            <select class="form-select form-select-sm" id="vehiculoFilter" style="width: 130px;">
+                                <option value="">Vehículo</option>
+                            </select>
+                            <select class="form-select form-select-sm" id="estadoFilter" style="width: 120px;">
+                                <option value="">Estado</option>
+                                <option value="programada">Programada</option>
+                                <option value="en_curso">En Curso</option>
+                                <option value="completada">Completada</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </button>
+                            <a href="listar.html" class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus-circle"></i> Asignar Rutas
+                            </a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Vehículo</th>
+                                    <th>Clientes</th>
+                                    <th>Estado</th>
+                                    <th>Horario</th>
+                                    <th width="120">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js?v=2.0"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('rutas');
+
+        let allData = [];
+
+        async function loadVehiculos() {
+            try {
+                const result = await api.get('/vehiculos');
+                if (result.success) {
+                    const select = document.getElementById('vehiculoFilter');
+                    select.innerHTML = '<option value="">Vehículo</option>' +
+                        result.data.map(v => `<option value="${v.id_vehiculo}">${v.placa}</option>`).join('');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+
+        async function loadData() {
+            try {
+                let params = new URLSearchParams();
+                const desde = document.getElementById('fechaDesde').value;
+                const hasta = document.getElementById('fechaHasta').value;
+                const vehiculo = document.getElementById('vehiculoFilter').value;
+                const estado = document.getElementById('estadoFilter').value;
+
+                if (vehiculo) params.append('vehiculo', vehiculo);
+                if (estado) params.append('estado', estado);
+
+                const url = '/rutas' + (params.toString() ? '?' + params.toString() : '');
+                const result = await api.get(url);
+
+                if (result.success) {
+                    allData = result.data;
+
+                    // Client-side date filter
+                    if (desde || hasta) {
+                        allData = allData.filter(item => {
+                            if (desde && item.fecha < desde) return false;
+                            if (hasta && item.fecha > hasta) return false;
+                            return true;
+                        });
+                    }
+
+                    renderTable(allData);
+                }
+            } catch (err) {
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        function getEstadoBadge(estado) {
+            const config = {
+                'programada': { bg: 'bg-secondary', icon: 'bi-clock' },
+                'en_curso': { bg: 'bg-primary', icon: 'bi-truck' },
+                'completada': { bg: 'bg-success', icon: 'bi-check-circle' },
+                'cancelada': { bg: 'bg-danger', icon: 'bi-x-circle' }
+            };
+            const c = config[estado] || config['programada'];
+            return `<span class="badge ${c.bg}"><i class="bi ${c.icon}"></i> ${estado}</span>`;
+        }
+
+        function formatTime(t) {
+            return t ? t.substring(0, 5) : '-';
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin registros</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td><strong>${new Date(r.fecha).toLocaleDateString('es-PE')}</strong></td>
+                    <td>
+                        <i class="bi bi-truck"></i> ${r.vehiculo_placa || '-'}<br>
+                        <small class="text-muted">${r.vehiculo_marca || ''} ${r.vehiculo_modelo || ''}</small>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">${r.sedes_count || 0} clientes</span>
+                    </td>
+                    <td>${getEstadoBadge(r.estado)}</td>
+                    <td>
+                        ${formatTime(r.hora_salida)} - ${formatTime(r.hora_retorno)}<br>
+                        <small class="text-muted">
+                            ${r.km_inicial ? `${r.km_inicial} → ${r.km_final || '?'} km` : ''}
+                        </small>
+                    </td>
+                    <td>
+                        <a href="formulario.html?id=${r.id_ruta}" class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        ${canEdit() ? `
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteRuta(${r.id_ruta})" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function deleteRuta(id) {
+            if (!confirmDelete()) return;
+            try {
+                const result = await api.delete(`/rutas/${id}`);
+                if (result.success) {
+                    showToast('Ruta eliminada');
+                    loadData();
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                showToast('Error eliminando', 'danger');
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('fechaDesde').value = '';
+            document.getElementById('fechaHasta').value = '';
+            document.getElementById('vehiculoFilter').value = '';
+            document.getElementById('estadoFilter').value = '';
+            loadData();
+        }
+
+        // Event listeners
+        document.getElementById('fechaDesde').addEventListener('change', loadData);
+        document.getElementById('fechaHasta').addEventListener('change', loadData);
+        document.getElementById('vehiculoFilter').addEventListener('change', loadData);
+        document.getElementById('estadoFilter').addEventListener('change', loadData);
+
+        // Init
+        loadVehiculos();
+        loadData();
+    </script>
+</body>
+
+</html>
