@@ -18,15 +18,83 @@
             color: white;
             padding: 1.5rem;
             border-radius: var(--border-radius);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .client-header h4 {
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
         }
 
-        .client-header small {
-            opacity: 0.9;
+        .client-header .info-row {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 0.95rem;
+        }
+
+        .client-header .info-row i {
+            opacity: 0.8;
+        }
+
+        .client-header .text-muted-light {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        .debt-status {
+            padding: 1rem 1.25rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .debt-status.al-dia {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-left: 4px solid #388e3c;
+        }
+
+        .debt-status.con-deuda {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border-left: 4px solid #d32f2f;
+        }
+
+        .debt-status .status-icon {
+            font-size: 2rem;
+        }
+
+        .debt-status.al-dia .status-icon {
+            color: #388e3c;
+        }
+
+        .debt-status.con-deuda .status-icon {
+            color: #d32f2f;
+        }
+
+        .debt-status .status-text {
+            flex: 1;
+        }
+
+        .debt-status .status-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .debt-status.al-dia .status-title {
+            color: #2e7d32;
+        }
+
+        .debt-status.con-deuda .status-title {
+            color: #c62828;
+        }
+
+        .debt-status .status-detail {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .debt-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #c62828;
         }
 
         .category-card {
@@ -91,6 +159,28 @@
         .info-row i {
             width: 20px;
         }
+
+        .pago-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .pago-pagado {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .pago-pendiente {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .pago-sin-factura {
+            background: #f5f5f5;
+            color: #757575;
+        }
     </style>
 </head>
 
@@ -146,6 +236,16 @@
                     </div>
                 </div>
 
+                <!-- Debt Status Banner -->
+                <div class="debt-status al-dia" id="debtStatus">
+                    <div class="status-icon"><i class="bi bi-check-circle-fill"></i></div>
+                    <div class="status-text">
+                        <div class="status-title" id="debtTitle">Al día</div>
+                        <div class="status-detail" id="debtDetail">Sin deudas pendientes</div>
+                    </div>
+                    <div class="debt-amount" id="debtAmount" style="display:none;">S/ 0</div>
+                </div>
+
                 <!-- Document Categories -->
                 <h5 class="mb-3"><i class="bi bi-folder2-open"></i> Archivo Documentario</h5>
                 <div class="row g-4 mb-4">
@@ -179,25 +279,24 @@
                     </div>
                 </div>
 
-                <!-- Recent Activity -->
+                <!-- Services with Payment Status -->
                 <div class="card">
                     <div class="card-header">
-                        <i class="bi bi-clock-history"></i> Últimos Servicios
+                        <i class="bi bi-clock-history"></i> Historial de Servicios
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Fecha</th>
-                                        <th>Estado</th>
-                                        <th class="hide-on-mobile">Peso (kg)</th>
-                                        <th>Factura</th>
+                                        <th>Fecha Servicio</th>
+                                        <th>Estado Pago</th>
+                                        <th>Tarifa</th>
                                     </tr>
                                 </thead>
                                 <tbody id="serviciosBody">
                                     <tr>
-                                        <td colspan="4" class="text-center py-3">Cargando...</td>
+                                        <td colspan="3" class="text-center py-3">Cargando...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -216,6 +315,7 @@
 
         const sedeId = getUrlParam('id');
         let sedeData = null;
+        let allServicios = [];
 
         if (!sedeId) {
             window.location.href = 'listar.html';
@@ -243,9 +343,11 @@
                 document.getElementById('countManifiestos').textContent = manifiestosRes.data?.length || 0;
                 document.getElementById('countGuias').textContent = guiasRes.data?.length || 0;
 
-                // Load recent services
-                const serviciosRes = await api.get(`/servicios?sede=${sedeId}&limit=5`);
-                renderServicios(serviciosRes.data || []);
+                // Load all services for this sede
+                const serviciosRes = await api.get(`/servicios?sede=${sedeId}&limit=100`);
+                allServicios = serviciosRes.data || [];
+                renderServicios(allServicios);
+                calculateDebt(allServicios);
 
             } catch (err) {
                 console.error('Error loading data:', err);
@@ -256,10 +358,16 @@
         function renderHeader(data) {
             document.getElementById('clientName').textContent = data.nombre_comercial;
             document.getElementById('breadcrumbName').textContent = data.nombre_comercial;
-            document.getElementById('empresaInfo').innerHTML =
-                `${data.empresa_razon_social} <small class="text-white-50">RUC: ${data.empresa_ruc || '-'}</small>`;
+
+            // Better formatted empresa info
+            let empresaText = data.empresa_razon_social || '-';
+            if (data.empresa_ruc) {
+                empresaText += ` <span class="text-muted-light">(RUC: ${data.empresa_ruc})</span>`;
+            }
+            document.getElementById('empresaInfo').innerHTML = empresaText;
+
             document.getElementById('direccionInfo').textContent =
-                `${data.direccion || '-'} ${data.distrito ? ', ' + data.distrito : ''}`;
+                `${data.direccion || '-'}${data.distrito ? ', ' + data.distrito : ''}`;
             document.getElementById('contactoInfo').textContent = data.contacto_nombre || '-';
             document.getElementById('telefonoInfo').textContent = data.contacto_telefono || '-';
 
@@ -273,30 +381,85 @@
             }
         }
 
+        function calculateDebt(servicios) {
+            const debtStatus = document.getElementById('debtStatus');
+            const debtTitle = document.getElementById('debtTitle');
+            const debtDetail = document.getElementById('debtDetail');
+            const debtAmount = document.getElementById('debtAmount');
+
+            let totalDeuda = 0;
+            let serviciosPendientes = 0;
+            let diasMaxRetraso = 0;
+            const today = new Date();
+
+            servicios.forEach(s => {
+                // Check if service has unpaid invoice or no invoice at all
+                const tarifa = parseFloat(s.tarifa_servicio) || 0;
+                const facturaPagada = s.factura_estado === 'pagada';
+
+                if (tarifa > 0 && !facturaPagada && s.fecha_programada) {
+                    totalDeuda += tarifa;
+                    serviciosPendientes++;
+
+                    // Calculate days late from service date
+                    const fechaServicio = new Date(s.fecha_programada);
+                    const diasRetraso = Math.floor((today - fechaServicio) / (1000 * 60 * 60 * 24));
+                    if (diasRetraso > diasMaxRetraso) {
+                        diasMaxRetraso = diasRetraso;
+                    }
+                }
+            });
+
+            if (totalDeuda > 0) {
+                debtStatus.className = 'debt-status con-deuda';
+                debtStatus.querySelector('.status-icon i').className = 'bi bi-exclamation-triangle-fill';
+                debtTitle.textContent = 'Tiene deudas pendientes';
+                debtDetail.textContent = `${serviciosPendientes} servicio${serviciosPendientes > 1 ? 's' : ''} sin pagar • ${diasMaxRetraso} días de retraso`;
+                debtAmount.textContent = `S/ ${totalDeuda.toFixed(0)}`;
+                debtAmount.style.display = 'block';
+            } else {
+                debtStatus.className = 'debt-status al-dia';
+                debtStatus.querySelector('.status-icon i').className = 'bi bi-check-circle-fill';
+                debtTitle.textContent = 'Al día';
+                debtDetail.textContent = 'Todos los servicios están pagados';
+                debtAmount.style.display = 'none';
+            }
+        }
+
         function renderServicios(servicios) {
             const tbody = document.getElementById('serviciosBody');
             if (servicios.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Sin servicios registrados</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Sin servicios registrados</td></tr>';
                 return;
             }
-            tbody.innerHTML = servicios.map(s => `
+
+            // Sort by date descending
+            servicios.sort((a, b) => new Date(b.fecha_programada) - new Date(a.fecha_programada));
+
+            tbody.innerHTML = servicios.map(s => {
+                const tarifa = parseFloat(s.tarifa_servicio) || 0;
+                let estadoPago = '';
+
+                if (s.factura_estado === 'pagada') {
+                    estadoPago = '<span class="pago-badge pago-pagado"><i class="bi bi-check-circle"></i> Pagado</span>';
+                } else if (s.id_factura) {
+                    estadoPago = '<span class="pago-badge pago-pendiente"><i class="bi bi-clock"></i> Pendiente</span>';
+                } else {
+                    estadoPago = '<span class="pago-badge pago-sin-factura"><i class="bi bi-dash"></i> Sin factura</span>';
+                }
+
+                return `
                 <tr>
-                    <td>${s.fecha_programada || '-'}</td>
-                    <td>${getEstadoBadge(s.estado)}</td>
-                    <td class="hide-on-mobile">${s.peso_kg || '-'}</td>
-                    <td>${s.numero_factura || '<span class="text-muted">-</span>'}</td>
+                    <td><strong>${formatDate(s.fecha_programada)}</strong></td>
+                    <td>${estadoPago}</td>
+                    <td>${tarifa > 0 ? `<strong>S/ ${tarifa.toFixed(0)}</strong>` : '-'}</td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
-        function getEstadoBadge(estado) {
-            const badges = {
-                'completado': '<span class="badge bg-success">Completado</span>',
-                'en_curso': '<span class="badge bg-primary">En curso</span>',
-                'programado': '<span class="badge bg-info">Programado</span>',
-                'cancelado': '<span class="badge bg-danger">Cancelado</span>'
-            };
-            return badges[estado] || `<span class="badge bg-secondary">${estado}</span>`;
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
         }
 
         function goToCategory(category) {
