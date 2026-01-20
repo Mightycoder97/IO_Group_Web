@@ -110,10 +110,8 @@
                 const desde = document.getElementById('fechaDesde').value;
                 const hasta = document.getElementById('fechaHasta').value;
                 const vehiculo = document.getElementById('vehiculoFilter').value;
-                const estado = document.getElementById('estadoFilter').value;
 
                 if (vehiculo) params.append('vehiculo', vehiculo);
-                if (estado) params.append('estado', estado);
 
                 const url = '/rutas' + (params.toString() ? '?' + params.toString() : '');
                 const result = await api.get(url);
