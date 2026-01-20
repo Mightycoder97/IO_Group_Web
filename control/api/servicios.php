@@ -44,15 +44,16 @@ function getAll() {
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100))); // Entre 10 y 500, default 100
     $offset = ($page - 1) * $limit;
     
-    // Consulta optimizada con índices - incluye IDs de documentos relacionados y tarifa
+    // Consulta optimizada - incluye estado de pago y tarifa
     $sql = "SELECT s.id_servicio, s.codigo_servicio, s.mes_servicio, s.fecha_programada, s.fecha_ejecucion, 
-            s.estado, s.id_sede, s.id_planta,
+            s.estado, s.estado_pago, s.fecha_pago, s.id_sede, s.id_planta,
             se.nombre_comercial as sede_nombre, se.direccion as sede_direccion, se.tarifa_servicio,
+            se.contacto_telefono,
             e.razon_social as empresa_razon_social,
             p.nombre_comercial as planta_nombre,
             m.id_manifiesto, m.peso_kg,
             g.id_guia,
-            f.id_factura, f.estado as factura_estado, f.monto_total as factura_monto
+            f.id_factura
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
@@ -290,6 +291,8 @@ function update($id) {
             hora_llegada = ?,
             hora_salida = ?,
             estado = ?,
+            estado_pago = ?,
+            fecha_pago = ?,
             observaciones = ?,
             fecha_modificacion = NOW()
          WHERE id_servicio = ?",
@@ -304,6 +307,8 @@ function update($id) {
             $data['hora_llegada'] ?? $existing['hora_llegada'],
             $data['hora_salida'] ?? $existing['hora_salida'],
             $data['estado'] ?? $existing['estado'],
+            $data['estado_pago'] ?? $existing['estado_pago'] ?? 'pendiente',
+            $data['fecha_pago'] ?? $existing['fecha_pago'],
             $data['observaciones'] ?? $existing['observaciones'],
             $id
         ]

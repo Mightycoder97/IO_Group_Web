@@ -393,11 +393,11 @@
             const today = new Date();
 
             servicios.forEach(s => {
-                // Check if service has unpaid invoice or no invoice at all
+                // Check if service is paid
                 const tarifa = parseFloat(s.tarifa_servicio) || 0;
-                const facturaPagada = s.factura_estado === 'pagada';
+                const pagado = s.estado_pago === 'pagado';
 
-                if (tarifa > 0 && !facturaPagada && s.fecha_programada) {
+                if (tarifa > 0 && !pagado && s.fecha_programada) {
                     totalDeuda += tarifa;
                     serviciosPendientes++;
 
@@ -440,12 +440,10 @@
                 const tarifa = parseFloat(s.tarifa_servicio) || 0;
                 let estadoPago = '';
 
-                if (s.factura_estado === 'pagada') {
+                if (s.estado_pago === 'pagado') {
                     estadoPago = '<span class="pago-badge pago-pagado"><i class="bi bi-check-circle"></i> Pagado</span>';
-                } else if (s.id_factura) {
-                    estadoPago = '<span class="pago-badge pago-pendiente"><i class="bi bi-clock"></i> Pendiente</span>';
                 } else {
-                    estadoPago = '<span class="pago-badge pago-sin-factura"><i class="bi bi-dash"></i> Sin factura</span>';
+                    estadoPago = '<span class="pago-badge pago-pendiente"><i class="bi bi-clock"></i> Pendiente</span>';
                 }
 
                 return `

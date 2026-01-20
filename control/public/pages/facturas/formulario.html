@@ -10,11 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
-    <style>
-        .auto-field {
-            background-color: #f8f9fa;
-        }
-    </style>
 </head>
 
 <body class="control-app">
@@ -52,31 +47,10 @@
                     <div class="card-body">
                         <form id="dataForm">
                             <div class="row g-3">
-                                <!-- Campos automáticos -->
-                                <div class="col-md-3">
-                                    <label class="form-label">Serie <small class="text-muted">(auto)</small></label>
-                                    <input type="text" class="form-control auto-field" id="serie" readonly>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Nº Operación <small
-                                            class="text-muted">(auto)</small></label>
-                                    <input type="text" class="form-control auto-field" id="numero_operacion" readonly>
-                                </div>
-
-                                <!-- Servicio -->
-                                <div class="col-md-6">
-                                    <label class="form-label">Servicio *</label>
-                                    <select class="form-select" id="id_servicio" required>
-                                        <option value="">Seleccione...</option>
-                                    </select>
-                                    <div id="servicioInfo" class="small text-muted mt-1"></div>
-                                </div>
-
-                                <!-- Campos manuales -->
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Número de Factura *</label>
                                     <input type="text" class="form-control" id="numero_factura" required
-                                        placeholder="00000123">
+                                        placeholder="F001-00000123">
                                 </div>
 
                                 <div class="col-md-4">
@@ -86,47 +60,15 @@
                                 </div>
 
                                 <div class="col-md-4">
-                                    <label class="form-label">Método de Pago</label>
+                                    <label class="form-label">Tipo de Pago</label>
                                     <select class="form-select" id="metodo_pago">
-                                        <option value="">Sin pago aún</option>
+                                        <option value="">Seleccionar...</option>
                                         <option value="transferencia">Transferencia</option>
                                         <option value="yape">Yape</option>
                                         <option value="plin">Plin</option>
                                         <option value="efectivo">Efectivo</option>
                                         <option value="deposito">Depósito</option>
                                     </select>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Fecha de Pago</label>
-                                    <input type="date" class="form-control" id="fecha_pago">
-                                </div>
-
-                                <!-- Documento Escaneado -->
-                                <div class="col-12">
-                                    <h6 class="mt-2"><i class="bi bi-file-pdf"></i> Documento Escaneado</h6>
-                                    <hr class="mt-1">
-                                </div>
-                                <div class="col-12">
-                                    <div class="upload-area border rounded p-3 text-center" id="uploadArea"
-                                        style="border-style: dashed !important; cursor: pointer;">
-                                        <i class="bi bi-cloud-arrow-up fs-2 text-muted"></i>
-                                        <p class="mb-0 small">Arrastra el PDF o haz clic para seleccionar</p>
-                                        <input type="file" id="archivo_pdf" accept=".pdf" style="display: none;">
-                                    </div>
-                                    <div id="filePreview" class="mt-2 p-2 bg-light rounded" style="display: none;">
-                                        <i class="bi bi-file-pdf text-danger"></i>
-                                        <span id="fileName"></span>
-                                        <button type="button" class="btn btn-sm btn-outline-danger float-end"
-                                            onclick="removeFile()">
-                                            <i class="bi bi-x"></i>
-                                        </button>
-                                    </div>
-                                    <div id="existingPdf" class="mt-2" style="display: none;">
-                                        <a href="#" id="pdfLink" target="_blank" class="btn btn-outline-primary btn-sm">
-                                            <i class="bi bi-file-pdf"></i> Ver Factura PDF
-                                        </a>
-                                    </div>
                                 </div>
                             </div>
                             <div class="mt-4">
@@ -147,67 +89,6 @@
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('facturas');
         const id = getUrlParam('id');
-        const servicioParam = getUrlParam('servicio');
-        let selectedFile = null;
-        let allServicios = [];
-
-        // Load servicios
-        async function loadServicios() {
-            try {
-                const result = await api.get('/servicios?limit=500');
-                if (result.success) {
-                    allServicios = result.data;
-                    const select = document.getElementById('id_servicio');
-                    select.innerHTML = '<option value="">Seleccione...</option>' +
-                        allServicios.map(s => `<option value="${s.id_servicio}">${s.codigo_servicio || s.id_servicio} - ${s.sede_nombre || ''} (${s.fecha_programada || ''})</option>`).join('');
-
-                    // Auto-select if coming from services page
-                    if (servicioParam) {
-                        select.value = servicioParam;
-                        updateServicioInfo();
-                    }
-                }
-            } catch (err) {
-                console.error('Error loading servicios:', err);
-            }
-        }
-
-        function updateServicioInfo() {
-            const servicioId = document.getElementById('id_servicio').value;
-            const servicio = allServicios.find(s => s.id_servicio == servicioId);
-            const infoDiv = document.getElementById('servicioInfo');
-
-            if (servicio) {
-                infoDiv.innerHTML = `<i class="bi bi-geo-alt"></i> ${servicio.sede_nombre || ''} - ${servicio.sede_direccion || ''}`;
-
-                // Auto-fill monto from tarifa_servicio if available
-                if (servicio.tarifa_servicio && !document.getElementById('monto_total').value) {
-                    document.getElementById('monto_total').value = parseFloat(servicio.tarifa_servicio).toFixed(2);
-                }
-            } else {
-                infoDiv.innerHTML = '';
-            }
-        }
-
-        document.getElementById('id_servicio').addEventListener('change', updateServicioInfo);
-
-        // Generate auto fields
-        function generateAutoFields() {
-            // Serie: F + año actual (ej: F2026)
-            const year = new Date().getFullYear();
-            document.getElementById('serie').value = `F${year}`;
-
-            // Numero operacion: timestamp único
-            const timestamp = Date.now().toString().slice(-8);
-            document.getElementById('numero_operacion').value = timestamp;
-        }
-
-        // Init
-        loadServicios();
-
-        if (!id) {
-            generateAutoFields();
-        }
 
         if (id) {
             document.getElementById('pageTitle').textContent = 'Editar Factura';
@@ -215,77 +96,14 @@
             loadData();
         }
 
-        // ========== PDF UPLOAD HANDLING ==========
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('archivo_pdf');
-        const filePreview = document.getElementById('filePreview');
-        const fileName = document.getElementById('fileName');
-
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = '#2e7d32';
-            uploadArea.style.backgroundColor = '#f1f8e9';
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.borderColor = '';
-            uploadArea.style.backgroundColor = '';
-        });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = '';
-            uploadArea.style.backgroundColor = '';
-            if (e.dataTransfer.files.length > 0) {
-                handleFile(e.dataTransfer.files[0]);
-            }
-        });
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                handleFile(fileInput.files[0]);
-            }
-        });
-
-        function handleFile(file) {
-            if (file.type !== 'application/pdf') {
-                showToast('Solo se permiten archivos PDF', 'warning');
-                return;
-            }
-            selectedFile = file;
-            fileName.textContent = file.name;
-            filePreview.style.display = 'block';
-            uploadArea.style.display = 'none';
-        }
-
-        function removeFile() {
-            selectedFile = null;
-            fileInput.value = '';
-            filePreview.style.display = 'none';
-            uploadArea.style.display = 'block';
-        }
-
         async function loadData() {
             try {
                 const result = await api.get(`/facturas/${id}`);
                 if (result.success) {
                     const d = result.data;
-
-                    // Wait for services to load then set value
-                    setTimeout(() => {
-                        document.getElementById('id_servicio').value = d.id_servicio || '';
-                        updateServicioInfo();
-                    }, 500);
-
-                    document.getElementById('serie').value = d.serie || '';
-                    document.getElementById('numero_operacion').value = d.numero_operacion || '';
                     document.getElementById('numero_factura').value = d.numero_factura || '';
                     document.getElementById('monto_total').value = d.monto_total || '';
                     document.getElementById('metodo_pago').value = d.metodo_pago || '';
-                    document.getElementById('fecha_pago').value = d.fecha_pago || '';
-
-                    if (d.doc_escaneado) {
-                        document.getElementById('existingPdf').style.display = 'block';
-                        document.getElementById('pdfLink').href = d.doc_escaneado;
-                    }
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
@@ -295,31 +113,16 @@
         document.getElementById('dataForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const formData = new FormData();
-            formData.append('id_servicio', document.getElementById('id_servicio').value);
-            formData.append('serie', document.getElementById('serie').value);
-            formData.append('numero_operacion', document.getElementById('numero_operacion').value);
-            formData.append('numero_factura', document.getElementById('numero_factura').value);
-            formData.append('monto_total', document.getElementById('monto_total').value);
-            formData.append('metodo_pago', document.getElementById('metodo_pago').value || '');
-            formData.append('fecha_pago', document.getElementById('fecha_pago').value || '');
-
-            // Set estado based on payment
-            const metodoPago = document.getElementById('metodo_pago').value;
-            formData.append('estado', metodoPago ? 'pagada' : 'emitida');
-
-            // Set fecha_emision to today if new
-            if (!id) {
-                formData.append('fecha_emision', new Date().toISOString().split('T')[0]);
-            }
-
-            if (selectedFile) {
-                formData.append('archivo_pdf', selectedFile);
-            }
+            const data = {
+                numero_factura: document.getElementById('numero_factura').value,
+                monto_total: document.getElementById('monto_total').value,
+                metodo_pago: document.getElementById('metodo_pago').value || null
+            };
 
             try {
                 const url = id ? `/facturas/${id}` : '/facturas';
-                const result = await api.postFormData(url, formData);
+                const method = id ? 'put' : 'post';
+                const result = await api[method](url, data);
 
                 if (result.success) {
                     showToast(id ? 'Factura actualizada' : 'Factura creada');

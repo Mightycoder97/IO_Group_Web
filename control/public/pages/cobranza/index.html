@@ -52,7 +52,7 @@
             color: #1565c0;
         }
 
-        .invoice-row {
+        .service-row {
             background: white;
             border-radius: 8px;
             padding: 15px;
@@ -65,65 +65,52 @@
             gap: 10px;
         }
 
-        .invoice-info {
+        .service-info {
             flex: 1;
             min-width: 200px;
         }
 
-        .invoice-info .client {
+        .service-info .client {
             font-weight: 600;
             font-size: 1rem;
         }
 
-        .invoice-info .details {
+        .service-info .details {
             font-size: 0.85rem;
             color: #666;
         }
 
-        .invoice-amount {
+        .service-amount {
             text-align: right;
             min-width: 100px;
         }
 
-        .invoice-amount .amount {
+        .service-amount .amount {
             font-weight: 700;
             font-size: 1.2rem;
         }
 
-        .invoice-actions {
+        .service-actions {
             display: flex;
             gap: 8px;
         }
 
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 12px;
+        .days-late {
+            background: #ffebee;
+            color: #c62828;
+            padding: 2px 8px;
+            border-radius: 10px;
             font-size: 0.75rem;
             font-weight: 500;
         }
 
-        .status-emitida {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-
-        .status-vencida {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .status-pagada {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
         @media (max-width: 768px) {
-            .invoice-row {
+            .service-row {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
-            .invoice-amount {
+            .service-amount {
                 text-align: left;
             }
         }
@@ -165,7 +152,7 @@
                     </div>
                     <div class="stat-card overdue">
                         <div class="value" id="statVencido">S/ 0</div>
-                        <div class="label"><i class="bi bi-exclamation-triangle"></i> Vencido</div>
+                        <div class="label"><i class="bi bi-exclamation-triangle"></i> Vencido (+30 días)</div>
                     </div>
                     <div class="stat-card collected">
                         <div class="value" id="statCobrado">S/ 0</div>
@@ -173,7 +160,7 @@
                     </div>
                     <div class="stat-card total">
                         <div class="value" id="statTotal">0</div>
-                        <div class="label"><i class="bi bi-file-text"></i> Facturas pendientes</div>
+                        <div class="label"><i class="bi bi-file-text"></i> Servicios pendientes</div>
                     </div>
                 </div>
 
@@ -184,15 +171,10 @@
                             <input type="text" class="form-control form-control-sm" id="filterCliente"
                                 placeholder="Buscar cliente..." style="width: 200px;">
                             <select class="form-select form-select-sm" id="filterEstado" style="width: 140px;">
+                                <option value="pendiente" selected>Pendientes</option>
+                                <option value="pagado">Pagados</option>
                                 <option value="">Todos</option>
-                                <option value="emitida" selected>Pendientes</option>
-                                <option value="vencida">Vencidas</option>
-                                <option value="pagada">Pagadas</option>
                             </select>
-                            <input type="date" class="form-control form-control-sm" id="filterDesde"
-                                style="width: 140px;" title="Desde">
-                            <input type="date" class="form-control form-control-sm" id="filterHasta"
-                                style="width: 140px;" title="Hasta">
                             <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
                                 <i class="bi bi-x-circle"></i>
                             </button>
@@ -200,8 +182,8 @@
                     </div>
                 </div>
 
-                <!-- Invoices List -->
-                <div id="invoicesList">
+                <!-- Services List -->
+                <div id="servicesList">
                     <div class="text-center py-4 text-muted">Cargando...</div>
                 </div>
             </div>
@@ -226,17 +208,6 @@
                         <input type="text" class="form-control" id="pagoMonto" readonly>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Método de Pago *</label>
-                        <select class="form-select" id="pagoMetodo" required>
-                            <option value="">Seleccionar...</option>
-                            <option value="transferencia">Transferencia</option>
-                            <option value="yape">Yape</option>
-                            <option value="plin">Plin</option>
-                            <option value="efectivo">Efectivo</option>
-                            <option value="deposito">Depósito</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">Fecha de Pago</label>
                         <input type="date" class="form-control" id="pagoFecha">
                     </div>
@@ -256,22 +227,20 @@
     <script src="../../js/app.js?v=2.0"></script>
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
-        initPage('facturas');
+        initPage('cobranza');
 
-        let allFacturas = [];
-        let selectedFactura = null;
+        let allServicios = [];
+        let selectedServicio = null;
         const pagoModal = new bootstrap.Modal(document.getElementById('pagoModal'));
-
-        // Set default date filter to current month
         const today = new Date();
-        document.getElementById('filterDesde').value = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+
         document.getElementById('pagoFecha').value = today.toISOString().split('T')[0];
 
         async function loadData() {
             try {
-                const result = await api.get('/facturas');
+                const result = await api.get('/servicios?limit=500');
                 if (result.success) {
-                    allFacturas = result.data;
+                    allServicios = result.data.filter(s => s.tarifa_servicio > 0);
                     applyFilters();
                     updateStats();
                 }
@@ -283,53 +252,51 @@
         function applyFilters() {
             const cliente = document.getElementById('filterCliente').value.toLowerCase();
             const estado = document.getElementById('filterEstado').value;
-            const desde = document.getElementById('filterDesde').value;
-            const hasta = document.getElementById('filterHasta').value;
 
-            let filtered = allFacturas;
+            let filtered = allServicios;
 
             if (cliente) {
-                filtered = filtered.filter(f =>
-                    f.sede_nombre?.toLowerCase().includes(cliente) ||
-                    f.empresa_razon_social?.toLowerCase().includes(cliente)
+                filtered = filtered.filter(s =>
+                    s.sede_nombre?.toLowerCase().includes(cliente) ||
+                    s.empresa_razon_social?.toLowerCase().includes(cliente)
                 );
             }
+
             if (estado) {
-                filtered = filtered.filter(f => f.estado === estado);
-            }
-            if (desde) {
-                filtered = filtered.filter(f => f.fecha_emision >= desde);
-            }
-            if (hasta) {
-                filtered = filtered.filter(f => f.fecha_emision <= hasta);
+                filtered = filtered.filter(s => (s.estado_pago || 'pendiente') === estado);
             }
 
             renderList(filtered);
         }
 
         function updateStats() {
-            const pendientes = allFacturas.filter(f => f.estado === 'emitida');
-            const vencidas = allFacturas.filter(f => f.estado === 'vencida');
+            const pendientes = allServicios.filter(s => (s.estado_pago || 'pendiente') === 'pendiente');
+            const pagados = allServicios.filter(s => s.estado_pago === 'pagado');
+
+            // Vencidos: más de 30 días desde fecha_programada
+            const vencidos = pendientes.filter(s => {
+                if (!s.fecha_programada) return false;
+                const dias = Math.floor((today - new Date(s.fecha_programada)) / (1000 * 60 * 60 * 24));
+                return dias > 30;
+            });
+
+            // Cobrado este mes
             const currentMonth = today.getMonth();
             const currentYear = today.getFullYear();
-            const pagadasMes = allFacturas.filter(f => {
-                if (f.estado !== 'pagada' || !f.fecha_pago) return false;
-                const fechaPago = new Date(f.fecha_pago);
+            const pagadosMes = pagados.filter(s => {
+                if (!s.fecha_pago) return false;
+                const fechaPago = new Date(s.fecha_pago);
                 return fechaPago.getMonth() === currentMonth && fechaPago.getFullYear() === currentYear;
             });
 
-            const sumPendiente = pendientes.reduce((s, f) => s + parseFloat(f.monto_total || 0), 0);
-            const sumVencido = vencidas.reduce((s, f) => s + parseFloat(f.monto_total || 0), 0);
-            const sumCobrado = pagadasMes.reduce((s, f) => s + parseFloat(f.monto_total || 0), 0);
+            const sumPendiente = pendientes.reduce((s, srv) => s + parseFloat(srv.tarifa_servicio || 0), 0);
+            const sumVencido = vencidos.reduce((s, srv) => s + parseFloat(srv.tarifa_servicio || 0), 0);
+            const sumCobrado = pagadosMes.reduce((s, srv) => s + parseFloat(srv.tarifa_servicio || 0), 0);
 
             document.getElementById('statPendiente').textContent = `S/ ${sumPendiente.toFixed(0)}`;
             document.getElementById('statVencido').textContent = `S/ ${sumVencido.toFixed(0)}`;
             document.getElementById('statCobrado').textContent = `S/ ${sumCobrado.toFixed(0)}`;
-            document.getElementById('statTotal').textContent = pendientes.length + vencidas.length;
-        }
-
-        function getStatusClass(estado) {
-            return `status-${estado}`;
+            document.getElementById('statTotal').textContent = pendientes.length;
         }
 
         function formatDate(dateStr) {
@@ -337,70 +304,74 @@
             return new Date(dateStr).toLocaleDateString('es-PE');
         }
 
+        function getDaysLate(dateStr) {
+            if (!dateStr) return 0;
+            return Math.floor((today - new Date(dateStr)) / (1000 * 60 * 60 * 24));
+        }
+
         function renderList(data) {
-            const container = document.getElementById('invoicesList');
+            const container = document.getElementById('servicesList');
 
             if (data.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-muted">Sin facturas</div>';
+                container.innerHTML = '<div class="text-center py-4 text-muted">Sin servicios</div>';
                 return;
             }
 
-            container.innerHTML = data.map(f => `
-                <div class="invoice-row">
-                    <div class="invoice-info">
-                        <div class="client">${f.sede_nombre || f.empresa_razon_social || 'Sin cliente'}</div>
+            // Sort by date (oldest first for pending)
+            data.sort((a, b) => new Date(a.fecha_programada) - new Date(b.fecha_programada));
+
+            container.innerHTML = data.map(s => {
+                const tarifa = parseFloat(s.tarifa_servicio || 0);
+                const diasRetraso = getDaysLate(s.fecha_programada);
+                const isPendiente = (s.estado_pago || 'pendiente') === 'pendiente';
+
+                return `
+                <div class="service-row">
+                    <div class="service-info">
+                        <div class="client">${s.sede_nombre || s.empresa_razon_social || 'Sin cliente'}</div>
                         <div class="details">
-                            <span class="status-badge ${getStatusClass(f.estado)}">${f.estado}</span>
-                            <span class="ms-2">${f.serie || ''}-${f.numero_factura}</span>
-                            <span class="ms-2"><i class="bi bi-calendar"></i> ${formatDate(f.fecha_emision)}</span>
-                            ${f.fecha_vencimiento ? `<span class="ms-2 text-danger"><i class="bi bi-alarm"></i> Vence: ${formatDate(f.fecha_vencimiento)}</span>` : ''}
+                            <i class="bi bi-calendar"></i> ${formatDate(s.fecha_programada)}
+                            ${isPendiente && diasRetraso > 0 ? `<span class="days-late ms-2">${diasRetraso} días</span>` : ''}
+                            ${!isPendiente ? '<span class="badge bg-success ms-2">Pagado</span>' : ''}
                         </div>
                     </div>
-                    <div class="invoice-amount">
-                        <div class="amount">S/ ${parseFloat(f.monto_total || 0).toFixed(2)}</div>
+                    <div class="service-amount">
+                        <div class="amount">S/ ${tarifa.toFixed(0)}</div>
                     </div>
-                    <div class="invoice-actions">
-                        ${f.estado !== 'pagada' ? `
-                            <button class="btn btn-success btn-sm" onclick="abrirPago(${f.id_factura})" title="Marcar pagado">
+                    <div class="service-actions">
+                        ${isPendiente ? `
+                            <button class="btn btn-success btn-sm" onclick="abrirPago(${s.id_servicio})" title="Marcar pagado">
                                 <i class="bi bi-check-circle"></i>
                             </button>
-                            <button class="btn btn-outline-success btn-sm" onclick="sendWhatsApp(${f.id_factura})" title="WhatsApp">
+                            <button class="btn btn-outline-success btn-sm" onclick="sendWhatsApp(${s.id_servicio})" title="WhatsApp">
                                 <i class="bi bi-whatsapp"></i>
                             </button>
                         ` : `
-                            <span class="text-success"><i class="bi bi-check-circle-fill"></i> Pagado</span>
+                            <span class="text-success"><i class="bi bi-check-circle-fill"></i></span>
                         `}
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function abrirPago(id) {
-            selectedFactura = allFacturas.find(f => f.id_factura === id);
-            if (!selectedFactura) return;
+            selectedServicio = allServicios.find(s => s.id_servicio === id);
+            if (!selectedServicio) return;
 
-            document.getElementById('pagoCliente').value = selectedFactura.sede_nombre || selectedFactura.empresa_razon_social || '';
-            document.getElementById('pagoMonto').value = `S/ ${parseFloat(selectedFactura.monto_total || 0).toFixed(2)}`;
-            document.getElementById('pagoMetodo').value = '';
+            document.getElementById('pagoCliente').value = selectedServicio.sede_nombre || selectedServicio.empresa_razon_social || '';
+            document.getElementById('pagoMonto').value = `S/ ${parseFloat(selectedServicio.tarifa_servicio || 0).toFixed(2)}`;
             document.getElementById('pagoFecha').value = today.toISOString().split('T')[0];
 
             pagoModal.show();
         }
 
         async function confirmarPago() {
-            const metodo = document.getElementById('pagoMetodo').value;
             const fecha = document.getElementById('pagoFecha').value;
 
-            if (!metodo) {
-                showToast('Selecciona un método de pago', 'warning');
-                return;
-            }
-
             try {
-                const result = await api.put(`/facturas/${selectedFactura.id_factura}`, {
-                    estado: 'pagada',
-                    fecha_pago: fecha,
-                    metodo_pago: metodo
+                const result = await api.put(`/servicios/${selectedServicio.id_servicio}`, {
+                    estado_pago: 'pagado',
+                    fecha_pago: fecha
                 });
 
                 if (result.success) {
@@ -416,33 +387,30 @@
         }
 
         function sendWhatsApp(id) {
-            const factura = allFacturas.find(f => f.id_factura === id);
-            if (!factura) return;
+            const servicio = allServicios.find(s => s.id_servicio === id);
+            if (!servicio) return;
 
-            const telefono = factura.contacto_telefono || '';
+            const telefono = servicio.contacto_telefono || '';
             if (!telefono) {
                 showToast('Cliente sin teléfono registrado', 'warning');
                 return;
             }
 
-            const mensaje = `Hola, somos de IO Group. Le recordamos que tiene pendiente la factura ${factura.serie || ''}-${factura.numero_factura} por S/ ${parseFloat(factura.monto_total).toFixed(2)}. ¿Podría indicarnos cuándo realizará el pago?`;
+            const tarifa = parseFloat(servicio.tarifa_servicio || 0).toFixed(0);
+            const mensaje = `Hola, somos de IO Group. Le recordamos que tiene pendiente el pago del servicio del ${formatDate(servicio.fecha_programada)} por S/ ${tarifa}. ¿Podría indicarnos cuándo realizará el pago?`;
             const phone = telefono.replace(/\D/g, '');
             window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
         function clearFilters() {
             document.getElementById('filterCliente').value = '';
-            document.getElementById('filterEstado').value = 'emitida';
-            document.getElementById('filterDesde').value = '';
-            document.getElementById('filterHasta').value = '';
+            document.getElementById('filterEstado').value = 'pendiente';
             applyFilters();
         }
 
         // Event listeners
         document.getElementById('filterCliente').addEventListener('input', applyFilters);
         document.getElementById('filterEstado').addEventListener('change', applyFilters);
-        document.getElementById('filterDesde').addEventListener('change', applyFilters);
-        document.getElementById('filterHasta').addEventListener('change', applyFilters);
 
         loadData();
     </script>
