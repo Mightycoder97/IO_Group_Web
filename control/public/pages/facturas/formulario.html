@@ -179,6 +179,11 @@
 
             if (servicio) {
                 infoDiv.innerHTML = `<i class="bi bi-geo-alt"></i> ${servicio.sede_nombre || ''} - ${servicio.sede_direccion || ''}`;
+
+                // Auto-fill monto from tarifa_servicio if available
+                if (servicio.tarifa_servicio && !document.getElementById('monto_total').value) {
+                    document.getElementById('monto_total').value = parseFloat(servicio.tarifa_servicio).toFixed(2);
+                }
             } else {
                 infoDiv.innerHTML = '';
             }

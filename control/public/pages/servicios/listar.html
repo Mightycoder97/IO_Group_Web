@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -12,6 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
 </head>
+
 <body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
@@ -107,13 +109,14 @@
                                     <th class="hide-on-mobile">Empresa</th>
                                     <th class="hide-on-mobile">Planta</th>
                                     <th class="hide-on-mobile">Peso (Kg)</th>
+                                    <th>Tarifa</th>
                                     <th>Estado</th>
                                     <th width="200">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <tr>
-                                    <td colspan="8" class="text-center py-4">Cargando...</td>
+                                    <td colspan="9" class="text-center py-4">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -196,7 +199,7 @@
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No hay registros</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No hay registros</td></tr>';
                 return;
             }
             tbody.innerHTML = data.map(s => `
@@ -207,6 +210,13 @@
                     <td class="hide-on-mobile">${s.empresa_razon_social}</td>
                     <td class="hide-on-mobile">${s.planta_nombre}</td>
                     <td class="hide-on-mobile">${s.peso_kg ? s.peso_kg + ' kg' : '-'}</td>
+                    <td>
+                        ${s.tarifa_servicio ? `<strong>S/ ${parseFloat(s.tarifa_servicio).toFixed(0)}</strong>` : '-'}
+                        ${s.id_factura ? (s.factura_estado === 'pagada'
+                    ? '<br><span class="badge bg-success">Pagado</span>'
+                    : '<br><span class="badge bg-warning text-dark">Pendiente</span>')
+                    : ''}
+                    </td>
                     <td>${getStatusBadge(s.estado)}</td>
                     <td>
                         <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary btn-action" title="Ver/Editar"><i class="bi bi-pencil"></i></a>
@@ -257,4 +267,5 @@
         });
     </script>
 </body>
+
 </html>
