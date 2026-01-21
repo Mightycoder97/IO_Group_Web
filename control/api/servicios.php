@@ -44,11 +44,13 @@ function getAll() {
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100))); // Entre 10 y 500, default 100
     $offset = ($page - 1) * $limit;
     
-    // Consulta con todas las columnas visibles
+    // Consulta compatible con estructura actual y nueva
     $sql = "SELECT s.id_servicio, s.id_sede, s.id_ruta, s.id_planta, s.id_contrato,
-            s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
-            s.estado, s.observaciones, s.estado_pago, s.fecha_pago, s.forma_pago,
-            s.descripcion_residuo,
+            s.mes_servicio, 
+            COALESCE(s.fecha_ejecucion, s.fecha_programada) as fecha_servicio,
+            s.estado, s.observaciones,
+            COALESCE(s.estado_pago, 'pendiente') as estado_pago,
+            s.fecha_pago, s.forma_pago, s.descripcion_residuo,
             se.nombre_comercial as sede_nombre, se.direccion as sede_direccion, 
             se.tarifa_servicio, se.contacto_telefono,
             e.razon_social as empresa_razon_social,
@@ -56,7 +58,7 @@ function getAll() {
             c.numero_contrato,
             m.id_manifiesto, m.numero_manifiesto, m.peso_kg as peso_residuo,
             g.id_guia, g.numero_guia,
-            f.id_factura, f.numero_factura, f.monto_total
+            f.id_factura, f.numero_factura
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
