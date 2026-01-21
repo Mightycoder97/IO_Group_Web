@@ -44,20 +44,24 @@ function getAll() {
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100))); // Entre 10 y 500, default 100
     $offset = ($page - 1) * $limit;
     
-    // Consulta optimizada - incluye estado de pago y tarifa
-    $sql = "SELECT s.id_servicio, s.codigo_servicio, s.mes_servicio, s.fecha_programada, s.fecha_ejecucion, 
-            s.estado, s.estado_pago, s.fecha_pago, s.id_sede, s.id_planta,
-            se.nombre_comercial as sede_nombre, se.direccion as sede_direccion, se.tarifa_servicio,
-            se.contacto_telefono,
+    // Consulta con todas las columnas visibles
+    $sql = "SELECT s.id_servicio, s.id_sede, s.id_ruta, s.id_planta, s.id_contrato,
+            s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
+            s.estado, s.observaciones, s.estado_pago, s.fecha_pago, s.forma_pago,
+            s.descripcion_residuo,
+            se.nombre_comercial as sede_nombre, se.direccion as sede_direccion, 
+            se.tarifa_servicio, se.contacto_telefono,
             e.razon_social as empresa_razon_social,
             p.nombre_comercial as planta_nombre,
-            m.id_manifiesto, m.peso_kg,
-            g.id_guia,
-            f.id_factura
+            c.numero_contrato,
+            m.id_manifiesto, m.numero_manifiesto, m.peso_kg as peso_residuo,
+            g.id_guia, g.numero_guia,
+            f.id_factura, f.numero_factura, f.monto_total
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             LEFT JOIN Planta p ON s.id_planta = p.id_planta
+            LEFT JOIN Contrato c ON s.id_contrato = c.id_contrato
             LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
             LEFT JOIN Factura f ON s.id_servicio = f.id_servicio

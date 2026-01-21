@@ -3,13 +3,31 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <meta name="theme-color" content="#1B5E20">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Factura - IO Group</title>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: #f8f9fa;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: #e8f5e9;
+        }
+    </style>
 </head>
 
 <body class="control-app">
@@ -27,17 +45,6 @@
                         </ol>
                     </nav>
                 </div>
-                <div class="user-menu">
-                    <div class="dropdown">
-                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
-                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
-                        </ul>
-                    </div>
-                </div>
             </nav>
             <div class="content-area">
                 <div class="card">
@@ -47,28 +54,41 @@
                     <div class="card-body">
                         <form id="dataForm">
                             <div class="row g-3">
-                                <div class="col-md-4">
+                                <!-- Servicio (obligatorio) -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Servicio *</label>
+                                    <select class="form-select" id="id_servicio" required>
+                                        <option value="">Seleccione un servicio...</option>
+                                    </select>
+                                    <div id="servicioInfo" class="small text-muted mt-1"></div>
+                                </div>
+
+                                <!-- Número de Factura -->
+                                <div class="col-md-6">
                                     <label class="form-label">Número de Factura *</label>
                                     <input type="text" class="form-control" id="numero_factura" required
                                         placeholder="F001-00000123">
                                 </div>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">Monto (S/) *</label>
-                                    <input type="number" step="0.01" class="form-control" id="monto_total" required
-                                        placeholder="0.00">
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label">Tipo de Pago</label>
-                                    <select class="form-select" id="metodo_pago">
-                                        <option value="">Seleccionar...</option>
-                                        <option value="transferencia">Transferencia</option>
-                                        <option value="yape">Yape</option>
-                                        <option value="plin">Plin</option>
-                                        <option value="efectivo">Efectivo</option>
-                                        <option value="deposito">Depósito</option>
-                                    </select>
+                                <!-- Documento Escaneado -->
+                                <div class="col-12">
+                                    <label class="form-label">Documento Escaneado (PDF)</label>
+                                    <div class="upload-area" id="uploadArea">
+                                        <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                                        <p class="mb-0 text-muted">Arrastra un PDF aquí o haz clic para seleccionar</p>
+                                        <input type="file" id="archivo_pdf" accept=".pdf" style="display: none;">
+                                    </div>
+                                    <div id="filePreview" class="mt-2" style="display: none;">
+                                        <span class="badge bg-success"><i class="bi bi-file-pdf"></i> <span
+                                                id="fileName"></span></span>
+                                        <button type="button" class="btn btn-sm btn-link text-danger"
+                                            onclick="removeFile()">Quitar</button>
+                                    </div>
+                                    <div id="existingPdf" class="mt-2" style="display: none;">
+                                        <a href="#" id="pdfLink" target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-file-pdf"></i> Ver PDF existente
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                             <div class="mt-4">
@@ -89,6 +109,28 @@
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('facturas');
         const id = getUrlParam('id');
+        const servicioParam = getUrlParam('servicio');
+        let selectedFile = null;
+
+        // Load servicios
+        async function loadServicios() {
+            try {
+                const result = await api.get('/servicios?limit=500');
+                if (result.success) {
+                    const select = document.getElementById('id_servicio');
+                    select.innerHTML = '<option value="">Seleccione un servicio...</option>' +
+                        result.data.map(s => `<option value="${s.id_servicio}">${s.sede_nombre} - ${s.mes_servicio || ''} (${s.fecha_servicio || ''})</option>`).join('');
+
+                    if (servicioParam) {
+                        select.value = servicioParam;
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading servicios:', err);
+            }
+        }
+
+        loadServicios();
 
         if (id) {
             document.getElementById('pageTitle').textContent = 'Editar Factura';
@@ -101,28 +143,82 @@
                 const result = await api.get(`/facturas/${id}`);
                 if (result.success) {
                     const d = result.data;
+                    setTimeout(() => {
+                        document.getElementById('id_servicio').value = d.id_servicio || '';
+                    }, 500);
                     document.getElementById('numero_factura').value = d.numero_factura || '';
-                    document.getElementById('monto_total').value = d.monto_total || '';
-                    document.getElementById('metodo_pago').value = d.metodo_pago || '';
+                    if (d.doc_escaneado) {
+                        document.getElementById('existingPdf').style.display = 'block';
+                        document.getElementById('pdfLink').href = d.doc_escaneado;
+                    }
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
             }
         }
 
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('archivo_pdf');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (file.type !== 'application/pdf') {
+                showToast('Solo se permiten archivos PDF', 'warning');
+                return;
+            }
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('filePreview').style.display = 'block';
+            uploadArea.style.display = 'none';
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            fileInput.value = '';
+            document.getElementById('filePreview').style.display = 'none';
+            uploadArea.style.display = 'block';
+        }
+
+        // Submit
         document.getElementById('dataForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const data = {
-                numero_factura: document.getElementById('numero_factura').value,
-                monto_total: document.getElementById('monto_total').value,
-                metodo_pago: document.getElementById('metodo_pago').value || null
-            };
+            const formData = new FormData();
+            formData.append('id_servicio', document.getElementById('id_servicio').value);
+            formData.append('numero_factura', document.getElementById('numero_factura').value);
+            if (selectedFile) {
+                formData.append('archivo_pdf', selectedFile);
+            }
 
             try {
                 const url = id ? `/facturas/${id}` : '/facturas';
-                const method = id ? 'put' : 'post';
-                const result = await api[method](url, data);
+                const response = await fetch(API_BASE + url, {
+                    method: id ? 'POST' : 'POST', // Use POST for FormData
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
+                const result = await response.json();
 
                 if (result.success) {
                     showToast(id ? 'Factura actualizada' : 'Factura creada');

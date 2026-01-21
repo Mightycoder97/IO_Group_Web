@@ -12,6 +12,35 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+    <style>
+        .table th {
+            white-space: nowrap;
+            font-size: 0.8rem;
+        }
+
+        .table td {
+            font-size: 0.85rem;
+            vertical-align: middle;
+        }
+
+        .badge-pago {
+            font-size: 0.7rem;
+        }
+
+        .scroll-hint {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .scroll-hint {
+                display: block;
+                text-align: center;
+                padding: 5px;
+                background: #fff3cd;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </head>
 
 <body class="control-app">
@@ -46,77 +75,65 @@
             <div class="content-area">
                 <!-- Filters -->
                 <div class="card mb-3">
-                    <div class="card-body">
-                        <!-- Desktop Filters -->
-                        <div class="row g-2 align-items-end desktop-filters">
-                            <div class="col-md-2">
-                                <label class="form-label small">Fecha</label>
-                                <input type="date" class="form-control form-control-sm" id="filterFecha">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small">Estado</label>
-                                <select class="form-select form-select-sm" id="filterEstado">
-                                    <option value="">Todos</option>
-                                    <option value="programado">Programado</option>
-                                    <option value="en_curso">En Curso</option>
-                                    <option value="completado">Completado</option>
-                                    <option value="cancelado">Cancelado</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small">Buscar</label>
+                    <div class="card-body py-2">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-auto">
                                 <input type="text" class="form-control form-control-sm" id="searchInput"
-                                    placeholder="Sede, empresa...">
+                                    placeholder="Buscar cliente..." style="width: 180px;">
                             </div>
                             <div class="col-auto">
-                                <button class="btn btn-sm btn-primary" onclick="loadData()"><i class="bi bi-search"></i>
-                                    Filtrar</button>
-                                <button class="btn btn-sm btn-secondary" onclick="clearFilters()"><i
-                                        class="bi bi-x"></i> Limpiar</button>
-                            </div>
-                        </div>
-                        <!-- Mobile Filters -->
-                        <div class="mobile-filters">
-                            <div class="filter-row">
-                                <select class="form-select form-select-sm" id="filterEstadoMobile">
-                                    <option value="">Estado</option>
-                                    <option value="programado">Programado</option>
-                                    <option value="en_curso">En Curso</option>
-                                    <option value="completado">Completado</option>
-                                    <option value="cancelado">Cancelado</option>
+                                <select class="form-select form-select-sm" id="filterEstadoPago" style="width: 130px;">
+                                    <option value="">Estado pago</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="pagado">Pagado</option>
                                 </select>
-                                <input type="text" class="form-control form-control-sm" id="searchInputMobile"
-                                    placeholder="Buscar...">
+                            </div>
+                            <div class="col-auto">
+                                <input type="month" class="form-control form-control-sm" id="filterMes"
+                                    style="width: 150px;">
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-sm btn-primary" onclick="loadData()"><i
+                                        class="bi bi-search"></i></button>
+                                <button class="btn btn-sm btn-secondary" onclick="clearFilters()"><i
+                                        class="bi bi-x"></i></button>
+                            </div>
+                            <div class="col-auto ms-auto">
+                                <a href="formulario.html" class="btn btn-primary btn-sm" id="btnNew"><i
+                                        class="bi bi-plus"></i> Nuevo</a>
                             </div>
                         </div>
-                        <div id="sedeFilterMsg" class="mt-2 text-info small" style="display:none;"></div>
                     </div>
                 </div>
+
+                <div class="scroll-hint"><i class="bi bi-arrows-expand"></i> Desliza horizontalmente para ver más
+                    columnas</div>
+
                 <div class="table-container">
-                    <div class="table-header">
-                        <h5 class="table-title mb-0"><i class="bi bi-box-seam"></i> Servicios</h5>
-                        <a href="formulario.html" class="btn btn-primary btn-new-desktop" id="btnNew"><i
-                                class="bi bi-plus"></i>
-                            Nuevo</a>
-                    </div>
                     <div class="table-responsive">
-                        <table class="table">
+                        <table class="table table-hover">
                             <thead>
                                 <tr>
+                                    <th>Cliente</th>
                                     <th>Mes</th>
-                                    <th class="hide-on-mobile">Fecha</th>
-                                    <th>Sede</th>
-                                    <th class="hide-on-mobile">Empresa</th>
-                                    <th class="hide-on-mobile">Planta</th>
-                                    <th class="hide-on-mobile">Peso (Kg)</th>
+                                    <th>Fecha Servicio</th>
                                     <th>Tarifa</th>
-                                    <th>Estado</th>
-                                    <th width="200">Acciones</th>
+                                    <th>Estado Pago</th>
+                                    <th>Fecha Pago</th>
+                                    <th>Forma Pago</th>
+                                    <th>Nº Factura</th>
+                                    <th>Nº Contrato</th>
+                                    <th>Nº Manifiesto</th>
+                                    <th>Nº Guía</th>
+                                    <th>Peso (Kg)</th>
+                                    <th>Desc. Residuo</th>
+                                    <th>Observación</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <tr>
-                                    <td colspan="9" class="text-center py-4">Cargando...</td>
+                                    <td colspan="15" class="text-center py-4">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -131,140 +148,118 @@
     </a>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
-    <script src="../../js/table-sort.js"></script>
     <script src="../../js/app.js?v=2.0"></script>
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('servicios');
         if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
         let allData = [];
-        let tableSorter = null;
-        const sedeId = getUrlParam('sede');
-        // Mostrar mensaje si está filtrando por sede
-        if (sedeId) {
-            document.getElementById('sedeFilterMsg').style.display = 'block';
-            document.getElementById('sedeFilterMsg').innerHTML = '<i class="bi bi-funnel-fill"></i> Filtrando servicios por sede...';
-        }
+
         async function loadData() {
-            const fecha = document.getElementById('filterFecha').value;
-            const estado = document.getElementById('filterEstado').value;
-            const search = document.getElementById('searchInput').value;
-            let url = '/servicios?';
-            if (sedeId) url += `sede=${sedeId}&`;
-            if (fecha) url += `fecha=${fecha}&`;
-            if (estado) url += `estado=${estado}&`;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const estadoPago = document.getElementById('filterEstadoPago').value;
+            const mes = document.getElementById('filterMes').value;
+
             try {
-                const result = await api.get(url);
+                const result = await api.get('/servicios?limit=500');
                 if (result.success) {
                     allData = result.data;
-                    // Actualizar mensaje de filtro con nombre de sede
-                    if (sedeId && allData.length > 0) {
-                        document.getElementById('sedeFilterMsg').innerHTML =
-                            `<i class="bi bi-funnel-fill"></i> Servicios de: <strong>${allData[0].sede_nombre}</strong> (${result.total} registros)`;
-                    } else if (sedeId) {
-                        document.getElementById('sedeFilterMsg').innerHTML =
-                            '<i class="bi bi-funnel-fill"></i> No hay servicios para esta sede';
-                    }
+
+                    // Client-side filtering
                     let data = allData;
                     if (search) {
-                        const term = search.toLowerCase();
                         data = data.filter(s =>
-                            s.sede_nombre?.toLowerCase().includes(term) ||
-                            s.empresa_razon_social?.toLowerCase().includes(term) ||
-                            s.codigo_servicio?.toLowerCase().includes(term)
+                            s.sede_nombre?.toLowerCase().includes(search) ||
+                            s.empresa_razon_social?.toLowerCase().includes(search)
                         );
                     }
-                    renderTable(data);
-                    // Inicializar ordenamiento de columnas
-                    if (!tableSorter) {
-                        tableSorter = new TableSort('tableBody', {
-                            columns: ['mes_servicio', 'fecha_programada', 'sede_nombre', 'empresa_razon_social', 'planta_nombre', 'peso_kg', 'estado', null],
-                            onSort: (sortedData) => renderTable(sortedData)
-                        });
+                    if (estadoPago) {
+                        data = data.filter(s => (s.estado_pago || 'pendiente') === estadoPago);
                     }
-                    tableSorter.setData(data);
+                    if (mes) {
+                        data = data.filter(s => s.fecha_servicio?.startsWith(mes));
+                    }
+
+                    renderTable(data);
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
             }
         }
-        // Función de respaldo para obtener nombre del mes si no existe mes_servicio
-        function getMonthName(dateStr) {
+
+        function formatDate(dateStr) {
             if (!dateStr) return '-';
-            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const date = new Date(dateStr + 'T00:00:00');
-            return meses[date.getMonth()];
+            return new Date(dateStr).toLocaleDateString('es-PE');
         }
+
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No hay registros</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="15" class="text-center py-4 text-muted">No hay registros</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.map(s => `
+
+            // Sort by date descending
+            data.sort((a, b) => new Date(b.fecha_servicio) - new Date(a.fecha_servicio));
+
+            tbody.innerHTML = data.map(s => {
+                const tarifa = parseFloat(s.tarifa_servicio || 0);
+                const isPagado = s.estado_pago === 'pagado';
+
+                return `
                 <tr>
-                    <td><strong>${s.mes_servicio || getMonthName(s.fecha_programada)}</strong></td>
-                    <td class="hide-on-mobile">${formatDate(s.fecha_programada)}</td>
-                    <td>${s.sede_nombre}</td>
-                    <td class="hide-on-mobile">${s.empresa_razon_social}</td>
-                    <td class="hide-on-mobile">${s.planta_nombre}</td>
-                    <td class="hide-on-mobile">${s.peso_kg ? s.peso_kg + ' kg' : '-'}</td>
+                    <td><strong>${s.sede_nombre || '-'}</strong></td>
+                    <td>${s.mes_servicio || '-'}</td>
+                    <td>${formatDate(s.fecha_servicio)}</td>
+                    <td><strong>S/ ${tarifa.toFixed(0)}</strong></td>
                     <td>
-                        ${s.tarifa_servicio ? `<strong>S/ ${parseFloat(s.tarifa_servicio).toFixed(0)}</strong>` : '-'}
-                        ${s.tarifa_servicio ? (s.estado_pago === 'pagado'
-                    ? '<br><span class="badge bg-success">Pagado</span>'
-                    : '<br><span class="badge bg-warning text-dark">Pendiente</span>')
-                    : ''}
+                        ${isPagado
+                        ? '<span class="badge bg-success badge-pago">Pagado</span>'
+                        : '<span class="badge bg-warning text-dark badge-pago">Pendiente</span>'}
                     </td>
-                    <td>${getStatusBadge(s.estado)}</td>
+                    <td>${s.fecha_pago ? formatDate(s.fecha_pago) : '-'}</td>
+                    <td>${s.forma_pago || '-'}</td>
+                    <td>${s.numero_factura || '-'}</td>
+                    <td>${s.numero_contrato || '-'}</td>
+                    <td>${s.numero_manifiesto || '-'}</td>
+                    <td>${s.numero_guia || '-'}</td>
+                    <td>${s.peso_residuo ? s.peso_residuo + ' kg' : '-'}</td>
+                    <td>${s.descripcion_residuo || '-'}</td>
+                    <td title="${s.observaciones || ''}">${s.observaciones ? s.observaciones.substring(0, 20) + '...' : '-'}</td>
                     <td>
-                        <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary btn-action" title="Ver/Editar"><i class="bi bi-pencil"></i></a>
-                        ${s.id_manifiesto
-                    ? `<a href="../manifiestos/listar.html?servicio=${s.id_servicio}" class="btn btn-sm btn-success btn-action" title="Ver Manifiesto"><i class="bi bi-journal-text"></i></a>`
-                    : (canEdit() ? `<a href="../manifiestos/formulario.html?servicio=${s.id_servicio}" class="btn btn-sm btn-outline-success btn-action" title="Crear Manifiesto"><i class="bi bi-journal-plus"></i></a>` : '')}
-                        ${s.id_guia
-                    ? `<a href="../guias/listar.html?servicio=${s.id_servicio}" class="btn btn-sm btn-info btn-action" title="Ver Guía"><i class="bi bi-file-earmark-text"></i></a>`
-                    : (canEdit() ? `<a href="../guias/formulario.html?servicio=${s.id_servicio}" class="btn btn-sm btn-outline-info btn-action" title="Crear Guía"><i class="bi bi-file-earmark-plus"></i></a>` : '')}
-                        ${s.id_factura
-                    ? `<a href="../facturas/listar.html?servicio=${s.id_servicio}" class="btn btn-sm btn-warning btn-action" title="Ver Factura"><i class="bi bi-receipt"></i></a>`
-                    : (canEdit() ? `<a href="../facturas/formulario.html?servicio=${s.id_servicio}" class="btn btn-sm btn-outline-warning btn-action" title="Crear Factura"><i class="bi bi-receipt"></i></a>` : '')}
-                        ${s.estado === 'programado' && canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${s.id_servicio})" title="Eliminar"><i class="bi bi-trash"></i></button>` : ''}
+                        <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                        ${!isPagado && canEdit() ? `<button class="btn btn-sm btn-success" onclick="marcarPagado(${s.id_servicio})" title="Marcar pagado"><i class="bi bi-check"></i></button>` : ''}
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
-        function clearFilters() {
-            document.getElementById('filterFecha').value = '';
-            document.getElementById('filterEstado').value = '';
-            document.getElementById('searchInput').value = '';
-            // Si hay filtro de sede, mantenerlo pero recargar
-            loadData();
-        }
-        async function deleteItem(id) {
-            if (!confirmDelete()) return;
+
+        async function marcarPagado(id) {
+            const fecha = new Date().toISOString().split('T')[0];
             try {
-                const result = await api.delete(`/servicios/${id}`);
+                const result = await api.put(`/servicios/${id}`, {
+                    estado_pago: 'pagado',
+                    fecha_pago: fecha
+                });
                 if (result.success) {
-                    showToast('Servicio eliminado');
+                    showToast('Marcado como pagado');
                     loadData();
                 } else {
-                    showToast(result.message, 'danger');
+                    showToast(result.message || 'Error', 'danger');
                 }
             } catch (err) {
-                showToast('Error eliminando', 'danger');
+                showToast('Error', 'danger');
             }
         }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterEstadoPago').value = '';
+            document.getElementById('filterMes').value = '';
+            loadData();
+        }
+
         loadData();
-        // Mobile filter sync
-        document.getElementById('filterEstadoMobile').addEventListener('change', function () {
-            document.getElementById('filterEstado').value = this.value;
-            loadData();
-        });
-        document.getElementById('searchInputMobile').addEventListener('input', function () {
-            document.getElementById('searchInput').value = this.value;
-            loadData();
-        });
     </script>
 </body>
 

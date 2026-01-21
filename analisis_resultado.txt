@@ -1,0 +1,23 @@
+﻿HOJA: verse bien
+Total filas: 165
+
+Primeras 20 filas:
+Fila 0: ['VERSE BIEN CENTRO DE CIRUGIA ESTETICA INTEGRAL SAC']
+Fila 2: ['RUC', 20553898294]
+Fila 3: ['CORREO', 'CHELAZF@HOTMAIL.COM', '150.00 mensual igv  13KG']
+Fila 4: ['FECHA INICIO', datetime.datetime(2025, 4, 23, 0, 0)]
+Fila 5: ['FECHA PAGO', 'MONTO', 'MES DEL SERVICIO', 'FECHA DE SERVICIO', 'DESCRIPCI╙N', 'FORMA DE PAGO', 'N░ SERVICIO', 'N░ FACTURA', 'N░ CONTRATO ', 'N░ MANIFIESTO', 'Columna2', 'OBSERVACI╙N', 'Columna1', 'Columna12']
+Fila 6: [datetime.datetime(2020, 11, 23, 0, 0), 150, 'NOVIEMBRE', datetime.datetime(2020, 11, 19, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 1, 1243, '000', '001832', 'cancelado ']
+Fila 7: [datetime.datetime(2020, 12, 30, 0, 0), 150, 'DICIEMBRE', datetime.datetime(2020, 12, 18, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 2, 1494, '000', '002223', 'cancelado ']
+Fila 8: [datetime.datetime(2021, 1, 28, 0, 0), 150, 'ENERO', datetime.datetime(2021, 1, 18, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 3, 1716, '000', '002599', 'cancelado ']
+Fila 9: [datetime.datetime(2021, 2, 27, 0, 0), 150, 'FEBRERO', datetime.datetime(2021, 2, 18, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 4, 1964, '000', '002863', 'cancelado ']
+Fila 10: [datetime.datetime(2021, 4, 2, 0, 0), 150, 'MARZO', datetime.datetime(2021, 3, 19, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 5, '00000174', '000', '003592', 'cancelado ']
+Fila 11: [datetime.datetime(2021, 5, 13, 0, 0), 150, 'ABRIL', datetime.datetime(2021, 4, 20, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 6, '00000450', '000', '003390', 'cancelado ']
+Fila 12: [datetime.datetime(2021, 6, 10, 0, 0), 150, 'MAYO', datetime.datetime(2021, 5, 20, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 7, '727', '000', '003814', 'cancelado ']
+Fila 13: [datetime.datetime(2021, 7, 13, 0, 0), 150, 'JUNIO', datetime.datetime(2021, 6, 22, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 8, '1162', '000', '004263', 'cancelado ']
+Fila 14: [datetime.datetime(2021, 8, 12, 0, 0), 150, 'JULIO', datetime.datetime(2021, 7, 22, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 9, '1665', '000', '004790', 'cancelado ']
+Fila 15: [datetime.datetime(2021, 9, 15, 0, 0), 150, 'AGOSTO', datetime.datetime(2021, 8, 20, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 10, '2392', '000', '5347', 'cancelado ']
+Fila 16: [datetime.datetime(2021, 10, 7, 0, 0), 150, 'SEPTIEMBRE', datetime.datetime(2021, 9, 21, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 11, '2563', '000', '6042', 'cancelado ']
+Fila 17: [datetime.datetime(2021, 11, 22, 0, 0), 150, 'OCTUBRE', datetime.datetime(2021, 10, 14, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 12, '3010', '000', '6682', 'cancelado ']
+Fila 18: [datetime.datetime(2021, 11, 22, 0, 0), 150, 'NOVIEMBRE', datetime.datetime(2021, 11, 13, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 13, '3708', '000', 7492, 'cancelado ']
+Fila 19: [datetime.datetime(2021, 12, 31, 0, 0), 150, 'DICIEMBRE', datetime.datetime(2021, 12, 17, 0, 0), 'GESTION DE RR.SS', 'TRANSFERENCIA', 14, '4408', '000', 8470, 'cancelado ']
