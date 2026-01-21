@@ -44,9 +44,9 @@ function getAll() {
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100))); // Entre 10 y 500, default 100
     $offset = ($page - 1) * $limit;
     
-    // Consulta con campos estado_pago, fecha_pago, forma_pago, descripcion_residuo
+    // Consulta con nueva estructura de Servicio
     $sql = "SELECT s.id_servicio, s.id_sede, s.id_ruta, s.id_planta, s.id_contrato,
-            s.mes_servicio, s.fecha_programada as fecha_servicio,
+            s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
             s.estado, s.observaciones,
             COALESCE(s.estado_pago, 'pendiente') as estado_pago,
             s.fecha_pago, s.forma_pago, s.descripcion_residuo,
@@ -79,32 +79,30 @@ function getAll() {
     }
     
     if ($fecha_desde) {
-        $sql .= " AND s.fecha_programada >= ?";
+        $sql .= " AND s.fecha_ejecucion >= ?";
         $params[] = $fecha_desde;
     }
     
     if ($fecha_hasta) {
-        $sql .= " AND s.fecha_programada <= ?";
+        $sql .= " AND s.fecha_ejecucion <= ?";
         $params[] = $fecha_hasta;
     }
     
-    // Obtener total para paginación (consulta optimizada)
-    $countSql = str_replace(
-        "SELECT s.id_servicio, s.codigo_servicio, s.fecha_programada, s.fecha_ejecucion, 
-            s.estado, s.id_sede, s.id_planta,
-            se.nombre_comercial as sede_nombre,
-            e.razon_social as empresa_razon_social,
-            p.nombre_comercial as planta_nombre,
-            m.id_manifiesto, m.peso_kg,
-            g.id_guia,
-            f.id_factura",
-        "SELECT COUNT(DISTINCT s.id_servicio) as total",
-        $sql
-    );
-    $totalResult = db()->queryOne($countSql, $params);
+    // Obtener total para paginación (consulta simplificada)
+    $countSql = "SELECT COUNT(DISTINCT s.id_servicio) as total FROM Servicio s
+            INNER JOIN Sede se ON s.id_sede = se.id_sede
+            INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+            WHERE 1=1";
+    if ($sede) {
+        $countSql .= " AND s.id_sede = " . intval($sede);
+    }
+    if ($estado) {
+        $countSql .= " AND s.estado = '" . addslashes($estado) . "'";
+    }
+    $totalResult = db()->queryOne($countSql);
     $total = $totalResult['total'] ?? 0;
     
-    $sql .= " ORDER BY s.fecha_programada DESC LIMIT ? OFFSET ?";
+    $sql .= " ORDER BY s.fecha_ejecucion DESC LIMIT ? OFFSET ?";
     $params[] = $limit;
     $params[] = $offset;
     
@@ -132,7 +130,7 @@ function getOne($id) {
          FROM Servicio s
          INNER JOIN Sede se ON s.id_sede = se.id_sede
          INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
-         INNER JOIN Planta p ON s.id_planta = p.id_planta
+         LEFT JOIN Planta p ON s.id_planta = p.id_planta
          LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
          LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
          WHERE s.id_servicio = ?",
