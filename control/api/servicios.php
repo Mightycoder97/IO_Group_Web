@@ -44,10 +44,9 @@ function getAll() {
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100))); // Entre 10 y 500, default 100
     $offset = ($page - 1) * $limit;
     
-    // Consulta compatible con estructura actual y nueva
+    // Consulta con campos estado_pago, fecha_pago, forma_pago, descripcion_residuo
     $sql = "SELECT s.id_servicio, s.id_sede, s.id_ruta, s.id_planta, s.id_contrato,
-            s.mes_servicio, 
-            COALESCE(s.fecha_ejecucion, s.fecha_programada) as fecha_servicio,
+            s.mes_servicio, s.fecha_programada as fecha_servicio,
             s.estado, s.observaciones,
             COALESCE(s.estado_pago, 'pendiente') as estado_pago,
             s.fecha_pago, s.forma_pago, s.descripcion_residuo,
@@ -55,7 +54,7 @@ function getAll() {
             se.tarifa_servicio, se.contacto_telefono,
             e.razon_social as empresa_razon_social,
             p.nombre_comercial as planta_nombre,
-            c.numero_contrato,
+            NULL as numero_contrato,
             m.id_manifiesto, m.numero_manifiesto, m.peso_kg as peso_residuo,
             g.id_guia, g.numero_guia,
             f.id_factura, f.numero_factura
@@ -63,7 +62,6 @@ function getAll() {
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             LEFT JOIN Planta p ON s.id_planta = p.id_planta
-            LEFT JOIN Contrato c ON s.id_contrato = c.id_contrato
             LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
             LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
