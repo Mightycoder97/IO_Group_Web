@@ -21,6 +21,32 @@
         .table td {
             font-size: 0.85rem;
             vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #6c757d #e9ecef;
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #6c757d;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #495057;
         }
 
         .badge-pago {
@@ -28,16 +54,19 @@
         }
 
         .scroll-hint {
-            display: none;
+            display: block;
+            text-align: center;
+            padding: 8px;
+            background: linear-gradient(90deg, #fff3cd 0%, #ffe69c 50%, #fff3cd 100%);
+            font-size: 0.8rem;
+            color: #664d03;
+            border-radius: 4px;
+            margin-bottom: 10px;
         }
 
-        @media (max-width: 768px) {
+        @media (min-width: 1400px) {
             .scroll-hint {
-                display: block;
-                text-align: center;
-                padding: 5px;
-                background: #fff3cd;
-                font-size: 0.8rem;
+                display: none;
             }
         }
     </style>
