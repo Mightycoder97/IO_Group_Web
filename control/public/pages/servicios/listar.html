@@ -335,8 +335,6 @@
             tbody.innerHTML = data.map(s => {
                 const tarifa = parseFloat(s.tarifa_servicio || 0);
                 const isPagado = s.estado_pago === 'pagado';
-                const tarifa = parseFloat(s.tarifa_servicio || 0);
-                const isPagado = s.estado_pago === 'pagado';
 
                 return `
                 <tr>
