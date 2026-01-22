@@ -396,14 +396,15 @@
                 // Check if service is paid
                 const tarifa = parseFloat(s.tarifa_servicio) || 0;
                 const pagado = s.estado_pago === 'pagado';
+                const fechaServicio = s.fecha_servicio || s.fecha_ejecucion;
 
-                if (tarifa > 0 && !pagado && s.fecha_programada) {
+                if (tarifa > 0 && !pagado && fechaServicio) {
                     totalDeuda += tarifa;
                     serviciosPendientes++;
 
                     // Calculate days late from service date
-                    const fechaServicio = new Date(s.fecha_programada);
-                    const diasRetraso = Math.floor((today - fechaServicio) / (1000 * 60 * 60 * 24));
+                    const fecha = new Date(fechaServicio);
+                    const diasRetraso = Math.floor((today - fecha) / (1000 * 60 * 60 * 24));
                     if (diasRetraso > diasMaxRetraso) {
                         diasMaxRetraso = diasRetraso;
                     }
@@ -433,11 +434,16 @@
                 return;
             }
 
-            // Sort by date descending
-            servicios.sort((a, b) => new Date(b.fecha_programada) - new Date(a.fecha_programada));
+            // Sort by date descending - use fecha_servicio or fecha_ejecucion
+            servicios.sort((a, b) => {
+                const dateA = new Date(a.fecha_servicio || a.fecha_ejecucion || 0);
+                const dateB = new Date(b.fecha_servicio || b.fecha_ejecucion || 0);
+                return dateB - dateA;
+            });
 
             tbody.innerHTML = servicios.map(s => {
                 const tarifa = parseFloat(s.tarifa_servicio) || 0;
+                const fechaServicio = s.fecha_servicio || s.fecha_ejecucion;
                 let estadoPago = '';
 
                 if (s.estado_pago === 'pagado') {
@@ -448,7 +454,7 @@
 
                 return `
                 <tr>
-                    <td><strong>${formatDate(s.fecha_programada)}</strong></td>
+                    <td><strong>${formatDate(fechaServicio)}</strong>${s.mes_servicio ? `<br><small class="text-muted">${s.mes_servicio}</small>` : ''}</td>
                     <td>${estadoPago}</td>
                     <td>${tarifa > 0 ? `<strong>S/ ${tarifa.toFixed(0)}</strong>` : '-'}</td>
                 </tr>
