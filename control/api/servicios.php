@@ -38,6 +38,7 @@ function getAll() {
     $estado = $_GET['estado'] ?? null;
     $fecha_desde = $_GET['fecha_desde'] ?? null;
     $fecha_hasta = $_GET['fecha_hasta'] ?? null;
+    $cliente = $_GET['cliente'] ?? null;
     
     // Paginación - IMPORTANTE para rendimiento
     $page = max(1, intval($_GET['page'] ?? 1));
@@ -65,6 +66,7 @@ function getAll() {
             LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
             LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
+            LEFT JOIN Cliente c ON e.id_cliente = c.id_cliente
             WHERE 1=1";
     $params = [];
     
@@ -88,6 +90,11 @@ function getAll() {
         $params[] = $fecha_hasta;
     }
     
+    if ($cliente) {
+        $sql .= " AND e.id_cliente = ?";
+        $params[] = $cliente;
+    }
+    
     // Obtener total para paginación (consulta simplificada)
     $countSql = "SELECT COUNT(DISTINCT s.id_servicio) as total FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
@@ -98,6 +105,9 @@ function getAll() {
     }
     if ($estado) {
         $countSql .= " AND s.estado = '" . addslashes($estado) . "'";
+    }
+    if ($cliente) {
+        $countSql .= " AND e.id_cliente = " . intval($cliente);
     }
     $totalResult = db()->queryOne($countSql);
     $total = $totalResult['total'] ?? 0;
