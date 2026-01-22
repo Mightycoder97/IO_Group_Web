@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
-    <title>Control de Cobranza - IO Group</title>
+    <title>Control de Cobranza - IO Control</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -13,26 +13,26 @@
     <style>
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .stat-card {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .stat-card .value {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
         }
 
         .stat-card .label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #666;
         }
 
@@ -52,47 +52,39 @@
             color: #1565c0;
         }
 
-        .service-row {
+        .sede-group {
             background: white;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            margin-bottom: 12px;
+        }
+
+        .sede-header {
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #f57c00;
+        }
+
+        .sede-header.al-dia {
+            border-bottom-color: #388e3c;
+        }
+
+        .sede-services {
+            padding: 8px 16px;
+        }
+
+        .service-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
         }
 
-        .service-info {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .service-info .client {
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .service-info .details {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        .service-amount {
-            text-align: right;
-            min-width: 100px;
-        }
-
-        .service-amount .amount {
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-
-        .service-actions {
-            display: flex;
-            gap: 8px;
+        .service-item:last-child {
+            border-bottom: none;
         }
 
         .days-late {
@@ -104,14 +96,61 @@
             font-weight: 500;
         }
 
-        @media (max-width: 768px) {
-            .service-row {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+        .gestion-badge {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+        }
 
-            .service-amount {
-                text-align: left;
+        .report-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .report-section {
+            margin-bottom: 16px;
+        }
+
+        .report-section h6 {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .report-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-left: 3px solid #1976d2;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .history-item.whatsapp {
+            border-left-color: #25d366;
+        }
+
+        .history-item.llamada {
+            border-left-color: #ff9800;
+        }
+
+        .history-item.visita {
+            border-left-color: #9c27b0;
+        }
+
+        @media (max-width: 768px) {
+            .stat-card .value {
+                font-size: 1.3rem;
             }
         }
     </style>
@@ -143,6 +182,7 @@
                     </div>
                 </div>
             </nav>
+
             <div class="content-area">
                 <!-- Stats Row -->
                 <div class="stats-row">
@@ -152,7 +192,7 @@
                     </div>
                     <div class="stat-card overdue">
                         <div class="value" id="statVencido">S/ 0</div>
-                        <div class="label"><i class="bi bi-exclamation-triangle"></i> Vencido (+30 días)</div>
+                        <div class="label"><i class="bi bi-exclamation-triangle"></i> Vencido (+30d)</div>
                     </div>
                     <div class="stat-card collected">
                         <div class="value" id="statCobrado">S/ 0</div>
@@ -160,7 +200,7 @@
                     </div>
                     <div class="stat-card total">
                         <div class="value" id="statTotal">0</div>
-                        <div class="label"><i class="bi bi-file-text"></i> Servicios pendientes</div>
+                        <div class="label"><i class="bi bi-file-text"></i> Pendientes</div>
                     </div>
                 </div>
 
@@ -169,8 +209,8 @@
                     <div class="card-body py-2">
                         <div class="d-flex gap-2 flex-wrap align-items-center">
                             <input type="text" class="form-control form-control-sm" id="filterCliente"
-                                placeholder="Buscar cliente..." style="width: 200px;">
-                            <select class="form-select form-select-sm" id="filterEstado" style="width: 140px;">
+                                placeholder="Buscar cliente..." style="width: 180px;">
+                            <select class="form-select form-select-sm" id="filterEstado" style="width: 130px;">
                                 <option value="pendiente" selected>Pendientes</option>
                                 <option value="pagado">Pagados</option>
                                 <option value="">Todos</option>
@@ -178,6 +218,53 @@
                             <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
                                 <i class="bi bi-x-circle"></i>
                             </button>
+                            <div class="ms-auto">
+                                <button class="btn btn-outline-info btn-sm" onclick="toggleReporte()">
+                                    <i class="bi bi-graph-up"></i> Reporte
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Report (hidden by default) -->
+                <div class="report-card" id="reporteCard" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Reporte del Día</h5>
+                        <input type="date" class="form-control form-control-sm" id="reporteFecha" style="width: 150px;">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="report-section">
+                                <h6><i class="bi bi-chat-dots"></i> Gestiones realizadas</h6>
+                                <div class="report-stat"><span>WhatsApp</span><span id="repWhatsapp">0</span></div>
+                                <div class="report-stat"><span>Llamadas</span><span id="repLlamadas">0</span></div>
+                                <div class="report-stat"><span>Visitas</span><span id="repVisitas">0</span></div>
+                                <div class="report-stat fw-bold"><span>Total</span><span id="repTotalGestiones">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="report-section">
+                                <h6><i class="bi bi-cash-coin"></i> Pagos cobrados hoy</h6>
+                                <div class="report-stat"><span>Transferencia</span><span id="repTransferencia">S/
+                                        0</span></div>
+                                <div class="report-stat"><span>Yape/Plin</span><span id="repYape">S/ 0</span></div>
+                                <div class="report-stat"><span>Efectivo</span><span id="repEfectivo">S/ 0</span></div>
+                                <div class="report-stat fw-bold text-success"><span>Total</span><span
+                                        id="repTotalCobrado">S/ 0</span></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="report-section">
+                                <h6><i class="bi bi-hourglass-split"></i> Pendiente total</h6>
+                                <div class="report-stat"><span>Servicios</span><span id="repPendienteCant">0</span>
+                                </div>
+                                <div class="report-stat"><span>Monto</span><span id="repPendienteMonto">S/ 0</span>
+                                </div>
+                                <div class="report-stat text-danger"><span>Vencido (+30d)</span><span id="repVencido">S/
+                                        0</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -190,7 +277,85 @@
         </main>
     </div>
 
-    <!-- Modal: Registrar Pago -->
+    <!-- Modal: Registrar Gestión -->
+    <div class="modal fade" id="gestionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-journal-plus"></i> Registrar Gestión</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="gestionServicioId">
+                    <input type="hidden" id="gestionSedeId">
+                    <div class="mb-3">
+                        <label class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="gestionCliente" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Gestión *</label>
+                        <select class="form-select" id="gestionTipo">
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="llamada">Llamada</option>
+                            <option value="visita">Visita</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Resultado *</label>
+                        <select class="form-select" id="gestionResultado">
+                            <option value="contactado">Contactado</option>
+                            <option value="no_contesta">No contesta</option>
+                            <option value="promesa_pago">Promesa de pago</option>
+                            <option value="rechazado">Rechazado</option>
+                            <option value="pagado">Pagado</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="formaPagoGroup" style="display: none;">
+                        <label class="form-label">Forma de Pago</label>
+                        <select class="form-select" id="gestionFormaPago">
+                            <option value="transferencia">Transferencia</option>
+                            <option value="yape">Yape</option>
+                            <option value="plin">Plin</option>
+                            <option value="efectivo">Efectivo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="gestionObservaciones" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Próxima gestión</label>
+                        <input type="date" class="form-control" id="gestionProximaFecha">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarGestion()">
+                        <i class="bi bi-save"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ver Historial -->
+    <div class="modal fade" id="historialModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-clock-history"></i> Historial de Gestiones</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="historialContent">
+                        <div class="text-center py-3 text-muted">Cargando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Registrar Pago Rápido -->
     <div class="modal fade" id="pagoModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -206,6 +371,15 @@
                     <div class="mb-3">
                         <label class="form-label">Monto</label>
                         <input type="text" class="form-control" id="pagoMonto" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Forma de Pago</label>
+                        <select class="form-select" id="pagoFormaPago">
+                            <option value="transferencia">Transferencia</option>
+                            <option value="yape">Yape</option>
+                            <option value="plin">Plin</option>
+                            <option value="efectivo">Efectivo</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Fecha de Pago</label>
@@ -231,72 +405,46 @@
 
         let allServicios = [];
         let selectedServicio = null;
+        const gestionModal = new bootstrap.Modal(document.getElementById('gestionModal'));
+        const historialModal = new bootstrap.Modal(document.getElementById('historialModal'));
         const pagoModal = new bootstrap.Modal(document.getElementById('pagoModal'));
         const today = new Date();
 
         document.getElementById('pagoFecha').value = today.toISOString().split('T')[0];
+        document.getElementById('reporteFecha').value = today.toISOString().split('T')[0];
+
+        // Toggle payment form visibility based on resultado
+        document.getElementById('gestionResultado').addEventListener('change', (e) => {
+            document.getElementById('formaPagoGroup').style.display =
+                e.target.value === 'pagado' ? 'block' : 'none';
+        });
 
         async function loadData() {
+            const cliente = document.getElementById('filterCliente').value;
+            const estado = document.getElementById('filterEstado').value;
+
             try {
-                const result = await api.get('/servicios?limit=500');
+                const params = new URLSearchParams();
+                if (cliente) params.append('cliente', cliente);
+                if (estado) params.append('estado', estado);
+                params.append('limit', '500');
+
+                const result = await api.get('/cobranza?' + params.toString());
                 if (result.success) {
-                    allServicios = result.data.filter(s => s.tarifa_servicio > 0);
-                    applyFilters();
-                    updateStats();
+                    allServicios = result.data;
+                    updateStats(result.stats);
+                    renderList(allServicios);
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
             }
         }
 
-        function applyFilters() {
-            const cliente = document.getElementById('filterCliente').value.toLowerCase();
-            const estado = document.getElementById('filterEstado').value;
-
-            let filtered = allServicios;
-
-            if (cliente) {
-                filtered = filtered.filter(s =>
-                    s.sede_nombre?.toLowerCase().includes(cliente) ||
-                    s.empresa_razon_social?.toLowerCase().includes(cliente)
-                );
-            }
-
-            if (estado) {
-                filtered = filtered.filter(s => (s.estado_pago || 'pendiente') === estado);
-            }
-
-            renderList(filtered);
-        }
-
-        function updateStats() {
-            const pendientes = allServicios.filter(s => (s.estado_pago || 'pendiente') === 'pendiente');
-            const pagados = allServicios.filter(s => s.estado_pago === 'pagado');
-
-            // Vencidos: más de 30 días desde fecha_programada
-            const vencidos = pendientes.filter(s => {
-                if (!s.fecha_programada) return false;
-                const dias = Math.floor((today - new Date(s.fecha_programada)) / (1000 * 60 * 60 * 24));
-                return dias > 30;
-            });
-
-            // Cobrado este mes
-            const currentMonth = today.getMonth();
-            const currentYear = today.getFullYear();
-            const pagadosMes = pagados.filter(s => {
-                if (!s.fecha_pago) return false;
-                const fechaPago = new Date(s.fecha_pago);
-                return fechaPago.getMonth() === currentMonth && fechaPago.getFullYear() === currentYear;
-            });
-
-            const sumPendiente = pendientes.reduce((s, srv) => s + parseFloat(srv.tarifa_servicio || 0), 0);
-            const sumVencido = vencidos.reduce((s, srv) => s + parseFloat(srv.tarifa_servicio || 0), 0);
-            const sumCobrado = pagadosMes.reduce((s, srv) => s + parseFloat(srv.tarifa_servicio || 0), 0);
-
-            document.getElementById('statPendiente').textContent = `S/ ${sumPendiente.toFixed(0)}`;
-            document.getElementById('statVencido').textContent = `S/ ${sumVencido.toFixed(0)}`;
-            document.getElementById('statCobrado').textContent = `S/ ${sumCobrado.toFixed(0)}`;
-            document.getElementById('statTotal').textContent = pendientes.length;
+        function updateStats(stats) {
+            document.getElementById('statPendiente').textContent = `S/ ${(stats.total_pendiente || 0).toLocaleString()}`;
+            document.getElementById('statVencido').textContent = `S/ ${(stats.total_vencido || 0).toLocaleString()}`;
+            document.getElementById('statCobrado').textContent = `S/ ${(stats.cobrado_mes || 0).toLocaleString()}`;
+            document.getElementById('statTotal').textContent = stats.count_pendientes || 0;
         }
 
         function formatDate(dateStr) {
@@ -313,7 +461,7 @@
             const container = document.getElementById('servicesList');
 
             if (data.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-muted">Sin servicios</div>';
+                container.innerHTML = '<div class="text-center py-4 text-muted">Sin servicios pendientes</div>';
                 return;
             }
 
@@ -323,6 +471,7 @@
                 const key = s.id_sede || 'sin_sede';
                 if (!grouped[key]) {
                     grouped[key] = {
+                        id_sede: s.id_sede,
                         sede_nombre: s.sede_nombre || s.empresa_razon_social || 'Sin cliente',
                         contacto_telefono: s.contacto_telefono,
                         servicios: []
@@ -331,49 +480,56 @@
                 grouped[key].servicios.push(s);
             });
 
-            // Render grouped
             let html = '';
             Object.values(grouped).forEach(group => {
-                // Sort services by date (oldest first)
-                group.servicios.sort((a, b) => new Date(a.fecha_programada) - new Date(b.fecha_programada));
+                group.servicios.sort((a, b) => new Date(a.fecha_servicio) - new Date(b.fecha_servicio));
 
-                // Calculate total debt for this sede
-                const totalDeuda = group.servicios
-                    .filter(s => (s.estado_pago || 'pendiente') === 'pendiente')
-                    .reduce((sum, s) => sum + parseFloat(s.tarifa_servicio || 0), 0);
-
-                const pendientes = group.servicios.filter(s => (s.estado_pago || 'pendiente') === 'pendiente').length;
+                const pendientes = group.servicios.filter(s => (s.estado_pago || 'pendiente') === 'pendiente');
+                const totalDeuda = pendientes.reduce((sum, s) => sum + parseFloat(s.tarifa_servicio || 0), 0);
+                const alDia = pendientes.length === 0;
 
                 html += `
-                <div class="sede-group mb-3">
-                    <div class="sede-header d-flex justify-content-between align-items-center p-3" style="background: #f8f9fa; border-radius: 8px 8px 0 0; border-bottom: 2px solid ${totalDeuda > 0 ? '#f57c00' : '#388e3c'};">
-                        <div>
-                            <strong>${group.sede_nombre}</strong>
-                            ${pendientes > 0 ? `<span class="badge bg-warning text-dark ms-2">${pendientes} pendiente${pendientes > 1 ? 's' : ''}</span>` : '<span class="badge bg-success ms-2">Al día</span>'}
-                        </div>
-                        <div class="fw-bold" style="color: ${totalDeuda > 0 ? '#e65100' : '#2e7d32'};">
-                            ${totalDeuda > 0 ? `S/ ${totalDeuda.toFixed(0)}` : '✓'}
+                <div class="sede-group">
+                    <div class="sede-header ${alDia ? 'al-dia' : ''}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${group.sede_nombre}</strong>
+                                ${pendientes.length > 0
+                        ? `<span class="badge bg-warning text-dark ms-2">${pendientes.length} pend.</span>`
+                        : '<span class="badge bg-success ms-2">Al día</span>'}
+                            </div>
+                            <div class="fw-bold" style="color: ${alDia ? '#2e7d32' : '#e65100'};">
+                                ${alDia ? '✓' : `S/ ${totalDeuda.toLocaleString()}`}
+                            </div>
                         </div>
                     </div>
-                    <div class="sede-services" style="background: white; border-radius: 0 0 8px 8px; padding: 10px;">
+                    <div class="sede-services">
                 `;
 
                 group.servicios.forEach(s => {
                     const tarifa = parseFloat(s.tarifa_servicio || 0);
-                    const diasRetraso = getDaysLate(s.fecha_programada);
+                    const diasRetraso = getDaysLate(s.fecha_servicio);
                     const isPendiente = (s.estado_pago || 'pendiente') === 'pendiente';
 
                     html += `
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size: 0.9rem;">
+                        <div class="service-item">
                             <div>
-                                <i class="bi bi-calendar3"></i> ${formatDate(s.fecha_programada)}
-                                ${isPendiente && diasRetraso > 0 ? `<span class="days-late ms-2">${diasRetraso} días</span>` : ''}
+                                <i class="bi bi-calendar3"></i> ${formatDate(s.fecha_servicio)}
+                                ${s.mes_servicio ? `<small class="text-muted">(${s.mes_servicio})</small>` : ''}
+                                ${isPendiente && diasRetraso > 0 ? `<span class="days-late ms-2">${diasRetraso}d</span>` : ''}
+                                ${s.num_gestiones > 0 ? `<span class="gestion-badge ms-1">${s.num_gestiones} gest.</span>` : ''}
                                 ${!isPendiente ? '<i class="bi bi-check-circle-fill text-success ms-2"></i>' : ''}
                             </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="fw-bold">S/ ${tarifa.toFixed(0)}</span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="fw-bold">S/ ${tarifa.toLocaleString()}</span>
                                 ${isPendiente ? `
-                                    <button class="btn btn-success btn-sm py-0 px-2" onclick="abrirPago(${s.id_servicio})" title="Marcar pagado">
+                                    <button class="btn btn-sm btn-outline-primary p-1" onclick="verHistorial(${s.id_servicio})" title="Historial">
+                                        <i class="bi bi-clock-history"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary p-1" onclick="abrirGestion(${s.id_servicio})" title="Gestionar">
+                                        <i class="bi bi-journal-plus"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success p-1" onclick="abrirPago(${s.id_servicio})" title="Marcar pagado">
                                         <i class="bi bi-check"></i>
                                     </button>
                                 ` : ''}
@@ -383,13 +539,11 @@
                 });
 
                 // WhatsApp button for sede
-                const hasPendientes = group.servicios.some(s => (s.estado_pago || 'pendiente') === 'pendiente');
-                if (hasPendientes && group.contacto_telefono) {
-                    const firstServicio = group.servicios.find(s => (s.estado_pago || 'pendiente') === 'pendiente');
+                if (pendientes.length > 0 && group.contacto_telefono) {
                     html += `
-                        <div class="text-end pt-2">
-                            <button class="btn btn-outline-success btn-sm" onclick="sendWhatsApp(${firstServicio.id_servicio})" title="Enviar recordatorio">
-                                <i class="bi bi-whatsapp"></i> Recordar pago
+                        <div class="text-end pt-2 border-top mt-2">
+                            <button class="btn btn-outline-success btn-sm" onclick="sendWhatsApp(${group.id_sede})" title="Enviar recordatorio">
+                                <i class="bi bi-whatsapp"></i> Recordar
                             </button>
                         </div>
                     `;
@@ -401,11 +555,90 @@
             container.innerHTML = html;
         }
 
+        function abrirGestion(id) {
+            selectedServicio = allServicios.find(s => s.id_servicio === id);
+            if (!selectedServicio) return;
+
+            document.getElementById('gestionServicioId').value = id;
+            document.getElementById('gestionSedeId').value = selectedServicio.id_sede;
+            document.getElementById('gestionCliente').value = selectedServicio.sede_nombre || '';
+            document.getElementById('gestionTipo').value = 'whatsapp';
+            document.getElementById('gestionResultado').value = 'contactado';
+            document.getElementById('gestionObservaciones').value = '';
+            document.getElementById('gestionProximaFecha').value = '';
+            document.getElementById('formaPagoGroup').style.display = 'none';
+
+            gestionModal.show();
+        }
+
+        async function guardarGestion() {
+            const data = {
+                id_servicio: parseInt(document.getElementById('gestionServicioId').value),
+                id_sede: parseInt(document.getElementById('gestionSedeId').value),
+                tipo_gestion: document.getElementById('gestionTipo').value,
+                resultado: document.getElementById('gestionResultado').value,
+                observaciones: document.getElementById('gestionObservaciones').value,
+                fecha_proxima_gestion: document.getElementById('gestionProximaFecha').value || null
+            };
+
+            if (data.resultado === 'pagado') {
+                data.forma_pago = document.getElementById('gestionFormaPago').value;
+            }
+
+            try {
+                const result = await api.post('/cobranza?action=gestion', data);
+                if (result.success) {
+                    showToast('Gestión registrada');
+                    gestionModal.hide();
+                    loadData();
+                } else {
+                    showToast(result.message || 'Error', 'danger');
+                }
+            } catch (err) {
+                showToast('Error guardando gestión', 'danger');
+            }
+        }
+
+        async function verHistorial(id) {
+            document.getElementById('historialContent').innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></div>';
+            historialModal.show();
+
+            try {
+                const result = await api.get(`/cobranza?action=gestiones&id_servicio=${id}`);
+                if (result.success && result.data.length > 0) {
+                    let html = '';
+                    result.data.forEach(g => {
+                        const tipoIcon = g.tipo_gestion === 'whatsapp' ? 'bi-whatsapp' :
+                            g.tipo_gestion === 'llamada' ? 'bi-telephone' : 'bi-person-walking';
+                        const resultadoClass = g.resultado === 'pagado' ? 'text-success' :
+                            g.resultado === 'promesa_pago' ? 'text-warning' :
+                                g.resultado === 'rechazado' ? 'text-danger' : '';
+                        html += `
+                            <div class="history-item ${g.tipo_gestion}">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span><i class="bi ${tipoIcon}"></i> <strong>${g.tipo_gestion}</strong></span>
+                                    <small class="text-muted">${formatDate(g.fecha_gestion)}</small>
+                                </div>
+                                <div><span class="badge bg-secondary ${resultadoClass}">${g.resultado.replace('_', ' ')}</span></div>
+                                ${g.observaciones ? `<div class="mt-1 small text-muted">${g.observaciones}</div>` : ''}
+                                ${g.usuario_nombre ? `<div class="mt-1 small"><i class="bi bi-person"></i> ${g.usuario_nombre}</div>` : ''}
+                            </div>
+                        `;
+                    });
+                    document.getElementById('historialContent').innerHTML = html;
+                } else {
+                    document.getElementById('historialContent').innerHTML = '<div class="text-center py-3 text-muted">Sin gestiones registradas</div>';
+                }
+            } catch (err) {
+                document.getElementById('historialContent').innerHTML = '<div class="text-center py-3 text-danger">Error cargando historial</div>';
+            }
+        }
+
         function abrirPago(id) {
             selectedServicio = allServicios.find(s => s.id_servicio === id);
             if (!selectedServicio) return;
 
-            document.getElementById('pagoCliente').value = selectedServicio.sede_nombre || selectedServicio.empresa_razon_social || '';
+            document.getElementById('pagoCliente').value = selectedServicio.sede_nombre || '';
             document.getElementById('pagoMonto').value = `S/ ${parseFloat(selectedServicio.tarifa_servicio || 0).toFixed(2)}`;
             document.getElementById('pagoFecha').value = today.toISOString().split('T')[0];
 
@@ -414,11 +647,13 @@
 
         async function confirmarPago() {
             const fecha = document.getElementById('pagoFecha').value;
+            const formaPago = document.getElementById('pagoFormaPago').value;
 
             try {
                 const result = await api.put(`/servicios/${selectedServicio.id_servicio}`, {
                     estado_pago: 'pagado',
-                    fecha_pago: fecha
+                    fecha_pago: fecha,
+                    forma_pago: formaPago
                 });
 
                 if (result.success) {
@@ -433,31 +668,88 @@
             }
         }
 
-        function sendWhatsApp(id) {
-            const servicio = allServicios.find(s => s.id_servicio === id);
-            if (!servicio) return;
+        function sendWhatsApp(idSede) {
+            const sedeServicios = allServicios.filter(s => s.id_sede === idSede && (s.estado_pago || 'pendiente') === 'pendiente');
+            if (sedeServicios.length === 0) return;
 
+            const servicio = sedeServicios[0];
             const telefono = servicio.contacto_telefono || '';
             if (!telefono) {
                 showToast('Cliente sin teléfono registrado', 'warning');
                 return;
             }
 
-            const tarifa = parseFloat(servicio.tarifa_servicio || 0).toFixed(0);
-            const mensaje = `Hola, somos de IO Group. Le recordamos que tiene pendiente el pago del servicio del ${formatDate(servicio.fecha_programada)} por S/ ${tarifa}. ¿Podría indicarnos cuándo realizará el pago?`;
+            const totalDeuda = sedeServicios.reduce((sum, s) => sum + parseFloat(s.tarifa_servicio || 0), 0);
+            const mensaje = sedeServicios.length === 1
+                ? `Hola, somos de IO Group. Le recordamos que tiene pendiente el pago del servicio del ${formatDate(servicio.fecha_servicio)} por S/ ${totalDeuda.toFixed(0)}. ¿Podría indicarnos cuándo realizará el pago?`
+                : `Hola, somos de IO Group. Le recordamos que tiene ${sedeServicios.length} servicios pendientes por un total de S/ ${totalDeuda.toFixed(0)}. ¿Podría indicarnos cuándo realizará el pago?`;
+
             const phone = telefono.replace(/\D/g, '');
             window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`, '_blank');
+
+            // Register the gestión
+            api.post('/cobranza?action=gestion', {
+                id_servicio: servicio.id_servicio,
+                id_sede: idSede,
+                tipo_gestion: 'whatsapp',
+                resultado: 'contactado',
+                observaciones: 'Recordatorio de pago enviado automáticamente'
+            });
+        }
+
+        function toggleReporte() {
+            const card = document.getElementById('reporteCard');
+            if (card.style.display === 'none') {
+                card.style.display = 'block';
+                loadReporte();
+            } else {
+                card.style.display = 'none';
+            }
+        }
+
+        async function loadReporte() {
+            const fecha = document.getElementById('reporteFecha').value;
+            try {
+                const result = await api.get(`/cobranza?action=reporte&fecha=${fecha}`);
+                if (result.success) {
+                    const r = result;
+                    document.getElementById('repWhatsapp').textContent = r.gestiones.whatsapp;
+                    document.getElementById('repLlamadas').textContent = r.gestiones.llamadas;
+                    document.getElementById('repVisitas').textContent = r.gestiones.visitas;
+                    document.getElementById('repTotalGestiones').textContent = r.gestiones.total;
+
+                    document.getElementById('repTransferencia').textContent = `S/ ${(r.pagos.transferencia || 0).toLocaleString()}`;
+                    document.getElementById('repYape').textContent = `S/ ${(r.pagos.yape_plin || 0).toLocaleString()}`;
+                    document.getElementById('repEfectivo').textContent = `S/ ${(r.pagos.efectivo || 0).toLocaleString()}`;
+                    document.getElementById('repTotalCobrado').textContent = `S/ ${(r.pagos.total || 0).toLocaleString()}`;
+
+                    document.getElementById('repPendienteCant').textContent = r.pendientes.cantidad;
+                    document.getElementById('repPendienteMonto').textContent = `S/ ${(r.pendientes.total || 0).toLocaleString()}`;
+                    document.getElementById('repVencido').textContent = `S/ ${(r.pendientes.vencido || 0).toLocaleString()}`;
+                }
+            } catch (err) {
+                showToast('Error cargando reporte', 'danger');
+            }
         }
 
         function clearFilters() {
             document.getElementById('filterCliente').value = '';
             document.getElementById('filterEstado').value = 'pendiente';
-            applyFilters();
+            loadData();
         }
 
         // Event listeners
-        document.getElementById('filterCliente').addEventListener('input', applyFilters);
-        document.getElementById('filterEstado').addEventListener('change', applyFilters);
+        document.getElementById('filterCliente').addEventListener('input', debounce(loadData, 300));
+        document.getElementById('filterEstado').addEventListener('change', loadData);
+        document.getElementById('reporteFecha').addEventListener('change', loadReporte);
+
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
 
         loadData();
     </script>

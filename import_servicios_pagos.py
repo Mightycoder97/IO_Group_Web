@@ -67,7 +67,9 @@ for sheet_name in xl.sheet_names:
             num_factura = row[7] if len(row) > 7 and pd.notna(row[7]) else None
             num_contrato = row[8] if len(row) > 8 and pd.notna(row[8]) else None
             num_manifiesto = row[9] if len(row) > 9 and pd.notna(row[9]) else None
-            observacion = row[11] if len(row) > 11 and pd.notna(row[11]) else None
+            peso_kg = row[10] if len(row) > 10 and pd.notna(row[10]) else None
+            num_guia = row[11] if len(row) > 11 and pd.notna(row[11]) else None
+            observacion = row[12] if len(row) > 12 and pd.notna(row[12]) else None
             
             # Validar que tengamos al menos fecha o mes
             if not fecha_servicio and not mes_servicio:
@@ -89,6 +91,14 @@ for sheet_name in xl.sheet_names:
                     return None
                 return str(s).strip()[:255].replace("'", "\\'")
             
+            def clean_number(n):
+                if pd.isna(n):
+                    return None
+                try:
+                    return float(n)
+                except:
+                    return None
+            
             service = {
                 'ruc': ruc,
                 'fecha_pago': clean_date(fecha_pago),
@@ -99,6 +109,8 @@ for sheet_name in xl.sheet_names:
                 'num_factura': clean_str(num_factura),
                 'num_contrato': clean_str(num_contrato),
                 'num_manifiesto': clean_str(num_manifiesto),
+                'num_guia': clean_str(num_guia),
+                'peso_kg': clean_number(peso_kg),
                 'observaciones': clean_str(observacion),
                 'estado_pago': estado_pago,
                 'tarifa': monto

@@ -35,6 +35,12 @@ RewriteRule ^api/guias(.*)$ api/guias.php [QSA,L]
 RewriteRule ^api/facturas(.*)$ api/facturas.php [QSA,L]
 RewriteRule ^api/reportes(.*)$ api/reportes.php [QSA,L]
 RewriteRule ^api/alertas(.*)$ api/alertas.php [QSA,L]
+RewriteRule ^api/cobranza(.*)$ api/cobranza.php [QSA,L]
+RewriteRule ^api/ingresos(.*)$ api/ingresos.php [QSA,L]
+RewriteRule ^api/sedes-unified(.*)$ api/sedes-unified.php [QSA,L]
+RewriteRule ^api/prospectos(.*)$ api/prospectos.php [QSA,L]
+RewriteRule ^api/usuarios(.*)$ api/usuarios.php [QSA,L]
+RewriteRule ^api/calendario(.*)$ api/calendario.php [QSA,L]
 
 # Static files in public folder
 RewriteRule ^pages/(.*)$ public/pages/$1 [L]

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Ingresos - IO Control</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/global.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .stat-card.servicios .value {
+            color: #1976d2;
+        }
+
+        .stat-card.nuevos .value {
+            color: #7b1fa2;
+        }
+
+        .stat-card.total .value {
+            color: #388e3c;
+        }
+
+        .nav-tabs .nav-link {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #1B5E20;
+            border-bottom: 3px solid #1B5E20;
+        }
+
+        .table th {
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .table td {
+            font-size: 0.85rem;
+            vertical-align: middle;
+        }
+
+        .method-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .method-badge.transferencia {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .method-badge.yape {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .method-badge.plin {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .method-badge.efectivo {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+
+        .consolidation-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .consolidation-card h6 {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .method-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .method-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Ingresos</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card servicios">
+                        <div class="value" id="statServicios">S/ 0</div>
+                        <div class="label"><i class="bi bi-truck"></i> Ingresos Servicios</div>
+                    </div>
+                    <div class="stat-card nuevos">
+                        <div class="value" id="statNuevos">S/ 0</div>
+                        <div class="label"><i class="bi bi-person-plus"></i> Nuevos Clientes</div>
+                    </div>
+                    <div class="stat-card total">
+                        <div class="value" id="statTotal">S/ 0</div>
+                        <div class="label"><i class="bi bi-cash-stack"></i> Total General</div>
+                    </div>
+                </div>
+
+                <!-- Period Filter -->
+                <div class="card mb-3">
+                    <div class="card-body py-2">
+                        <div class="d-flex gap-2 flex-wrap align-items-center">
+                            <label class="form-label mb-0 me-2">Período:</label>
+                            <input type="date" class="form-control form-control-sm" id="fechaDesde"
+                                style="width: 150px;">
+                            <span>a</span>
+                            <input type="date" class="form-control form-control-sm" id="fechaHasta"
+                                style="width: 150px;">
+                            <button class="btn btn-primary btn-sm" onclick="loadAllData()">
+                                <i class="bi bi-search"></i> Consultar
+                            </button>
+                            <div class="ms-auto">
+                                <button class="btn btn-outline-success btn-sm" id="btnNuevoIngreso"
+                                    onclick="abrirNuevoIngreso()">
+                                    <i class="bi bi-plus"></i> Nuevo Cliente
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs mb-3" id="ingresosTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tabServicios">
+                            <i class="bi bi-truck"></i> Servicios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tabNuevos">
+                            <i class="bi bi-person-plus"></i> Nuevos Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tabConsolidacion">
+                            <i class="bi bi-pie-chart"></i> Consolidación
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Servicios Tab -->
+                    <div class="tab-pane fade show active" id="tabServicios">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Cliente</th>
+                                                <th>Mes</th>
+                                                <th>Fecha Servicio</th>
+                                                <th>Fecha Pago</th>
+                                                <th>Método</th>
+                                                <th class="text-end">Monto</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyServicios">
+                                            <tr>
+                                                <td colspan="6" class="text-center py-4">Cargando...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between">
+                                <span id="serviciosCount">0 registros</span>
+                                <strong id="serviciosTotal">Total: S/ 0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nuevos Clientes Tab -->
+                    <div class="tab-pane fade" id="tabNuevos">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Cliente</th>
+                                                <th>Empresa</th>
+                                                <th>Meses</th>
+                                                <th>Fecha Pago</th>
+                                                <th>Método</th>
+                                                <th class="text-end">Monto</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyNuevos">
+                                            <tr>
+                                                <td colspan="7" class="text-center py-4">Cargando...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between">
+                                <span id="nuevosCount">0 registros</span>
+                                <strong id="nuevosTotal">Total: S/ 0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consolidación Tab -->
+                    <div class="tab-pane fade" id="tabConsolidacion">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="consolidation-card">
+                                    <h6><i class="bi bi-credit-card"></i> Por Método de Pago</h6>
+                                    <div id="metodosContent">
+                                        <div class="text-center py-3 text-muted">Cargando...</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="consolidation-card">
+                                    <h6><i class="bi bi-bar-chart"></i> Ingresos Diarios</h6>
+                                    <div class="chart-container">
+                                        <canvas id="chartIngresos"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="consolidation-card">
+                            <h6><i class="bi bi-calculator"></i> Resumen del Período</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="method-row">
+                                        <span><i class="bi bi-truck text-primary"></i> Ingresos por Servicios</span>
+                                        <strong id="resumenServicios">S/ 0</strong>
+                                    </div>
+                                    <div class="method-row">
+                                        <span><i class="bi bi-person-plus text-purple"></i> Pagos Nuevos Clientes</span>
+                                        <strong id="resumenNuevos">S/ 0</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="method-row">
+                                        <span>Cantidad Servicios</span>
+                                        <span id="resumenCantServicios">0</span>
+                                    </div>
+                                    <div class="method-row">
+                                        <span>Cantidad Nuevos Clientes</span>
+                                        <span id="resumenCantNuevos">0</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <div class="p-3 bg-success bg-opacity-10 rounded">
+                                        <div class="fs-4 fw-bold text-success" id="resumenTotal">S/ 0</div>
+                                        <div class="small text-muted">Total General</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Nuevo Ingreso Cliente -->
+    <div class="modal fade" id="nuevoIngresoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus"></i> Registrar Pago Nuevo Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Sede *</label>
+                        <select class="form-select" id="ingresoSede">
+                            <option value="">Seleccione...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Meses Pagados *</label>
+                        <select class="form-select" id="ingresoMeses">
+                            <option value="1">1 mes</option>
+                            <option value="2">2 meses</option>
+                            <option value="3" selected>3 meses</option>
+                            <option value="6">6 meses</option>
+                            <option value="12">12 meses</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Monto Total *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">S/</span>
+                            <input type="number" class="form-control" id="ingresoMonto" step="0.01">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Método de Pago</label>
+                        <select class="form-select" id="ingresoMetodo">
+                            <option value="transferencia">Transferencia</option>
+                            <option value="yape">Yape</option>
+                            <option value="plin">Plin</option>
+                            <option value="efectivo">Efectivo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Pago</label>
+                        <input type="date" class="form-control" id="ingresoFecha">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="ingresoObservaciones" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarNuevoIngreso()">
+                        <i class="bi bi-save"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js?v=2.0"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('ingresos');
+
+        const nuevoIngresoModal = new bootstrap.Modal(document.getElementById('nuevoIngresoModal'));
+        let ingresosChart = null;
+        const today = new Date();
+
+        // Set default dates (current month)
+        document.getElementById('fechaDesde').value = today.toISOString().slice(0, 8) + '01';
+        document.getElementById('fechaHasta').value = today.toISOString().split('T')[0];
+        document.getElementById('ingresoFecha').value = today.toISOString().split('T')[0];
+
+        if (!canEdit()) document.getElementById('btnNuevoIngreso').style.display = 'none';
+
+        async function loadAllData() {
+            await Promise.all([
+                loadServicios(),
+                loadNuevosClientes(),
+                loadConsolidacion()
+            ]);
+        }
+
+        async function loadServicios() {
+            const desde = document.getElementById('fechaDesde').value;
+            const hasta = document.getElementById('fechaHasta').value;
+
+            try {
+                const result = await api.get(`/ingresos?action=servicios&fecha_desde=${desde}&fecha_hasta=${hasta}`);
+                if (result.success) {
+                    renderServicios(result.data);
+                    document.getElementById('serviciosCount').textContent = `${result.totales.cantidad} registros`;
+                    document.getElementById('serviciosTotal').textContent = `Total: S/ ${result.totales.total.toLocaleString()}`;
+                    document.getElementById('statServicios').textContent = `S/ ${result.totales.total.toLocaleString()}`;
+                }
+            } catch (err) {
+                showToast('Error cargando servicios', 'danger');
+            }
+        }
+
+        function renderServicios(data) {
+            const tbody = document.getElementById('tbodyServicios');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin registros</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(s => `
+                <tr>
+                    <td><strong>${s.sede_nombre || '-'}</strong></td>
+                    <td>${s.mes_servicio || '-'}</td>
+                    <td>${formatDate(s.fecha_ejecucion)}</td>
+                    <td>${formatDate(s.fecha_pago)}</td>
+                    <td><span class="method-badge ${s.forma_pago || ''}">${s.forma_pago || '-'}</span></td>
+                    <td class="text-end fw-bold">S/ ${parseFloat(s.monto || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadNuevosClientes() {
+            const desde = document.getElementById('fechaDesde').value;
+            const hasta = document.getElementById('fechaHasta').value;
+
+            try {
+                const result = await api.get(`/ingresos?action=nuevos-clientes&fecha_desde=${desde}&fecha_hasta=${hasta}`);
+                if (result.success) {
+                    renderNuevosClientes(result.data);
+                    document.getElementById('nuevosCount').textContent = `${result.totales.cantidad} registros`;
+                    document.getElementById('nuevosTotal').textContent = `Total: S/ ${result.totales.total.toLocaleString()}`;
+                    document.getElementById('statNuevos').textContent = `S/ ${result.totales.total.toLocaleString()}`;
+                }
+            } catch (err) {
+                showToast('Error cargando nuevos clientes', 'danger');
+            }
+        }
+
+        function renderNuevosClientes(data) {
+            const tbody = document.getElementById('tbodyNuevos');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Sin registros</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(i => `
+                <tr>
+                    <td><strong>${i.sede_nombre || '-'}</strong></td>
+                    <td>${i.empresa_razon_social || '-'}</td>
+                    <td><span class="badge bg-primary">${i.meses_pagados} mes${i.meses_pagados > 1 ? 'es' : ''}</span></td>
+                    <td>${formatDate(i.fecha_pago)}</td>
+                    <td><span class="method-badge ${i.metodo_pago || ''}">${i.metodo_pago || '-'}</span></td>
+                    <td class="text-end fw-bold">S/ ${parseFloat(i.monto_total || 0).toLocaleString()}</td>
+                    <td>
+                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger" onclick="eliminarIngreso(${i.id})"><i class="bi bi-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadConsolidacion() {
+            const desde = document.getElementById('fechaDesde').value;
+            const hasta = document.getElementById('fechaHasta').value;
+
+            try {
+                const result = await api.get(`/ingresos?action=consolidacion&fecha_desde=${desde}&fecha_hasta=${hasta}`);
+                if (result.success) {
+                    // Update stats
+                    document.getElementById('statTotal').textContent = `S/ ${result.resumen.total_general.toLocaleString()}`;
+
+                    // Resumen
+                    document.getElementById('resumenServicios').textContent = `S/ ${result.resumen.servicios.total.toLocaleString()}`;
+                    document.getElementById('resumenNuevos').textContent = `S/ ${result.resumen.nuevos_clientes.total.toLocaleString()}`;
+                    document.getElementById('resumenCantServicios').textContent = result.resumen.servicios.cantidad;
+                    document.getElementById('resumenCantNuevos').textContent = result.resumen.nuevos_clientes.cantidad;
+                    document.getElementById('resumenTotal').textContent = `S/ ${result.resumen.total_general.toLocaleString()}`;
+
+                    // Métodos de pago
+                    renderMetodos(result.metodos_pago);
+
+                    // Chart
+                    renderChart(result.por_dia);
+                }
+            } catch (err) {
+                showToast('Error cargando consolidación', 'danger');
+            }
+        }
+
+        function renderMetodos(metodos) {
+            const container = document.getElementById('metodosContent');
+            if (!metodos || metodos.length === 0) {
+                container.innerHTML = '<div class="text-center py-3 text-muted">Sin datos</div>';
+                return;
+            }
+
+            container.innerHTML = metodos.map(m => `
+                <div class="method-row">
+                    <span>
+                        <span class="method-badge ${m.metodo}">${m.metodo}</span>
+                        <small class="text-muted ms-2">(${m.cantidad})</small>
+                    </span>
+                    <strong>S/ ${parseFloat(m.total || 0).toLocaleString()}</strong>
+                </div>
+            `).join('');
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('chartIngresos').getContext('2d');
+
+            if (ingresosChart) ingresosChart.destroy();
+
+            const labels = data.map(d => formatDate(d.fecha));
+            const valores = data.map(d => parseFloat(d.total || 0));
+
+            ingresosChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ingresos (S/)',
+                        data: valores,
+                        backgroundColor: 'rgba(56, 142, 60, 0.7)',
+                        borderColor: 'rgba(56, 142, 60, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => 'S/ ' + value.toLocaleString()
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadSedes() {
+            try {
+                const result = await api.get('/sedes?activo=1&limit=500');
+                if (result.success) {
+                    const select = document.getElementById('ingresoSede');
+                    select.innerHTML = '<option value="">Seleccione...</option>' +
+                        result.data.map(s => `<option value="${s.id_sede}">${s.nombre_comercial}</option>`).join('');
+                }
+            } catch (err) {
+                console.error('Error loading sedes:', err);
+            }
+        }
+
+        function abrirNuevoIngreso() {
+            loadSedes();
+            document.getElementById('ingresoSede').value = '';
+            document.getElementById('ingresoMeses').value = '3';
+            document.getElementById('ingresoMonto').value = '';
+            document.getElementById('ingresoMetodo').value = 'transferencia';
+            document.getElementById('ingresoFecha').value = today.toISOString().split('T')[0];
+            document.getElementById('ingresoObservaciones').value = '';
+            nuevoIngresoModal.show();
+        }
+
+        async function guardarNuevoIngreso() {
+            const data = {
+                id_sede: parseInt(document.getElementById('ingresoSede').value),
+                meses_pagados: parseInt(document.getElementById('ingresoMeses').value),
+                monto_total: parseFloat(document.getElementById('ingresoMonto').value),
+                metodo_pago: document.getElementById('ingresoMetodo').value,
+                fecha_pago: document.getElementById('ingresoFecha').value,
+                observaciones: document.getElementById('ingresoObservaciones').value
+            };
+
+            if (!data.id_sede || !data.meses_pagados || !data.monto_total) {
+                showToast('Complete los campos requeridos', 'warning');
+                return;
+            }
+
+            try {
+                const result = await api.post('/ingresos?action=nuevo-cliente', data);
+                if (result.success) {
+                    showToast('Ingreso registrado');
+                    nuevoIngresoModal.hide();
+                    loadAllData();
+                } else {
+                    showToast(result.message || 'Error', 'danger');
+                }
+            } catch (err) {
+                showToast('Error guardando', 'danger');
+            }
+        }
+
+        async function eliminarIngreso(id) {
+            if (!confirm('¿Eliminar este registro?')) return;
+
+            try {
+                const result = await api.delete(`/ingresos?action=nuevo-cliente&id=${id}`);
+                if (result.success) {
+                    showToast('Registro eliminado');
+                    loadAllData();
+                } else {
+                    showToast(result.message || 'Error', 'danger');
+                }
+            } catch (err) {
+                showToast('Error eliminando', 'danger');
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString('es-PE');
+        }
+
+        loadAllData();
+    </script>
+</body>
+
+</html>

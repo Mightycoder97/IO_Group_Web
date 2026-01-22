@@ -15,13 +15,57 @@
     <style>
         .table th {
             white-space: nowrap;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            padding: 0.4rem 0.3rem;
         }
 
         .table td {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             vertical-align: middle;
             white-space: nowrap;
+            padding: 0.35rem 0.3rem;
+        }
+
+        /* Compact column widths */
+        .col-cliente {
+            min-width: 140px;
+            max-width: 180px;
+        }
+
+        .col-mes {
+            width: 70px;
+        }
+
+        .col-fecha {
+            width: 75px;
+        }
+
+        .col-tarifa {
+            width: 60px;
+        }
+
+        .col-pago {
+            width: 70px;
+        }
+
+        .col-factura {
+            width: 80px;
+        }
+
+        .col-manifiesto {
+            width: 80px;
+        }
+
+        .col-guia {
+            width: 80px;
+        }
+
+        .col-peso {
+            width: 55px;
+        }
+
+        .col-accion {
+            width: 60px;
         }
 
         .table-responsive {
@@ -140,29 +184,24 @@
 
                 <div class="table-container">
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Cliente</th>
-                                    <th>Mes</th>
-                                    <th>Fecha Servicio</th>
-                                    <th>Tarifa</th>
-                                    <th>Estado Pago</th>
-                                    <th>Fecha Pago</th>
-                                    <th>Forma Pago</th>
-                                    <th>Nº Factura</th>
-                                    <th>Nº Contrato</th>
-                                    <th>Nº Manifiesto</th>
-                                    <th>Nº Guía</th>
-                                    <th>Peso (Kg)</th>
-                                    <th>Desc. Residuo</th>
-                                    <th>Observación</th>
-                                    <th>Acciones</th>
+                                    <th class="col-cliente">Cliente</th>
+                                    <th class="col-mes">Mes</th>
+                                    <th class="col-fecha">Fecha</th>
+                                    <th class="col-tarifa">Tarifa</th>
+                                    <th class="col-pago">Pago</th>
+                                    <th class="col-factura">Factura</th>
+                                    <th class="col-manifiesto">Manifiesto</th>
+                                    <th class="col-guia">Guía</th>
+                                    <th class="col-peso">Peso</th>
+                                    <th class="col-accion">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <tr>
-                                    <td colspan="15" class="text-center py-4">Cargando...</td>
+                                    <td colspan="10" class="text-center py-4">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -190,7 +229,7 @@
             const mes = document.getElementById('filterMes').value;
 
             try {
-                const result = await api.get('/servicios?limit=500');
+                const result = await api.get('/servicios?limit=8');
                 if (result.success) {
                     allData = result.data;
 
@@ -224,7 +263,7 @@
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="15" class="text-center py-4 text-muted">No hay registros</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No hay registros</td></tr>';
                 return;
             }
 
@@ -237,27 +276,22 @@
 
                 return `
                 <tr>
-                    <td><strong>${s.sede_nombre || '-'}</strong></td>
-                    <td>${s.mes_servicio || '-'}</td>
-                    <td>${formatDate(s.fecha_servicio)}</td>
-                    <td><strong>S/ ${tarifa.toFixed(0)}</strong></td>
-                    <td>
+                    <td class="col-cliente" title="${s.sede_nombre || ''}"><strong>${s.sede_nombre || '-'}</strong></td>
+                    <td class="col-mes">${s.mes_servicio || '-'}</td>
+                    <td class="col-fecha">${formatDate(s.fecha_servicio)}</td>
+                    <td class="col-tarifa"><strong>S/${tarifa.toFixed(0)}</strong></td>
+                    <td class="col-pago">
                         ${isPagado
                         ? '<span class="badge bg-success badge-pago">Pagado</span>'
-                        : '<span class="badge bg-warning text-dark badge-pago">Pendiente</span>'}
+                        : '<span class="badge bg-warning text-dark badge-pago">Pend.</span>'}
                     </td>
-                    <td>${s.fecha_pago ? formatDate(s.fecha_pago) : '-'}</td>
-                    <td>${s.forma_pago || '-'}</td>
-                    <td>${s.numero_factura || '-'}</td>
-                    <td>${s.numero_contrato || '-'}</td>
-                    <td>${s.numero_manifiesto || '-'}</td>
-                    <td>${s.numero_guia || '-'}</td>
-                    <td>${s.peso_residuo ? s.peso_residuo + ' kg' : '-'}</td>
-                    <td>${s.descripcion_residuo || '-'}</td>
-                    <td title="${s.observaciones || ''}">${s.observaciones ? s.observaciones.substring(0, 20) + '...' : '-'}</td>
-                    <td>
-                        <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
-                        ${!isPagado && canEdit() ? `<button class="btn btn-sm btn-success" onclick="marcarPagado(${s.id_servicio})" title="Marcar pagado"><i class="bi bi-check"></i></button>` : ''}
+                    <td class="col-factura">${s.numero_factura || '-'}</td>
+                    <td class="col-manifiesto">${s.numero_manifiesto || '-'}</td>
+                    <td class="col-guia">${s.numero_guia || '-'}</td>
+                    <td class="col-peso">${s.peso_residuo ? s.peso_residuo + 'kg' : '-'}</td>
+                    <td class="col-accion">
+                        <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary p-1" title="Editar"><i class="bi bi-pencil"></i></a>
+                        ${!isPagado && canEdit() ? `<button class="btn btn-sm btn-success p-1" onclick="marcarPagado(${s.id_servicio})" title="Marcar pagado"><i class="bi bi-check"></i></button>` : ''}
                     </td>
                 </tr>
             `}).join('');
