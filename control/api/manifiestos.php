@@ -42,7 +42,7 @@ function getAll() {
     
     // Consulta optimizada - solo campos necesarios
     $sql = "SELECT m.id_manifiesto, m.numero_manifiesto, m.tipo_residuo, m.peso_kg,
-            m.fecha_creacion, s.codigo_servicio, s.id_servicio,
+            m.fecha_creacion, s.mes_servicio, s.fecha_ejecucion as fecha_servicio, s.id_servicio,
             se.nombre_comercial as sede_nombre, se.id_sede
             FROM Manifiesto m
             INNER JOIN Servicio s ON m.id_servicio = s.id_servicio
@@ -91,7 +91,7 @@ function getOne($id) {
     canView();
     
     $manifiesto = db()->queryOne(
-        "SELECT m.*, s.codigo_servicio, se.nombre_comercial as sede_nombre
+        "SELECT m.*, s.mes_servicio, s.fecha_ejecucion as fecha_servicio, se.nombre_comercial as sede_nombre
          FROM Manifiesto m 
          INNER JOIN Servicio s ON m.id_servicio = s.id_servicio 
          INNER JOIN Sede se ON s.id_sede = se.id_sede

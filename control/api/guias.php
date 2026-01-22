@@ -43,7 +43,7 @@ function getAll() {
     // Consulta optimizada - solo campos necesarios
     $sql = "SELECT g.id_guia, g.serie, g.numero_guia, g.fecha_emision,
             g.punto_partida, g.punto_llegada,
-            s.codigo_servicio, s.id_servicio,
+            s.mes_servicio, s.fecha_ejecucion as fecha_servicio, s.id_servicio,
             se.nombre_comercial as sede_nombre, se.id_sede
             FROM Guia g
             INNER JOIN Servicio s ON g.id_servicio = s.id_servicio
@@ -92,7 +92,7 @@ function getOne($id) {
     canView();
     
     $guia = db()->queryOne(
-        "SELECT g.*, s.codigo_servicio, se.nombre_comercial as sede_nombre
+        "SELECT g.*, s.mes_servicio, s.fecha_ejecucion as fecha_servicio, se.nombre_comercial as sede_nombre
          FROM Guia g 
          INNER JOIN Servicio s ON g.id_servicio = s.id_servicio 
          INNER JOIN Sede se ON s.id_sede = se.id_sede
