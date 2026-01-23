@@ -5,13 +5,9 @@ RewriteEngine On
 # MAINTENANCE MODE - Redirect all traffic except /control
 # To disable maintenance mode, remove or comment out this section
 # =============================================
-# Allow access to control panel
 RewriteCond %{REQUEST_URI} !^/control [NC]
-# Allow access to maintenance page itself
 RewriteCond %{REQUEST_URI} !^/maintenance\.html$ [NC]
-# Allow access to favicon
 RewriteCond %{REQUEST_URI} !^/favicon\.ico$ [NC]
-# Redirect everything else to maintenance page
 RewriteRule ^(.*)$ /maintenance.html [L,R=302]
 # =============================================
 
