@@ -234,12 +234,12 @@
                         </div>
                         <div class="col-md-6">
                             <div class="info-row"><i class="bi bi-person"></i> <span id="contactoInfo">-</span></div>
-                            <div class="info-row"><i class="bi bi-telephone"></i> <span id="telefonoInfo">-</span></div>
+                            <div class="info-row" id="telefonosContainer">
+                                <i class="bi bi-telephone"></i> <span id="telefonoInfo">-</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="quick-actions">
-                        <a href="#" id="btnWhatsApp" class="btn btn-success btn-sm" target="_blank"><i
-                                class="bi bi-whatsapp"></i> WhatsApp</a>
+                    <div class="quick-actions" id="whatsappButtons">
                         <a href="#" id="btnEdit" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i>
                             Editar</a>
                     </div>
@@ -253,6 +253,10 @@
                         <div class="status-detail" id="debtDetail">Sin deudas pendientes</div>
                     </div>
                     <div class="debt-amount" id="debtAmount" style="display:none;">S/ 0</div>
+                    <a href="#" id="btnWhatsAppCobranza" class="btn btn-success btn-sm" target="_blank"
+                        style="display:none;">
+                        <i class="bi bi-whatsapp"></i> Recordar Pago
+                    </a>
                 </div>
 
                 <!-- Document Categories -->
@@ -387,16 +391,41 @@
             document.getElementById('direccionInfo').textContent =
                 `${data.direccion || '-'}${data.distrito ? ', ' + data.distrito : ''}`;
             document.getElementById('contactoInfo').textContent = data.contacto_nombre || '-';
-            document.getElementById('telefonoInfo').textContent = data.contacto_telefono || '-';
+
+            // Mostrar teléfonos
+            const tel1 = data.contacto_telefono;
+            const tel2 = data.contacto_telefono_2;
+            let telefonoHtml = '';
+
+            if (tel1 && tel2 && tel1 !== tel2) {
+                telefonoHtml = `${tel1} / ${tel2}`;
+            } else if (tel1) {
+                telefonoHtml = tel1;
+            } else if (tel2) {
+                telefonoHtml = tel2;
+            } else {
+                telefonoHtml = '-';
+            }
+            document.getElementById('telefonoInfo').textContent = telefonoHtml;
+
+            // Generar botones de WhatsApp
+            const whatsappContainer = document.getElementById('whatsappButtons');
+            const btnEdit = document.getElementById('btnEdit');
+            let whatsappHtml = '';
+
+            if (tel1) {
+                const phone1 = tel1.replace(/\D/g, '');
+                whatsappHtml += `<a href="https://wa.me/51${phone1}" class="btn btn-success btn-sm" target="_blank"><i class="bi bi-whatsapp"></i> ${tel1}</a> `;
+            }
+            if (tel2 && tel2 !== tel1) {
+                const phone2 = tel2.replace(/\D/g, '');
+                whatsappHtml += `<a href="https://wa.me/51${phone2}" class="btn btn-outline-success btn-sm" target="_blank"><i class="bi bi-whatsapp"></i> ${tel2}</a> `;
+            }
+
+            // Insertar botones antes del botón de editar
+            btnEdit.insertAdjacentHTML('beforebegin', whatsappHtml);
 
             document.getElementById('btnEdit').href = `formulario.html?id=${sedeId}`;
-
-            if (data.contacto_telefono) {
-                const phone = data.contacto_telefono.replace(/\D/g, '');
-                document.getElementById('btnWhatsApp').href = `https://wa.me/51${phone}`;
-            } else {
-                document.getElementById('btnWhatsApp').style.display = 'none';
-            }
         }
 
         function calculateDebt(servicios) {
@@ -436,6 +465,17 @@
                 debtDetail.textContent = `${serviciosPendientes} servicio${serviciosPendientes > 1 ? 's' : ''} sin pagar • ${diasMaxRetraso} días de retraso`;
                 debtAmount.textContent = `S/ ${totalDeuda.toFixed(0)}`;
                 debtAmount.style.display = 'block';
+
+                // Mostrar botón de WhatsApp de cobranza
+                const btnCobranza = document.getElementById('btnWhatsAppCobranza');
+                const tel = sedeData?.contacto_telefono || sedeData?.contacto_telefono_2;
+                if (tel) {
+                    const phone = tel.replace(/\D/g, '');
+                    const nombreCliente = sedeData?.nombre_comercial || 'Cliente';
+                    const mensaje = `Estimado(a) ${nombreCliente}, le recordamos que tiene una deuda pendiente de S/ ${totalDeuda.toFixed(0)} con IO Group por ${serviciosPendientes} servicio${serviciosPendientes > 1 ? 's' : ''} de recojo de residuos. Por favor, regularice su pago a la brevedad. Gracias.`;
+                    btnCobranza.href = `https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`;
+                    btnCobranza.style.display = 'inline-block';
+                }
             } else {
                 debtStatus.className = 'debt-status al-dia';
                 debtStatus.querySelector('.status-icon i').className = 'bi bi-check-circle-fill';

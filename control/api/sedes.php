@@ -61,7 +61,7 @@ function getAll() {
     
     // Consulta optimizada - solo campos necesarios
     $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.activo,
-            s.contacto_nombre, s.contacto_telefono, s.coordenadas_gps,
+            s.contacto_nombre, s.contacto_telefono, s.contacto_telefono_2, s.coordenadas_gps,
             e.razon_social as empresa_razon_social, e.ruc as empresa_ruc
             FROM Sede s
             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
@@ -151,8 +151,8 @@ function create() {
     }
     
     $id = db()->insert(
-        "INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_email) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_telefono_2, contacto_email) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             $id_empresa,
             $nombre_comercial,
@@ -164,6 +164,7 @@ function create() {
             $data['coordenadas_gps'] ?? null,
             $data['contacto_nombre'] ?? null,
             $data['contacto_telefono'] ?? null,
+            $data['contacto_telefono_2'] ?? null,
             $data['contacto_email'] ?? null
         ]
     );
@@ -210,6 +211,7 @@ function update($id) {
             coordenadas_gps = ?,
             contacto_nombre = ?,
             contacto_telefono = ?,
+            contacto_telefono_2 = ?,
             contacto_email = ?,
             activo = COALESCE(?, activo),
             fecha_modificacion = NOW()
@@ -225,6 +227,7 @@ function update($id) {
             $data['coordenadas_gps'] ?? $existing['coordenadas_gps'],
             $data['contacto_nombre'] ?? $existing['contacto_nombre'],
             $data['contacto_telefono'] ?? $existing['contacto_telefono'],
+            $data['contacto_telefono_2'] ?? $existing['contacto_telefono_2'],
             $data['contacto_email'] ?? $existing['contacto_email'],
             isset($data['activo']) ? $data['activo'] : null,
             $id
