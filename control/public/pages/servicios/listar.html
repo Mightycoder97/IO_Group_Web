@@ -194,7 +194,7 @@
                         <div class="row g-2 align-items-end">
                             <div class="col-auto">
                                 <input type="text" class="form-control form-control-sm" id="searchInput"
-                                    placeholder="Buscar cliente..." style="width: 180px;">
+                                    placeholder="Buscar por nombre o RUC..." style="width: 200px;">
                             </div>
                             <div class="col-auto">
                                 <select class="form-select form-select-sm" id="filterEstadoPago" style="width: 130px;">
@@ -300,9 +300,9 @@
             const mes = document.getElementById('filterMes').value;
 
             try {
-                // Construct URL with pagination, filters and sorting
                 let url = `/servicios?page=${page}&limit=10`;
                 url += `&sort=${currentSort.column}&order=${currentSort.direction}`;
+                if (search) url += `&busqueda=${encodeURIComponent(search)}`;
                 if (estadoPago) url += `&estado_pago=${estadoPago}`;
                 if (mes) {
                     const [year, month] = mes.split('-');
@@ -316,9 +316,17 @@
                 if (result.success) {
                     allData = result;
 
+                    // Client-side search as additional filtering
+                    let filteredData = result.data;
+                    if (search) {
+                        filteredData = filteredData.filter(item =>
+                            (item.sede_nombre || '').toLowerCase().includes(search) ||
+                            (item.empresa_razon_social || '').toLowerCase().includes(search)
+                        );
+                    }
+
                     // Client-side sorting as fallback if API doesn't support it
-                    let sortedData = [...result.data];
-                    sortedData = sortDataArray(sortedData, currentSort.column, currentSort.direction);
+                    let sortedData = sortDataArray(filteredData, currentSort.column, currentSort.direction);
 
                     renderTable(sortedData);
                 }

@@ -39,6 +39,7 @@ function getAll() {
     $fecha_desde = $_GET['fecha_desde'] ?? null;
     $fecha_hasta = $_GET['fecha_hasta'] ?? null;
     $cliente = $_GET['cliente'] ?? null;
+    $busqueda = $_GET['busqueda'] ?? null;
     
     // Paginación - IMPORTANTE para rendimiento
     $page = max(1, intval($_GET['page'] ?? 1));
@@ -95,6 +96,14 @@ function getAll() {
         $params[] = $cliente;
     }
     
+    if ($busqueda) {
+        $sql .= " AND (se.nombre_comercial LIKE ? OR e.razon_social LIKE ? OR c.ruc LIKE ?)";
+        $searchTerm = "%" . $busqueda . "%";
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+    }
+    
     // Obtener total para paginación (consulta simplificada)
     $countSql = "SELECT COUNT(DISTINCT s.id_servicio) as total FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
@@ -108,6 +117,10 @@ function getAll() {
     }
     if ($cliente) {
         $countSql .= " AND e.id_cliente = " . intval($cliente);
+    }
+    if ($busqueda) {
+        $searchEscaped = addslashes($busqueda);
+        $countSql .= " AND (se.nombre_comercial LIKE '%" . $searchEscaped . "%' OR e.razon_social LIKE '%" . $searchEscaped . "%')";
     }
     $totalResult = db()->queryOne($countSql);
     $total = $totalResult['total'] ?? 0;
