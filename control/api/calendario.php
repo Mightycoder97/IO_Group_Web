@@ -11,7 +11,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        getCalendario();
+        $action = $_GET['action'] ?? null;
+        if ($action === 'distritos') {
+            getDistritos();
+        } else {
+            getCalendario();
+        }
         break;
     case 'POST':
         saveCalendario();
@@ -19,6 +24,24 @@ switch ($method) {
     default:
         http_response_code(405);
         echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+}
+
+function getDistritos() {
+    canView();
+    
+    // Get unique districts with sede count - much faster than loading all sedes
+    $sql = "SELECT distrito, COUNT(*) as cantidad 
+            FROM Sede 
+            WHERE distrito IS NOT NULL AND distrito != '' AND activo = 1
+            GROUP BY distrito 
+            ORDER BY distrito";
+    
+    $data = db()->query($sql);
+    
+    echo json_encode([
+        'success' => true,
+        'data' => $data
+    ]);
 }
 
 function getCalendario() {

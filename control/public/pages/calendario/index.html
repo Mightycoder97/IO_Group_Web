@@ -197,8 +197,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -291,16 +295,12 @@
             loadCalendario();
         }
 
-        // Load distritos from sedes
+        // Load distritos from optimized endpoint
         async function loadDistritos() {
             try {
-                const result = await api.get('/sedes');
+                const result = await api.get('/calendario?action=distritos');
                 if (result.success) {
-                    const distritos = new Set();
-                    result.data.forEach(s => {
-                        if (s.distrito) distritos.add(s.distrito);
-                    });
-                    allDistritos = Array.from(distritos).sort();
+                    allDistritos = result.data.map(d => d.distrito);
                     renderDistritosList();
                 }
             } catch (err) {
@@ -327,17 +327,24 @@
                 return;
             }
 
-            container.innerHTML = filteredDistritos.map(d => `
-                <div class="distrito-item ${selectedDistrito === d ? 'active' : ''}" 
-                     onclick="selectDistrito('${d}')">
+            // Use DocumentFragment for better performance
+            const fragment = document.createDocumentFragment();
+            filteredDistritos.forEach(d => {
+                const div = document.createElement('div');
+                div.className = `distrito-item ${selectedDistrito === d ? 'active' : ''}`;
+                div.onclick = () => selectDistrito(d);
+                div.innerHTML = `
                     <span>
                         <span class="distrito-color" style="background: ${distritoColors[d] || '#999'}"></span>
                         ${d}
                     </span>
                     <span class="badge bg-secondary" id="count-${d.replace(/\s/g, '-')}">0</span>
-                </div>
-            `).join('');
+                `;
+                fragment.appendChild(div);
+            });
 
+            container.innerHTML = '';
+            container.appendChild(fragment);
             updateDistritoCounts();
         }
 
@@ -394,44 +401,60 @@
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+            const todayDate = today.getDate();
 
-            let html = '';
+            // Build HTML string (faster than multiple DOM operations)
+            const htmlParts = [];
 
             // Day headers
-            diasSemana.forEach(d => {
-                html += `<div class="calendar-day-header">${d}</div>`;
-            });
+            for (let i = 0; i < 7; i++) {
+                htmlParts.push(`<div class="calendar-day-header">${diasSemana[i]}</div>`);
+            }
 
             // Empty cells before first day
             for (let i = 0; i < firstDay; i++) {
-                html += '<div class="calendar-day empty"></div>';
+                htmlParts.push('<div class="calendar-day empty"></div>');
             }
+
+            // Pre-calculate month string once
+            const monthStr = String(month + 1).padStart(2, '0');
 
             // Days of month
             for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
-                const dayDistritos = calendarioData[dateStr] || [];
-                const dayOfWeek = new Date(year, month, day).getDay();
+                const dateStr = `${year}-${monthStr}-${String(day).padStart(2, '0')}`;
+                const isToday = isCurrentMonth && todayDate === day;
+                const dayDistritos = calendarioData[dateStr];
+                const dayOfWeek = (firstDay + day - 1) % 7;
 
-                html += `
-                    <div class="calendar-day ${isToday ? 'today' : ''}" onclick="toggleDistrito('${dateStr}')">
-                        <div class="day-number">
-                            <span>${day}</span>
-                            <span class="day-name">${diasSemana[dayOfWeek]}</span>
-                        </div>
-                        <div class="distrito-chips">
-                            ${dayDistritos.map(d => `
-                                <span class="distrito-chip" style="background: ${distritoColors[d] || '#e3f2fd'}; color: ${distritoColors[d] ? 'white' : '#1565c0'}">
-                                    ${d.substring(0, 3)}
-                                </span>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+                let chipsHtml = '';
+                if (dayDistritos && dayDistritos.length > 0) {
+                    chipsHtml = dayDistritos.map(d => {
+                        const color = distritoColors[d] || '#e3f2fd';
+                        const textColor = distritoColors[d] ? 'white' : '#1565c0';
+                        return `<span class="distrito-chip" style="background:${color};color:${textColor}">${d.substring(0, 3)}</span>`;
+                    }).join('');
+                }
+
+                htmlParts.push(`<div class="calendar-day${isToday ? ' today' : ''}" data-date="${dateStr}">
+                    <div class="day-number"><span>${day}</span><span class="day-name">${diasSemana[dayOfWeek]}</span></div>
+                    <div class="distrito-chips">${chipsHtml}</div>
+                </div>`);
             }
 
-            grid.innerHTML = html;
+            grid.innerHTML = htmlParts.join('');
+
+            // Attach click handlers using event delegation
+            grid.onclick = handleCalendarClick;
+        }
+
+        // Event delegation for calendar clicks
+        function handleCalendarClick(e) {
+            const dayEl = e.target.closest('.calendar-day:not(.empty)');
+            if (dayEl) {
+                const dateStr = dayEl.dataset.date;
+                if (dateStr) toggleDistrito(dateStr);
+            }
         }
 
         function toggleDistrito(dateStr) {
