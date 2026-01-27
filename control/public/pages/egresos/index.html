@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Egresos - IO Control</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/global.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #ddd;
+        }
+
+        .stat-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .stat-card.operativo {
+            border-left-color: #e65100;
+        }
+
+        .stat-card.operativo .value {
+            color: #e65100;
+        }
+
+        .stat-card.fijo {
+            border-left-color: #1565c0;
+        }
+
+        .stat-card.fijo .value {
+            color: #1565c0;
+        }
+
+        .stat-card.nomina {
+            border-left-color: #6a1b9a;
+        }
+
+        .stat-card.nomina .value {
+            color: #6a1b9a;
+        }
+
+        .stat-card.administrativo {
+            border-left-color: #00838f;
+        }
+
+        .stat-card.administrativo .value {
+            color: #00838f;
+        }
+
+        .stat-card.extraordinario {
+            border-left-color: #c62828;
+        }
+
+        .stat-card.extraordinario .value {
+            color: #c62828;
+        }
+
+        .stat-card.total {
+            border-left-color: #1B5E20;
+            background: linear-gradient(135deg, #f8fff8, white);
+        }
+
+        .stat-card.total .value {
+            color: #1B5E20;
+        }
+
+        .categoria-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .categoria-badge.operativo {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .categoria-badge.fijo {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .categoria-badge.nomina {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .categoria-badge.administrativo {
+            background: #e0f7fa;
+            color: #00838f;
+        }
+
+        .categoria-badge.extraordinario {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .chart-container {
+            height: 280px;
+            position: relative;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #f5f5f5;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .filter-tab:hover {
+            background: #e0e0e0;
+        }
+
+        .filter-tab.active {
+            background: #1B5E20;
+            color: white;
+        }
+
+        .table th {
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .table td {
+            font-size: 0.85rem;
+            vertical-align: middle;
+        }
+
+        .variacion {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .variacion.up {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .variacion.down {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Egresos</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card operativo">
+                        <div class="value" id="statOperativo">S/ 0</div>
+                        <div class="label"><i class="bi bi-truck"></i> Operativo</div>
+                    </div>
+                    <div class="stat-card fijo">
+                        <div class="value" id="statFijo">S/ 0</div>
+                        <div class="label"><i class="bi bi-house"></i> Fijo</div>
+                    </div>
+                    <div class="stat-card nomina">
+                        <div class="value" id="statNomina">S/ 0</div>
+                        <div class="label"><i class="bi bi-people"></i> Nómina</div>
+                    </div>
+                    <div class="stat-card administrativo">
+                        <div class="value" id="statAdministrativo">S/ 0</div>
+                        <div class="label"><i class="bi bi-folder"></i> Administrativo</div>
+                    </div>
+                    <div class="stat-card extraordinario">
+                        <div class="value" id="statExtraordinario">S/ 0</div>
+                        <div class="label"><i class="bi bi-exclamation-triangle"></i> Extraordinario</div>
+                    </div>
+                    <div class="stat-card total">
+                        <div class="value" id="statTotal">S/ 0</div>
+                        <div class="label"><i class="bi bi-wallet2"></i> Total</div>
+                        <div id="variacionContainer"></div>
+                    </div>
+                </div>
+
+                <!-- Period Filter -->
+                <div class="card mb-3">
+                    <div class="card-body py-2">
+                        <div class="d-flex gap-2 flex-wrap align-items-center">
+                            <label class="form-label mb-0 me-2">Período:</label>
+                            <input type="date" class="form-control form-control-sm" id="fechaDesde"
+                                style="width: 150px;">
+                            <span>a</span>
+                            <input type="date" class="form-control form-control-sm" id="fechaHasta"
+                                style="width: 150px;">
+                            <button class="btn btn-primary btn-sm" onclick="loadAllData()">
+                                <i class="bi bi-search"></i> Consultar
+                            </button>
+                            <div class="ms-auto">
+                                <button class="btn btn-success btn-sm" id="btnNuevoEgreso" onclick="abrirNuevoEgreso()">
+                                    <i class="bi bi-plus"></i> Nuevo Egreso
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Filter Tabs -->
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-categoria="" onclick="filtrarCategoria('')">
+                        <i class="bi bi-grid"></i> Todos
+                    </button>
+                    <button class="filter-tab" data-categoria="operativo" onclick="filtrarCategoria('operativo')">
+                        <i class="bi bi-truck"></i> Operativo
+                    </button>
+                    <button class="filter-tab" data-categoria="fijo" onclick="filtrarCategoria('fijo')">
+                        <i class="bi bi-house"></i> Fijo
+                    </button>
+                    <button class="filter-tab" data-categoria="nomina" onclick="filtrarCategoria('nomina')">
+                        <i class="bi bi-people"></i> Nómina
+                    </button>
+                    <button class="filter-tab" data-categoria="administrativo"
+                        onclick="filtrarCategoria('administrativo')">
+                        <i class="bi bi-folder"></i> Administrativo
+                    </button>
+                    <button class="filter-tab" data-categoria="extraordinario"
+                        onclick="filtrarCategoria('extraordinario')">
+                        <i class="bi bi-exclamation-triangle"></i> Extraordinario
+                    </button>
+                </div>
+
+                <div class="row">
+                    <!-- Table -->
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Categoría</th>
+                                                <th>Descripción</th>
+                                                <th>Ruta/Vehículo</th>
+                                                <th class="text-end">Monto</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyEgresos">
+                                            <tr>
+                                                <td colspan="6" class="text-center py-4">Cargando...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between align-items-center">
+                                <span id="egresosCount">0 registros</span>
+                                <nav>
+                                    <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="col-lg-4">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-pie-chart"></i> Por Categoría</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="chartCategoria"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Gastos Diarios</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="chartDiario"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Nuevo/Editar Egreso -->
+    <div class="modal fade" id="egresoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="egresoModalTitle"><i class="bi bi-wallet2"></i> Nuevo Egreso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="egresoId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Categoría *</label>
+                            <select class="form-select" id="egresoCategoria" onchange="cargarSubcategorias()">
+                                <option value="">Seleccione...</option>
+                                <option value="operativo">Operativo</option>
+                                <option value="fijo">Fijo</option>
+                                <option value="nomina">Nómina</option>
+                                <option value="administrativo">Administrativo</option>
+                                <option value="extraordinario">Extraordinario</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Subcategoría *</label>
+                            <select class="form-select" id="egresoSubcategoria">
+                                <option value="">Seleccione categoría primero</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción *</label>
+                        <input type="text" class="form-control" id="egresoDescripcion" placeholder="Detalle del gasto">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Monto *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">S/</span>
+                                <input type="number" class="form-control" id="egresoMonto" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fecha *</label>
+                            <input type="date" class="form-control" id="egresoFecha">
+                        </div>
+                    </div>
+                    <div class="row" id="rutaVehiculoRow" style="display: none;">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ruta (Opcional)</label>
+                            <select class="form-select" id="egresoRuta">
+                                <option value="">Sin ruta</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Vehículo (Opcional)</label>
+                            <select class="form-select" id="egresoVehiculo">
+                                <option value="">Sin vehículo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comprobante</label>
+                        <input type="text" class="form-control" id="egresoComprobante" placeholder="Nº Factura/Boleta">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="egresoObservaciones" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarEgreso()">
+                        <i class="bi bi-save"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js?v=2.0"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('egresos');
+
+        const egresoModal = new bootstrap.Modal(document.getElementById('egresoModal'));
+        let chartCategoria = null;
+        let chartDiario = null;
+        let subcategoriasCache = {};
+        let currentCategoria = '';
+        let currentPage = 1;
+        const today = new Date();
+
+        // Set default dates (current month)
+        document.getElementById('fechaDesde').value = today.toISOString().slice(0, 8) + '01';
+        document.getElementById('fechaHasta').value = today.toISOString().split('T')[0];
+        document.getElementById('egresoFecha').value = today.toISOString().split('T')[0];
+
+        if (!canEdit()) document.getElementById('btnNuevoEgreso').style.display = 'none';
+
+        async function loadAllData() {
+            await Promise.all([
+                loadEgresos(),
+                loadStats()
+            ]);
+        }
+
+        async function loadEgresos() {
+            const desde = document.getElementById('fechaDesde').value;
+            const hasta = document.getElementById('fechaHasta').value;
+
+            let url = `/egresos?fecha_desde=${desde}&fecha_hasta=${hasta}&page=${currentPage}`;
+            if (currentCategoria) url += `&categoria=${currentCategoria}`;
+
+            try {
+                const result = await api.get(url);
+                if (result.success) {
+                    renderEgresos(result.data);
+                    document.getElementById('egresosCount').textContent = `${result.total} registros`;
+                    renderPagination(result.page, result.pages);
+                }
+            } catch (err) {
+                showToast('Error cargando egresos', 'danger');
+            }
+        }
+
+        function renderEgresos(data) {
+            const tbody = document.getElementById('tbodyEgresos');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Sin registros</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(e => `
+                <tr>
+                    <td>${formatDate(e.fecha)}</td>
+                    <td>
+                        <span class="categoria-badge ${e.categoria}">${capitalizar(e.categoria)}</span>
+                        <br><small class="text-muted">${capitalizar(e.subcategoria.replace(/_/g, ' '))}</small>
+                    </td>
+                    <td>${e.descripcion}</td>
+                    <td>
+                        ${e.codigo_ruta ? `<small class="text-primary"><i class="bi bi-signpost-2"></i> ${e.codigo_ruta}</small>` : ''}
+                        ${e.vehiculo_placa ? `<small class="text-secondary"><i class="bi bi-truck"></i> ${e.vehiculo_placa}</small>` : ''}
+                        ${!e.codigo_ruta && !e.vehiculo_placa ? '-' : ''}
+                    </td>
+                    <td class="text-end fw-bold text-danger">S/ ${parseFloat(e.monto).toLocaleString()}</td>
+                    <td>
+                        ${canEdit() ? `
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editarEgreso(${e.id_egreso})"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-outline-danger" onclick="eliminarEgreso(${e.id_egreso})"><i class="bi bi-trash"></i></button>
+                            </div>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPagination(page, pages) {
+            const pagination = document.getElementById('pagination');
+            if (pages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            if (page > 1) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${page - 1})">«</a></li>`;
+            }
+            for (let i = Math.max(1, page - 2); i <= Math.min(pages, page + 2); i++) {
+                html += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" onclick="goToPage(${i})">${i}</a></li>`;
+            }
+            if (page < pages) {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${page + 1})">»</a></li>`;
+            }
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            loadEgresos();
+        }
+
+        async function loadStats() {
+            const desde = document.getElementById('fechaDesde').value;
+            const hasta = document.getElementById('fechaHasta').value;
+
+            try {
+                const result = await api.get(`/egresos?action=stats&fecha_desde=${desde}&fecha_hasta=${hasta}`);
+                if (result.success) {
+                    // Update stat cards
+                    const categorias = ['operativo', 'fijo', 'nomina', 'administrativo', 'extraordinario'];
+                    categorias.forEach(cat => {
+                        const data = result.por_categoria.find(c => c.categoria === cat);
+                        document.getElementById(`stat${capitalizar(cat)}`).textContent =
+                            `S/ ${(data?.total || 0).toLocaleString()}`;
+                    });
+
+                    document.getElementById('statTotal').textContent =
+                        `S/ ${result.resumen.total.toLocaleString()}`;
+
+                    // Variación
+                    const variacion = result.resumen.variacion_porcentaje;
+                    const variacionEl = document.getElementById('variacionContainer');
+                    if (variacion !== 0) {
+                        const isUp = variacion > 0;
+                        variacionEl.innerHTML = `
+                            <span class="variacion ${isUp ? 'up' : 'down'}">
+                                <i class="bi bi-arrow-${isUp ? 'up' : 'down'}"></i>
+                                ${Math.abs(variacion)}%
+                            </span>
+                        `;
+                    } else {
+                        variacionEl.innerHTML = '';
+                    }
+
+                    // Charts
+                    renderChartCategoria(result.por_categoria);
+                    renderChartDiario(result.por_dia);
+                }
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        function renderChartCategoria(data) {
+            const ctx = document.getElementById('chartCategoria').getContext('2d');
+            if (chartCategoria) chartCategoria.destroy();
+
+            const colors = {
+                operativo: '#e65100',
+                fijo: '#1565c0',
+                nomina: '#6a1b9a',
+                administrativo: '#00838f',
+                extraordinario: '#c62828'
+            };
+
+            chartCategoria = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => capitalizar(d.categoria)),
+                    datasets: [{
+                        data: data.map(d => parseFloat(d.total)),
+                        backgroundColor: data.map(d => colors[d.categoria] || '#999')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderChartDiario(data) {
+            const ctx = document.getElementById('chartDiario').getContext('2d');
+            if (chartDiario) chartDiario.destroy();
+
+            chartDiario = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => formatDate(d.fecha)),
+                    datasets: [{
+                        label: 'Egresos',
+                        data: data.map(d => parseFloat(d.total)),
+                        backgroundColor: 'rgba(198, 40, 40, 0.7)',
+                        borderColor: 'rgba(198, 40, 40, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: v => 'S/ ' + v.toLocaleString() }
+                        }
+                    }
+                }
+            });
+        }
+
+        function filtrarCategoria(categoria) {
+            currentCategoria = categoria;
+            currentPage = 1;
+
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.categoria === categoria);
+            });
+
+            loadEgresos();
+        }
+
+        async function cargarSubcategorias() {
+            const categoria = document.getElementById('egresoCategoria').value;
+            const select = document.getElementById('egresoSubcategoria');
+
+            // Show/hide ruta/vehiculo fields
+            const rutaVehiculoRow = document.getElementById('rutaVehiculoRow');
+            rutaVehiculoRow.style.display = categoria === 'operativo' ? 'flex' : 'none';
+
+            if (!categoria) {
+                select.innerHTML = '<option value="">Seleccione categoría primero</option>';
+                return;
+            }
+
+            if (subcategoriasCache[categoria]) {
+                renderSubcategorias(subcategoriasCache[categoria]);
+                return;
+            }
+
+            try {
+                const result = await api.get(`/egresos?action=subcategorias&categoria=${categoria}`);
+                if (result.success) {
+                    subcategoriasCache[categoria] = result.data;
+                    renderSubcategorias(result.data);
+                }
+            } catch (err) {
+                console.error('Error loading subcategorias:', err);
+            }
+        }
+
+        function renderSubcategorias(data) {
+            const select = document.getElementById('egresoSubcategoria');
+            select.innerHTML = '<option value="">Seleccione...</option>' +
+                data.map(s => `<option value="${s.nombre}">${capitalizar(s.nombre.replace(/_/g, ' '))}</option>`).join('');
+        }
+
+        async function abrirNuevoEgreso() {
+            document.getElementById('egresoModalTitle').innerHTML = '<i class="bi bi-wallet2"></i> Nuevo Egreso';
+            document.getElementById('egresoId').value = '';
+            document.getElementById('egresoCategoria').value = '';
+            document.getElementById('egresoSubcategoria').innerHTML = '<option value="">Seleccione categoría primero</option>';
+            document.getElementById('egresoDescripcion').value = '';
+            document.getElementById('egresoMonto').value = '';
+            document.getElementById('egresoFecha').value = today.toISOString().split('T')[0];
+            document.getElementById('egresoRuta').value = '';
+            document.getElementById('egresoVehiculo').value = '';
+            document.getElementById('egresoComprobante').value = '';
+            document.getElementById('egresoObservaciones').value = '';
+            document.getElementById('rutaVehiculoRow').style.display = 'none';
+
+            await loadRutasVehiculos();
+            egresoModal.show();
+        }
+
+        async function editarEgreso(id) {
+            try {
+                const result = await api.get(`/egresos/${id}`);
+                if (result.success) {
+                    const e = result.data;
+                    document.getElementById('egresoModalTitle').innerHTML = '<i class="bi bi-pencil"></i> Editar Egreso';
+                    document.getElementById('egresoId').value = e.id_egreso;
+                    document.getElementById('egresoCategoria').value = e.categoria;
+                    await cargarSubcategorias();
+                    document.getElementById('egresoSubcategoria').value = e.subcategoria;
+                    document.getElementById('egresoDescripcion').value = e.descripcion;
+                    document.getElementById('egresoMonto').value = e.monto;
+                    document.getElementById('egresoFecha').value = e.fecha;
+                    document.getElementById('egresoComprobante').value = e.comprobante || '';
+                    document.getElementById('egresoObservaciones').value = e.observaciones || '';
+
+                    await loadRutasVehiculos();
+                    document.getElementById('egresoRuta').value = e.id_ruta || '';
+                    document.getElementById('egresoVehiculo').value = e.id_vehiculo || '';
+
+                    egresoModal.show();
+                }
+            } catch (err) {
+                showToast('Error cargando egreso', 'danger');
+            }
+        }
+
+        async function loadRutasVehiculos() {
+            try {
+                // Load today's routes
+                const rutasResult = await api.get(`/rutas?fecha=${document.getElementById('egresoFecha').value}`);
+                const rutaSelect = document.getElementById('egresoRuta');
+                rutaSelect.innerHTML = '<option value="">Sin ruta</option>' +
+                    (rutasResult.data || []).map(r => `<option value="${r.id_ruta}">${r.codigo_ruta} - ${r.vehiculo_placa}</option>`).join('');
+
+                // Load vehicles
+                const vehiculosResult = await api.get('/vehiculos');
+                const vehiculoSelect = document.getElementById('egresoVehiculo');
+                vehiculoSelect.innerHTML = '<option value="">Sin vehículo</option>' +
+                    (vehiculosResult.data || []).map(v => `<option value="${v.id_vehiculo}">${v.placa} - ${v.marca || ''}</option>`).join('');
+            } catch (err) {
+                console.error('Error loading rutas/vehiculos:', err);
+            }
+        }
+
+        async function guardarEgreso() {
+            const id = document.getElementById('egresoId').value;
+            const data = {
+                categoria: document.getElementById('egresoCategoria').value,
+                subcategoria: document.getElementById('egresoSubcategoria').value,
+                descripcion: document.getElementById('egresoDescripcion').value,
+                monto: parseFloat(document.getElementById('egresoMonto').value),
+                fecha: document.getElementById('egresoFecha').value,
+                id_ruta: document.getElementById('egresoRuta').value || null,
+                id_vehiculo: document.getElementById('egresoVehiculo').value || null,
+                comprobante: document.getElementById('egresoComprobante').value,
+                observaciones: document.getElementById('egresoObservaciones').value
+            };
+
+            if (!data.categoria || !data.subcategoria || !data.descripcion || !data.monto) {
+                showToast('Complete los campos requeridos', 'warning');
+                return;
+            }
+
+            try {
+                const result = id
+                    ? await api.put(`/egresos/${id}`, data)
+                    : await api.post('/egresos', data);
+
+                if (result.success) {
+                    showToast(id ? 'Egreso actualizado' : 'Egreso registrado');
+                    egresoModal.hide();
+                    loadAllData();
+                } else {
+                    showToast(result.message || 'Error', 'danger');
+                }
+            } catch (err) {
+                showToast('Error guardando', 'danger');
+            }
+        }
+
+        async function eliminarEgreso(id) {
+            if (!confirm('¿Eliminar este egreso?')) return;
+
+            try {
+                const result = await api.delete(`/egresos/${id}`);
+                if (result.success) {
+                    showToast('Egreso eliminado');
+                    loadAllData();
+                } else {
+                    showToast(result.message || 'Error', 'danger');
+                }
+            } catch (err) {
+                showToast('Error eliminando', 'danger');
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString('es-PE');
+        }
+
+        function capitalizar(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        loadAllData();
+    </script>
+</body>
+
+</html>

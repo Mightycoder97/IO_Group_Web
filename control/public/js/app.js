@@ -65,6 +65,7 @@ function getSidebarHTML() {
             
             ${section('Financiero', [
         navItem('ingresos/index.html', 'cash-stack', 'Ingresos', 'ingresos'),
+        navItem('egresos/index.html', 'wallet2', 'Egresos', 'egresos'),
         navItem('facturas/listar.html', 'receipt', 'Facturas', 'facturas'),
         navItem('cobranza/index.html', 'cash-coin', 'Cobranza', 'cobranza')
     ])}

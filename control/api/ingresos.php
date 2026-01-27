@@ -16,10 +16,12 @@ switch ($method) {
         if ($action === 'servicios') getIngresosServicios();
         elseif ($action === 'nuevos-clientes') getIngresosNuevosClientes();
         elseif ($action === 'consolidacion') getConsolidacion();
+        elseif ($action === 'por-ruta') getIngresosPorRuta();
         else getConsolidacion();
         break;
     case 'POST':
         if ($action === 'nuevo-cliente') createIngresoNuevoCliente();
+        elseif ($action === 'confirmar-pago') confirmarPagoServicio();
         else http_response_code(400);
         break;
     case 'DELETE':
@@ -284,5 +286,126 @@ function getConsolidacion() {
         ],
         'metodos_pago' => $metodos,
         'por_dia' => $porDia
+    ]);
+}
+
+/**
+ * Get routes with services for a specific date (for payment confirmation)
+ */
+function getIngresosPorRuta() {
+    canView();
+    
+    $fecha = $_GET['fecha'] ?? date('Y-m-d');
+    
+    // Get routes for the date
+    $rutas = db()->query("
+        SELECT r.id_ruta, r.codigo_ruta, r.fecha, r.estado,
+               v.placa as vehiculo_placa, v.marca as vehiculo_marca
+        FROM Ruta r
+        INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
+        WHERE r.fecha = ?
+        ORDER BY r.id_ruta
+    ", [$fecha]);
+    
+    // For each route, get its services with payment status
+    foreach ($rutas as &$ruta) {
+        $servicios = db()->query("
+            SELECT s.id_servicio, s.fecha_ejecucion, s.estado,
+                   COALESCE(s.estado_pago, 'pendiente') as estado_pago,
+                   s.fecha_pago, s.forma_pago,
+                   se.id_sede, se.nombre_comercial as sede_nombre, 
+                   se.direccion as sede_direccion, se.distrito,
+                   se.tarifa_servicio as monto,
+                   e.razon_social as empresa_razon_social
+            FROM Servicio s
+            INNER JOIN Sede se ON s.id_sede = se.id_sede
+            INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+            WHERE s.id_ruta = ?
+            ORDER BY s.id_servicio
+        ", [$ruta['id_ruta']]);
+        
+        $ruta['servicios'] = $servicios;
+        $ruta['total_servicios'] = count($servicios);
+        $ruta['servicios_pagados'] = count(array_filter($servicios, fn($s) => $s['estado_pago'] === 'pagado'));
+        $ruta['monto_total'] = array_reduce($servicios, fn($sum, $s) => $sum + floatval($s['monto'] ?? 0), 0);
+        $ruta['monto_pagado'] = array_reduce(
+            array_filter($servicios, fn($s) => $s['estado_pago'] === 'pagado'), 
+            fn($sum, $s) => $sum + floatval($s['monto'] ?? 0), 
+            0
+        );
+    }
+    
+    // Calculate totals
+    $totalServicios = array_reduce($rutas, fn($sum, $r) => $sum + $r['total_servicios'], 0);
+    $totalPagados = array_reduce($rutas, fn($sum, $r) => $sum + $r['servicios_pagados'], 0);
+    $montoTotal = array_reduce($rutas, fn($sum, $r) => $sum + $r['monto_total'], 0);
+    $montoPagado = array_reduce($rutas, fn($sum, $r) => $sum + $r['monto_pagado'], 0);
+    
+    echo json_encode([
+        'success' => true,
+        'fecha' => $fecha,
+        'rutas' => $rutas,
+        'resumen' => [
+            'total_rutas' => count($rutas),
+            'total_servicios' => $totalServicios,
+            'servicios_pagados' => $totalPagados,
+            'servicios_pendientes' => $totalServicios - $totalPagados,
+            'monto_total' => $montoTotal,
+            'monto_pagado' => $montoPagado,
+            'monto_pendiente' => $montoTotal - $montoPagado
+        ]
+    ]);
+}
+
+/**
+ * Confirm payment for a service
+ */
+function confirmarPagoServicio() {
+    $user = canEdit();
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    $id_servicio = $data['id_servicio'] ?? null;
+    $forma_pago = $data['forma_pago'] ?? null;
+    $fecha_pago = $data['fecha_pago'] ?? date('Y-m-d');
+    
+    if (!$id_servicio) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'ID de servicio requerido']);
+        return;
+    }
+    
+    // Check service exists
+    $servicio = db()->queryOne("SELECT * FROM Servicio WHERE id_servicio = ?", [$id_servicio]);
+    if (!$servicio) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Servicio no encontrado']);
+        return;
+    }
+    
+    // Update payment status
+    db()->execute(
+        "UPDATE Servicio SET 
+            estado_pago = 'pagado',
+            fecha_pago = ?,
+            forma_pago = ?,
+            fecha_modificacion = NOW()
+         WHERE id_servicio = ?",
+        [$fecha_pago, $forma_pago, $id_servicio]
+    );
+    
+    // Audit log
+    db()->execute(
+        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores, datos_nuevos) VALUES (?, 'Servicio', ?, 'UPDATE', ?, ?)",
+        [
+            $user['id'], 
+            $id_servicio, 
+            json_encode(['estado_pago' => $servicio['estado_pago'], 'fecha_pago' => $servicio['fecha_pago'], 'forma_pago' => $servicio['forma_pago']]),
+            json_encode(['estado_pago' => 'pagado', 'fecha_pago' => $fecha_pago, 'forma_pago' => $forma_pago])
+        ]
+    );
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Pago confirmado exitosamente'
     ]);
 }
