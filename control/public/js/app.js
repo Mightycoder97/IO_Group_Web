@@ -108,6 +108,9 @@ function initPage(moduleName) {
         }
     });
 
+    // Initialize password change modal
+    initPasswordModal();
+
     // Load alert count
     loadAlertCount();
 }
@@ -138,6 +141,105 @@ function confirmDelete(message = '¿Está seguro de eliminar este registro?') {
 function getUrlParam(param) {
     const params = new URLSearchParams(window.location.search);
     return params.get(param);
+}
+
+// Get user menu HTML with change password option
+function getUserMenuHTML() {
+    const user = getUser();
+    return `
+        <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+            <i class="bi bi-key"></i> Cambiar Contraseña
+        </a>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+    `;
+}
+
+// Get password modal HTML
+function getPasswordModalHTML() {
+    return `
+        <div class="modal fade" id="changePasswordModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-key"></i> Cambiar Contraseña</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="changePasswordForm">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Contraseña Actual <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="currentPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nueva Contraseña <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="newPassword" required minlength="6">
+                                <small class="text-muted">Mínimo 6 caracteres</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Confirmar Nueva Contraseña <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="confirmPassword" required minlength="6">
+                            </div>
+                            <div id="passwordError" class="alert alert-danger d-none"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Cambiar Contraseña</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Initialize password modal
+function initPasswordModal() {
+    // Add modal to body if not exists
+    if (!document.getElementById('changePasswordModal')) {
+        document.body.insertAdjacentHTML('beforeend', getPasswordModalHTML());
+
+        // Handle form submit
+        document.getElementById('changePasswordForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorDiv = document.getElementById('passwordError');
+
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                errorDiv.textContent = 'Las contraseñas no coinciden';
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+
+            // Hide error
+            errorDiv.classList.add('d-none');
+
+            try {
+                const result = await api.put('/auth?action=change-password', {
+                    currentPassword,
+                    newPassword
+                });
+
+                if (result.success) {
+                    showToast('Contraseña actualizada exitosamente', 'success');
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+                    // Clear form
+                    document.getElementById('changePasswordForm').reset();
+                } else {
+                    errorDiv.textContent = result.message || 'Error al cambiar contraseña';
+                    errorDiv.classList.remove('d-none');
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Error al cambiar contraseña';
+                errorDiv.classList.remove('d-none');
+            }
+        });
+    }
 }
 
 // Populate select
