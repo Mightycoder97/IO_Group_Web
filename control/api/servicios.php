@@ -67,7 +67,6 @@ function getAll() {
             LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
             LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
-            LEFT JOIN Cliente c ON e.id_cliente = c.id_cliente
             WHERE 1=1";
     $params = [];
     
@@ -97,7 +96,7 @@ function getAll() {
     }
     
     if ($busqueda) {
-        $sql .= " AND (se.nombre_comercial LIKE ? OR e.razon_social LIKE ? OR c.ruc LIKE ?)";
+        $sql .= " AND (se.nombre_comercial LIKE ? OR e.razon_social LIKE ? OR e.ruc LIKE ?)";
         $searchTerm = "%" . $busqueda . "%";
         $params[] = $searchTerm;
         $params[] = $searchTerm;
@@ -120,7 +119,7 @@ function getAll() {
     }
     if ($busqueda) {
         $searchEscaped = addslashes($busqueda);
-        $countSql .= " AND (se.nombre_comercial LIKE '%" . $searchEscaped . "%' OR e.razon_social LIKE '%" . $searchEscaped . "%')";
+        $countSql .= " AND (se.nombre_comercial LIKE '%" . $searchEscaped . "%' OR e.razon_social LIKE '%" . $searchEscaped . "%' OR e.ruc LIKE '%" . $searchEscaped . "%')";
     }
     $totalResult = db()->queryOne($countSql);
     $total = $totalResult['total'] ?? 0;
