@@ -37,8 +37,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -53,8 +57,8 @@
                             <small class="text-muted" id="empresaFilter"></small>
                         </div>
                         <div class="d-flex gap-2 desktop-filters">
-                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar..."
-                                style="width: 200px;">
+                            <input type="text" class="form-control" id="searchInput"
+                                placeholder="Buscar por nombre o RUC..." style="width: 220px;">
                             <a href="formulario.html" class="btn btn-primary btn-new-desktop" id="btnNew"><i
                                     class="bi bi-plus"></i>
                                 Nuevo Cliente</a>
@@ -63,7 +67,7 @@
                         <div class="mobile-filters">
                             <div class="filter-row">
                                 <input type="text" class="form-control form-control-sm" id="searchInputMobile"
-                                    placeholder="Buscar cliente...">
+                                    placeholder="Buscar por nombre o RUC...">
                             </div>
                         </div>
                     </div>
@@ -171,7 +175,8 @@
             const filtered = allData.filter(item =>
                 item.nombre_comercial?.toLowerCase().includes(term) ||
                 item.direccion?.toLowerCase().includes(term) ||
-                item.empresa_razon_social?.toLowerCase().includes(term)
+                item.empresa_razon_social?.toLowerCase().includes(term) ||
+                item.empresa_ruc?.toLowerCase().includes(term)
             );
             renderTable(filtered);
             if (tableSorter) tableSorter.setData(filtered);
@@ -198,7 +203,8 @@
             const filtered = allData.filter(item =>
                 item.nombre_comercial?.toLowerCase().includes(term) ||
                 item.direccion?.toLowerCase().includes(term) ||
-                item.empresa_razon_social?.toLowerCase().includes(term)
+                item.empresa_razon_social?.toLowerCase().includes(term) ||
+                item.empresa_ruc?.toLowerCase().includes(term)
             );
             renderTable(filtered);
             if (tableSorter) tableSorter.setData(filtered);
