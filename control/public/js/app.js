@@ -258,3 +258,110 @@ async function populateSelect(selectId, endpoint, valueField, textField, selecte
         console.error('Error loading select:', err);
     }
 }
+
+/**
+ * Global TableSorter Utility
+ * Reusable sorting functionality for any data table
+ * 
+ * Usage:
+ * const sorter = new TableSorter({
+ *     data: myDataArray,
+ *     defaultSort: { column: 'fecha', direction: 'desc' },
+ *     columns: {
+ *         'fecha': { type: 'date', field: 'fecha_servicio' },
+ *         'nombre': { type: 'string', field: 'nombre' },
+ *         'monto': { type: 'number', field: 'tarifa' }
+ *     },
+ *     onSort: (sortedData) => renderTable(sortedData)
+ * });
+ * sorter.init();
+ */
+class TableSorter {
+    constructor(options) {
+        this.data = options.data || [];
+        this.currentSort = options.defaultSort || { column: null, direction: 'asc' };
+        this.columns = options.columns || {};
+        this.onSort = options.onSort || (() => { });
+        this.tableSelector = options.tableSelector || 'table';
+    }
+
+    init() {
+        this.bindHeaders();
+        if (this.currentSort.column) {
+            this.updateHeaderStyles();
+        }
+    }
+
+    setData(data) {
+        this.data = data;
+    }
+
+    bindHeaders() {
+        const headers = document.querySelectorAll(`${this.tableSelector} th.sortable`);
+        headers.forEach(header => {
+            header.onclick = () => this.sortColumn(header.dataset.sort);
+        });
+    }
+
+    sortColumn(column) {
+        if (!column) return;
+
+        if (this.currentSort.column === column) {
+            this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            this.currentSort.column = column;
+            const colConfig = this.columns[column];
+            this.currentSort.direction = (colConfig?.type === 'string') ? 'asc' : 'desc';
+        }
+
+        this.updateHeaderStyles();
+        const sortedData = this.getSortedData();
+        this.onSort(sortedData);
+    }
+
+    updateHeaderStyles() {
+        const headers = document.querySelectorAll(`${this.tableSelector} th.sortable`);
+        headers.forEach(h => {
+            h.classList.remove('active', 'asc', 'desc');
+            if (h.dataset.sort === this.currentSort.column) {
+                h.classList.add('active', this.currentSort.direction);
+            }
+        });
+    }
+
+    getSortedData() {
+        if (!this.currentSort.column) return [...this.data];
+
+        const column = this.currentSort.column;
+        const direction = this.currentSort.direction;
+        const colConfig = this.columns[column] || {};
+        const field = colConfig.field || column;
+        const type = colConfig.type || 'string';
+
+        return [...this.data].sort((a, b) => {
+            let valA = a[field];
+            let valB = b[field];
+
+            // Handle nulls
+            if (valA === null || valA === undefined) valA = type === 'number' ? 0 : '';
+            if (valB === null || valB === undefined) valB = type === 'number' ? 0 : '';
+
+            let comparison = 0;
+
+            if (type === 'date') {
+                valA = valA ? new Date(valA) : new Date(0);
+                valB = valB ? new Date(valB) : new Date(0);
+                comparison = valA - valB;
+            } else if (type === 'number') {
+                comparison = parseFloat(valA) - parseFloat(valB);
+            } else {
+                comparison = String(valA).toLowerCase().localeCompare(String(valB).toLowerCase());
+            }
+
+            return direction === 'desc' ? -comparison : comparison;
+        });
+    }
+}
+
+// Export for global use
+window.TableSorter = TableSorter;

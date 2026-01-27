@@ -211,8 +211,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -294,9 +298,17 @@
                             <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Fecha Servicio</th>
-                                        <th>Estado Pago</th>
-                                        <th>Tarifa</th>
+                                        <th class="sortable active desc" data-sort="fecha"
+                                            onclick="sortColumn('fecha')">
+                                            Fecha Servicio <span class="sort-icon"></span>
+                                        </th>
+                                        <th class="sortable" data-sort="estado_pago"
+                                            onclick="sortColumn('estado_pago')">
+                                            Estado Pago <span class="sort-icon"></span>
+                                        </th>
+                                        <th class="sortable" data-sort="tarifa" onclick="sortColumn('tarifa')">
+                                            Tarifa <span class="sort-icon"></span>
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody id="serviciosBody">
@@ -321,6 +333,7 @@
         const sedeId = getUrlParam('id');
         let sedeData = null;
         let allServicios = [];
+        let currentSort = { column: 'fecha', direction: 'desc' };
 
         if (!sedeId) {
             window.location.href = 'listar.html';
@@ -439,14 +452,10 @@
                 return;
             }
 
-            // Sort by date descending - use fecha_servicio or fecha_ejecucion
-            servicios.sort((a, b) => {
-                const dateA = new Date(a.fecha_servicio || a.fecha_ejecucion || 0);
-                const dateB = new Date(b.fecha_servicio || b.fecha_ejecucion || 0);
-                return dateB - dateA;
-            });
+            // Sort by current sort settings
+            const sortedServicios = sortDataArray([...servicios], currentSort.column, currentSort.direction);
 
-            tbody.innerHTML = servicios.map(s => {
+            tbody.innerHTML = sortedServicios.map(s => {
                 const tarifa = parseFloat(s.tarifa_servicio) || 0;
                 const fechaServicio = s.fecha_servicio || s.fecha_ejecucion;
                 let estadoPago = '';
@@ -473,6 +482,54 @@
 
         function goToCategory(category) {
             window.location.href = `../${category}/listar.html?sede=${sedeId}`;
+        }
+
+        // Sort data array
+        function sortDataArray(data, column, direction) {
+            return data.sort((a, b) => {
+                let valA, valB;
+
+                if (column === 'fecha') {
+                    valA = new Date(a.fecha_servicio || a.fecha_ejecucion || 0);
+                    valB = new Date(b.fecha_servicio || b.fecha_ejecucion || 0);
+                } else if (column === 'tarifa') {
+                    valA = parseFloat(a.tarifa_servicio) || 0;
+                    valB = parseFloat(b.tarifa_servicio) || 0;
+                } else if (column === 'estado_pago') {
+                    valA = a.estado_pago || 'pendiente';
+                    valB = b.estado_pago || 'pendiente';
+                } else {
+                    valA = a[column] || '';
+                    valB = b[column] || '';
+                }
+
+                let comparison = 0;
+                if (valA > valB) comparison = 1;
+                else if (valA < valB) comparison = -1;
+
+                return direction === 'desc' ? -comparison : comparison;
+            });
+        }
+
+        // Handle column sort click
+        function sortColumn(column) {
+            const headers = document.querySelectorAll('.sortable');
+
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = column === 'estado_pago' ? 'asc' : 'desc';
+            }
+
+            headers.forEach(h => {
+                h.classList.remove('active', 'asc', 'desc');
+                if (h.dataset.sort === column) {
+                    h.classList.add('active', currentSort.direction);
+                }
+            });
+
+            renderServicios(allServicios);
         }
 
         loadData();

@@ -774,6 +774,43 @@ a:hover {
     vertical-align: middle;
 }
 
+/* Sortable Table Headers */
+.table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.table th.sortable:hover {
+    background-color: #dee2e6;
+}
+
+.table th.sortable .sort-icon {
+    opacity: 0.3;
+    margin-left: 4px;
+    font-size: 0.7rem;
+}
+
+.table th.sortable.active .sort-icon {
+    opacity: 1;
+    color: #1B5E20;
+}
+
+.table th.sortable.asc .sort-icon::before {
+    content: "▲";
+}
+
+.table th.sortable.desc .sort-icon::before {
+    content: "▼";
+}
+
+.table th.sortable:not(.asc):not(.desc) .sort-icon::before {
+    content: "▲▼";
+    font-size: 0.55rem;
+    letter-spacing: -2px;
+}
+
 /* Badges (Less rounded, safer colors) */
 .badge-status {
     padding: 4px 8px;
