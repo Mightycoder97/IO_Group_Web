@@ -38,7 +38,7 @@ function getPendientes() {
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100)));
     
     $sql = "SELECT s.id_servicio, s.id_sede, s.mes_servicio,
-            COALESCE(s.fecha_ejecucion, s.fecha_programada) as fecha_servicio,
+            s.fecha_ejecucion as fecha_servicio,
             COALESCE(s.estado_pago, 'pendiente') as estado_pago,
             s.fecha_pago, s.forma_pago,
             se.nombre_comercial as sede_nombre, 
@@ -64,7 +64,7 @@ function getPendientes() {
         $params[] = "%$cliente%";
     }
     
-    $sql .= " ORDER BY COALESCE(s.fecha_ejecucion, s.fecha_programada) DESC LIMIT ?";
+    $sql .= " ORDER BY s.fecha_ejecucion DESC LIMIT ?";
     $params[] = $limit;
     
     $data = db()->query($sql, $params);
