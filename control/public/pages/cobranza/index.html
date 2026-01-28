@@ -52,39 +52,66 @@
             color: #1565c0;
         }
 
-        .sede-group {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-            margin-bottom: 12px;
+        .date-group {
+            margin-bottom: 20px;
         }
 
-        .sede-header {
-            padding: 12px 16px;
-            background: #f8f9fa;
-            border-bottom: 3px solid #f57c00;
-        }
-
-        .sede-header.al-dia {
-            border-bottom-color: #388e3c;
-        }
-
-        .sede-services {
-            padding: 8px 16px;
-        }
-
-        .service-item {
+        .date-header {
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #1B5E20, #2E7D32);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 0.9rem;
         }
 
-        .service-item:last-child {
+        .date-header .date-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 0;
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .service-card:last-child {
             border-bottom: none;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .date-group .service-card:first-child:last-child {
+            border-radius: 0 0 10px 10px;
+        }
+
+        .service-card .client-info {
+            flex: 1;
+        }
+
+        .service-card .client-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .service-card .client-details {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .service-card .amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1B5E20;
+            margin-right: 10px;
         }
 
         .days-late {
@@ -102,6 +129,12 @@
             padding: 2px 6px;
             border-radius: 8px;
             font-size: 0.7rem;
+        }
+
+        .services-container {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .report-card {
@@ -152,6 +185,18 @@
             .stat-card .value {
                 font-size: 1.3rem;
             }
+
+            .service-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .service-card .actions {
+                width: 100%;
+                display: flex;
+                justify-content: flex-end;
+            }
         }
     </style>
 </head>
@@ -176,8 +221,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -467,89 +516,92 @@
                 return;
             }
 
-            // Group by sede
+            // Sort by date (most recent first)
+            const sorted = [...data].sort((a, b) => new Date(b.fecha_servicio) - new Date(a.fecha_servicio));
+
+            // Group by date
             const grouped = {};
-            data.forEach(s => {
-                const key = s.id_sede || 'sin_sede';
-                if (!grouped[key]) {
-                    grouped[key] = {
-                        id_sede: s.id_sede,
-                        sede_nombre: s.sede_nombre || s.empresa_razon_social || 'Sin cliente',
-                        contacto_telefono: s.contacto_telefono,
-                        servicios: []
-                    };
+            sorted.forEach(s => {
+                const dateKey = s.fecha_servicio ? s.fecha_servicio.split('T')[0] : 'sin_fecha';
+                if (!grouped[dateKey]) {
+                    grouped[dateKey] = [];
                 }
-                grouped[key].servicios.push(s);
+                grouped[dateKey].push(s);
             });
 
-            let html = '';
-            Object.values(grouped).forEach(group => {
-                group.servicios.sort((a, b) => new Date(a.fecha_servicio) - new Date(b.fecha_servicio));
+            // Format date for display
+            function formatDateHeader(dateStr) {
+                if (!dateStr || dateStr === 'sin_fecha') return 'Sin fecha';
+                const date = new Date(dateStr + 'T00:00:00');
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const formatted = date.toLocaleDateString('es-PE', options);
+                // Capitalize first letter
+                return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+            }
 
-                const pendientes = group.servicios.filter(s => (s.estado_pago || 'pendiente') === 'pendiente');
-                const totalDeuda = pendientes.reduce((sum, s) => sum + parseFloat(s.tarifa_servicio || 0), 0);
-                const alDia = pendientes.length === 0;
+            let html = '';
+            Object.keys(grouped).forEach(dateKey => {
+                const services = grouped[dateKey];
+                const totalDia = services.reduce((sum, s) => sum + parseFloat(s.tarifa_servicio || 0), 0);
 
                 html += `
-                <div class="sede-group">
-                    <div class="sede-header ${alDia ? 'al-dia' : ''}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>${group.sede_nombre}</strong>
-                                ${pendientes.length > 0
-                        ? `<span class="badge bg-warning text-dark ms-2">${pendientes.length} pend.</span>`
-                        : '<span class="badge bg-success ms-2">Al día</span>'}
-                            </div>
-                            <div class="fw-bold" style="color: ${alDia ? '#2e7d32' : '#e65100'};">
-                                ${alDia ? '✓' : `S/ ${totalDeuda.toLocaleString()}`}
-                            </div>
+                <div class="date-group">
+                    <div class="date-header">
+                        <div>
+                            <i class="bi bi-calendar3"></i> ${formatDateHeader(dateKey)}
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="date-count">${services.length} servicio${services.length > 1 ? 's' : ''}</span>
+                            <span>S/ ${totalDia.toLocaleString()}</span>
                         </div>
                     </div>
-                    <div class="sede-services">
+                    <div class="services-container">
                 `;
 
-                group.servicios.forEach(s => {
+                services.forEach(s => {
                     const tarifa = parseFloat(s.tarifa_servicio || 0);
                     const diasRetraso = getDaysLate(s.fecha_servicio);
                     const isPendiente = (s.estado_pago || 'pendiente') === 'pendiente';
+                    const clienteName = s.sede_nombre || s.empresa_razon_social || 'Sin cliente';
 
                     html += `
-                        <div class="service-item">
-                            <div>
-                                <i class="bi bi-calendar3"></i> ${formatDate(s.fecha_servicio)}
-                                ${s.mes_servicio ? `<small class="text-muted">(${s.mes_servicio})</small>` : ''}
-                                ${isPendiente && diasRetraso > 0 ? `<span class="days-late ms-2">${diasRetraso}d</span>` : ''}
-                                ${s.num_gestiones > 0 ? `<span class="gestion-badge ms-1">${s.num_gestiones} gest.</span>` : ''}
-                                ${!isPendiente ? '<i class="bi bi-check-circle-fill text-success ms-2"></i>' : ''}
+                        <div class="service-card">
+                            <div class="client-info">
+                                <div class="client-name">
+                                    ${clienteName}
+                                    ${isPendiente && diasRetraso > 0 ? `<span class="days-late ms-2">${diasRetraso}d</span>` : ''}
+                                    ${s.num_gestiones > 0 ? `<span class="gestion-badge ms-1">${s.num_gestiones} gest.</span>` : ''}
+                                    ${!isPendiente ? '<i class="bi bi-check-circle-fill text-success ms-2"></i>' : ''}
+                                </div>
+                                <div class="client-details">
+                                    ${s.distrito || ''} ${s.direccion ? '| ' + s.direccion : ''}
+                                    ${s.mes_servicio ? `<span class="badge bg-light text-dark ms-1">${s.mes_servicio}</span>` : ''}
+                                </div>
                             </div>
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="fw-bold">S/ ${tarifa.toLocaleString()}</span>
-                                ${isPendiente ? `
-                                    <button class="btn btn-sm btn-outline-primary p-1" onclick="verHistorial(${s.id_servicio})" title="Historial">
-                                        <i class="bi bi-clock-history"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary p-1" onclick="abrirGestion(${s.id_servicio})" title="Gestionar">
-                                        <i class="bi bi-journal-plus"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-success p-1" onclick="abrirPago(${s.id_servicio})" title="Marcar pagado">
-                                        <i class="bi bi-check"></i>
-                                    </button>
-                                ` : ''}
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="amount">S/ ${tarifa.toLocaleString()}</span>
+                                <div class="actions">
+                                    ${isPendiente ? `
+                                        ${s.contacto_telefono ? `
+                                            <button class="btn btn-sm btn-outline-success p-1" onclick="sendWhatsAppServicio(${s.id_servicio})" title="WhatsApp">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </button>
+                                        ` : ''}
+                                        <button class="btn btn-sm btn-outline-primary p-1" onclick="verHistorial(${s.id_servicio})" title="Historial">
+                                            <i class="bi bi-clock-history"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary p-1" onclick="abrirGestion(${s.id_servicio})" title="Gestionar">
+                                            <i class="bi bi-journal-plus"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-success p-1" onclick="abrirPago(${s.id_servicio})" title="Marcar pagado">
+                                            <i class="bi bi-check"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
                     `;
                 });
-
-                // WhatsApp button for sede
-                if (pendientes.length > 0 && group.contacto_telefono) {
-                    html += `
-                        <div class="text-end pt-2 border-top mt-2">
-                            <button class="btn btn-outline-success btn-sm" onclick="sendWhatsApp(${group.id_sede})" title="Enviar recordatorio">
-                                <i class="bi bi-whatsapp"></i> Recordar
-                            </button>
-                        </div>
-                    `;
-                }
 
                 html += '</div></div>';
             });
@@ -668,6 +720,32 @@
             } catch (err) {
                 showToast('Error registrando pago', 'danger');
             }
+        }
+
+        function sendWhatsAppServicio(idServicio) {
+            const servicio = allServicios.find(s => s.id_servicio === idServicio);
+            if (!servicio) return;
+
+            const telefono = servicio.contacto_telefono || '';
+            if (!telefono) {
+                showToast('Cliente sin teléfono registrado', 'warning');
+                return;
+            }
+
+            const tarifa = parseFloat(servicio.tarifa_servicio || 0);
+            const mensaje = `Hola, somos de IO Group. Le recordamos que tiene pendiente el pago del servicio del ${formatDate(servicio.fecha_servicio)} por S/ ${tarifa.toFixed(0)}. ¿Podría indicarnos cuándo realizará el pago?`;
+
+            const phone = telefono.replace(/\D/g, '');
+            window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`, '_blank');
+
+            // Register the gestión
+            api.post('/cobranza?action=gestion', {
+                id_servicio: idServicio,
+                id_sede: servicio.id_sede,
+                tipo_gestion: 'whatsapp',
+                resultado: 'contactado',
+                observaciones: 'Recordatorio de pago enviado'
+            });
         }
 
         function sendWhatsApp(idSede) {
