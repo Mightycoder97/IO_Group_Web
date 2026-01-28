@@ -34,7 +34,7 @@ function getPendientes() {
     canView();
     
     $cliente = $_GET['cliente'] ?? null;
-    $estado = $_GET['estado'] ?? 'pendiente';
+    $estado = isset($_GET['estado']) && $_GET['estado'] !== '' ? $_GET['estado'] : null;
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100)));
     
     $sql = "SELECT s.id_servicio, s.id_sede, s.mes_servicio,
