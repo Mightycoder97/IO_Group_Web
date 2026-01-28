@@ -151,7 +151,8 @@
                     item.direccion?.toLowerCase().includes(searchTerm) ||
                     item.empresa_razon_social?.toLowerCase().includes(searchTerm) ||
                     item.empresa_ruc?.toLowerCase().includes(searchTerm);
-                const matchesDistrito = !distrito || item.distrito === distrito;
+                const matchesDistrito = !distrito ||
+                    (item.distrito && item.distrito.trim().toUpperCase() === distrito.trim().toUpperCase());
                 return matchesSearch && matchesDistrito;
             });
 
@@ -161,8 +162,8 @@
 
         async function loadData() {
             try {
-                let url = '/sedes';
-                if (empresaId) url += `?empresa=${empresaId}`;
+                let url = '/sedes?limit=1000';
+                if (empresaId) url += `&empresa=${empresaId}`;
                 const result = await api.get(url);
                 if (result.success) {
                     allData = result.data;
