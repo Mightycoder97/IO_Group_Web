@@ -424,6 +424,12 @@
                         <input type="text" class="form-control" id="pagoMonto" readonly>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Número de Factura</label>
+                        <input type="text" class="form-control" id="pagoNumeroFactura"
+                            placeholder="Ej: F001-00001234 (opcional)">
+                        <small class="text-muted">Ingrese el número si ya tiene la factura lista</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Forma de Pago</label>
                         <select class="form-select" id="pagoFormaPago">
                             <option value="transferencia">Transferencia</option>
@@ -694,6 +700,7 @@
 
             document.getElementById('pagoCliente').value = selectedServicio.sede_nombre || '';
             document.getElementById('pagoMonto').value = `S/ ${parseFloat(selectedServicio.tarifa_servicio || 0).toFixed(2)}`;
+            document.getElementById('pagoNumeroFactura').value = '';
             document.getElementById('pagoFecha').value = today.toISOString().split('T')[0];
 
             pagoModal.show();
@@ -702,8 +709,10 @@
         async function confirmarPago() {
             const fecha = document.getElementById('pagoFecha').value;
             const formaPago = document.getElementById('pagoFormaPago').value;
+            const numeroFactura = document.getElementById('pagoNumeroFactura').value.trim();
 
             try {
+                // 1. Actualizar estado de pago del servicio
                 const result = await api.put(`/servicios/${selectedServicio.id_servicio}`, {
                     estado_pago: 'pagado',
                     fecha_pago: fecha,
@@ -711,7 +720,21 @@
                 });
 
                 if (result.success) {
-                    showToast('Pago registrado correctamente');
+                    // 2. Si hay número de factura, crear registro de factura
+                    if (numeroFactura) {
+                        try {
+                            await api.post('/facturas', {
+                                id_servicio: selectedServicio.id_servicio,
+                                numero_factura: numeroFactura
+                            });
+                            showToast('Pago y factura registrados correctamente');
+                        } catch (facturaErr) {
+                            console.error('Error creando factura:', facturaErr);
+                            showToast('Pago registrado (error al crear factura)', 'warning');
+                        }
+                    } else {
+                        showToast('Pago registrado correctamente');
+                    }
                     pagoModal.hide();
                     loadData();
                 } else {

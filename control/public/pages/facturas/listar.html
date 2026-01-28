@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -11,7 +12,32 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: #f8f9fa;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: #e8f5e9;
+        }
+
+        .doc-badge {
+            font-size: 0.85rem;
+        }
+    </style>
 </head>
+
 <body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
@@ -35,8 +61,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -51,14 +81,8 @@
                             <small class="text-info" id="sedeFilterMsg" style="display:none;"></small>
                         </div>
                         <div class="d-flex gap-2 desktop-filters">
-                            <select class="form-select" id="estadoFilter" style="width: 140px;">
-                                <option value="">Todos</option>
-                                <option value="emitida">Emitida</option>
-                                <option value="pagada">Pagada</option>
-                                <option value="anulada">Anulada</option>
-                            </select>
                             <input type="text" class="form-control" id="searchInput" placeholder="Buscar..."
-                                style="width: 150px;">
+                                style="width: 200px;">
                             <a href="formulario.html" class="btn btn-primary btn-new-desktop" id="btnNew"><i
                                     class="bi bi-plus"></i>
                                 Nueva</a>
@@ -66,12 +90,6 @@
                         <!-- Mobile Filters -->
                         <div class="mobile-filters">
                             <div class="filter-row">
-                                <select class="form-select form-select-sm" id="estadoFilterMobile">
-                                    <option value="">Estado</option>
-                                    <option value="emitida">Emitida</option>
-                                    <option value="pagada">Pagada</option>
-                                    <option value="anulada">Anulada</option>
-                                </select>
                                 <input type="text" class="form-control form-control-sm" id="searchInputMobile"
                                     placeholder="Buscar...">
                             </div>
@@ -83,16 +101,15 @@
                                 <tr>
                                     <th>Nº Factura</th>
                                     <th>Sede</th>
-                                    <th class="hide-on-mobile">Fecha Emisión</th>
-                                    <th>Monto Total</th>
-                                    <th>Estado</th>
-                                    <th class="hide-on-mobile">Método Pago</th>
+                                    <th class="hide-on-mobile">Mes Servicio</th>
+                                    <th>Tarifa</th>
+                                    <th>Documento</th>
                                     <th width="100">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">Cargando...</td>
+                                    <td colspan="6" class="text-center py-4">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -101,6 +118,42 @@
             </div>
         </main>
     </div>
+
+    <!-- Modal: Subir Documento -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-pdf"></i> Subir Documento Escaneado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Factura</label>
+                        <input type="text" class="form-control" id="uploadFacturaInfo" readonly>
+                        <input type="hidden" id="uploadFacturaId">
+                    </div>
+                    <div class="upload-area" id="uploadArea">
+                        <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                        <p class="mb-0 text-muted">Arrastra un PDF aquí o haz clic para seleccionar</p>
+                        <input type="file" id="archivo_pdf" accept=".pdf" style="display: none;">
+                    </div>
+                    <div id="filePreview" class="mt-2" style="display: none;">
+                        <span class="badge bg-success"><i class="bi bi-file-pdf"></i> <span id="fileName"></span></span>
+                        <button type="button" class="btn btn-sm btn-link text-danger"
+                            onclick="removeFile()">Quitar</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="subirDocumento()" id="btnSubir">
+                        <i class="bi bi-upload"></i> Subir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- FAB for mobile -->
     <a href="formulario.html" class="fab" id="fabNew" aria-label="Nueva Factura">
         <i class="bi bi-plus"></i>
@@ -115,25 +168,27 @@
         if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
         let allData = [];
         let tableSorter = null;
+        let selectedFile = null;
         const sedeId = getUrlParam('sede');
-        const servicioId = getUrlParam('servicio');
+        const uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
+
         // Mostrar mensaje si está filtrando por sede
         if (sedeId) {
             document.getElementById('sedeFilterMsg').style.display = 'block';
             document.getElementById('sedeFilterMsg').innerHTML = '<i class="bi bi-funnel-fill"></i> Filtrando facturas por sede...';
         }
-        async function loadData(estado = null) {
+
+        async function loadData() {
             try {
                 let url = '/facturas?';
                 if (sedeId) url += `sede=${sedeId}&`;
-                if (estado) url += `estado=${estado}&`;
                 const result = await api.get(url);
                 if (result.success) {
                     allData = result.data;
                     // Actualizar mensaje de filtro con nombre de sede
                     if (sedeId && allData.length > 0) {
                         document.getElementById('sedeFilterMsg').innerHTML =
-                            `<i class="bi bi-funnel-fill"></i> Facturas de: <strong>${allData[0].sede_nombre}</strong> (${result.total} registros)`;
+                            `<i class="bi bi-funnel-fill"></i> Facturas de: <strong>${allData[0].sede_nombre}</strong> (${allData.length} registros)`;
                     } else if (sedeId) {
                         document.getElementById('sedeFilterMsg').innerHTML =
                             '<i class="bi bi-funnel-fill"></i> No hay facturas para esta sede';
@@ -142,7 +197,7 @@
                     // Inicializar ordenamiento de columnas
                     if (!tableSorter) {
                         tableSorter = new TableSort('tableBody', {
-                            columns: ['numero_factura', 'sede_nombre', 'fecha_emision', 'monto_total', 'estado', 'metodo_pago', null],
+                            columns: ['numero_factura', 'sede_nombre', 'mes_servicio', 'tarifa_servicio', null, null],
                             onSort: (sortedData) => renderTable(sortedData)
                         });
                     }
@@ -152,36 +207,125 @@
                 showToast('Error cargando datos', 'danger');
             }
         }
-        function getEstadoBadge(estado) {
-            const badges = {
-                'emitida': 'bg-warning',
-                'pagada': 'bg-success',
-                'anulada': 'bg-danger',
-                'vencida': 'bg-secondary'
-            };
-            return `<span class="badge ${badges[estado] || 'bg-secondary'}">${estado || '-'}</span>`;
-        }
+
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No hay registros</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No hay registros</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.map(item => `
+            tbody.innerHTML = data.map(item => {
+                const hasDoc = !!item.doc_escaneado;
+                const docCell = hasDoc
+                    ? `<a href="${item.doc_escaneado}" target="_blank" class="badge bg-success doc-badge" title="Ver PDF">
+                        <i class="bi bi-file-earmark-pdf"></i> Ver PDF
+                       </a>`
+                    : `<button class="btn btn-sm btn-outline-secondary" onclick="abrirUpload(${item.id_factura}, '${item.numero_factura}')" title="Subir documento">
+                        <i class="bi bi-upload"></i> Subir
+                       </button>`;
+
+                return `
                 <tr>
                     <td><strong>${item.numero_factura || '#' + item.id_factura}</strong></td>
                     <td>${item.sede_nombre || '-'}</td>
-                    <td>${item.fecha_emision ? new Date(item.fecha_emision).toLocaleDateString('es-PE') : '-'}</td>
-                    <td><strong>S/ ${parseFloat(item.monto_total || 0).toFixed(2)}</strong></td>
-                    <td>${getEstadoBadge(item.estado)}</td>
-                    <td>${item.metodo_pago || '-'}</td>
+                    <td class="hide-on-mobile">${item.mes_servicio || '-'}</td>
+                    <td><strong>S/ ${parseFloat(item.tarifa_servicio || 0).toFixed(2)}</strong></td>
+                    <td>${docCell}</td>
                     <td>
                         <a href="formulario.html?id=${item.id_factura}" class="btn btn-sm btn-outline-primary btn-action" title="Ver/Editar"><i class="bi bi-pencil"></i></a>
                         ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_factura})" title="Eliminar"><i class="bi bi-trash"></i></button>` : ''}
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
+
+        // Upload modal functions
+        function abrirUpload(id, numero) {
+            document.getElementById('uploadFacturaId').value = id;
+            document.getElementById('uploadFacturaInfo').value = numero;
+            selectedFile = null;
+            document.getElementById('filePreview').style.display = 'none';
+            document.getElementById('uploadArea').style.display = 'block';
+            document.getElementById('archivo_pdf').value = '';
+            uploadModal.show();
+        }
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('archivo_pdf');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (file.type !== 'application/pdf') {
+                showToast('Solo se permiten archivos PDF', 'warning');
+                return;
+            }
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('filePreview').style.display = 'block';
+            uploadArea.style.display = 'none';
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            fileInput.value = '';
+            document.getElementById('filePreview').style.display = 'none';
+            uploadArea.style.display = 'block';
+        }
+
+        async function subirDocumento() {
+            if (!selectedFile) {
+                showToast('Seleccione un archivo PDF', 'warning');
+                return;
+            }
+
+            const id = document.getElementById('uploadFacturaId').value;
+            const formData = new FormData();
+            formData.append('archivo_pdf', selectedFile);
+
+            try {
+                document.getElementById('btnSubir').disabled = true;
+                const response = await fetch(API_BASE + `/facturas/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('Documento subido correctamente');
+                    uploadModal.hide();
+                    loadData();
+                } else {
+                    showToast(result.message || 'Error al subir', 'danger');
+                }
+            } catch (err) {
+                showToast('Error al subir documento', 'danger');
+            } finally {
+                document.getElementById('btnSubir').disabled = false;
+            }
+        }
+
         document.getElementById('searchInput').addEventListener('input', function (e) {
             const term = e.target.value.toLowerCase();
             const filtered = allData.filter(item =>
@@ -191,9 +335,17 @@
             renderTable(filtered);
             if (tableSorter) tableSorter.setData(filtered);
         });
-        document.getElementById('estadoFilter').addEventListener('change', function (e) {
-            loadData(e.target.value);
+
+        document.getElementById('searchInputMobile')?.addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase();
+            const filtered = allData.filter(item =>
+                item.numero_factura?.toLowerCase().includes(term) ||
+                item.sede_nombre?.toLowerCase().includes(term)
+            );
+            renderTable(filtered);
+            if (tableSorter) tableSorter.setData(filtered);
         });
+
         async function deleteItem(id) {
             if (!confirmDelete()) return;
             try {
@@ -208,7 +360,9 @@
                 showToast('Error eliminando', 'danger');
             }
         }
+
         loadData();
     </script>
 </body>
+
 </html>
