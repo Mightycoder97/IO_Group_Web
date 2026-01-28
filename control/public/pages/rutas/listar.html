@@ -233,15 +233,16 @@
                 <div class="assignment-container">
                     <!-- Clientes Disponibles -->
                     <div class="client-panel">
-                        <div class="panel-header">
-                            <h6><i class="bi bi-geo-alt"></i> Clientes Disponibles</h6>
+                        <div class="panel-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="bi bi-geo-alt"></i> Clientes Disponibles</h6>
+                            <span class="badge bg-secondary" id="countDisponibles">0</span>
                         </div>
                         <div class="panel-filters">
                             <select class="form-select form-select-sm" id="filterDistrito" style="width: 150px;">
                                 <option value="">Todos los distritos</option>
                             </select>
                             <input type="text" class="form-control form-control-sm" id="filterSearch"
-                                placeholder="Buscar..." style="width: 150px;">
+                                placeholder="Buscar por nombre o RUC..." style="width: 180px;">
                         </div>
                         <div class="client-list" id="clientesDisponibles">
                             <div class="text-center py-4 text-muted">Selecciona un vehículo</div>
@@ -452,9 +453,14 @@
             const distritoFilter = document.getElementById('filterDistrito').value;
             const searchFilter = document.getElementById('filterSearch').value.toLowerCase();
 
-            // Filter out clients already in route
+            // Get clients already in route
             const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
-            let clientes = allClientes.filter(c => !enRutaIds.has(c.id_sede));
+
+            // When filtering by district, show ALL clients from that district (including those in route)
+            // When no district filter, show only clients not in route
+            let clientes = distritoFilter
+                ? allClientes.slice() // Show all when district is selected
+                : allClientes.filter(c => !enRutaIds.has(c.id_sede)); // Only available when no filter
 
             // Apply filters - case-insensitive distrito comparison
             if (distritoFilter) {
@@ -465,32 +471,43 @@
             if (searchFilter) {
                 clientes = clientes.filter(c =>
                     c.nombre_comercial?.toLowerCase().includes(searchFilter) ||
-                    c.direccion?.toLowerCase().includes(searchFilter)
+                    c.direccion?.toLowerCase().includes(searchFilter) ||
+                    c.empresa_ruc?.toLowerCase().includes(searchFilter)
                 );
             }
+
+            // Update counter
+            document.getElementById('countDisponibles').textContent = clientes.length;
 
             if (clientes.length === 0) {
                 container.innerHTML = '<div class="text-center py-4 text-muted">Sin clientes disponibles</div>';
                 return;
             }
 
-            container.innerHTML = clientes.map(c => `
-                <div class="client-item ${selectedDisponibles.has(c.id_sede) ? 'selected' : ''}" 
-                     onclick="toggleSelectDisponible(${c.id_sede})">
+            container.innerHTML = clientes.map(c => {
+                const isInRoute = enRutaIds.has(c.id_sede);
+                return `
+                <div class="client-item ${selectedDisponibles.has(c.id_sede) ? 'selected' : ''} ${isInRoute ? 'opacity-50' : ''}" 
+                     onclick="${isInRoute ? '' : `toggleSelectDisponible(${c.id_sede})`}" 
+                     style="${isInRoute ? 'cursor: not-allowed;' : ''}">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <div class="name">${c.nombre_comercial}</div>
+                            <div class="name">${c.nombre_comercial} ${isInRoute ? '<span class="badge bg-info">En ruta</span>' : ''}</div>
                             <div class="details">
                                 <i class="bi bi-geo-alt"></i> ${c.distrito || '-'} | 
                                 ${c.direccion || ''}
+                                ${c.empresa_ruc ? `<br><small class="text-muted">RUC: ${c.empresa_ruc}</small>` : ''}
                             </div>
                         </div>
                         <div>
-                            <i class="bi ${selectedDisponibles.has(c.id_sede) ? 'bi-check-circle-fill text-primary' : 'bi-circle'}"></i>
+                            ${isInRoute
+                        ? '<i class="bi bi-check-circle-fill text-info"></i>'
+                        : `<i class="bi ${selectedDisponibles.has(c.id_sede) ? 'bi-check-circle-fill text-primary' : 'bi-circle'}"></i>`
+                    }
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function renderClientesEnRuta() {
