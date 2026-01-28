@@ -59,6 +59,9 @@
                         <div class="d-flex gap-2 desktop-filters">
                             <input type="text" class="form-control" id="searchInput"
                                 placeholder="Buscar por nombre o RUC..." style="width: 220px;">
+                            <select class="form-select" id="distritoFilter" style="width: 180px;">
+                                <option value="">Todos los distritos</option>
+                            </select>
                             <a href="formulario.html" class="btn btn-primary btn-new-desktop" id="btnNew"><i
                                     class="bi bi-plus"></i>
                                 Nuevo Cliente</a>
@@ -68,6 +71,11 @@
                             <div class="filter-row">
                                 <input type="text" class="form-control form-control-sm" id="searchInputMobile"
                                     placeholder="Buscar por nombre o RUC...">
+                            </div>
+                            <div class="filter-row mt-2">
+                                <select class="form-select form-select-sm" id="distritoFilterMobile">
+                                    <option value="">Todos los distritos</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -113,6 +121,44 @@
         if (empresaId) {
             document.getElementById('btnNew').href = `formulario.html?empresa=${empresaId}`;
         }
+
+        // Load districts for filter
+        async function loadDistritos() {
+            try {
+                const result = await api.get('/calendario?action=distritos');
+                if (result.success) {
+                    const select = document.getElementById('distritoFilter');
+                    const selectMobile = document.getElementById('distritoFilterMobile');
+                    result.data.forEach(d => {
+                        const option = `<option value="${d.distrito}">${d.distrito} (${d.cantidad})</option>`;
+                        select.innerHTML += option;
+                        selectMobile.innerHTML += option;
+                    });
+                }
+            } catch (err) {
+                console.error('Error cargando distritos:', err);
+            }
+        }
+
+        // Combined filter function
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const distrito = document.getElementById('distritoFilter').value;
+
+            const filtered = allData.filter(item => {
+                const matchesSearch = !searchTerm ||
+                    item.nombre_comercial?.toLowerCase().includes(searchTerm) ||
+                    item.direccion?.toLowerCase().includes(searchTerm) ||
+                    item.empresa_razon_social?.toLowerCase().includes(searchTerm) ||
+                    item.empresa_ruc?.toLowerCase().includes(searchTerm);
+                const matchesDistrito = !distrito || item.distrito === distrito;
+                return matchesSearch && matchesDistrito;
+            });
+
+            renderTable(filtered);
+            if (tableSorter) tableSorter.setData(filtered);
+        }
+
         async function loadData() {
             try {
                 let url = '/sedes';
@@ -171,16 +217,21 @@
             `).join('');
         }
         document.getElementById('searchInput').addEventListener('input', function (e) {
-            const term = e.target.value.toLowerCase();
-            const filtered = allData.filter(item =>
-                item.nombre_comercial?.toLowerCase().includes(term) ||
-                item.direccion?.toLowerCase().includes(term) ||
-                item.empresa_razon_social?.toLowerCase().includes(term) ||
-                item.empresa_ruc?.toLowerCase().includes(term)
-            );
-            renderTable(filtered);
-            if (tableSorter) tableSorter.setData(filtered);
+            document.getElementById('searchInputMobile').value = this.value;
+            applyFilters();
         });
+
+        // District filter change handlers
+        document.getElementById('distritoFilter').addEventListener('change', function () {
+            document.getElementById('distritoFilterMobile').value = this.value;
+            applyFilters();
+        });
+
+        document.getElementById('distritoFilterMobile').addEventListener('change', function () {
+            document.getElementById('distritoFilter').value = this.value;
+            applyFilters();
+        });
+
         async function deleteItem(id) {
             if (!confirmDelete()) return;
             try {
@@ -195,19 +246,15 @@
                 showToast('Error eliminando', 'danger');
             }
         }
+
+        // Initialize page
         loadData();
-        // Mobile filter sync
+        loadDistritos();
+
+        // Mobile search filter sync
         document.getElementById('searchInputMobile').addEventListener('input', function (e) {
             document.getElementById('searchInput').value = this.value;
-            const term = this.value.toLowerCase();
-            const filtered = allData.filter(item =>
-                item.nombre_comercial?.toLowerCase().includes(term) ||
-                item.direccion?.toLowerCase().includes(term) ||
-                item.empresa_razon_social?.toLowerCase().includes(term) ||
-                item.empresa_ruc?.toLowerCase().includes(term)
-            );
-            renderTable(filtered);
-            if (tableSorter) tableSorter.setData(filtered);
+            applyFilters();
         });
     </script>
 </body>
