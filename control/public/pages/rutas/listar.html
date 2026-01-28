@@ -189,8 +189,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -299,6 +303,7 @@
         let allClientes = [];
         let clientesEnRuta = [];
         let allDistritos = new Set();
+        let distritoDisplayMap = {}; // Maps normalized distrito to original for display
         let selectedDisponibles = new Set();
         let selectedEnRuta = new Set();
 
@@ -358,8 +363,17 @@
                 const result = await api.get('/sedes?limit=1000');
                 if (result.success) {
                     allClientes = result.data;
+                    allDistritos.clear();
+                    distritoDisplayMap = {};
                     allClientes.forEach(c => {
-                        if (c.distrito) allDistritos.add(c.distrito);
+                        if (c.distrito && c.distrito.trim()) {
+                            const normalized = c.distrito.trim().toUpperCase();
+                            allDistritos.add(normalized);
+                            // Keep first occurrence as display name
+                            if (!distritoDisplayMap[normalized]) {
+                                distritoDisplayMap[normalized] = c.distrito.trim();
+                            }
+                        }
                     });
                     renderDistritoFilter();
                     renderClientesDisponibles();
@@ -428,8 +442,9 @@
 
         function renderDistritoFilter() {
             const select = document.getElementById('filterDistrito');
+            const sortedDistritos = Array.from(allDistritos).sort();
             select.innerHTML = '<option value="">Todos los distritos</option>' +
-                Array.from(allDistritos).sort().map(d => `<option value="${d}">${d}</option>`).join('');
+                sortedDistritos.map(d => `<option value="${d}">${distritoDisplayMap[d] || d}</option>`).join('');
         }
 
         function renderClientesDisponibles() {
@@ -441,9 +456,11 @@
             const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
             let clientes = allClientes.filter(c => !enRutaIds.has(c.id_sede));
 
-            // Apply filters
+            // Apply filters - case-insensitive distrito comparison
             if (distritoFilter) {
-                clientes = clientes.filter(c => c.distrito === distritoFilter);
+                clientes = clientes.filter(c =>
+                    c.distrito && c.distrito.trim().toUpperCase() === distritoFilter.trim().toUpperCase()
+                );
             }
             if (searchFilter) {
                 clientes = clientes.filter(c =>
