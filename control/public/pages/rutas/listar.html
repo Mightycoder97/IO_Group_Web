@@ -24,7 +24,6 @@
             cursor: pointer;
             background: white;
             border: 2px solid #ddd;
-            transition: all 0.2s;
             min-width: 180px;
         }
 
@@ -93,7 +92,6 @@
             padding: 12px 15px;
             border-bottom: 1px solid #eee;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
         .client-item:hover {
@@ -656,9 +654,18 @@
             }
         }
 
+        // Debounce utility
+        function debounce(fn, ms) {
+            let timer;
+            return function (...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), ms);
+            };
+        }
+
         // Filter listeners
         document.getElementById('filterDistrito').addEventListener('change', renderClientesDisponibles);
-        document.getElementById('filterSearch').addEventListener('input', renderClientesDisponibles);
+        document.getElementById('filterSearch').addEventListener('input', debounce(renderClientesDisponibles, 300));
         document.getElementById('fechaRuta').addEventListener('change', () => {
             loadDistritosDelDia();
             if (selectedVehiculo) {

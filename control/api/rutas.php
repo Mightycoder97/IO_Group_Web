@@ -37,14 +37,15 @@ function getAll() {
     $mes = $_GET['mes'] ?? null;
     $anio = $_GET['anio'] ?? null;
     $distrito = $_GET['distrito'] ?? null;
+    $limit = min(200, max(10, intval($_GET['limit'] ?? 100)));
     
+    // Optimized query using LEFT JOIN instead of correlated subqueries
     $sql = "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca, v.modelo as vehiculo_modelo,
-            (SELECT COUNT(*) FROM Servicio s WHERE s.id_ruta = r.id_ruta) as total_servicios,
-            (SELECT COUNT(DISTINCT s2.id_sede) FROM Servicio s2 WHERE s2.id_ruta = r.id_ruta) as sedes_count,
-            (SELECT GROUP_CONCAT(DISTINCT se.distrito) FROM Servicio s3 
-             INNER JOIN Sede se ON s3.id_sede = se.id_sede WHERE s3.id_ruta = r.id_ruta) as distritos
+            COUNT(DISTINCT s.id_servicio) as total_servicios,
+            COUNT(DISTINCT s.id_sede) as sedes_count
             FROM Ruta r
             INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
+            LEFT JOIN Servicio s ON s.id_ruta = r.id_ruta
             WHERE 1=1";
     $params = [];
     
@@ -70,17 +71,10 @@ function getAll() {
         $params[] = $anio;
     }
     
-    $sql .= " ORDER BY r.fecha DESC, r.hora_salida DESC";
+    $sql .= " GROUP BY r.id_ruta ORDER BY r.fecha DESC, r.hora_salida DESC LIMIT ?";
+    $params[] = $limit;
     
     $data = db()->query($sql, $params);
-    
-    // Post-filter by distrito if needed (more efficient with smaller data sets)
-    if ($distrito && $distrito !== 'todos') {
-        $data = array_filter($data, function($r) use ($distrito) {
-            return strpos($r['distritos'] ?? '', $distrito) !== false;
-        });
-        $data = array_values($data);
-    }
     
     echo json_encode([
         'success' => true,
