@@ -33,88 +33,107 @@ switch ($action) {
 }
 
 function getDashboard() {
-    // Sedes activas
-    $sedesActivas = db()->queryOne("SELECT COUNT(*) as count FROM Sede WHERE activo = 1")['count'];
-    
-    // Sedes con servicio este mes (únicas)
-    $sedesConServicio = db()->queryOne(
-        "SELECT COUNT(DISTINCT s.id_sede) as count 
-         FROM Servicio sv 
-         INNER JOIN Sede s ON sv.id_sede = s.id_sede
-         WHERE MONTH(sv.fecha_programada) = MONTH(CURDATE()) 
-         AND YEAR(sv.fecha_programada) = YEAR(CURDATE())
-         AND sv.estado IN ('completado', 'en_curso', 'programado')"
-    )['count'];
-    
-    // Porcentaje de sedes con servicio
-    $porcentajeServicio = $sedesActivas > 0 ? round(($sedesConServicio / $sedesActivas) * 100, 1) : 0;
-    
-    // Facturación últimos 12 meses
-    $facturacion12Meses = db()->query(
-        "SELECT 
-            DATE_FORMAT(fecha_emision, '%Y-%m') as mes,
-            DATE_FORMAT(fecha_emision, '%b %Y') as mes_label,
-            COALESCE(SUM(monto_total), 0) as total
-         FROM Factura 
-         WHERE estado != 'anulada'
-         AND fecha_emision >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-         GROUP BY DATE_FORMAT(fecha_emision, '%Y-%m')
-         ORDER BY mes ASC"
-    );
-    
-    // Pagos pendientes (facturas emitidas no pagadas)
-    $pagosPendientes = db()->queryOne(
-        "SELECT 
-            COUNT(*) as total_facturas,
-            COALESCE(SUM(f.monto_total), 0) as monto_total
-         FROM Factura f
-         WHERE f.estado = 'emitida'"
-    );
-    
-    // Empresas con pagos pendientes
-    $empresasPendientes = db()->queryOne(
-        "SELECT COUNT(DISTINCT e.id_empresa) as count
-         FROM Factura f
-         INNER JOIN Servicio sv ON f.id_servicio = sv.id_servicio
-         INNER JOIN Sede se ON sv.id_sede = se.id_sede
-         INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
-         WHERE f.estado = 'emitida'"
-    )['count'];
-    
-    // Ingresos este mes
-    $ingresosMes = db()->queryOne(
-        "SELECT COALESCE(SUM(monto_total), 0) as total FROM Factura 
-         WHERE MONTH(fecha_emision) = MONTH(CURDATE()) AND YEAR(fecha_emision) = YEAR(CURDATE())
-         AND estado != 'anulada'"
-    )['total'];
-    
-    // Servicios este mes
-    $serviciosMes = db()->queryOne(
-        "SELECT COUNT(*) as count FROM Servicio 
-         WHERE MONTH(fecha_programada) = MONTH(CURDATE()) AND YEAR(fecha_programada) = YEAR(CURDATE())"
-    )['count'];
-    
-    // Rutas este mes
-    $rutasMes = db()->queryOne(
-        "SELECT COUNT(*) as count FROM Ruta 
-         WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE())"
-    )['count'];
-    
-    echo json_encode([
-        'success' => true,
-        'data' => [
-            'sedes_activas' => intval($sedesActivas),
-            'sedes_con_servicio' => intval($sedesConServicio),
-            'porcentaje_servicio' => $porcentajeServicio,
-            'facturacion_12_meses' => $facturacion12Meses,
-            'empresas_pendientes' => intval($empresasPendientes),
-            'monto_pendiente' => floatval($pagosPendientes['monto_total']),
-            'facturas_pendientes' => intval($pagosPendientes['total_facturas']),
-            'ingresos_mes' => floatval($ingresosMes),
-            'servicios_mes' => intval($serviciosMes),
-            'rutas_mes' => intval($rutasMes)
-        ]
-    ]);
+    try {
+        // Sedes activas
+        $sedesActivasResult = db()->queryOne("SELECT COUNT(*) as count FROM Sede WHERE activo = 1");
+        $sedesActivas = $sedesActivasResult ? $sedesActivasResult['count'] : 0;
+        
+        // Sedes con servicio este mes (únicas)
+        $sedesConServicioResult = db()->queryOne(
+            "SELECT COUNT(DISTINCT s.id_sede) as count 
+             FROM Servicio sv 
+             INNER JOIN Sede s ON sv.id_sede = s.id_sede
+             WHERE MONTH(sv.fecha_programada) = MONTH(CURDATE()) 
+             AND YEAR(sv.fecha_programada) = YEAR(CURDATE())
+             AND sv.estado IN ('completado', 'en_curso', 'programado')"
+        );
+        $sedesConServicio = $sedesConServicioResult ? $sedesConServicioResult['count'] : 0;
+        
+        // Porcentaje de sedes con servicio
+        $porcentajeServicio = $sedesActivas > 0 ? round(($sedesConServicio / $sedesActivas) * 100, 1) : 0;
+        
+        // Facturación últimos 12 meses
+        $facturacion12Meses = db()->query(
+            "SELECT 
+                DATE_FORMAT(fecha_emision, '%Y-%m') as mes,
+                DATE_FORMAT(fecha_emision, '%b %Y') as mes_label,
+                COALESCE(SUM(monto_total), 0) as total
+             FROM Factura 
+             WHERE estado != 'anulada'
+             AND fecha_emision >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+             GROUP BY DATE_FORMAT(fecha_emision, '%Y-%m')
+             ORDER BY mes ASC"
+        );
+        if (!$facturacion12Meses) $facturacion12Meses = [];
+        
+        // Pagos pendientes (facturas emitidas no pagadas)
+        $pagosPendientes = db()->queryOne(
+            "SELECT 
+                COUNT(*) as total_facturas,
+                COALESCE(SUM(f.monto_total), 0) as monto_total
+             FROM Factura f
+             WHERE f.estado = 'emitida'"
+        );
+        if (!$pagosPendientes) {
+            $pagosPendientes = ['total_facturas' => 0, 'monto_total' => 0];
+        }
+        
+        // Empresas con pagos pendientes - usando LEFT JOIN para evitar errores con id_servicio NULL
+        $empresasPendientesResult = db()->queryOne(
+            "SELECT COUNT(DISTINCT e.id_empresa) as count
+             FROM Factura f
+             LEFT JOIN Servicio sv ON f.id_servicio = sv.id_servicio
+             LEFT JOIN Sede se ON sv.id_sede = se.id_sede
+             LEFT JOIN Empresa e ON se.id_empresa = e.id_empresa
+             WHERE f.estado = 'emitida'
+             AND e.id_empresa IS NOT NULL"
+        );
+        $empresasPendientes = $empresasPendientesResult ? $empresasPendientesResult['count'] : 0;
+        
+        // Ingresos este mes
+        $ingresosMesResult = db()->queryOne(
+            "SELECT COALESCE(SUM(monto_total), 0) as total FROM Factura 
+             WHERE MONTH(fecha_emision) = MONTH(CURDATE()) AND YEAR(fecha_emision) = YEAR(CURDATE())
+             AND estado != 'anulada'"
+        );
+        $ingresosMes = $ingresosMesResult ? $ingresosMesResult['total'] : 0;
+        
+        // Servicios este mes
+        $serviciosMesResult = db()->queryOne(
+            "SELECT COUNT(*) as count FROM Servicio 
+             WHERE MONTH(fecha_programada) = MONTH(CURDATE()) AND YEAR(fecha_programada) = YEAR(CURDATE())"
+        );
+        $serviciosMes = $serviciosMesResult ? $serviciosMesResult['count'] : 0;
+        
+        // Rutas este mes
+        $rutasMesResult = db()->queryOne(
+            "SELECT COUNT(*) as count FROM Ruta 
+             WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE())"
+        );
+        $rutasMes = $rutasMesResult ? $rutasMesResult['count'] : 0;
+        
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'sedes_activas' => intval($sedesActivas),
+                'sedes_con_servicio' => intval($sedesConServicio),
+                'porcentaje_servicio' => $porcentajeServicio,
+                'facturacion_12_meses' => $facturacion12Meses,
+                'empresas_pendientes' => intval($empresasPendientes),
+                'monto_pendiente' => floatval($pagosPendientes['monto_total']),
+                'facturas_pendientes' => intval($pagosPendientes['total_facturas']),
+                'ingresos_mes' => floatval($ingresosMes),
+                'servicios_mes' => intval($serviciosMes),
+                'rutas_mes' => intval($rutasMes)
+            ]
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al cargar dashboard: ' . $e->getMessage()
+        ]);
+    }
 }
 
 function getServiciosReport() {
