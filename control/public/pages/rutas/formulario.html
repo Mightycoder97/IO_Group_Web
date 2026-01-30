@@ -79,33 +79,58 @@
             width: 120px;
         }
 
+        .print-header {
+            display: none;
+        }
+
+        @page {
+            size: landscape;
+            margin: 10mm;
+        }
+
         @media print {
-
-            .sidebar,
-            .top-nav,
-            .user-menu,
-            #configForm,
-            #addClienteSection,
-            .btn,
-            .action-cell,
-            .toggle-sidebar,
-            .breadcrumb-container {
-                display: none !important;
+            body * {
+                visibility: hidden;
             }
 
-            .main-content {
-                margin: 0 !important;
-                padding: 0 !important;
+            .print-header,
+            .print-header *,
+            #printableTable,
+            #printableTable * {
+                visibility: visible;
             }
 
-            .content-area {
-                padding: 10px !important;
+            .print-header {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 15px;
+                border-bottom: 2px solid #1B5E20;
+                margin-bottom: 10px;
             }
 
-            .ruta-header {
-                background: #1B5E20 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+            .print-header h4 {
+                margin: 0 0 10px 0;
+                color: #1B5E20;
+            }
+
+            .print-header .print-meta {
+                display: flex;
+                justify-content: space-between;
+                font-size: 12px;
+            }
+
+            #printableTable {
+                position: absolute;
+                left: 0;
+                top: 80px;
+                width: 100%;
+            }
+
+            .hoja-ruta-table {
+                font-size: 10px !important;
             }
 
             .hoja-ruta-table th {
@@ -113,27 +138,37 @@
                 color: white !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                padding: 5px !important;
+            }
+
+            .hoja-ruta-table td {
+                padding: 4px !important;
             }
 
             .hoja-ruta-table input {
                 border: none !important;
                 background: transparent !important;
+                font-size: 10px !important;
             }
 
-            .card {
-                border: none !important;
-                box-shadow: none !important;
-            }
-
-            .peso-input,
-            .obs-input {
-                width: auto !important;
+            .action-cell {
+                display: none !important;
             }
         }
     </style>
 </head>
 
 <body class="control-app">
+    <!-- Print Header -->
+    <div class="print-header">
+        <h4>HOJA DE RUTA - IO GROUP</h4>
+        <div class="print-meta">
+            <div><strong>Vehículo:</strong> <span id="printVehiculo">-</span></div>
+            <div><strong>Empleados:</strong> <span id="printEmpleados">-</span></div>
+            <div><strong>Fecha:</strong> <span id="printFecha">-</span></div>
+            <div><strong>Total Clientes:</strong> <span id="printClientes">0</span></div>
+        </div>
+    </div>
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
@@ -237,7 +272,7 @@
                         </button>
                     </div>
                     <div class="card-body p-0">
-                        <div class="table-responsive">
+                        <div class="table-responsive" id="printableTable">
                             <table class="table table-bordered table-hover hoja-ruta-table mb-0">
                                 <thead>
                                     <tr>
@@ -391,6 +426,12 @@
                     renderClientesTable();
                     renderClienteSelect();
                     document.getElementById('headerClientes').textContent = sedesEnRuta.length + ' clientes';
+
+                    // Update print header
+                    document.getElementById('printVehiculo').textContent = rutaData.vehiculo_placa || '-';
+                    document.getElementById('printFecha').textContent = rutaData.fecha ? new Date(rutaData.fecha).toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+                    document.getElementById('printClientes').textContent = sedesEnRuta.length;
+                    document.getElementById('printEmpleados').textContent = 'Por asignar';
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
