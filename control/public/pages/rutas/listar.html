@@ -336,12 +336,17 @@
                     </div>
                 </div>
 
-                <!-- Clientes Table -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span><i class="bi bi-list-ol"></i> Clientes en Ruta: <strong
                                 id="vehiculoActual">-</strong></span>
-                        <span class="badge bg-primary" id="countEnRuta">0</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-success btn-sm" onclick="sendWhatsAppAll()"
+                                title="Confirmar todos por WhatsApp">
+                                <i class="bi bi-whatsapp"></i> Confirmar Todos
+                            </button>
+                            <span class="badge bg-primary" id="countEnRuta">0</span>
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive" id="printableTable">
@@ -593,6 +598,7 @@
                             direccion: s.direccion || '',
                             distrito: s.distrito || '',
                             tarifa: s.tarifa_servicio || 0,
+                            telefono: s.telefono || s.contacto_telefono || '',
                             peso: '', obs: ''
                         }));
                     }
@@ -623,12 +629,50 @@
                     <td><input type="text" class="form-control form-control-sm obs-input" value="${c.obs || ''}" 
                         onchange="clientesEnRuta[${i}].obs=this.value"></td>
                     <td class="action-cell">
-                        <button class="btn btn-outline-danger btn-sm" onclick="removerCliente(${c.id_sede})">
-                            <i class="bi bi-x"></i>
-                        </button>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-success" onclick="sendWhatsApp(${c.id_sede})" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="removerCliente(${c.id_sede})" title="Quitar">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        function sendWhatsApp(sedeId) {
+            const cliente = clientesEnRuta.find(c => c.id_sede == sedeId) || allClientes.find(c => c.id_sede == sedeId);
+            if (!cliente) return;
+            const telefono = cliente.telefono || cliente.contacto_telefono;
+            if (!telefono) {
+                showToast('Cliente sin teléfono registrado', 'warning');
+                return;
+            }
+            const fecha = document.getElementById('fechaRuta').value;
+            const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-PE') : 'mañana';
+            const mensaje = `Hola ${cliente.nombre_comercial}, somos de IO Group. Confirmamos su recojo de residuos para el ${fechaFormateada}. ¿Puede confirmar?`;
+            const phone = telefono.replace(/\D/g, '');
+            window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`, '_blank');
+        }
+
+        function sendWhatsAppAll() {
+            if (clientesEnRuta.length === 0) {
+                showToast('No hay clientes en la ruta', 'warning');
+                return;
+            }
+            let count = 0;
+            clientesEnRuta.forEach((cliente, i) => {
+                const telefono = cliente.telefono || cliente.contacto_telefono;
+                if (telefono) {
+                    count++;
+                    setTimeout(() => sendWhatsApp(cliente.id_sede), i * 1500);
+                }
+            });
+            if (count === 0) {
+                showToast('Ningún cliente tiene teléfono', 'warning');
+            }
         }
 
         // Search functionality
@@ -686,6 +730,7 @@
                     direccion: cliente.direccion || '',
                     distrito: cliente.distrito || '',
                     tarifa: cliente.tarifa_servicio || 0,
+                    telefono: cliente.contacto_telefono || cliente.telefono || '',
                     peso: '', obs: ''
                 });
                 renderClientesTable();
