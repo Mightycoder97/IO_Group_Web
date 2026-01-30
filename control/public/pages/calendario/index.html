@@ -312,6 +312,12 @@
             const searchInput = document.getElementById('distritoSearch');
             const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
+            // Solo mostrar distritos si hay al menos 2 caracteres en el buscador
+            if (searchTerm.length < 2) {
+                container.innerHTML = '<div class="text-muted small"><i class="bi bi-search"></i> Escribe al menos 2 letras para buscar distritos...</div>';
+                return;
+            }
+
             if (allDistritos.length === 0) {
                 container.innerHTML = '<div class="text-muted small">No hay distritos configurados</div>';
                 return;
@@ -326,9 +332,12 @@
                 return;
             }
 
+            // Limitar a máximo 15 resultados
+            const limitedDistritos = filteredDistritos.slice(0, 15);
+
             // Use DocumentFragment for better performance
             const fragment = document.createDocumentFragment();
-            filteredDistritos.forEach(d => {
+            limitedDistritos.forEach(d => {
                 const div = document.createElement('div');
                 div.className = `distrito-item ${selectedDistrito === d ? 'active' : ''}`;
                 div.onclick = () => selectDistrito(d);
@@ -344,6 +353,15 @@
 
             container.innerHTML = '';
             container.appendChild(fragment);
+
+            // Mostrar cuántos resultados hay si hay más de 15
+            if (filteredDistritos.length > 15) {
+                const moreDiv = document.createElement('div');
+                moreDiv.className = 'text-muted small mt-2 text-center';
+                moreDiv.textContent = `+${filteredDistritos.length - 15} distritos más...`;
+                container.appendChild(moreDiv);
+            }
+
             updateDistritoCounts();
         }
 
