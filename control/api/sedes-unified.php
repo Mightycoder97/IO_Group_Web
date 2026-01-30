@@ -17,28 +17,41 @@ if ($method !== 'POST') {
 }
 
 $user = canEdit();
-$data = json_decode(file_get_contents('php://input'), true);
+$rawData = file_get_contents('php://input');
+$data = json_decode($rawData, true);
+
+// Debug logging
+error_log("=== SEDES-UNIFIED DEBUG ===");
+error_log("Raw input: " . $rawData);
+error_log("Parsed data: " . print_r($data, true));
 
 // Validate required data
 $cliente = $data['cliente'] ?? [];
 $empresa = $data['empresa'] ?? [];
 $sede = $data['sede'] ?? [];
 
+error_log("Cliente: " . print_r($cliente, true));
+error_log("Empresa: " . print_r($empresa, true));
+error_log("Sede: " . print_r($sede, true));
+
 if (empty($cliente['nombre_completo'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Nombre del titular es requerido']);
+    error_log("VALIDATION FAILED: nombre_completo empty");
+    echo json_encode(['success' => false, 'message' => 'Nombre del titular es requerido', 'debug_data' => $data]);
     exit;
 }
 
 if (empty($empresa['razon_social']) || empty($empresa['ruc'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Razón social y RUC son requeridos']);
+    error_log("VALIDATION FAILED: razon_social or ruc empty");
+    echo json_encode(['success' => false, 'message' => 'Razón social y RUC son requeridos', 'debug_data' => $data]);
     exit;
 }
 
 if (empty($sede['nombre_comercial']) || empty($sede['direccion'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Nombre comercial y dirección de sede son requeridos']);
+    error_log("VALIDATION FAILED: nombre_comercial or direccion empty");
+    echo json_encode(['success' => false, 'message' => 'Nombre comercial y dirección de sede son requeridos', 'debug_data' => $data]);
     exit;
 }
 
