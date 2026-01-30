@@ -324,14 +324,32 @@
         const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-        const distritoColors = {
-            'QUINCENALES': '#ff5722',
-            'Miraflores': '#e57373', 'San Isidro': '#64b5f6', 'Surco': '#81c784',
-            'La Molina': '#ffb74d', 'San Borja': '#ba68c8', 'Lince': '#4dd0e1',
-            'Jesús María': '#f06292', 'Magdalena': '#aed581', 'Pueblo Libre': '#ff8a65',
-            'San Miguel': '#90caf9', 'Breña': '#ce93d8', 'Lima': '#ffcc80',
-            'Chorrillos': '#80cbc4', 'Barranco': '#bcaaa4', 'Surquillo': '#ffe082'
+        const distritoColorsFixed = {
+            'QUINCENALES': '#ff5722'
         };
+
+        // Generate consistent color based on string hash
+        function getDistritoColor(distrito) {
+            if (distritoColorsFixed[distrito]) return distritoColorsFixed[distrito];
+
+            // Hash the string to get consistent color
+            let hash = 0;
+            for (let i = 0; i < distrito.length; i++) {
+                hash = distrito.charCodeAt(i) + ((hash << 5) - hash);
+            }
+
+            // Generate HSL color with good saturation and lightness
+            const h = Math.abs(hash) % 360;
+            const s = 65 + (Math.abs(hash >> 8) % 20); // 65-85%
+            const l = 45 + (Math.abs(hash >> 16) % 15); // 45-60%
+
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        }
+
+        // Keep distritoColors as getter for backwards compatibility
+        const distritoColors = new Proxy({}, {
+            get: (target, prop) => getDistritoColor(prop)
+        });
 
         // Navigation
         function prevMonth() {

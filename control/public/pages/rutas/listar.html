@@ -254,10 +254,11 @@
                                     placeholder="Buscar cliente por nombre, RUC o distrito...">
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="filterDistrito">
-                                <option value="">Todos los distritos</option>
+                        <div class="col-md-4">
+                            <select class="form-select" id="filterDistrito" multiple size="3"
+                                style="font-size: 0.85rem;">
                             </select>
+                            <small class="text-muted">Ctrl+click para seleccionar varios</small>
                         </div>
                         <div class="col-md-3">
                             <button class="btn btn-success" onclick="saveRuta()">
@@ -322,6 +323,7 @@
         let serviciosRecientes = {};
         let allDistritos = new Set();
         let distritoDisplayMap = {};
+        let distritosCalendario = [];
 
         document.getElementById('fechaRuta').value = new Date().toISOString().split('T')[0];
 
@@ -338,13 +340,17 @@
             try {
                 const result = await api.get(`/calendario?mes=${parseInt(month)}&anio=${year}`);
                 const container = document.getElementById('distritosChips');
+                distritosCalendario = [];
                 if (result.success && result.data?.dias?.[fecha]?.length > 0) {
+                    distritosCalendario = result.data.dias[fecha].map(d => d.toUpperCase());
                     container.innerHTML = result.data.dias[fecha].map(d =>
                         `<span class="badge bg-success me-1">${d}</span>`
                     ).join('');
                 } else {
                     container.innerHTML = '<span class="text-muted">No hay distritos. <a href="../calendario/index.html">Configurar</a></span>';
                 }
+                // Actualizar selector con distritos del calendario preseleccionados
+                updateDistritoFilterSelection();
             } catch (err) {
                 document.getElementById('distritosChips').innerHTML = '<span class="text-muted">Error</span>';
             }
@@ -418,8 +424,24 @@
 
         function renderDistritoFilter() {
             const select = document.getElementById('filterDistrito');
-            select.innerHTML = '<option value="">Todos los distritos</option>' +
-                Array.from(allDistritos).sort().map(d => `<option value="${d}">${distritoDisplayMap[d] || d}</option>`).join('');
+            select.innerHTML = Array.from(allDistritos).sort().map(d =>
+                `<option value="${d}">${distritoDisplayMap[d] || d}</option>`
+            ).join('');
+            updateDistritoFilterSelection();
+        }
+
+        function updateDistritoFilterSelection() {
+            const select = document.getElementById('filterDistrito');
+            // Preseleccionar distritos del calendario
+            Array.from(select.options).forEach(opt => {
+                opt.selected = distritosCalendario.includes(opt.value);
+            });
+            filterClientes();
+        }
+
+        function getSelectedDistritos() {
+            const select = document.getElementById('filterDistrito');
+            return Array.from(select.selectedOptions).map(opt => opt.value);
         }
 
         async function selectVehiculo(id) {
@@ -492,8 +514,8 @@
 
         function filterClientes() {
             const term = searchInput.value.toLowerCase().trim();
-            const distrito = filterDistrito.value;
-            if (term.length < 2 && !distrito) {
+            const distritos = getSelectedDistritos();
+            if (term.length < 2 && distritos.length === 0) {
                 searchResults.style.display = 'none';
                 return;
             }
@@ -501,9 +523,9 @@
             let filtered = allClientes.filter(c => {
                 const matchTerm = !term || c.nombre_comercial?.toLowerCase().includes(term) ||
                     c.empresa_ruc?.includes(term) || c.distrito?.toLowerCase().includes(term);
-                const matchDistrito = !distrito || c.distrito?.toUpperCase() === distrito;
+                const matchDistrito = distritos.length === 0 || distritos.includes(c.distrito?.toUpperCase());
                 return matchTerm && matchDistrito;
-            }).slice(0, 30);
+            }).slice(0, 50);
 
             if (filtered.length === 0) {
                 searchResults.innerHTML = '<div class="p-3 text-muted">No se encontraron clientes</div>';
