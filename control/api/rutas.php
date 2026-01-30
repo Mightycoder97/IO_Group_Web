@@ -101,9 +101,9 @@ function getOne($id) {
             return;
         }
         
-        // Get services for this route - use fecha_ejecucion if fecha_programada doesn't exist
+        // Get services for this route
         $servicios = db()->query(
-            "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion, se.telefono
+            "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion
              FROM Servicio s 
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              WHERE s.id_ruta = ? ORDER BY s.id_servicio",
