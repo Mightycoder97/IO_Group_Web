@@ -89,6 +89,12 @@
         }
 
         @media print {
+            body {
+                visibility: visible !important;
+                margin: 0;
+                padding: 0;
+            }
+
             body * {
                 visibility: hidden;
             }
@@ -97,40 +103,51 @@
             .print-header *,
             #printableTable,
             #printableTable * {
-                visibility: visible;
+                visibility: visible !important;
             }
 
             .print-header {
                 display: block !important;
-                position: absolute;
-                left: 0;
-                top: 0;
+                position: relative;
                 width: 100%;
-                padding: 15px;
+                padding: 10px 0;
                 border-bottom: 2px solid #1B5E20;
-                margin-bottom: 10px;
+                margin-bottom: 5px;
             }
 
             .print-header h4 {
-                margin: 0 0 10px 0;
+                margin: 0 0 8px 0;
                 color: #1B5E20;
+                font-size: 14px;
             }
 
             .print-header .print-meta {
                 display: flex;
                 justify-content: space-between;
-                font-size: 12px;
+                font-size: 10px;
             }
 
             #printableTable {
-                position: absolute;
-                left: 0;
-                top: 80px;
+                position: relative;
                 width: 100%;
             }
 
+            #printableTable table {
+                page-break-inside: auto;
+                width: 100%;
+            }
+
+            #printableTable tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            #printableTable thead {
+                display: table-header-group;
+            }
+
             .hoja-ruta-table {
-                font-size: 10px !important;
+                font-size: 9px !important;
             }
 
             .hoja-ruta-table th {
@@ -138,20 +155,34 @@
                 color: white !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                padding: 5px !important;
+                padding: 3px 4px !important;
             }
 
             .hoja-ruta-table td {
-                padding: 4px !important;
+                padding: 2px 4px !important;
             }
 
             .hoja-ruta-table input {
                 border: none !important;
                 background: transparent !important;
-                font-size: 10px !important;
+                font-size: 9px !important;
+                padding: 0 !important;
             }
 
             .action-cell {
+                display: none !important;
+            }
+
+            .app-container,
+            .sidebar,
+            .top-nav,
+            .ruta-header,
+            #configForm,
+            #addClienteSection,
+            .card-header,
+            .card,
+            .mt-3,
+            .main-content {
                 display: none !important;
             }
         }
