@@ -629,8 +629,7 @@
                             <option value="" ${!c.tipo_pago ? 'selected' : ''}>-</option>
                             <option value="efectivo" ${c.tipo_pago === 'efectivo' ? 'selected' : ''}>Efectivo</option>
                             <option value="transferencia" ${c.tipo_pago === 'transferencia' ? 'selected' : ''}>Transferencia</option>
-                            <option value="credito" ${c.tipo_pago === 'credito' ? 'selected' : ''}>Crédito</option>
-                            <option value="factura" ${c.tipo_pago === 'factura' ? 'selected' : ''}>Factura</option>
+                            <option value="observacion" ${c.tipo_pago === 'observacion' ? 'selected' : ''}>Observación</option>
                         </select>
                     </td>
                     <td><input type="text" class="form-control form-control-sm obs-input" value="${c.obs || ''}" 
@@ -733,12 +732,12 @@
                 clientesEnRuta.push({
                     id_sede: cliente.id_sede,
                     nombre_comercial: cliente.nombre_comercial || '',
-                    empresa_ruc: cliente.empresa_ruc || '',
+                    empresa_ruc: cliente.empresa_ruc || cliente.ruc || '',
                     direccion: cliente.direccion || '',
                     distrito: cliente.distrito || '',
-                    tarifa: cliente.tarifa_servicio || 0,
+                    tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
                     telefono: cliente.contacto_telefono || cliente.telefono || '',
-                    peso: '', obs: ''
+                    tipo_pago: '', obs: ''
                 });
                 renderClientesTable();
                 filterClientes();
