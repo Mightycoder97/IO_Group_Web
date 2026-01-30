@@ -301,6 +301,7 @@
         let selectedVehiculo = null;
         let allClientes = [];
         let clientesEnRuta = [];
+        let serviciosRecientes = {}; // {id_sede: {fecha, frecuencia}}
         let allDistritos = new Set();
         let distritoDisplayMap = {}; // Maps normalized distrito to original for display
         let selectedDisponibles = new Set();
@@ -313,6 +314,7 @@
         async function init() {
             await loadVehiculos();
             await loadClientes();
+            await loadServiciosRecientes();
             await loadDistritosDelDia();
         }
 
@@ -380,6 +382,50 @@
             } catch (err) {
                 console.error('Error loading clientes:', err);
             }
+        }
+
+        // Cargar servicios recientes para detectar frecuencia
+        async function loadServiciosRecientes() {
+            try {
+                const result = await api.get('/servicios?limit=5000');
+                if (result.success) {
+                    serviciosRecientes = {};
+                    result.data.forEach(s => {
+                        if (!serviciosRecientes[s.id_sede] || s.fecha_ejecucion > serviciosRecientes[s.id_sede].fecha) {
+                            serviciosRecientes[s.id_sede] = {
+                                fecha: s.fecha_ejecucion,
+                                frecuencia: s.frecuencia || 'mensual'
+                            };
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading servicios recientes:', err);
+            }
+        }
+
+        // Verificar si cliente fue atendido recientemente según frecuencia
+        function getAlertaFrecuencia(cliente) {
+            const servicio = serviciosRecientes[cliente.id_sede];
+            if (!servicio || !servicio.fecha) return null;
+
+            const fechaRuta = new Date(document.getElementById('fechaRuta').value);
+            const ultimaFecha = new Date(servicio.fecha);
+            const diffDays = Math.floor((fechaRuta - ultimaFecha) / (1000 * 60 * 60 * 24));
+
+            const frecuencia = (cliente.frecuencia_recojo || servicio.frecuencia || 'mensual').toLowerCase();
+            let diasMinimo = 30; // mensual por defecto
+
+            if (frecuencia.includes('semanal')) diasMinimo = 7;
+            else if (frecuencia.includes('quincenal')) diasMinimo = 15;
+            else if (frecuencia.includes('bimestral')) diasMinimo = 60;
+            else if (frecuencia.includes('trimestral')) diasMinimo = 90;
+
+            if (diffDays < diasMinimo) {
+                const diasRestantes = diasMinimo - diffDays;
+                return { diasRestantes, frecuencia, ultimaFecha: servicio.fecha };
+            }
+            return null;
         }
 
         function renderVehiculoTabs() {
@@ -484,13 +530,18 @@
 
             container.innerHTML = clientes.map(c => {
                 const isInRoute = enRutaIds.has(c.id_sede);
+                const alerta = getAlertaFrecuencia(c);
                 return `
                 <div class="client-item ${selectedDisponibles.has(c.id_sede) ? 'selected' : ''} ${isInRoute ? 'opacity-50' : ''}" 
                      onclick="${isInRoute ? '' : `toggleSelectDisponible(${c.id_sede})`}" 
                      style="${isInRoute ? 'cursor: not-allowed;' : ''}">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <div class="name">${c.nombre_comercial} ${isInRoute ? '<span class="badge bg-info">En ruta</span>' : ''}</div>
+                            <div class="name">
+                                ${c.nombre_comercial} 
+                                ${isInRoute ? '<span class="badge bg-info">En ruta</span>' : ''}
+                                ${alerta ? `<span class="badge bg-warning text-dark" title="Último servicio: ${alerta.ultimaFecha}. Frecuencia: ${alerta.frecuencia}"><i class="bi bi-exclamation-triangle"></i> Faltan ${alerta.diasRestantes}d</span>` : ''}
+                            </div>
                             <div class="details">
                                 <i class="bi bi-geo-alt"></i> ${c.distrito || '-'} | 
                                 ${c.direccion || ''}
