@@ -173,6 +173,51 @@
                 padding: 1px 4px;
             }
         }
+
+        @page {
+            size: landscape;
+            margin: 10mm;
+        }
+
+        @media print {
+
+            .sidebar,
+            .top-nav,
+            .distritos-panel,
+            .btn,
+            .user-menu,
+            .breadcrumb-container {
+                display: none !important;
+            }
+
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .content-area {
+                padding: 0 !important;
+            }
+
+            .col-lg-9 {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+
+            .calendar-container {
+                box-shadow: none !important;
+            }
+
+            .calendar-day {
+                border: 1px solid #ccc !important;
+            }
+
+            .distrito-chip {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
     </style>
 </head>
 
@@ -247,6 +292,10 @@
                                     <h4 class="month-title" id="monthTitle">Enero 2026</h4>
                                     <button class="btn btn-outline-secondary" onclick="nextMonth()">
                                         <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                    <button class="btn btn-outline-primary ms-3" onclick="window.print()"
+                                        title="Imprimir">
+                                        <i class="bi bi-printer"></i> Imprimir
                                     </button>
                                 </div>
                             </div>

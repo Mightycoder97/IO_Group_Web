@@ -14,17 +14,17 @@
         .vehiculo-tabs {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }
 
         .vehiculo-tab {
-            padding: 15px 20px;
-            border-radius: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
             cursor: pointer;
             background: white;
             border: 2px solid #ddd;
-            min-width: 180px;
+            min-width: 150px;
         }
 
         .vehiculo-tab:hover {
@@ -38,136 +38,151 @@
         }
 
         .vehiculo-tab .placa {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
         }
 
         .vehiculo-tab .info {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             opacity: 0.8;
         }
 
-        .vehiculo-tab .badge {
-            margin-top: 5px;
-        }
-
-        .assignment-container {
-            display: grid;
-            grid-template-columns: 1fr 80px 1fr;
-            gap: 15px;
-            align-items: start;
-        }
-
-        .client-panel {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-        }
-
-        .panel-header {
-            padding: 15px;
-            background: #f5f5f5;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .panel-header h6 {
-            margin: 0;
-        }
-
-        .panel-filters {
-            padding: 10px 15px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .client-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .client-item {
+        .distritos-hoy {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-radius: 10px;
             padding: 12px 15px;
+            margin-bottom: 15px;
+        }
+
+        .distritos-hoy .badge {
+            font-size: 0.85rem;
+        }
+
+        .hoja-ruta-table {
+            font-size: 0.85rem;
+        }
+
+        .hoja-ruta-table th {
+            background: #1B5E20;
+            color: white;
+            font-weight: 600;
+            white-space: nowrap;
+            padding: 8px 10px;
+        }
+
+        .hoja-ruta-table td {
+            padding: 6px 10px;
+            vertical-align: middle;
+        }
+
+        .hoja-ruta-table tbody tr:hover {
+            background: #e8f5e9;
+        }
+
+        .search-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .cliente-result {
+            padding: 10px 12px;
             border-bottom: 1px solid #eee;
             cursor: pointer;
         }
 
-        .client-item:hover {
+        .cliente-result:hover {
             background: #f5f5f5;
         }
 
-        .client-item.selected {
-            background: #e3f2fd;
+        .cliente-result.in-route {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .client-item .name {
-            font-weight: 500;
+        .alerta-frecuencia {
+            font-size: 0.7rem;
         }
 
-        .client-item .details {
+        .peso-input,
+        .obs-input {
             font-size: 0.8rem;
-            color: #666;
+            padding: 4px 8px;
         }
 
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            justify-content: center;
-            height: 100%;
-            padding-top: 100px;
+        .peso-input {
+            width: 70px;
         }
 
-        .action-buttons .btn {
-            padding: 15px;
+        .obs-input {
+            width: 100px;
         }
 
-        .history-panel {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            margin-top: 20px;
+        @page {
+            size: landscape;
+            margin: 8mm;
         }
 
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        @media print {
 
-        .history-item:last-child {
-            border-bottom: none;
-        }
-
-        .ruta-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        @media (max-width: 992px) {
-            .assignment-container {
-                grid-template-columns: 1fr;
+            .sidebar,
+            .top-nav,
+            .search-panel,
+            .vehiculo-tabs,
+            .distritos-hoy,
+            .btn,
+            .action-cell,
+            .card-header {
+                display: none !important;
             }
 
-            .action-buttons {
-                flex-direction: row;
-                padding-top: 0;
-                justify-content: center;
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
             }
+
+            .content-area {
+                padding: 0 !important;
+            }
+
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .print-header {
+                display: block !important;
+            }
+
+            .hoja-ruta-table {
+                font-size: 10px !important;
+            }
+
+            .hoja-ruta-table th:last-child,
+            .hoja-ruta-table td:last-child {
+                display: none !important;
+            }
+        }
+
+        .print-header {
+            display: none;
         }
     </style>
 </head>
 
 <body class="control-app">
+    <!-- Print Header -->
+    <div class="print-header">
+        <h4>HOJA DE RUTA - IO GROUP</h4>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 10px;">
+            <div><strong>Vehículo:</strong> <span id="printVehiculo">-</span></div>
+            <div><strong>Fecha:</strong> <span id="printFecha">-</span></div>
+            <div><strong>Total:</strong> <span id="printTotal">0</span> clientes</div>
+        </div>
+    </div>
+
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
@@ -200,25 +215,27 @@
                 </div>
             </nav>
             <div class="content-area">
-                <!-- Fecha de Ruta -->
-                <div class="mb-3 d-flex align-items-center gap-3 flex-wrap">
-                    <div>
-                        <label class="form-label mb-0"><strong>Fecha de Ruta:</strong></label>
+                <!-- Fecha y Distritos del Día -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <label class="mb-0"><strong>Fecha:</strong></label>
+                        <input type="date" class="form-control" id="fechaRuta" style="width: auto;">
                     </div>
-                    <input type="date" class="form-control" id="fechaRuta" style="width: auto;">
-                    <a href="historial.html" class="btn btn-outline-secondary">
-                        <i class="bi bi-clock-history"></i> Ver Historial
-                    </a>
-                    <a href="../calendario/index.html" class="btn btn-outline-primary">
-                        <i class="bi bi-calendar3"></i> Calendario
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="../calendario/index.html" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-calendar3"></i> Calendario
+                        </a>
+                        <a href="historial.html" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-clock-history"></i> Historial
+                        </a>
+                    </div>
                 </div>
 
-                <!-- Distritos del Día (desde Calendario) -->
-                <div class="mb-3 p-3 bg-light rounded" id="distritosDelDia">
+                <!-- Distritos del día desde calendario -->
+                <div class="distritos-hoy" id="distritosHoy">
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <strong><i class="bi bi-geo-alt-fill text-primary"></i> Distritos hoy:</strong>
-                        <span class="text-muted" id="distritosChips">Cargando...</span>
+                        <strong><i class="bi bi-geo-alt-fill text-success"></i> Distritos programados:</strong>
+                        <span id="distritosChips" class="text-muted">Cargando...</span>
                     </div>
                 </div>
 
@@ -227,64 +244,65 @@
                     <div class="text-muted">Cargando vehículos...</div>
                 </div>
 
-                <!-- Assignment Interface -->
-                <div class="assignment-container">
-                    <!-- Clientes Disponibles -->
-                    <div class="client-panel">
-                        <div class="panel-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0"><i class="bi bi-geo-alt"></i> Clientes Disponibles</h6>
-                            <span class="badge bg-secondary" id="countDisponibles">0</span>
+                <!-- Search Panel -->
+                <div class="search-panel">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="searchCliente"
+                                    placeholder="Buscar cliente por nombre, RUC o distrito...">
+                            </div>
                         </div>
-                        <div class="panel-filters">
-                            <select class="form-select form-select-sm" id="filterDistrito" style="width: 150px;">
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterDistrito">
                                 <option value="">Todos los distritos</option>
                             </select>
-                            <input type="text" class="form-control form-control-sm" id="filterSearch"
-                                placeholder="Buscar por nombre o RUC..." style="width: 180px;">
                         </div>
-                        <div class="client-list" id="clientesDisponibles">
-                            <div class="text-center py-4 text-muted">Selecciona un vehículo</div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="addSelectedClients()" title="Agregar a ruta">
-                            <i class="bi bi-chevron-right"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary" onclick="removeSelectedClients()"
-                            title="Quitar de ruta">
-                            <i class="bi bi-chevron-left"></i>
-                        </button>
-                    </div>
-
-                    <!-- Clientes en Ruta -->
-                    <div class="client-panel">
-                        <div class="panel-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0"><i class="bi bi-truck"></i> En Ruta: <span id="vehiculoActual">-</span>
-                            </h6>
-                            <span class="badge bg-primary" id="countEnRuta">0</span>
-                        </div>
-                        <div class="client-list" id="clientesEnRuta">
-                            <div class="text-center py-4 text-muted">Sin clientes asignados</div>
-                        </div>
-                        <div class="ruta-actions">
-                            <button class="btn btn-success flex-grow-1" onclick="saveRuta()">
+                        <div class="col-md-3">
+                            <button class="btn btn-success" onclick="saveRuta()">
                                 <i class="bi bi-check"></i> Guardar Ruta
                             </button>
-                            <button class="btn btn-outline-success" onclick="sendWhatsAppAll()"
-                                title="WhatsApp a todos">
-                                <i class="bi bi-whatsapp"></i>
+                            <button class="btn btn-outline-success" onclick="window.print()">
+                                <i class="bi bi-printer"></i>
                             </button>
                         </div>
+                    </div>
+                    <!-- Search Results -->
+                    <div id="searchResults" class="mt-2" style="max-height: 200px; overflow-y: auto; display: none;">
                     </div>
                 </div>
 
-                <!-- Historial del Vehiculo Actual -->
-                <div class="history-panel">
-                    <h6><i class="bi bi-clock-history"></i> Últimas Rutas de este Vehículo</h6>
-                    <div id="vehiculoHistory">
-                        <div class="text-muted small">Selecciona un vehículo para ver su historial</div>
+                <!-- Clientes Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-list-ol"></i> Clientes en Ruta: <strong
+                                id="vehiculoActual">-</strong></span>
+                        <span class="badge bg-primary" id="countEnRuta">0</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" id="printableTable">
+                            <table class="table table-bordered table-hover hoja-ruta-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;">N°</th>
+                                        <th>RUC</th>
+                                        <th style="width: 70px;">PESO</th>
+                                        <th>NOMBRE COMERCIAL</th>
+                                        <th>DIRECCION</th>
+                                        <th>DISTRITO</th>
+                                        <th>TARIFA</th>
+                                        <th style="width: 100px;">OBS</th>
+                                        <th style="width: 80px;" class="action-cell">ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientesTableBody">
+                                    <tr>
+                                        <td colspan="9" class="text-center py-4 text-muted">Selecciona un vehículo</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -301,16 +319,12 @@
         let selectedVehiculo = null;
         let allClientes = [];
         let clientesEnRuta = [];
-        let serviciosRecientes = {}; // {id_sede: {fecha, frecuencia}}
+        let serviciosRecientes = {};
         let allDistritos = new Set();
-        let distritoDisplayMap = {}; // Maps normalized distrito to original for display
-        let selectedDisponibles = new Set();
-        let selectedEnRuta = new Set();
+        let distritoDisplayMap = {};
 
-        // Set today's date
         document.getElementById('fechaRuta').value = new Date().toISOString().split('T')[0];
 
-        // Load initial data
         async function init() {
             await loadVehiculos();
             await loadClientes();
@@ -318,29 +332,21 @@
             await loadDistritosDelDia();
         }
 
-        // Load scheduled districts from calendario
         async function loadDistritosDelDia() {
             const fecha = document.getElementById('fechaRuta').value;
-            const [year, month, day] = fecha.split('-');
-
+            const [year, month] = fecha.split('-');
             try {
                 const result = await api.get(`/calendario?mes=${parseInt(month)}&anio=${year}`);
                 const container = document.getElementById('distritosChips');
-
-                if (result.success && result.data && result.data.dias) {
-                    const distritos = result.data.dias[fecha] || [];
-                    if (distritos.length > 0) {
-                        container.innerHTML = distritos.map(d =>
-                            `<span class="badge bg-primary me-1">${d}</span>`
-                        ).join('');
-                    } else {
-                        container.innerHTML = '<span class="text-muted">No hay distritos programados para este día. <a href="../calendario/index.html">Configurar</a></span>';
-                    }
+                if (result.success && result.data?.dias?.[fecha]?.length > 0) {
+                    container.innerHTML = result.data.dias[fecha].map(d =>
+                        `<span class="badge bg-success me-1">${d}</span>`
+                    ).join('');
                 } else {
-                    container.innerHTML = '<span class="text-muted">No hay calendario configurado. <a href="../calendario/index.html">Configurar</a></span>';
+                    container.innerHTML = '<span class="text-muted">No hay distritos. <a href="../calendario/index.html">Configurar</a></span>';
                 }
             } catch (err) {
-                document.getElementById('distritosChips').innerHTML = '<span class="text-muted">Error cargando</span>';
+                document.getElementById('distritosChips').innerHTML = '<span class="text-muted">Error</span>';
             }
         }
 
@@ -350,13 +356,9 @@
                 if (result.success) {
                     vehiculos = result.data;
                     renderVehiculoTabs();
-                    if (vehiculos.length > 0) {
-                        selectVehiculo(vehiculos[0].id_vehiculo);
-                    }
+                    if (vehiculos.length > 0) selectVehiculo(vehiculos[0].id_vehiculo);
                 }
-            } catch (err) {
-                console.error('Error loading vehiculos:', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function loadClientes() {
@@ -367,24 +369,17 @@
                     allDistritos.clear();
                     distritoDisplayMap = {};
                     allClientes.forEach(c => {
-                        if (c.distrito && c.distrito.trim()) {
-                            const normalized = c.distrito.trim().toUpperCase();
-                            allDistritos.add(normalized);
-                            // Keep first occurrence as display name
-                            if (!distritoDisplayMap[normalized]) {
-                                distritoDisplayMap[normalized] = c.distrito.trim();
-                            }
+                        if (c.distrito?.trim()) {
+                            const norm = c.distrito.trim().toUpperCase();
+                            allDistritos.add(norm);
+                            if (!distritoDisplayMap[norm]) distritoDisplayMap[norm] = c.distrito.trim();
                         }
                     });
                     renderDistritoFilter();
-                    renderClientesDisponibles();
                 }
-            } catch (err) {
-                console.error('Error loading clientes:', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
-        // Cargar servicios recientes para detectar frecuencia
         async function loadServiciosRecientes() {
             try {
                 const result = await api.get('/servicios?limit=5000');
@@ -392,267 +387,177 @@
                     serviciosRecientes = {};
                     result.data.forEach(s => {
                         if (!serviciosRecientes[s.id_sede] || s.fecha_ejecucion > serviciosRecientes[s.id_sede].fecha) {
-                            serviciosRecientes[s.id_sede] = {
-                                fecha: s.fecha_ejecucion,
-                                frecuencia: s.frecuencia || 'mensual'
-                            };
+                            serviciosRecientes[s.id_sede] = { fecha: s.fecha_ejecucion, frecuencia: s.frecuencia || 'mensual' };
                         }
                     });
                 }
-            } catch (err) {
-                console.error('Error loading servicios recientes:', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
-        // Verificar si cliente fue atendido recientemente según frecuencia
         function getAlertaFrecuencia(cliente) {
             const servicio = serviciosRecientes[cliente.id_sede];
-            if (!servicio || !servicio.fecha) return null;
-
+            if (!servicio?.fecha) return null;
             const fechaRuta = new Date(document.getElementById('fechaRuta').value);
             const ultimaFecha = new Date(servicio.fecha);
             const diffDays = Math.floor((fechaRuta - ultimaFecha) / (1000 * 60 * 60 * 24));
-
             const frecuencia = (cliente.frecuencia_recojo || servicio.frecuencia || 'mensual').toLowerCase();
-            let diasMinimo = 30; // mensual por defecto
-
-            if (frecuencia.includes('semanal')) diasMinimo = 7;
-            else if (frecuencia.includes('quincenal')) diasMinimo = 15;
-            else if (frecuencia.includes('bimestral')) diasMinimo = 60;
-            else if (frecuencia.includes('trimestral')) diasMinimo = 90;
-
-            if (diffDays < diasMinimo) {
-                const diasRestantes = diasMinimo - diffDays;
-                return { diasRestantes, frecuencia, ultimaFecha: servicio.fecha };
-            }
+            let diasMinimo = frecuencia.includes('semanal') ? 7 : frecuencia.includes('quincenal') ? 15 : 30;
+            if (diffDays < diasMinimo) return { diasRestantes: diasMinimo - diffDays, ultimaFecha: servicio.fecha };
             return null;
         }
 
         function renderVehiculoTabs() {
-            const container = document.getElementById('vehiculoTabs');
-            container.innerHTML = vehiculos.map(v => `
+            document.getElementById('vehiculoTabs').innerHTML = vehiculos.map(v => `
                 <div class="vehiculo-tab ${selectedVehiculo?.id_vehiculo === v.id_vehiculo ? 'active' : ''}" 
                      onclick="selectVehiculo(${v.id_vehiculo})">
                     <div class="placa"><i class="bi bi-truck"></i> ${v.placa}</div>
                     <div class="info">${v.marca || ''} ${v.modelo || ''}</div>
-                    <div class="badge ${v.estado === 'activo' ? 'bg-success' : 'bg-secondary'}" id="badge-${v.id_vehiculo}">
-                        <span id="count-${v.id_vehiculo}">0</span> asignados
-                    </div>
                 </div>
             `).join('');
+        }
+
+        function renderDistritoFilter() {
+            const select = document.getElementById('filterDistrito');
+            select.innerHTML = '<option value="">Todos los distritos</option>' +
+                Array.from(allDistritos).sort().map(d => `<option value="${d}">${distritoDisplayMap[d] || d}</option>`).join('');
         }
 
         async function selectVehiculo(id) {
             selectedVehiculo = vehiculos.find(v => v.id_vehiculo === id);
             document.getElementById('vehiculoActual').textContent = selectedVehiculo?.placa || '-';
-
-            // Reset selections
+            document.getElementById('printVehiculo').textContent = selectedVehiculo?.placa || '-';
             clientesEnRuta = [];
-            selectedDisponibles.clear();
-            selectedEnRuta.clear();
-
-            // Check if route exists for this date/vehicle
             await loadExistingRoute();
-
             renderVehiculoTabs();
-            renderClientesDisponibles();
-            renderClientesEnRuta();
-            loadVehiculoHistory();
+            renderClientesTable();
         }
 
         async function loadExistingRoute() {
             const fecha = document.getElementById('fechaRuta').value;
             if (!selectedVehiculo || !fecha) return;
-
             try {
                 const result = await api.get(`/rutas?vehiculo=${selectedVehiculo.id_vehiculo}&fecha=${fecha}`);
                 if (result.success && result.data.length > 0) {
-                    const ruta = result.data[0];
-                    // Load services for this route
-                    const rutaDetail = await api.get(`/rutas/${ruta.id_ruta}`);
+                    const rutaDetail = await api.get(`/rutas/${result.data[0].id_ruta}`);
                     if (rutaDetail.success && rutaDetail.data.servicios) {
                         clientesEnRuta = rutaDetail.data.servicios.map(s => ({
                             id_sede: s.id_sede,
-                            nombre_comercial: s.sede_nombre,
-                            distrito: s.distrito || '',
+                            nombre_comercial: s.sede_nombre || '',
+                            empresa_ruc: s.empresa_ruc || '',
                             direccion: s.direccion || '',
-                            telefono: s.telefono || ''
+                            distrito: s.distrito || '',
+                            tarifa: s.tarifa_servicio || 0,
+                            peso: '', obs: ''
                         }));
                     }
                 }
-            } catch (err) {
-                console.error('Error loading existing route:', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
-        function renderDistritoFilter() {
-            const select = document.getElementById('filterDistrito');
-            const sortedDistritos = Array.from(allDistritos).sort();
-            select.innerHTML = '<option value="">Todos los distritos</option>' +
-                sortedDistritos.map(d => `<option value="${d}">${distritoDisplayMap[d] || d}</option>`).join('');
-        }
-
-        function renderClientesDisponibles() {
-            const container = document.getElementById('clientesDisponibles');
-            const distritoFilter = document.getElementById('filterDistrito').value;
-            const searchFilter = document.getElementById('filterSearch').value.toLowerCase();
-
-            // Get clients already in route
-            const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
-
-            // When filtering by district, show ALL clients from that district (including those in route)
-            // When no district filter, show only clients not in route
-            let clientes = distritoFilter
-                ? allClientes.slice() // Show all when district is selected
-                : allClientes.filter(c => !enRutaIds.has(c.id_sede)); // Only available when no filter
-
-            // Apply filters - case-insensitive distrito comparison
-            if (distritoFilter) {
-                clientes = clientes.filter(c =>
-                    c.distrito && c.distrito.trim().toUpperCase() === distritoFilter.trim().toUpperCase()
-                );
-            }
-            if (searchFilter) {
-                clientes = clientes.filter(c =>
-                    c.nombre_comercial?.toLowerCase().includes(searchFilter) ||
-                    c.direccion?.toLowerCase().includes(searchFilter) ||
-                    c.empresa_ruc?.toLowerCase().includes(searchFilter)
-                );
-            }
-
-            // Update counter
-            document.getElementById('countDisponibles').textContent = clientes.length;
-
-            if (clientes.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-muted">Sin clientes disponibles</div>';
-                return;
-            }
-
-            container.innerHTML = clientes.map(c => {
-                const isInRoute = enRutaIds.has(c.id_sede);
-                const alerta = getAlertaFrecuencia(c);
-                return `
-                <div class="client-item ${selectedDisponibles.has(c.id_sede) ? 'selected' : ''} ${isInRoute ? 'opacity-50' : ''}" 
-                     onclick="${isInRoute ? '' : `toggleSelectDisponible(${c.id_sede})`}" 
-                     style="${isInRoute ? 'cursor: not-allowed;' : ''}">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <div class="name">
-                                ${c.nombre_comercial} 
-                                ${isInRoute ? '<span class="badge bg-info">En ruta</span>' : ''}
-                                ${alerta ? `<span class="badge bg-warning text-dark" title="Último servicio: ${alerta.ultimaFecha}. Frecuencia: ${alerta.frecuencia}"><i class="bi bi-exclamation-triangle"></i> Faltan ${alerta.diasRestantes}d</span>` : ''}
-                            </div>
-                            <div class="details">
-                                <i class="bi bi-geo-alt"></i> ${c.distrito || '-'} | 
-                                ${c.direccion || ''}
-                                ${c.empresa_ruc ? `<br><small class="text-muted">RUC: ${c.empresa_ruc}</small>` : ''}
-                            </div>
-                        </div>
-                        <div>
-                            ${isInRoute
-                        ? '<i class="bi bi-check-circle-fill text-info"></i>'
-                        : `<i class="bi ${selectedDisponibles.has(c.id_sede) ? 'bi-check-circle-fill text-primary' : 'bi-circle'}"></i>`
-                    }
-                        </div>
-                    </div>
-                </div>
-            `}).join('');
-        }
-
-        function renderClientesEnRuta() {
-            const container = document.getElementById('clientesEnRuta');
+        function renderClientesTable() {
+            const tbody = document.getElementById('clientesTableBody');
             document.getElementById('countEnRuta').textContent = clientesEnRuta.length;
-
-            // Update badge on vehicle tab
-            if (selectedVehiculo) {
-                const countEl = document.getElementById(`count-${selectedVehiculo.id_vehiculo}`);
-                if (countEl) countEl.textContent = clientesEnRuta.length;
-            }
+            document.getElementById('printTotal').textContent = clientesEnRuta.length;
+            document.getElementById('printFecha').textContent = new Date(document.getElementById('fechaRuta').value).toLocaleDateString('es-PE');
 
             if (clientesEnRuta.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-muted">Sin clientes asignados</div>';
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">Sin clientes. Usa el buscador para agregar.</td></tr>';
                 return;
             }
-
-            container.innerHTML = clientesEnRuta.map((c, i) => `
-                <div class="client-item ${selectedEnRuta.has(c.id_sede) ? 'selected' : ''}" 
-                     onclick="toggleSelectEnRuta(${c.id_sede})">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="badge bg-secondary me-2">${i + 1}</span>
-                            <span class="name">${c.nombre_comercial}</span>
-                            <div class="details">${c.distrito || ''} - ${c.direccion || ''}</div>
-                        </div>
-                        <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-success" onclick="sendWhatsApp(${c.id_sede}, event)" title="WhatsApp">
-                                <i class="bi bi-whatsapp"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            tbody.innerHTML = clientesEnRuta.map((c, i) => `
+                <tr>
+                    <td class="text-center fw-bold">${i + 1}</td>
+                    <td>${c.empresa_ruc || '-'}</td>
+                    <td><input type="number" class="form-control form-control-sm peso-input" value="${c.peso || ''}" 
+                        onchange="clientesEnRuta[${i}].peso=this.value" placeholder="kg"></td>
+                    <td><strong>${c.nombre_comercial}</strong></td>
+                    <td><small>${c.direccion || '-'}</small></td>
+                    <td>${c.distrito || '-'}</td>
+                    <td>S/ ${parseFloat(c.tarifa || 0).toFixed(2)}</td>
+                    <td><input type="text" class="form-control form-control-sm obs-input" value="${c.obs || ''}" 
+                        onchange="clientesEnRuta[${i}].obs=this.value"></td>
+                    <td class="action-cell">
+                        <button class="btn btn-outline-danger btn-sm" onclick="removerCliente(${c.id_sede})">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </td>
+                </tr>
             `).join('');
         }
 
-        function toggleSelectDisponible(id) {
-            if (selectedDisponibles.has(id)) {
-                selectedDisponibles.delete(id);
-            } else {
-                selectedDisponibles.add(id);
-            }
-            renderClientesDisponibles();
-        }
+        // Search functionality
+        const searchInput = document.getElementById('searchCliente');
+        const searchResults = document.getElementById('searchResults');
+        const filterDistrito = document.getElementById('filterDistrito');
 
-        function toggleSelectEnRuta(id) {
-            if (selectedEnRuta.has(id)) {
-                selectedEnRuta.delete(id);
-            } else {
-                selectedEnRuta.add(id);
-            }
-            renderClientesEnRuta();
-        }
-
-        function addSelectedClients() {
-            if (selectedDisponibles.size === 0) {
-                showToast('Selecciona clientes para agregar', 'warning');
+        function filterClientes() {
+            const term = searchInput.value.toLowerCase().trim();
+            const distrito = filterDistrito.value;
+            if (term.length < 2 && !distrito) {
+                searchResults.style.display = 'none';
                 return;
             }
+            const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
+            let filtered = allClientes.filter(c => {
+                const matchTerm = !term || c.nombre_comercial?.toLowerCase().includes(term) ||
+                    c.empresa_ruc?.includes(term) || c.distrito?.toLowerCase().includes(term);
+                const matchDistrito = !distrito || c.distrito?.toUpperCase() === distrito;
+                return matchTerm && matchDistrito;
+            }).slice(0, 30);
 
-            selectedDisponibles.forEach(id => {
-                const cliente = allClientes.find(c => parseInt(c.id_sede) === parseInt(id));
-                if (cliente && !clientesEnRuta.find(c => parseInt(c.id_sede) === parseInt(id))) {
-                    clientesEnRuta.push(cliente);
-                }
-            });
-
-            selectedDisponibles.clear();
-            renderClientesDisponibles();
-            renderClientesEnRuta();
+            if (filtered.length === 0) {
+                searchResults.innerHTML = '<div class="p-3 text-muted">No se encontraron clientes</div>';
+            } else {
+                searchResults.innerHTML = filtered.map(c => {
+                    const inRoute = enRutaIds.has(c.id_sede);
+                    const alerta = getAlertaFrecuencia(c);
+                    return `
+                    <div class="cliente-result ${inRoute ? 'in-route' : ''}" onclick="${inRoute ? '' : `agregarCliente(${c.id_sede})`}">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${c.nombre_comercial}</strong>
+                                ${inRoute ? '<span class="badge bg-info ms-1">En ruta</span>' : ''}
+                                ${alerta ? `<span class="badge bg-warning text-dark alerta-frecuencia ms-1">Faltan ${alerta.diasRestantes}d</span>` : ''}
+                                <br><small class="text-muted">${c.distrito || ''} | ${c.empresa_ruc || ''}</small>
+                            </div>
+                            ${!inRoute ? '<i class="bi bi-plus-circle text-success"></i>' : ''}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            searchResults.style.display = 'block';
         }
 
-        function removeSelectedClients() {
-            if (selectedEnRuta.size === 0) {
-                showToast('Selecciona clientes para quitar', 'warning');
-                return;
-            }
+        searchInput.addEventListener('input', debounce(filterClientes, 300));
+        filterDistrito.addEventListener('change', filterClientes);
 
-            clientesEnRuta = clientesEnRuta.filter(c => !selectedEnRuta.has(c.id_sede));
-            selectedEnRuta.clear();
-            renderClientesDisponibles();
-            renderClientesEnRuta();
+        function agregarCliente(sedeId) {
+            const cliente = allClientes.find(c => c.id_sede == sedeId);
+            if (cliente && !clientesEnRuta.find(c => c.id_sede == sedeId)) {
+                clientesEnRuta.push({
+                    id_sede: cliente.id_sede,
+                    nombre_comercial: cliente.nombre_comercial || '',
+                    empresa_ruc: cliente.empresa_ruc || '',
+                    direccion: cliente.direccion || '',
+                    distrito: cliente.distrito || '',
+                    tarifa: cliente.tarifa_servicio || 0,
+                    peso: '', obs: ''
+                });
+                renderClientesTable();
+                filterClientes();
+            }
+        }
+
+        function removerCliente(sedeId) {
+            clientesEnRuta = clientesEnRuta.filter(c => c.id_sede != sedeId);
+            renderClientesTable();
+            filterClientes();
         }
 
         async function saveRuta() {
-            if (!selectedVehiculo) {
-                showToast('Selecciona un vehículo', 'warning');
-                return;
-            }
-
+            if (!selectedVehiculo) return showToast('Selecciona un vehículo', 'warning');
             const fecha = document.getElementById('fechaRuta').value;
-            if (!fecha) {
-                showToast('Selecciona una fecha', 'warning');
-                return;
-            }
-
+            if (!fecha) return showToast('Selecciona una fecha', 'warning');
             try {
                 const result = await api.post('/rutas', {
                     id_vehiculo: selectedVehiculo.id_vehiculo,
@@ -660,57 +565,16 @@
                     estado: 'programada',
                     sedes: clientesEnRuta.map(c => c.id_sede)
                 });
-
                 if (result.success) {
-                    showToast('Ruta guardada correctamente');
-                    // Limpiar lista para asignar siguiente ruta
+                    showToast('Ruta guardada');
                     clientesEnRuta = [];
-                    selectedEnRuta.clear();
-                    renderClientesDisponibles();
-                    renderClientesEnRuta();
-                    loadVehiculoHistory();
+                    renderClientesTable();
                 } else {
-                    showToast(result.message || 'Error al guardar', 'danger');
+                    showToast(result.message || 'Error', 'danger');
                 }
-            } catch (err) {
-                showToast('Error al guardar', 'danger');
-            }
+            } catch (err) { showToast('Error al guardar', 'danger'); }
         }
 
-        async function loadVehiculoHistory() {
-            const container = document.getElementById('vehiculoHistory');
-            if (!selectedVehiculo) {
-                container.innerHTML = '<div class="text-muted small">Selecciona un vehículo</div>';
-                return;
-            }
-
-            try {
-                const result = await api.get(`/rutas?vehiculo=${selectedVehiculo.id_vehiculo}`);
-                if (result.success && result.data.length > 0) {
-                    const lastRoutes = result.data.slice(0, 5);
-                    container.innerHTML = lastRoutes.map(r => `
-                        <div class="history-item">
-                            <div>
-                                <strong>${new Date(r.fecha).toLocaleDateString('es-PE')}</strong>
-                                <span class="badge ${r.estado === 'completada' ? 'bg-success' : r.estado === 'en_curso' ? 'bg-primary' : 'bg-secondary'} ms-2">
-                                    ${r.estado}
-                                </span>
-                                <br><small class="text-muted">${r.sedes_count || 0} clientes</small>
-                            </div>
-                            <a href="formulario.html?id=${r.id_ruta}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<div class="text-muted small">Sin rutas anteriores</div>';
-                }
-            } catch (err) {
-                container.innerHTML = '<div class="text-muted small">Error cargando historial</div>';
-            }
-        }
-
-        // Debounce utility
         function debounce(fn, ms) {
             let timer;
             return function (...args) {
@@ -719,42 +583,10 @@
             };
         }
 
-        // Filter listeners
-        document.getElementById('filterDistrito').addEventListener('change', renderClientesDisponibles);
-        document.getElementById('filterSearch').addEventListener('input', debounce(renderClientesDisponibles, 300));
         document.getElementById('fechaRuta').addEventListener('change', () => {
             loadDistritosDelDia();
-            if (selectedVehiculo) {
-                selectVehiculo(selectedVehiculo.id_vehiculo);
-            }
+            if (selectedVehiculo) selectVehiculo(selectedVehiculo.id_vehiculo);
         });
-
-        // WhatsApp
-        function sendWhatsApp(sedeId, event) {
-            event?.stopPropagation();
-            const cliente = clientesEnRuta.find(c => c.id_sede === sedeId) || allClientes.find(c => c.id_sede === sedeId);
-            if (!cliente || !cliente.telefono) {
-                showToast('Cliente sin teléfono', 'warning');
-                return;
-            }
-            const fecha = document.getElementById('fechaRuta').value;
-            const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-PE') : 'mañana';
-            const mensaje = `Hola ${cliente.nombre_comercial}, somos de IO Group. Confirmamos su recojo de residuos para el ${fechaFormateada}. ¿Puede confirmar?`;
-            const phone = cliente.telefono.replace(/\D/g, '');
-            window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`, '_blank');
-        }
-
-        function sendWhatsAppAll() {
-            if (clientesEnRuta.length === 0) {
-                showToast('No hay clientes en la ruta', 'warning');
-                return;
-            }
-            clientesEnRuta.forEach((c, i) => {
-                if (c.telefono) {
-                    setTimeout(() => sendWhatsApp(c.id_sede), i * 1500);
-                }
-            });
-        }
 
         init();
     </script>
