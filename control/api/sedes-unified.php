@@ -2,8 +2,23 @@
 /**
  * IO Group - Unified Sede Creation API
  * Creates Cliente + Empresa + Sede in a single transaction
- * Updated: 2026-01-30 15:24
+ * Updated: 2026-01-30 17:20
  */
+
+// Enable error reporting for debugging
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+header('Content-Type: application/json; charset=UTF-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+// Handle preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/jwt.php';
@@ -16,51 +31,40 @@ if ($method !== 'POST') {
     exit;
 }
 
-$user = canEdit();
-$rawData = file_get_contents('php://input');
-$data = json_decode($rawData, true);
-
-// Debug logging
-error_log("=== SEDES-UNIFIED DEBUG ===");
-error_log("Raw input: " . $rawData);
-error_log("Parsed data: " . print_r($data, true));
-
-// Validate required data
-$cliente = $data['cliente'] ?? [];
-$empresa = $data['empresa'] ?? [];
-$sede = $data['sede'] ?? [];
-
-error_log("Cliente: " . print_r($cliente, true));
-error_log("Empresa: " . print_r($empresa, true));
-error_log("Sede: " . print_r($sede, true));
-
-if (empty($cliente['nombre_completo'])) {
-    http_response_code(400);
-    error_log("VALIDATION FAILED: nombre_completo empty");
-    echo json_encode(['success' => false, 'message' => 'Nombre del titular es requerido', 'debug_data' => $data]);
-    exit;
-}
-
-if (empty($empresa['razon_social']) || empty($empresa['ruc'])) {
-    http_response_code(400);
-    error_log("VALIDATION FAILED: razon_social or ruc empty");
-    echo json_encode(['success' => false, 'message' => 'Razón social y RUC son requeridos', 'debug_data' => $data]);
-    exit;
-}
-
-if (empty($sede['nombre_comercial']) || empty($sede['direccion'])) {
-    http_response_code(400);
-    error_log("VALIDATION FAILED: nombre_comercial or direccion empty");
-    echo json_encode(['success' => false, 'message' => 'Nombre comercial y dirección de sede son requeridos', 'debug_data' => $data]);
-    exit;
-}
-
-// Check if RUC already exists - if so, use existing empresa
-$existingEmpresa = db()->queryOne("SELECT id_empresa, id_cliente FROM Empresa WHERE ruc = ?", [$empresa['ruc']]);
-
 try {
+    $user = canEdit();
+    $rawData = file_get_contents('php://input');
+    $data = json_decode($rawData, true);
+
+    // Validate required data
+    $cliente = $data['cliente'] ?? [];
+    $empresa = $data['empresa'] ?? [];
+    $sede = $data['sede'] ?? [];
+
+    if (empty($cliente['nombre_completo'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Nombre del titular es requerido']);
+        exit;
+    }
+
+    if (empty($empresa['razon_social']) || empty($empresa['ruc'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Razón social y RUC son requeridos']);
+        exit;
+    }
+
+    if (empty($sede['nombre_comercial']) || empty($sede['direccion'])) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Nombre comercial y dirección de sede son requeridos']);
+        exit;
+    }
+
+    // Check if RUC already exists - if so, use existing empresa
+    $existingEmpresa = db()->queryOne("SELECT id_empresa, id_cliente FROM Empresa WHERE ruc = ?", [$empresa['ruc']]);
+
     // Start transaction
-    db()->beginTransaction();
+    $pdo = db()->getConnection();
+    $pdo->beginTransaction();
     
     if ($existingEmpresa) {
         // Use existing empresa
@@ -113,13 +117,18 @@ try {
     );
     
     // Commit transaction
-    db()->commit();
+    $pdo->commit();
     
-    // Audit log
-    db()->execute(
-        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Sede', ?, 'UNIFIED_INSERT', ?)",
-        [$user['id'], $sedeId, json_encode(['cliente_id' => $clienteId, 'empresa_id' => $empresaId, 'sede_id' => $sedeId])]
-    );
+    // Audit log (outside transaction, non-critical)
+    try {
+        db()->execute(
+            "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Sede', ?, 'UNIFIED_INSERT', ?)",
+            [$user['id'], $sedeId, json_encode(['cliente_id' => $clienteId, 'empresa_id' => $empresaId, 'sede_id' => $sedeId])]
+        );
+    } catch (Exception $e) {
+        // Audit log failure is non-critical
+        error_log("Audit log failed: " . $e->getMessage());
+    }
     
     echo json_encode([
         'success' => true,
@@ -129,8 +138,16 @@ try {
         'sede_id' => $sedeId
     ]);
     
-} catch (Exception $e) {
-    db()->rollBack();
+} catch (PDOException $e) {
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error creando registros: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Error de base de datos: ' . $e->getMessage()]);
+} catch (Exception $e) {
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
