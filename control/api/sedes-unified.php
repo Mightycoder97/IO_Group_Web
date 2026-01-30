@@ -41,42 +41,43 @@ if (empty($sede['nombre_comercial']) || empty($sede['direccion'])) {
     exit;
 }
 
-// Check if RUC already exists
-$existingEmpresa = db()->queryOne("SELECT id_empresa FROM Empresa WHERE ruc = ?", [$empresa['ruc']]);
-if ($existingEmpresa) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Ya existe una empresa con ese RUC']);
-    exit;
-}
+// Check if RUC already exists - if so, use existing empresa
+$existingEmpresa = db()->queryOne("SELECT id_empresa, id_cliente FROM Empresa WHERE ruc = ?", [$empresa['ruc']]);
 
 try {
     // Start transaction
     db()->beginTransaction();
     
-    // 1. Create Cliente
-    $clienteId = db()->insert(
-        "INSERT INTO Cliente (nombre_completo, documento, telefono, email, fecha_registro) 
-         VALUES (?, ?, ?, ?, NOW())",
-        [
-            $cliente['nombre_completo'],
-            $cliente['documento'] ?? null,
-            $cliente['telefono'] ?? null,
-            $cliente['email'] ?? null
-        ]
-    );
-    
-    // 2. Create Empresa
-    $empresaId = db()->insert(
-        "INSERT INTO Empresa (id_cliente, razon_social, ruc, tipo_empresa, direccion_fiscal, activo, fecha_registro) 
-         VALUES (?, ?, ?, ?, ?, 1, NOW())",
-        [
-            $clienteId,
-            $empresa['razon_social'],
-            $empresa['ruc'],
-            $empresa['tipo_empresa'] ?? 'otro',
-            $empresa['direccion_fiscal'] ?? null
-        ]
-    );
+    if ($existingEmpresa) {
+        // Use existing empresa
+        $empresaId = $existingEmpresa['id_empresa'];
+        $clienteId = $existingEmpresa['id_cliente'];
+    } else {
+        // 1. Create Cliente
+        $clienteId = db()->insert(
+            "INSERT INTO Cliente (nombre_completo, documento, telefono, email, fecha_registro) 
+             VALUES (?, ?, ?, ?, NOW())",
+            [
+                $cliente['nombre_completo'],
+                $cliente['documento'] ?? null,
+                $cliente['telefono'] ?? null,
+                $cliente['email'] ?? null
+            ]
+        );
+        
+        // 2. Create Empresa
+        $empresaId = db()->insert(
+            "INSERT INTO Empresa (id_cliente, razon_social, ruc, tipo_empresa, direccion_fiscal, activo, fecha_registro) 
+             VALUES (?, ?, ?, ?, ?, 1, NOW())",
+            [
+                $clienteId,
+                $empresa['razon_social'],
+                $empresa['ruc'],
+                $empresa['tipo_empresa'] ?? 'otro',
+                $empresa['direccion_fiscal'] ?? null
+            ]
+        );
+    }
     
     // 3. Create Sede
     $sedeId = db()->insert(
