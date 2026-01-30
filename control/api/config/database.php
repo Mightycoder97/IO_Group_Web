@@ -85,6 +85,27 @@ class Database {
         $stmt->execute($params);
         return $stmt->rowCount();
     }
+
+    /**
+     * Begin a database transaction
+     */
+    public function beginTransaction() {
+        return $this->connection->beginTransaction();
+    }
+
+    /**
+     * Commit the current transaction
+     */
+    public function commit() {
+        return $this->connection->commit();
+    }
+
+    /**
+     * Rollback the current transaction
+     */
+    public function rollBack() {
+        return $this->connection->rollBack();
+    }
 }
 
 // Helper function to get database instance
