@@ -612,6 +612,11 @@
 
                 if (result.success) {
                     showToast('Ruta guardada correctamente');
+                    // Limpiar lista para asignar siguiente ruta
+                    clientesEnRuta = [];
+                    selectedEnRuta.clear();
+                    renderClientesDisponibles();
+                    renderClientesEnRuta();
                     loadVehiculoHistory();
                 } else {
                     showToast(result.message || 'Error al guardar', 'danger');
