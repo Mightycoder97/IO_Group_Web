@@ -325,6 +325,7 @@
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
         const distritoColors = {
+            'QUINCENALES': '#ff5722',
             'Miraflores': '#e57373', 'San Isidro': '#64b5f6', 'Surco': '#81c784',
             'La Molina': '#ffb74d', 'San Borja': '#ba68c8', 'Lince': '#4dd0e1',
             'Jesús María': '#f06292', 'Magdalena': '#aed581', 'Pueblo Libre': '#ff8a65',
@@ -348,7 +349,7 @@
             try {
                 const result = await api.get('/calendario?action=distritos');
                 if (result.success) {
-                    allDistritos = result.data.map(d => d.distrito);
+                    allDistritos = ['QUINCENALES', ...result.data.map(d => d.distrito)];
                     renderDistritosList();
                 }
             } catch (err) {
@@ -361,8 +362,26 @@
             const searchInput = document.getElementById('distritoSearch');
             const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-            // Solo mostrar distritos si hay al menos 2 caracteres en el buscador
+            // Solo mostrar distritos si hay al menos 2 caracteres en el buscador (excepto QUINCENALES)
+            const showQuincenales = allDistritos.includes('QUINCENALES');
+
             if (searchTerm.length < 2) {
+                if (showQuincenales) {
+                    // Mostrar solo QUINCENALES si no hay búsqueda
+                    container.innerHTML = `
+                        <div class="distrito-item ${selectedDistrito === 'QUINCENALES' ? 'active' : ''}" onclick="selectDistrito('QUINCENALES')">
+                            <span>
+                                <span class="distrito-color" style="background: ${distritoColors['QUINCENALES'] || '#ff5722'}"></span>
+                                QUINCENALES
+                            </span>
+                            <span class="badge bg-secondary" id="count-QUINCENALES">0</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="text-muted small"><i class="bi bi-search"></i> Escribe al menos 2 letras para buscar distritos...</div>
+                    `;
+                    updateDistritoCounts();
+                    return;
+                }
                 container.innerHTML = '<div class="text-muted small"><i class="bi bi-search"></i> Escribe al menos 2 letras para buscar distritos...</div>';
                 return;
             }
@@ -373,7 +392,7 @@
             }
 
             const filteredDistritos = allDistritos.filter(d =>
-                d.toLowerCase().includes(searchTerm)
+                d.toLowerCase().includes(searchTerm) || d === 'QUINCENALES'
             );
 
             if (filteredDistritos.length === 0) {
