@@ -2,7 +2,7 @@
 /**
  * IO Group - Unified Sede Creation API
  * Creates Cliente + Empresa + Sede in a single transaction
- * Updated: 2026-01-30 17:20
+ * Updated: 2026-01-30 17:25
  */
 
 // Enable error reporting for debugging
@@ -72,9 +72,9 @@ try {
         $clienteId = $existingEmpresa['id_cliente'];
     } else {
         // 1. Create Cliente
+        // Schema: nombre, tipo_documento, dni, telefono, email, direccion, notas, activo
         $clienteId = db()->insert(
-            "INSERT INTO Cliente (nombre_completo, documento, telefono, email, fecha_registro) 
-             VALUES (?, ?, ?, ?, NOW())",
+            "INSERT INTO Cliente (nombre, dni, telefono, email) VALUES (?, ?, ?, ?)",
             [
                 $cliente['nombre_completo'],
                 $cliente['documento'] ?? null,
@@ -84,20 +84,20 @@ try {
         );
         
         // 2. Create Empresa
+        // Schema: id_cliente, razon_social, ruc, direccion_fiscal, distrito, provincia, departamento, telefono, email, activo
         $empresaId = db()->insert(
-            "INSERT INTO Empresa (id_cliente, razon_social, ruc, tipo_empresa, direccion_fiscal, activo, fecha_registro) 
-             VALUES (?, ?, ?, ?, ?, 1, NOW())",
+            "INSERT INTO Empresa (id_cliente, razon_social, ruc, direccion_fiscal) VALUES (?, ?, ?, ?)",
             [
                 $clienteId,
                 $empresa['razon_social'],
                 $empresa['ruc'],
-                $empresa['tipo_empresa'] ?? 'otro',
                 $empresa['direccion_fiscal'] ?? null
             ]
         );
     }
     
     // 3. Create Sede
+    // Schema: id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_email, activo
     $sedeId = db()->insert(
         "INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_email, activo) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
