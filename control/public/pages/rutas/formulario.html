@@ -5,14 +5,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Ruta - IO Group</title>
-    <!-- Preconnect para optimizar carga -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+    <style>
+        .hoja-ruta-table {
+            font-size: 0.85rem;
+        }
+
+        .hoja-ruta-table th {
+            background: #1B5E20;
+            color: white;
+            font-weight: 600;
+            white-space: nowrap;
+            padding: 8px 10px;
+        }
+
+        .hoja-ruta-table td {
+            padding: 6px 10px;
+            vertical-align: middle;
+        }
+
+        .hoja-ruta-table tbody tr:hover {
+            background: #e8f5e9;
+        }
+
+        .hoja-ruta-table input,
+        .hoja-ruta-table select {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+        }
+
+        .ruta-header {
+            background: linear-gradient(135deg, #1B5E20, #2E7D32);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .ruta-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .ruta-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 10px;
+        }
+
+        .ruta-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ruta-meta-item i {
+            opacity: 0.8;
+        }
+
+        .action-cell {
+            white-space: nowrap;
+        }
+
+        .peso-input {
+            width: 70px;
+        }
+
+        .obs-input {
+            width: 120px;
+        }
+    </style>
 </head>
 
 <body class="control-app">
@@ -26,7 +92,7 @@
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
                             <li class="breadcrumb-item"><a href="listar.html">Rutas</a></li>
-                            <li class="breadcrumb-item active" id="pageTitle">Nueva Ruta</li>
+                            <li class="breadcrumb-item active" id="pageTitle">Detalle Ruta</li>
                         </ol>
                     </nav>
                 </div>
@@ -36,8 +102,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -45,117 +115,128 @@
                 </div>
             </nav>
             <div class="content-area">
-                <div class="card">
-                    <div class="card-header">
-                        <i class="bi bi-signpost-2"></i> <span id="formTitle">Nueva Ruta</span>
+                <!-- Ruta Header -->
+                <div class="ruta-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5><i class="bi bi-signpost-2"></i> <span id="headerTitulo">Hoja de Ruta</span></h5>
+                            <div class="ruta-meta">
+                                <div class="ruta-meta-item">
+                                    <i class="bi bi-truck"></i>
+                                    <span id="headerVehiculo">-</span>
+                                </div>
+                                <div class="ruta-meta-item">
+                                    <i class="bi bi-calendar3"></i>
+                                    <span id="headerFecha">-</span>
+                                </div>
+                                <div class="ruta-meta-item">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span id="headerClientes">0 clientes</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" id="estado" style="width: auto;">
+                                <option value="programada">Programada</option>
+                                <option value="en_curso">En Curso</option>
+                                <option value="completada">Completada</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <form id="dataForm">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Vehículo *</label>
-                                    <select class="form-select" id="id_vehiculo" required>
-                                        <option value="">Seleccione...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Código de Ruta</label>
-                                    <input type="text" class="form-control" id="codigo_ruta" placeholder="R-2024-001">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Fecha *</label>
-                                    <input type="date" class="form-control" id="fecha" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Hora Salida</label>
-                                    <input type="time" class="form-control" id="hora_salida">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Hora Retorno</label>
-                                    <input type="time" class="form-control" id="hora_retorno">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Km Inicial</label>
-                                    <input type="number" class="form-control" id="km_inicial">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Km Final</label>
-                                    <input type="number" class="form-control" id="km_final">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Estado</label>
-                                    <select class="form-select" id="estado">
-                                        <option value="programada">Programada</option>
-                                        <option value="en_curso">En Curso</option>
-                                        <option value="completada">Completada</option>
-                                        <option value="cancelada">Cancelada</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label class="form-label">Observaciones</label>
-                                    <input type="text" class="form-control" id="observaciones">
-                                </div>
-                            </div>
+                </div>
 
-                            <!-- Sedes Section - Only visible in edit mode -->
-                            <div id="sedesSection" class="mt-4" style="display: none;">
-                                <h6><i class="bi bi-geo-alt"></i> Clientes en esta Ruta</h6>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        <div class="card">
-                                            <div class="card-header py-2">
-                                                <small class="fw-bold">Clientes Disponibles</small>
-                                                <input type="text" class="form-control form-control-sm mt-2"
-                                                    id="sedeSearch" placeholder="Buscar cliente...">
-                                            </div>
-                                            <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
-                                                <div class="list-group list-group-flush" id="sedesDisponibles">
-                                                    <div class="text-center py-3 text-muted">Cargando...</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 d-flex align-items-center justify-content-center">
-                                        <div class="d-flex flex-column gap-2">
-                                            <button type="button" class="btn btn-outline-primary"
-                                                onclick="addSelectedSede()">
-                                                <i class="bi bi-chevron-right"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-outline-secondary"
-                                                onclick="removeSelectedSede()">
-                                                <i class="bi bi-chevron-left"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-5">
-                                        <div class="card">
-                                            <div
-                                                class="card-header py-2 d-flex justify-content-between align-items-center">
-                                                <small class="fw-bold">En Ruta (<span id="sedesCount">0</span>)</small>
-                                                <button type="button" class="btn btn-success btn-sm"
-                                                    onclick="sendWhatsAppAll()">
-                                                    <i class="bi bi-whatsapp"></i> Confirmar Todos
-                                                </button>
-                                            </div>
-                                            <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
-                                                <div class="list-group list-group-flush" id="sedesEnRuta">
-                                                    <div class="text-center py-3 text-muted">Arrastra clientes aquí
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                <!-- Config Row -->
+                <div class="card mb-3">
+                    <div class="card-body py-3">
+                        <form class="row g-3 align-items-end" id="configForm">
+                            <div class="col-md-3">
+                                <label class="form-label">Vehículo *</label>
+                                <select class="form-select" id="id_vehiculo" required>
+                                    <option value="">Seleccione...</option>
+                                </select>
                             </div>
-
-                            <div class="mt-4">
-                                <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i>
+                            <div class="col-md-2">
+                                <label class="form-label">Fecha *</label>
+                                <input type="date" class="form-control" id="fecha" required>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">Observaciones</label>
+                                <input type="text" class="form-control" id="observaciones"
+                                    placeholder="Observaciones generales...">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check"></i>
                                     Guardar</button>
-                                <a href="listar.html" class="btn btn-secondary">Cancelar</a>
                             </div>
                         </form>
                     </div>
+                </div>
+
+                <!-- Clientes Table -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-list-ol"></i> Clientes en Ruta</span>
+                        <button class="btn btn-success btn-sm" onclick="sendWhatsAppAll()">
+                            <i class="bi bi-whatsapp"></i> Confirmar Todos
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover hoja-ruta-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;">N°</th>
+                                        <th>RUC</th>
+                                        <th style="width: 80px;">PESO</th>
+                                        <th>RAZON SOCIAL</th>
+                                        <th>NOMBRE COMERCIAL</th>
+                                        <th>CONTACTO</th>
+                                        <th>TELEFONO</th>
+                                        <th>DIRECCION</th>
+                                        <th>DISTRITO</th>
+                                        <th>TARIFA</th>
+                                        <th style="width: 120px;">OBS</th>
+                                        <th style="width: 80px;">ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientesTableBody">
+                                    <tr>
+                                        <td colspan="12" class="text-center py-4 text-muted">Cargando...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agregar Cliente -->
+                <div class="card mt-3" id="addClienteSection" style="display: none;">
+                    <div class="card-header">
+                        <i class="bi bi-plus-circle"></i> Agregar Cliente
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="searchCliente"
+                                    placeholder="Buscar cliente por nombre o RUC...">
+                            </div>
+                            <div class="col-md-6">
+                                <select class="form-select" id="selectCliente">
+                                    <option value="">Seleccione un cliente...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-success w-100" onclick="agregarCliente()">
+                                    <i class="bi bi-plus"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <a href="listar.html" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
                 </div>
             </div>
         </main>
@@ -170,9 +251,7 @@
 
         let allSedes = [];
         let sedesEnRuta = [];
-        let selectedDisponible = null;
-        let selectedEnRuta = null;
-        let rutaFecha = '';
+        let rutaData = null;
 
         // Load vehiculos
         async function loadVehiculos() {
@@ -187,168 +266,166 @@
                 console.error('Error loading vehiculos:', err);
             }
         }
-        loadVehiculos();
-
-        // Set default date to today
-        document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-
-        // Edit mode
-        if (id) {
-            document.getElementById('pageTitle').textContent = 'Editar Ruta';
-            document.getElementById('formTitle').textContent = 'Editar Ruta';
-            document.getElementById('sedesSection').style.display = 'block';
-            loadData();
-            loadSedes();
-        }
-
-        async function loadData() {
-            try {
-                const result = await api.get(`/rutas/${id}`);
-                if (result.success) {
-                    const d = result.data;
-                    rutaFecha = d.fecha;
-                    setTimeout(() => {
-                        document.getElementById('id_vehiculo').value = d.id_vehiculo || '';
-                    }, 500);
-                    document.getElementById('codigo_ruta').value = d.codigo_ruta || '';
-                    document.getElementById('fecha').value = d.fecha || '';
-                    document.getElementById('hora_salida').value = d.hora_salida || '';
-                    document.getElementById('hora_retorno').value = d.hora_retorno || '';
-                    document.getElementById('km_inicial').value = d.km_inicial || '';
-                    document.getElementById('km_final').value = d.km_final || '';
-                    document.getElementById('estado').value = d.estado || 'programada';
-                    document.getElementById('observaciones').value = d.observaciones || '';
-
-                    // Load servicios (sedes en ruta)
-                    if (d.servicios) {
-                        sedesEnRuta = d.servicios.map(s => ({
-                            id_sede: s.id_sede,
-                            id_servicio: s.id_servicio,
-                            nombre_comercial: s.sede_nombre,
-                            telefono: s.telefono || '',
-                            direccion: s.direccion || '',
-                            distrito: s.distrito || ''
-                        }));
-                        renderSedesEnRuta();
-                    }
-                }
-            } catch (err) {
-                showToast('Error cargando datos', 'danger');
-            }
-        }
 
         async function loadSedes() {
             try {
-                const result = await api.get('/sedes');
+                const result = await api.get('/sedes?limit=1000');
                 if (result.success) {
                     allSedes = result.data;
-                    renderSedesDisponibles();
+                    renderClienteSelect();
                 }
             } catch (err) {
                 console.error('Error loading sedes:', err);
             }
         }
 
-        function renderSedesDisponibles(filter = '') {
-            const container = document.getElementById('sedesDisponibles');
+        function renderClienteSelect() {
             const enRutaIds = sedesEnRuta.map(s => s.id_sede);
-            let sedes = allSedes.filter(s => !enRutaIds.includes(s.id_sede));
-
-            if (filter) {
-                const term = filter.toLowerCase();
-                sedes = sedes.filter(s =>
-                    s.nombre_comercial?.toLowerCase().includes(term) ||
-                    s.distrito?.toLowerCase().includes(term)
-                );
-            }
-
-            if (sedes.length === 0) {
-                container.innerHTML = '<div class="text-center py-3 text-muted">Sin clientes disponibles</div>';
-                return;
-            }
-
-            container.innerHTML = sedes.map(s => `
-                <div class="list-group-item list-group-item-action" 
-                     data-id="${s.id_sede}" onclick="selectDisponible(${s.id_sede})">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${s.nombre_comercial}</strong><br>
-                            <small class="text-muted">${s.distrito || ''}</small>
-                        </div>
-                        <i class="bi bi-plus-circle text-primary"></i>
-                    </div>
-                </div>
-            `).join('');
+            const disponibles = allSedes.filter(s => !enRutaIds.includes(s.id_sede));
+            const select = document.getElementById('selectCliente');
+            select.innerHTML = '<option value="">Seleccione un cliente...</option>' +
+                disponibles.map(s => `<option value="${s.id_sede}">${s.nombre_comercial} - ${s.empresa_ruc || ''}</option>`).join('');
         }
 
-        function renderSedesEnRuta() {
-            const container = document.getElementById('sedesEnRuta');
-            document.getElementById('sedesCount').textContent = sedesEnRuta.length;
-
-            if (sedesEnRuta.length === 0) {
-                container.innerHTML = '<div class="text-center py-3 text-muted">Sin clientes asignados</div>';
-                return;
-            }
-
-            container.innerHTML = sedesEnRuta.map((s, i) => `
-                <div class="list-group-item" data-id="${s.id_sede}" onclick="selectEnRuta(${s.id_sede})">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="badge bg-secondary me-1">${i + 1}</span>
-                            <strong>${s.nombre_comercial}</strong><br>
-                            <small class="text-muted">${s.direccion || ''}</small>
-                        </div>
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-success" onclick="sendWhatsApp(${s.id_sede}, event)" title="WhatsApp">
-                                <i class="bi bi-whatsapp"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function selectDisponible(id) {
-            selectedDisponible = id;
-            document.querySelectorAll('#sedesDisponibles .list-group-item').forEach(el => {
-                el.classList.toggle('active', el.dataset.id == id);
-            });
-        }
-
-        function selectEnRuta(id) {
-            selectedEnRuta = id;
-            document.querySelectorAll('#sedesEnRuta .list-group-item').forEach(el => {
-                el.classList.toggle('active', el.dataset.id == id);
-            });
-        }
-
-        function addSelectedSede() {
-            if (!selectedDisponible) return;
-            const sede = allSedes.find(s => s.id_sede == selectedDisponible);
-            if (sede) {
-                sedesEnRuta.push(sede);
-                selectedDisponible = null;
-                renderSedesDisponibles(document.getElementById('sedeSearch').value);
-                renderSedesEnRuta();
-            }
-        }
-
-        function removeSelectedSede() {
-            if (!selectedEnRuta) return;
-            sedesEnRuta = sedesEnRuta.filter(s => s.id_sede != selectedEnRuta);
-            selectedEnRuta = null;
-            renderSedesDisponibles(document.getElementById('sedeSearch').value);
-            renderSedesEnRuta();
-        }
-
-        // Search filter
-        document.getElementById('sedeSearch')?.addEventListener('input', function (e) {
-            renderSedesDisponibles(e.target.value);
+        document.getElementById('searchCliente')?.addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase();
+            const enRutaIds = sedesEnRuta.map(s => s.id_sede);
+            const disponibles = allSedes.filter(s => !enRutaIds.includes(s.id_sede) &&
+                (s.nombre_comercial?.toLowerCase().includes(term) || s.empresa_ruc?.includes(term)));
+            const select = document.getElementById('selectCliente');
+            select.innerHTML = '<option value="">Seleccione un cliente...</option>' +
+                disponibles.slice(0, 50).map(s => `<option value="${s.id_sede}">${s.nombre_comercial} - ${s.empresa_ruc || ''}</option>`).join('');
         });
 
-        // WhatsApp functions
-        function sendWhatsApp(sedeId, event) {
-            event?.stopPropagation();
+        async function loadData() {
+            if (!id) return;
+            try {
+                const result = await api.get(`/rutas/${id}`);
+                if (result.success) {
+                    rutaData = result.data;
+
+                    // Fill form
+                    setTimeout(() => {
+                        document.getElementById('id_vehiculo').value = rutaData.id_vehiculo || '';
+                    }, 500);
+                    document.getElementById('fecha').value = rutaData.fecha || '';
+                    document.getElementById('estado').value = rutaData.estado || 'programada';
+                    document.getElementById('observaciones').value = rutaData.observaciones || '';
+
+                    // Update header
+                    document.getElementById('headerVehiculo').textContent = rutaData.vehiculo_placa || '-';
+                    document.getElementById('headerFecha').textContent = rutaData.fecha ? new Date(rutaData.fecha).toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' }) : '-';
+
+                    // Load servicios
+                    if (rutaData.servicios) {
+                        sedesEnRuta = rutaData.servicios.map(s => ({
+                            id_sede: s.id_sede,
+                            id_servicio: s.id_servicio,
+                            nombre_comercial: s.sede_nombre || '',
+                            empresa_ruc: s.empresa_ruc || '',
+                            empresa_razon: s.empresa_razon || '',
+                            direccion: s.direccion || '',
+                            distrito: s.distrito || '',
+                            contacto: s.contacto || '',
+                            telefono: s.telefono || '',
+                            tarifa: s.tarifa_servicio || 0,
+                            peso: s.peso || '',
+                            obs: s.observaciones || ''
+                        }));
+                    }
+                    renderClientesTable();
+                    renderClienteSelect();
+                    document.getElementById('headerClientes').textContent = sedesEnRuta.length + ' clientes';
+                }
+            } catch (err) {
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        function renderClientesTable() {
+            const tbody = document.getElementById('clientesTableBody');
+
+            if (sedesEnRuta.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Sin clientes asignados</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sedesEnRuta.map((s, i) => `
+                <tr data-id="${s.id_sede}">
+                    <td class="text-center fw-bold">${i + 1}</td>
+                    <td>${s.empresa_ruc || '-'}</td>
+                    <td><input type="number" class="form-control form-control-sm peso-input" value="${s.peso || ''}" 
+                        onchange="updatePeso(${s.id_sede}, this.value)" placeholder="kg"></td>
+                    <td>${s.empresa_razon || '-'}</td>
+                    <td><strong>${s.nombre_comercial}</strong></td>
+                    <td>${s.contacto || '-'}</td>
+                    <td>${s.telefono || '-'}</td>
+                    <td><small>${s.direccion || '-'}</small></td>
+                    <td>${s.distrito || '-'}</td>
+                    <td>S/ ${parseFloat(s.tarifa || 0).toFixed(2)}</td>
+                    <td><input type="text" class="form-control form-control-sm obs-input" value="${s.obs || ''}" 
+                        onchange="updateObs(${s.id_sede}, this.value)" placeholder="..."></td>
+                    <td class="action-cell">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-success" onclick="sendWhatsApp(${s.id_sede})" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="removerCliente(${s.id_sede})" title="Quitar">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updatePeso(sedeId, valor) {
+            const sede = sedesEnRuta.find(s => s.id_sede == sedeId);
+            if (sede) sede.peso = valor;
+        }
+
+        function updateObs(sedeId, valor) {
+            const sede = sedesEnRuta.find(s => s.id_sede == sedeId);
+            if (sede) sede.obs = valor;
+        }
+
+        function agregarCliente() {
+            const sedeId = document.getElementById('selectCliente').value;
+            if (!sedeId) {
+                showToast('Seleccione un cliente', 'warning');
+                return;
+            }
+            const sede = allSedes.find(s => s.id_sede == sedeId);
+            if (sede) {
+                sedesEnRuta.push({
+                    id_sede: sede.id_sede,
+                    nombre_comercial: sede.nombre_comercial || '',
+                    empresa_ruc: sede.empresa_ruc || '',
+                    empresa_razon: sede.empresa_razon || '',
+                    direccion: sede.direccion || '',
+                    distrito: sede.distrito || '',
+                    contacto: sede.contacto || '',
+                    telefono: sede.telefono || '',
+                    tarifa: sede.tarifa_servicio || 0,
+                    peso: '',
+                    obs: ''
+                });
+                renderClientesTable();
+                renderClienteSelect();
+                document.getElementById('headerClientes').textContent = sedesEnRuta.length + ' clientes';
+                document.getElementById('selectCliente').value = '';
+                document.getElementById('searchCliente').value = '';
+            }
+        }
+
+        function removerCliente(sedeId) {
+            sedesEnRuta = sedesEnRuta.filter(s => s.id_sede != sedeId);
+            renderClientesTable();
+            renderClienteSelect();
+            document.getElementById('headerClientes').textContent = sedesEnRuta.length + ' clientes';
+        }
+
+        function sendWhatsApp(sedeId) {
             const sede = sedesEnRuta.find(s => s.id_sede == sedeId) || allSedes.find(s => s.id_sede == sedeId);
             if (!sede || !sede.telefono) {
                 showToast('Cliente sin teléfono registrado', 'warning');
@@ -356,10 +433,9 @@
             }
             const fecha = document.getElementById('fecha').value;
             const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-PE') : 'mañana';
-            const mensaje = `Hola ${sede.nombre_comercial}, somos de IO Group. Confirmamos su recojo de residuos programado para el ${fechaFormateada}. ¿Puede confirmar disponibilidad?`;
+            const mensaje = `Hola ${sede.nombre_comercial}, somos de IO Group. Confirmamos su recojo de residuos para el ${fechaFormateada}. ¿Puede confirmar?`;
             const phone = sede.telefono.replace(/\D/g, '');
-            const url = `https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`;
-            window.open(url, '_blank');
+            window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
         function sendWhatsAppAll() {
@@ -375,16 +451,11 @@
         }
 
         // Form submit
-        document.getElementById('dataForm').addEventListener('submit', async function (e) {
+        document.getElementById('configForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const data = {
                 id_vehiculo: document.getElementById('id_vehiculo').value,
-                codigo_ruta: document.getElementById('codigo_ruta').value || null,
                 fecha: document.getElementById('fecha').value,
-                hora_salida: document.getElementById('hora_salida').value || null,
-                hora_retorno: document.getElementById('hora_retorno').value || null,
-                km_inicial: document.getElementById('km_inicial').value || null,
-                km_final: document.getElementById('km_final').value || null,
                 estado: document.getElementById('estado').value,
                 observaciones: document.getElementById('observaciones').value || null,
                 sedes: sedesEnRuta.map(s => s.id_sede)
@@ -395,7 +466,9 @@
                     : await api.post('/rutas', data);
                 if (result.success) {
                     showToast(id ? 'Ruta actualizada' : 'Ruta creada');
-                    window.location.href = 'listar.html';
+                    if (!id) {
+                        window.location.href = `formulario.html?id=${result.id}`;
+                    }
                 } else {
                     showToast(result.message, 'danger');
                 }
@@ -403,6 +476,29 @@
                 showToast('Error guardando', 'danger');
             }
         });
+
+        // Estado change
+        document.getElementById('estado').addEventListener('change', async function () {
+            if (!id) return;
+            try {
+                await api.put(`/rutas/${id}`, { estado: this.value });
+                showToast('Estado actualizado');
+            } catch (err) {
+                showToast('Error actualizando estado', 'danger');
+            }
+        });
+
+        // Init
+        loadVehiculos();
+        loadSedes();
+
+        if (id) {
+            document.getElementById('addClienteSection').style.display = 'block';
+            loadData();
+        } else {
+            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('clientesTableBody').innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Guarde la ruta primero para agregar clientes</td></tr>';
+        }
     </script>
 </body>
 
