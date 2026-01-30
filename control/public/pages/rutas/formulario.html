@@ -85,38 +85,65 @@
 
         @page {
             size: landscape;
-            margin: 10mm;
+            margin: 8mm;
         }
 
         @media print {
+
+            html,
             body {
-                visibility: visible !important;
-                margin: 0;
-                padding: 0;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
             }
 
-            body * {
-                visibility: hidden;
+            .sidebar,
+            .top-nav,
+            .ruta-header,
+            #configForm,
+            #addClienteSection,
+            .card-header,
+            .mt-3,
+            .btn,
+            .action-cell,
+            .app-container>aside,
+            .user-menu,
+            .breadcrumb-container {
+                display: none !important;
             }
 
-            .print-header,
-            .print-header *,
-            #printableTable,
-            #printableTable * {
-                visibility: visible !important;
+            .app-container {
+                display: block !important;
+            }
+
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+
+            .content-area {
+                padding: 0 !important;
+            }
+
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .card-body {
+                padding: 0 !important;
             }
 
             .print-header {
                 display: block !important;
-                position: relative;
-                width: 100%;
-                padding: 10px 0;
+                padding: 8px 0;
                 border-bottom: 2px solid #1B5E20;
-                margin-bottom: 5px;
+                margin-bottom: 8px;
             }
 
             .print-header h4 {
-                margin: 0 0 8px 0;
+                margin: 0 0 6px 0;
                 color: #1B5E20;
                 font-size: 14px;
             }
@@ -127,11 +154,6 @@
                 font-size: 10px;
             }
 
-            #printableTable {
-                position: relative;
-                width: 100%;
-            }
-
             #printableTable table {
                 page-break-inside: auto;
                 width: 100%;
@@ -139,7 +161,6 @@
 
             #printableTable tr {
                 page-break-inside: avoid;
-                page-break-after: auto;
             }
 
             #printableTable thead {
@@ -148,6 +169,7 @@
 
             .hoja-ruta-table {
                 font-size: 9px !important;
+                border-collapse: collapse;
             }
 
             .hoja-ruta-table th {
@@ -155,11 +177,12 @@
                 color: white !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                padding: 3px 4px !important;
+                padding: 4px !important;
             }
 
             .hoja-ruta-table td {
-                padding: 2px 4px !important;
+                padding: 3px !important;
+                border: 1px solid #ccc !important;
             }
 
             .hoja-ruta-table input {
@@ -167,23 +190,7 @@
                 background: transparent !important;
                 font-size: 9px !important;
                 padding: 0 !important;
-            }
-
-            .action-cell {
-                display: none !important;
-            }
-
-            .app-container,
-            .sidebar,
-            .top-nav,
-            .ruta-header,
-            #configForm,
-            #addClienteSection,
-            .card-header,
-            .card,
-            .mt-3,
-            .main-content {
-                display: none !important;
+                width: 100% !important;
             }
         }
     </style>
