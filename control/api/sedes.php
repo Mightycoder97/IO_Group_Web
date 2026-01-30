@@ -140,6 +140,14 @@ function create() {
     $user = canEdit();
     $data = json_decode(file_get_contents('php://input'), true);
     
+    // Check if this is a unified request (nested format with cliente/empresa/sede)
+    if (isset($data['cliente']) || isset($data['empresa']) || isset($data['sede'])) {
+        // Redirect to sedes-unified handler
+        require_once __DIR__ . '/sedes-unified-handler.php';
+        handleUnifiedCreate($user, $data);
+        return;
+    }
+    
     $id_empresa = $data['id_empresa'] ?? null;
     $nombre_comercial = $data['nombre_comercial'] ?? '';
     $direccion = $data['direccion'] ?? '';
