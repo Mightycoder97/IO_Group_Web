@@ -355,13 +355,13 @@
                                     <tr>
                                         <th style="width: 40px;">N°</th>
                                         <th>RUC</th>
-                                        <th style="width: 70px;">PESO</th>
                                         <th>NOMBRE COMERCIAL</th>
                                         <th>DIRECCION</th>
                                         <th>DISTRITO</th>
                                         <th>TARIFA</th>
+                                        <th style="width: 120px;">TIPO PAGO</th>
                                         <th style="width: 100px;">OBS</th>
-                                        <th style="width: 80px;" class="action-cell">ACCIONES</th>
+                                        <th style="width: 100px;" class="action-cell">ACCIONES</th>
                                     </tr>
                                 </thead>
                                 <tbody id="clientesTableBody">
@@ -620,12 +620,19 @@
                 <tr>
                     <td class="text-center fw-bold">${i + 1}</td>
                     <td>${c.empresa_ruc || '-'}</td>
-                    <td><input type="number" class="form-control form-control-sm peso-input" value="${c.peso || ''}" 
-                        onchange="clientesEnRuta[${i}].peso=this.value" placeholder="kg"></td>
                     <td><strong>${c.nombre_comercial}</strong></td>
                     <td><small>${c.direccion || '-'}</small></td>
                     <td>${c.distrito || '-'}</td>
                     <td>S/ ${parseFloat(c.tarifa || 0).toFixed(2)}</td>
+                    <td>
+                        <select class="form-select form-select-sm" onchange="clientesEnRuta[${i}].tipo_pago=this.value">
+                            <option value="" ${!c.tipo_pago ? 'selected' : ''}>-</option>
+                            <option value="efectivo" ${c.tipo_pago === 'efectivo' ? 'selected' : ''}>Efectivo</option>
+                            <option value="transferencia" ${c.tipo_pago === 'transferencia' ? 'selected' : ''}>Transferencia</option>
+                            <option value="credito" ${c.tipo_pago === 'credito' ? 'selected' : ''}>Crédito</option>
+                            <option value="factura" ${c.tipo_pago === 'factura' ? 'selected' : ''}>Factura</option>
+                        </select>
+                    </td>
                     <td><input type="text" class="form-control form-control-sm obs-input" value="${c.obs || ''}" 
                         onchange="clientesEnRuta[${i}].obs=this.value"></td>
                     <td class="action-cell">
