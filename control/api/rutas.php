@@ -86,103 +86,120 @@ function getAll() {
 function getOne($id) {
     canView();
     
-    $ruta = db()->queryOne(
-        "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca
-         FROM Ruta r 
-         INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo 
-         WHERE r.id_ruta = ?",
-        [$id]
-    );
-    
-    if (!$ruta) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'message' => 'Ruta no encontrada']);
-        return;
+    try {
+        $ruta = db()->queryOne(
+            "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca
+             FROM Ruta r 
+             INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo 
+             WHERE r.id_ruta = ?",
+            [$id]
+        );
+        
+        if (!$ruta) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Ruta no encontrada']);
+            return;
+        }
+        
+        // Get services for this route - use fecha_ejecucion if fecha_programada doesn't exist
+        $servicios = db()->query(
+            "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion, se.telefono
+             FROM Servicio s 
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             WHERE s.id_ruta = ? ORDER BY s.id_servicio",
+            [$id]
+        );
+        
+        $ruta['servicios'] = $servicios ?: [];
+        
+        echo json_encode([
+            'success' => true,
+            'data' => $ruta
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al obtener ruta: ' . $e->getMessage()
+        ]);
     }
-    
-    // Get services for this route
-    $servicios = db()->query(
-        "SELECT s.*, se.nombre_comercial as sede_nombre 
-         FROM Servicio s 
-         INNER JOIN Sede se ON s.id_sede = se.id_sede
-         WHERE s.id_ruta = ? ORDER BY s.fecha_programada",
-        [$id]
-    );
-    
-    $ruta['servicios'] = $servicios;
-    
-    echo json_encode([
-        'success' => true,
-        'data' => $ruta
-    ]);
 }
 
 function create() {
     $user = canEdit();
-    $data = json_decode(file_get_contents('php://input'), true);
     
-    $id_vehiculo = $data['id_vehiculo'] ?? null;
-    $fecha = $data['fecha'] ?? null;
-    $sedes = $data['sedes'] ?? [];
-    
-    if (empty($id_vehiculo) || empty($fecha)) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Vehículo y fecha son requeridos']);
-        return;
-    }
-    
-    // Check if route already exists for this vehicle and date
-    $existing = db()->queryOne(
-        "SELECT id_ruta FROM Ruta WHERE id_vehiculo = ? AND fecha = ?",
-        [$id_vehiculo, $fecha]
-    );
-    
-    if ($existing) {
-        // Update existing route - delete old services first
-        $id = $existing['id_ruta'];
-        db()->execute("DELETE FROM Servicio WHERE id_ruta = ?", [$id]);
+    try {
+        $data = json_decode(file_get_contents('php://input'), true);
         
-        db()->execute(
-            "UPDATE Ruta SET estado = ?, observaciones = ?, fecha_modificacion = NOW() WHERE id_ruta = ?",
-            [$data['estado'] ?? 'programada', $data['observaciones'] ?? null, $id]
-        );
-    } else {
-        // Auto-generate codigo_ruta: R-YYYYMMDD-VID-COUNTER
-        $dateStr = str_replace('-', '', $fecha);
-        $countToday = db()->queryOne(
-            "SELECT COUNT(*) as cnt FROM Ruta WHERE fecha = ?",
-            [$fecha]
-        );
-        $counter = ($countToday['cnt'] ?? 0) + 1;
-        $codigo_ruta = "R-{$dateStr}-{$id_vehiculo}-{$counter}";
+        $id_vehiculo = $data['id_vehiculo'] ?? null;
+        $fecha = $data['fecha'] ?? null;
+        $sedes = $data['sedes'] ?? [];
         
-        // Create new route (simplified - only essential fields)
-        $id = db()->insert(
-            "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, estado) VALUES (?, ?, ?, 'programada')",
-            [$id_vehiculo, $codigo_ruta, $fecha]
+        if (empty($id_vehiculo) || empty($fecha)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Vehículo y fecha son requeridos']);
+            return;
+        }
+        
+        // Check if route already exists for this vehicle and date
+        $existing = db()->queryOne(
+            "SELECT id_ruta FROM Ruta WHERE id_vehiculo = ? AND fecha = ?",
+            [$id_vehiculo, $fecha]
         );
-    }
-    
-    // Create services for each sede
-    if (!empty($sedes)) {
-        foreach ($sedes as $orden => $id_sede) {
-            db()->insert(
-                "INSERT INTO Servicio (id_ruta, id_sede, fecha_programada, estado) VALUES (?, ?, ?, 'pendiente')",
-                [$id, $id_sede, $fecha]
+        
+        if ($existing) {
+            // Update existing route - delete old services first
+            $id = $existing['id_ruta'];
+            db()->execute("DELETE FROM Servicio WHERE id_ruta = ?", [$id]);
+            
+            db()->execute(
+                "UPDATE Ruta SET estado = ?, observaciones = ?, fecha_modificacion = NOW() WHERE id_ruta = ?",
+                [$data['estado'] ?? 'programada', $data['observaciones'] ?? null, $id]
+            );
+        } else {
+            // Auto-generate codigo_ruta: R-YYYYMMDD-VID-COUNTER
+            $dateStr = str_replace('-', '', $fecha);
+            $countToday = db()->queryOne(
+                "SELECT COUNT(*) as cnt FROM Ruta WHERE fecha = ?",
+                [$fecha]
+            );
+            $counter = ($countToday['cnt'] ?? 0) + 1;
+            $codigo_ruta = "R-{$dateStr}-{$id_vehiculo}-{$counter}";
+            
+            // Create new route (simplified - only essential fields)
+            $id = db()->insert(
+                "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, estado) VALUES (?, ?, ?, 'programada')",
+                [$id_vehiculo, $codigo_ruta, $fecha]
             );
         }
+        
+        // Create services for each sede - use fecha_ejecucion and estado programado
+        if (!empty($sedes)) {
+            foreach ($sedes as $orden => $id_sede) {
+                db()->insert(
+                    "INSERT INTO Servicio (id_ruta, id_sede, fecha_ejecucion, estado) VALUES (?, ?, ?, 'programado')",
+                    [$id, $id_sede, $fecha]
+                );
+            }
+        }
+        
+        db()->execute(
+            "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Ruta', ?, ?, ?)",
+            [$user['id'], $id, $existing ? 'UPDATE' : 'INSERT', json_encode($data)]
+        );
+        
+        echo json_encode([
+            'success' => true,
+            'message' => $existing ? 'Ruta actualizada' : 'Ruta creada exitosamente',
+            'id' => $id
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al crear ruta: ' . $e->getMessage()
+        ]);
     }
-    
-    db()->execute(
-        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Ruta', ?, ?, ?)",
-        [$user['id'], $id, $existing ? 'UPDATE' : 'INSERT', json_encode($data)]
-    );
-    
-    echo json_encode([
-        'success' => true,
-        'message' => $existing ? 'Ruta actualizada' : 'Ruta creada exitosamente',
-        'id' => $id
-    ]);
 }
 
 function update($id) {
