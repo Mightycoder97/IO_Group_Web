@@ -12,6 +12,8 @@
     <link href="/css/global.css" rel="stylesheet">
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Mapbox Search JS for Core API -->
+    <script src="https://api.mapbox.com/search-js/v1.5.0/core.js"></script>
 
 </head>
 
@@ -39,8 +41,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -244,6 +250,7 @@
         const id = urlParams.get('id');
         let map, marker;
         let currentData = null;
+        const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibWlnaHR5Y29kZXIiLCJhIjoiY21sMmlpZm92MGkwYTNjcHY1aXg3YzRrdiJ9.Flaa7i5dlavkb4r8P9opvQ';
         // Initialize map
         function initMap(lat = -12.0464, lng = -77.0428) {
             if (map) map.remove();
@@ -496,16 +503,15 @@
         const suggestionsBox = document.getElementById('addressSuggestions');
         const btnMyLocation = document.getElementById('btnMyLocation');
         let searchTimeout = null;
-        // Address search with Photon API (more accurate than Nominatim)
+        // Address search with Mapbox API (better quality for Peru)
         async function searchAddress(query) {
             if (query.length < 3) {
                 suggestionsBox.classList.remove('active');
                 return;
             }
             try {
-                // Photon API - prioritize Peru results
                 const response = await fetch(
-                    `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ', Peru')}&limit=6`
+                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&country=PE&language=es&limit=6&proximity=-77.0428,-12.0464`
                 );
                 const data = await response.json();
                 if (data.features && data.features.length > 0) {
@@ -520,19 +526,13 @@
         }
         function renderSuggestions(features) {
             suggestionsBox.innerHTML = features.map((f, i) => {
-                const p = f.properties;
-                const mainText = p.name || p.street || '';
-                const parts = [];
-                if (p.street && p.street !== mainText) parts.push(p.street);
-                if (p.housenumber) parts.push(p.housenumber);
-                if (p.district) parts.push(p.district);
-                if (p.city) parts.push(p.city);
-                if (p.state) parts.push(p.state);
-                const secondaryText = parts.join(', ');
+                // Mapbox format: place_name is the full address, text is the main name
+                const mainText = f.text || f.place_name.split(',')[0] || '';
+                const secondaryText = f.place_name || '';
                 return `
                     <div class="address-suggestion" data-index="${i}">
                         <div class="main-text"><i class="bi bi-geo-alt text-primary me-1"></i>${mainText}</div>
-                        ${secondaryText ? `<div class="secondary-text">${secondaryText}</div>` : ''}
+                        ${secondaryText ? `<div class="secondary-text">${secondaryText.substring(0, 60)}${secondaryText.length > 60 ? '...' : ''}</div>` : ''}
                     </div>
                 `;
             }).join('');
@@ -549,16 +549,13 @@
             selectAddress(feature);
         });
         function selectAddress(feature) {
-            const p = feature.properties;
             const coords = feature.geometry.coordinates;
-            // Build full address
-            const addressParts = [];
-            if (p.name) addressParts.push(p.name);
-            if (p.street) addressParts.push(p.street);
-            if (p.housenumber) addressParts.push(p.housenumber);
-            direccionInput.value = addressParts.join(' ') || p.name || '';
-            // Set district
-            const distrito = p.district || p.suburb || p.city || '';
+            // Mapbox: place_name is the full address, text is the main name
+            direccionInput.value = feature.text || feature.place_name.split(',')[0] || '';
+            // Extract district from context
+            const context = feature.context || [];
+            const localityContext = context.find(c => c.id.startsWith('locality.') || c.id.startsWith('place.'));
+            const distrito = localityContext?.text || '';
             document.getElementById('distrito').value = distrito;
             // Update map and coordinates
             const lat = coords[1];
@@ -625,23 +622,22 @@
                 }
             );
         });
-        // Reverse geocode using Nominatim (free reverse geocoding)
+        // Reverse geocode using Mapbox
         async function reverseGeocode(lat, lng) {
             try {
                 const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=es`
+                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_ACCESS_TOKEN}&language=es&limit=1`
                 );
                 const data = await response.json();
-                if (data && data.address) {
-                    const a = data.address;
-                    // Build address from components
-                    const addressParts = [];
-                    if (a.road) addressParts.push(a.road);
-                    if (a.house_number) addressParts.push(a.house_number);
-                    direccionInput.value = addressParts.join(' ') || data.display_name?.split(',')[0] || '';
-                    // Set district
-                    const distrito = a.suburb || a.neighbourhood || a.city_district || a.town || a.city || '';
-                    document.getElementById('distrito').value = distrito;
+                if (data.features && data.features.length > 0) {
+                    const feature = data.features[0];
+                    direccionInput.value = feature.text || feature.place_name.split(',')[0] || '';
+                    // Extract district from context
+                    const context = feature.context || [];
+                    const localityContext = context.find(c => c.id.startsWith('locality.') || c.id.startsWith('place.'));
+                    if (localityContext) {
+                        document.getElementById('distrito').value = localityContext.text;
+                    }
                 }
             } catch (err) {
                 console.error('Error in reverse geocoding:', err);

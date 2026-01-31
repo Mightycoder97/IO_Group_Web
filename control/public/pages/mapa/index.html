@@ -12,6 +12,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+    <!-- Mapbox Search JS for Core API -->
+    <script src="https://api.mapbox.com/search-js/v1.5.0/core.js"></script>
     <style>
         #mapaContainer {
             height: calc(100vh - 140px);
@@ -125,6 +127,16 @@
             border-radius: 50%;
             border: 2px solid white;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .legend-item:hover {
+            background: #e8f5e9;
+            transform: scale(1.02);
+        }
+
+        .legend-item.active {
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            color: white;
         }
 
         /* District search */
@@ -266,41 +278,57 @@
 
                         <!-- Legend -->
                         <div class="search-container mt-3">
-                            <h6><i class="bi bi-palette-fill text-success"></i> Leyenda - Frecuencia de Recojo</h6>
-                            <div class="legend-container">
-                                <div class="legend-item">
+                            <h6><i class="bi bi-palette-fill text-success"></i> Leyenda - Frecuencia de Recojo <small
+                                    class="text-muted">(clic para filtrar)</small></h6>
+                            <div class="legend-container" id="legendContainer">
+                                <div class="legend-item" data-frecuencia="diario" onclick="filterByFrequency('diario')"
+                                    style="cursor: pointer;" title="Clic para filtrar">
                                     <div class="legend-color" style="background: #D32F2F;"></div>
                                     <span>Diario</span>
                                 </div>
-                                <div class="legend-item">
+                                <div class="legend-item" data-frecuencia="semanal"
+                                    onclick="filterByFrequency('semanal')" style="cursor: pointer;"
+                                    title="Clic para filtrar">
                                     <div class="legend-color" style="background: #FF6F00;"></div>
                                     <span>Semanal</span>
                                 </div>
-                                <div class="legend-item">
+                                <div class="legend-item" data-frecuencia="quincenal"
+                                    onclick="filterByFrequency('quincenal')" style="cursor: pointer;"
+                                    title="Clic para filtrar">
                                     <div class="legend-color" style="background: #FBC02D;"></div>
                                     <span>Quincenal</span>
                                 </div>
-                                <div class="legend-item">
+                                <div class="legend-item" data-frecuencia="mensual"
+                                    onclick="filterByFrequency('mensual')" style="cursor: pointer;"
+                                    title="Clic para filtrar">
                                     <div class="legend-color" style="background: #388E3C;"></div>
                                     <span>Mensual</span>
                                 </div>
-                                <div class="legend-item">
+                                <div class="legend-item" data-frecuencia="bimestral"
+                                    onclick="filterByFrequency('bimestral')" style="cursor: pointer;"
+                                    title="Clic para filtrar">
                                     <div class="legend-color" style="background: #1976D2;"></div>
                                     <span>Bimestral</span>
                                 </div>
-                                <div class="legend-item">
+                                <div class="legend-item" data-frecuencia="trimestral"
+                                    onclick="filterByFrequency('trimestral')" style="cursor: pointer;"
+                                    title="Clic para filtrar">
                                     <div class="legend-color" style="background: #7B1FA2;"></div>
                                     <span>Trimestral</span>
                                 </div>
-                                <div class="legend-item">
+                                <div class="legend-item" data-frecuencia="eventual"
+                                    onclick="filterByFrequency('eventual')" style="cursor: pointer;"
+                                    title="Clic para filtrar">
                                     <div class="legend-color" style="background: #616161;"></div>
                                     <span>Eventual</span>
                                 </div>
-                                <div class="legend-item">
+                                <div class="legend-item" data-frecuencia="null" onclick="filterByFrequency('null')"
+                                    style="cursor: pointer;" title="Clic para filtrar">
                                     <div class="legend-color" style="background: #212121;"></div>
                                     <span>Sin contrato</span>
                                 </div>
                             </div>
+                            <div id="activeFrequencyFilter"></div>
                         </div>
 
                         <!-- Summary -->
@@ -330,6 +358,7 @@
         let debounceTimer, districtDebounceTimer;
         let allMarkers = {}; // Store markers by id_sede for filtering
         let activeDistrictFilter = null;
+        const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibWlnaHR5Y29kZXIiLCJhIjoiY21sMmlpZm92MGkwYTNjcHY1aXg3YzRrdiJ9.Flaa7i5dlavkb4r8P9opvQ';
 
         // Frequency color mapping
         const frequencyColors = {
@@ -504,7 +533,7 @@
             showNearbyResults(findNearbyClients(lat, lng, 1));
             document.getElementById('btnClearSearch').classList.remove('d-none');
         }
-        // Autocomplete search
+        // Autocomplete search with Mapbox
         document.getElementById('addressSearch').addEventListener('input', function () {
             clearTimeout(debounceTimer);
             const query = this.value.trim();
@@ -515,17 +544,20 @@
             debounceTimer = setTimeout(async () => {
                 try {
                     const response = await fetch(
-                        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Lima, Peru')}&limit=5`,
-                        { headers: { 'User-Agent': 'IOControl-Map' } }
+                        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&country=PE&language=es&limit=5&proximity=-77.0428,-12.0464`
                     );
                     const data = await response.json();
                     const dropdown = document.getElementById('autocompleteDropdown');
-                    if (data.length > 0) {
-                        dropdown.innerHTML = data.map(r => `
-                            <div class="autocomplete-item" onclick="selectAddress(${r.lat}, ${r.lon}, '${r.display_name.replace(/'/g, "\\'")}')">
-                                <i class="bi bi-geo-alt text-primary"></i> ${r.display_name.substring(0, 60)}...
-                            </div>
-                        `).join('');
+                    if (data.features && data.features.length > 0) {
+                        dropdown.innerHTML = data.features.map(f => {
+                            const [lng, lat] = f.geometry.coordinates;
+                            const name = f.place_name.replace(/'/g, "\\'");
+                            return `
+                                <div class="autocomplete-item" onclick="selectAddress(${lat}, ${lng}, '${name}')">
+                                    <i class="bi bi-geo-alt text-primary"></i> ${f.place_name.substring(0, 60)}...
+                                </div>
+                            `;
+                        }).join('');
                         dropdown.style.display = 'block';
                     } else {
                         dropdown.style.display = 'none';
@@ -553,18 +585,18 @@
                 map.fitBounds(markersGroup.getBounds().pad(0.1));
             }
         });
-        // Search button
+        // Search button with Mapbox
         document.getElementById('btnSearch').addEventListener('click', async function () {
             const query = document.getElementById('addressSearch').value.trim();
             if (!query) return;
             try {
                 const response = await fetch(
-                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Lima, Peru')}&limit=1`,
-                    { headers: { 'User-Agent': 'IOControl-Map' } }
+                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&country=PE&language=es&limit=1&proximity=-77.0428,-12.0464`
                 );
                 const data = await response.json();
-                if (data.length > 0) {
-                    searchLocation(parseFloat(data[0].lat), parseFloat(data[0].lon));
+                if (data.features && data.features.length > 0) {
+                    const [lng, lat] = data.features[0].geometry.coordinates;
+                    searchLocation(lat, lng);
                 }
             } catch (e) { console.error(e); }
         });
@@ -656,28 +688,104 @@
                 </div>
             `;
 
-            // Update filtered count
-            const filteredCountEl = document.getElementById('filteredCount');
-            filteredCountEl.innerHTML = `Mostrando: <strong>${visibleCount}</strong> de ${Object.keys(sedesData).length}`;
-            filteredCountEl.style.display = 'block';
+            updateFilteredCount(visibleCount);
+        }
+
+        // Filter by frequency
+        let activeFrequencyFilter = null;
+
+        function filterByFrequency(frecuencia) {
+            // Toggle if same frequency clicked
+            if (activeFrequencyFilter === frecuencia) {
+                clearFrequencyFilter();
+                return;
+            }
+
+            activeFrequencyFilter = frecuencia;
+
+            // Update legend visual
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.frecuencia === frecuencia) {
+                    item.classList.add('active');
+                }
+            });
+
+            applyFilters();
+
+            // Show active filter badge
+            const color = frequencyColors[frecuencia] || '#212121';
+            const label = frequencyLabels[frecuencia] || 'Sin contrato';
+            document.getElementById('activeFrequencyFilter').innerHTML = `
+                <div class="active-filter" style="background: ${color};">
+                    <i class="bi bi-clock"></i> ${label}
+                    <button onclick="clearFrequencyFilter()" title="Quitar filtro">&times;</button>
+                </div>
+            `;
+        }
+
+        function clearFrequencyFilter() {
+            activeFrequencyFilter = null;
+            document.getElementById('activeFrequencyFilter').innerHTML = '';
+            document.querySelectorAll('.legend-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            applyFilters();
         }
 
         // Clear district filter
         function clearDistrictFilter() {
             activeDistrictFilter = null;
             document.getElementById('activeDistrictFilter').innerHTML = '';
-            document.getElementById('filteredCount').style.display = 'none';
+            applyFilters();
+        }
 
-            // Show all markers
-            Object.values(allMarkers).forEach(marker => {
-                if (!markersGroup.hasLayer(marker)) {
-                    markersGroup.addLayer(marker);
+        // Apply combined filters (district + frequency)
+        function applyFilters() {
+            const districtSedeIds = activeDistrictFilter ? (window.districtsData.get(activeDistrictFilter) || []) : null;
+
+            let visibleCount = 0;
+            const visibleBounds = [];
+
+            Object.entries(allMarkers).forEach(([id, marker]) => {
+                const sedeId = parseInt(id);
+                const sede = sedesData[sedeId];
+                const sedeFrecuencia = (sede?.frecuencia || 'null').toLowerCase();
+
+                // Check district filter
+                const passesDistrictFilter = !districtSedeIds || districtSedeIds.includes(sedeId);
+
+                // Check frequency filter
+                const passesFrequencyFilter = !activeFrequencyFilter ||
+                    (activeFrequencyFilter === 'null' ? !sede?.frecuencia : sedeFrecuencia === activeFrequencyFilter);
+
+                if (passesDistrictFilter && passesFrequencyFilter) {
+                    if (!markersGroup.hasLayer(marker)) {
+                        markersGroup.addLayer(marker);
+                    }
+                    visibleCount++;
+                    visibleBounds.push(marker.getLatLng());
+                } else {
+                    markersGroup.removeLayer(marker);
                 }
             });
 
-            // Fit to all bounds
-            if (markersGroup.getLayers().length > 0) {
-                map.fitBounds(markersGroup.getBounds().pad(0.1));
+            // Zoom to filtered bounds
+            if (visibleBounds.length > 0) {
+                const bounds = L.latLngBounds(visibleBounds);
+                map.fitBounds(bounds.pad(0.1));
+            }
+
+            updateFilteredCount(visibleCount);
+        }
+
+        function updateFilteredCount(visibleCount) {
+            const filteredCountEl = document.getElementById('filteredCount');
+            if (activeDistrictFilter || activeFrequencyFilter) {
+                filteredCountEl.innerHTML = `Mostrando: <strong>${visibleCount}</strong> de ${Object.keys(sedesData).length}`;
+                filteredCountEl.style.display = 'block';
+            } else {
+                filteredCountEl.style.display = 'none';
             }
         }
 
