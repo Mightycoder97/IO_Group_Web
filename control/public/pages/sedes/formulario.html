@@ -12,7 +12,9 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+    <!-- Mapbox GL JS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
     <link href="/css/global.css" rel="stylesheet">
     <!-- Mapbox Search JS -->
     <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.5.0/web.js"></script>
@@ -399,39 +401,53 @@
         initPage('sedes');
         const id = getUrlParam('id');
         const empresaParam = getUrlParam('empresa');
-        // ========== MAP INITIALIZATION ==========
-        // Lima, Peru center coordinates
+        // ========== MAP INITIALIZATION (Mapbox GL JS) ==========
+        const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibWlnaHR5Y29kZXIiLCJhIjoiY21sMmlpZm92MGkwYTNjcHY1aXg3YzRrdiJ9.Flaa7i5dlavkb4r8P9opvQ';
+        mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+
+        // Lima, Peru center coordinates  
         const defaultLat = -12.0464;
         const defaultLng = -77.0428;
-        const map = L.map('map').setView([defaultLat, defaultLng], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [defaultLng, defaultLat],
+            zoom: 12
+        });
+
+        // Add navigation controls
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
         let marker = null;
+
         // Function to place/move marker
         function placeMarker(lat, lng) {
             if (marker) {
-                marker.setLatLng([lat, lng]);
+                marker.setLngLat([lng, lat]);
             } else {
-                marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+                marker = new mapboxgl.Marker({ draggable: true, color: '#1B5E20' })
+                    .setLngLat([lng, lat])
+                    .addTo(map);
                 // Update coordinates when marker is dragged
-                marker.on('dragend', function (e) {
-                    const pos = marker.getLatLng();
-                    updateCoordinates(pos.lat, pos.lng);
+                marker.on('dragend', function () {
+                    const lngLat = marker.getLngLat();
+                    updateCoordinates(lngLat.lat, lngLat.lng);
                 });
             }
-            map.setView([lat, lng], 16);
+            map.flyTo({ center: [lng, lat], zoom: 16 });
             updateCoordinates(lat, lng);
         }
+
         function updateCoordinates(lat, lng) {
             document.getElementById('coordenadas_gps').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
         }
+
         // Click on map to place marker
         map.on('click', function (e) {
-            placeMarker(e.latlng.lat, e.latlng.lng);
+            placeMarker(e.lngLat.lat, e.lngLat.lng);
         });
         // ========== ADDRESS SEARCH (Mapbox Geocoding) ==========
-        const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibWlnaHR5Y29kZXIiLCJhIjoiY21sMmlpZm92MGkwYTNjcHY1aXg3YzRrdiJ9.Flaa7i5dlavkb4r8P9opvQ'; // Token público de IO Group
         const direccionInput = document.getElementById('direccion');
 
         // Initialize Mapbox Geocoder after script loads

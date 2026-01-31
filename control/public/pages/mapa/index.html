@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
+    <!-- Mapbox GL JS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
     <link href="/css/global.css" rel="stylesheet">
-    <!-- Mapbox Search JS for Core API -->
-    <script src="https://api.mapbox.com/search-js/v1.5.0/core.js"></script>
     <style>
         #mapaContainer {
             height: calc(100vh - 140px);
@@ -391,16 +391,20 @@
             return frequencyLabels[frecuencia?.toLowerCase()] || frequencyLabels['null'];
         }
 
-        // Initialize map
-        map = L.map('mapaContainer', {
-            preferCanvas: true,
-            renderer: L.canvas()
-        }).setView([-12.0464, -77.0428], 11);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-        markersGroup = L.featureGroup().addTo(map);
+        // Initialize Mapbox GL JS map
+        mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+        map = new mapboxgl.Map({
+            container: 'mapaContainer',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [-77.0428, -12.0464],
+            zoom: 11
+        });
+
+        // Add navigation and style controls
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        // Store all markers for filtering
+        let allMapboxMarkers = {};
 
         // Load sedes
         async function loadSedes() {
@@ -425,21 +429,20 @@
                                     }
                                     districts.get(distrito).push(sede.id_sede);
 
-                                    // Create color-coded marker
+                                    // Get color for frequency
                                     const color = getFrequencyColor(sede.frecuencia);
-                                    const marker = L.circleMarker([lat, lng], {
-                                        radius: 8,
-                                        fillColor: color,
-                                        color: '#fff',
-                                        weight: 2,
-                                        fillOpacity: 0.9
-                                    });
+
+                                    // Create HTML marker element with color
+                                    const el = document.createElement('div');
+                                    el.className = 'mapbox-marker';
+                                    el.style.cssText = `width: 18px; height: 18px; background: ${color}; border: 2px solid white; border-radius: 50%; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3);`;
 
                                     const frecuenciaLabel = getFrequencyLabel(sede.frecuencia);
                                     const frecuenciaBadge = `<span style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${frecuenciaLabel}</span>`;
 
-                                    marker.on('click', () => {
-                                        marker.bindPopup(`
+                                    // Create popup
+                                    const popup = new mapboxgl.Popup({ offset: 15 })
+                                        .setHTML(`
                                             <div class="sede-popup">
                                                 <h6>${sede.nombre_comercial}</h6>
                                                 <p><i class="bi bi-building"></i> ${sede.empresa_razon_social || '-'}</p>
@@ -447,11 +450,16 @@
                                                 <p><i class="bi bi-pin-map"></i> ${sede.distrito || ''}, ${sede.provincia || ''}</p>
                                                 <p><i class="bi bi-clock"></i> Frecuencia: ${frecuenciaBadge}</p>
                                             </div>
-                                        `).openPopup();
-                                    });
+                                        `);
 
-                                    allMarkers[sede.id_sede] = marker;
-                                    markersGroup.addLayer(marker);
+                                    // Create marker
+                                    const marker = new mapboxgl.Marker({ element: el })
+                                        .setLngLat([lng, lat])
+                                        .setPopup(popup)
+                                        .addTo(map);
+
+                                    allMapboxMarkers[sede.id_sede] = marker;
+                                    allMarkers[sede.id_sede] = { lat, lng, marker };
                                 }
                             }
                         }
@@ -461,8 +469,14 @@
                     window.districtsData = districts;
 
                     document.getElementById('sedesCount').textContent = Object.keys(sedesData).length;
-                    if (markersGroup.getLayers().length > 0) {
-                        map.fitBounds(markersGroup.getBounds().pad(0.1));
+
+                    // Fit bounds to all markers
+                    if (Object.keys(allMapboxMarkers).length > 0) {
+                        const bounds = new mapboxgl.LngLatBounds();
+                        Object.values(sedesData).forEach(s => {
+                            bounds.extend([s.lng, s.lat]);
+                        });
+                        map.fitBounds(bounds, { padding: 50 });
                     }
                 }
             } catch (err) {
@@ -508,28 +522,58 @@
             }
         }
         function zoomToSede(lat, lng, id) {
-            map.setView([lat, lng], 16);
+            map.flyTo({ center: [lng, lat], zoom: 16 });
         }
         // Search location
         function searchLocation(lat, lng) {
-            if (searchMarker) map.removeLayer(searchMarker);
-            if (searchCircle) map.removeLayer(searchCircle);
-            searchMarker = L.circleMarker([lat, lng], {
-                radius: 12,
-                fillColor: '#2563eb',
-                color: '#fff',
-                weight: 3,
-                fillOpacity: 1,
-                className: 'search-result-marker'
-            }).addTo(map);
-            searchCircle = L.circle([lat, lng], {
-                radius: 1000,
-                color: '#2563eb',
-                fillColor: '#2563eb',
-                fillOpacity: 0.1,
-                dashArray: '5, 10'
-            }).addTo(map);
-            map.setView([lat, lng], 14);
+            // Remove existing search marker
+            if (searchMarker) {
+                searchMarker.remove();
+            }
+
+            // Create search result marker
+            const el = document.createElement('div');
+            el.style.cssText = 'width: 24px; height: 24px; background: #2563eb; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.4);';
+
+            searchMarker = new mapboxgl.Marker({ element: el })
+                .setLngLat([lng, lat])
+                .addTo(map);
+
+            // Add circle layer for 1km radius
+            const circleId = 'search-radius';
+            if (map.getLayer(circleId)) {
+                map.removeLayer(circleId);
+                map.removeSource(circleId);
+            }
+
+            // Add source and layer for circle
+            map.addSource(circleId, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [lng, lat]
+                    }
+                }
+            });
+
+            map.addLayer({
+                id: circleId,
+                type: 'circle',
+                source: circleId,
+                paint: {
+                    'circle-radius': {
+                        stops: [[0, 0], [20, 1000 * Math.pow(2, 20) / 78271.484 / Math.cos(lat * Math.PI / 180)]]
+                    },
+                    'circle-color': '#2563eb',
+                    'circle-opacity': 0.1,
+                    'circle-stroke-color': '#2563eb',
+                    'circle-stroke-width': 2
+                }
+            });
+
+            map.flyTo({ center: [lng, lat], zoom: 14 });
             showNearbyResults(findNearbyClients(lat, lng, 1));
             document.getElementById('btnClearSearch').classList.remove('d-none');
         }
