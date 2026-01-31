@@ -41,12 +41,14 @@ function getAll() {
     $limit = min(1000, max(10, intval($_GET['limit'] ?? 100)));
     $offset = ($page - 1) * $limit;
     
-    // Si es para el mapa, devolvemos solo campos esenciales
+    // Si es para el mapa, devolvemos solo campos esenciales + frecuencia del contrato activo
     if ($mapa) {
         $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.provincia,
-                s.coordenadas_gps, e.razon_social as empresa_razon_social
+                s.coordenadas_gps, e.razon_social as empresa_razon_social,
+                cs.frecuencia
                 FROM Sede s
                 INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+                LEFT JOIN ContratoServicio cs ON s.id_sede = cs.id_sede AND cs.activo = 1
                 WHERE s.coordenadas_gps IS NOT NULL AND s.coordenadas_gps != '' AND s.activo = 1
                 ORDER BY s.nombre_comercial";
         $data = db()->query($sql);

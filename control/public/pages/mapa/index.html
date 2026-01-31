@@ -100,6 +100,98 @@
         .autocomplete-item:hover {
             background: #f0f0f0;
         }
+
+        /* Legend styles */
+        .legend-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 4px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* District search */
+        .district-dropdown {
+            position: absolute;
+            width: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 0 0 8px 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .district-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .district-item:hover {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        }
+
+        .district-item .count {
+            background: #1B5E20;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .active-filter {
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .active-filter button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .active-filter button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
     </style>
 </head>
 
@@ -123,8 +215,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -135,8 +231,23 @@
                 <div class="row g-3">
                     <!-- Search Panel -->
                     <div class="col-lg-4">
+                        <!-- District Search -->
                         <div class="search-container">
-                            <h6><i class="bi bi-search"></i> Buscar Ubicación</h6>
+                            <h6><i class="bi bi-pin-map-fill text-primary"></i> Buscar por Distrito</h6>
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="districtSearch"
+                                        placeholder="Escribe un distrito..." autocomplete="off">
+                                </div>
+                                <div class="district-dropdown" id="districtDropdown"></div>
+                            </div>
+                            <div id="activeDistrictFilter"></div>
+                        </div>
+
+                        <!-- Address Search -->
+                        <div class="search-container mt-3">
+                            <h6><i class="bi bi-geo-alt"></i> Buscar Ubicación</h6>
                             <div class="position-relative">
                                 <div class="input-group mb-2">
                                     <input type="text" class="form-control" id="addressSearch"
@@ -152,9 +263,51 @@
                             </button>
                             <div id="nearbyResults" class="nearby-results mt-3"></div>
                         </div>
+
+                        <!-- Legend -->
                         <div class="search-container mt-3">
-                            <h6><i class="bi bi-geo-alt-fill text-danger"></i> Resumen</h6>
+                            <h6><i class="bi bi-palette-fill text-success"></i> Leyenda - Frecuencia de Recojo</h6>
+                            <div class="legend-container">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #D32F2F;"></div>
+                                    <span>Diario</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #FF6F00;"></div>
+                                    <span>Semanal</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #FBC02D;"></div>
+                                    <span>Quincenal</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #388E3C;"></div>
+                                    <span>Mensual</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #1976D2;"></div>
+                                    <span>Bimestral</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #7B1FA2;"></div>
+                                    <span>Trimestral</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #616161;"></div>
+                                    <span>Eventual</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #212121;"></div>
+                                    <span>Sin contrato</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="search-container mt-3">
+                            <h6><i class="bi bi-bar-chart-fill text-info"></i> Resumen</h6>
                             <p class="mb-1">Sedes en mapa: <strong id="sedesCount">0</strong></p>
+                            <p class="mb-0 text-muted" id="filteredCount" style="display: none;"></p>
                         </div>
                     </div>
                     <!-- Map -->
@@ -174,7 +327,41 @@
         initPage('mapa');
         let map, sedesData = {}, markersGroup;
         let searchMarker, searchCircle;
-        let debounceTimer;
+        let debounceTimer, districtDebounceTimer;
+        let allMarkers = {}; // Store markers by id_sede for filtering
+        let activeDistrictFilter = null;
+
+        // Frequency color mapping
+        const frequencyColors = {
+            'diario': '#D32F2F',
+            'semanal': '#FF6F00',
+            'quincenal': '#FBC02D',
+            'mensual': '#388E3C',
+            'bimestral': '#1976D2',
+            'trimestral': '#7B1FA2',
+            'eventual': '#616161',
+            'null': '#212121' // No contract
+        };
+
+        const frequencyLabels = {
+            'diario': 'Diario',
+            'semanal': 'Semanal',
+            'quincenal': 'Quincenal',
+            'mensual': 'Mensual',
+            'bimestral': 'Bimestral',
+            'trimestral': 'Trimestral',
+            'eventual': 'Eventual',
+            'null': 'Sin contrato'
+        };
+
+        function getFrequencyColor(frecuencia) {
+            return frequencyColors[frecuencia?.toLowerCase()] || frequencyColors['null'];
+        }
+
+        function getFrequencyLabel(frecuencia) {
+            return frequencyLabels[frecuencia?.toLowerCase()] || frequencyLabels['null'];
+        }
+
         // Initialize map
         map = L.map('mapaContainer', {
             preferCanvas: true,
@@ -185,11 +372,14 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
         markersGroup = L.featureGroup().addTo(map);
+
         // Load sedes
         async function loadSedes() {
             try {
                 const result = await api.get('/sedes?mapa=1');
                 if (result.success && result.data) {
+                    const districts = new Map(); // Track districts and their sede counts
+
                     result.data.forEach(sede => {
                         if (sede.coordenadas_gps) {
                             const parts = sede.coordenadas_gps.split(',');
@@ -198,13 +388,27 @@
                                 const lng = parseFloat(parts[1].trim());
                                 if (!isNaN(lat) && !isNaN(lng)) {
                                     sedesData[sede.id_sede] = { ...sede, lat, lng };
+
+                                    // Track districts
+                                    const distrito = (sede.distrito || 'Sin distrito').trim();
+                                    if (!districts.has(distrito)) {
+                                        districts.set(distrito, []);
+                                    }
+                                    districts.get(distrito).push(sede.id_sede);
+
+                                    // Create color-coded marker
+                                    const color = getFrequencyColor(sede.frecuencia);
                                     const marker = L.circleMarker([lat, lng], {
                                         radius: 8,
-                                        fillColor: '#D32F2F',
+                                        fillColor: color,
                                         color: '#fff',
                                         weight: 2,
                                         fillOpacity: 0.9
                                     });
+
+                                    const frecuenciaLabel = getFrequencyLabel(sede.frecuencia);
+                                    const frecuenciaBadge = `<span style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${frecuenciaLabel}</span>`;
+
                                     marker.on('click', () => {
                                         marker.bindPopup(`
                                             <div class="sede-popup">
@@ -212,14 +416,21 @@
                                                 <p><i class="bi bi-building"></i> ${sede.empresa_razon_social || '-'}</p>
                                                 <p><i class="bi bi-geo-alt"></i> ${sede.direccion || '-'}</p>
                                                 <p><i class="bi bi-pin-map"></i> ${sede.distrito || ''}, ${sede.provincia || ''}</p>
+                                                <p><i class="bi bi-clock"></i> Frecuencia: ${frecuenciaBadge}</p>
                                             </div>
                                         `).openPopup();
                                     });
+
+                                    allMarkers[sede.id_sede] = marker;
                                     markersGroup.addLayer(marker);
                                 }
                             }
                         }
                     });
+
+                    // Store districts for search
+                    window.districtsData = districts;
+
                     document.getElementById('sedesCount').textContent = Object.keys(sedesData).length;
                     if (markersGroup.getLayers().length > 0) {
                         map.fitBounds(markersGroup.getBounds().pad(0.1));
@@ -357,6 +568,119 @@
                 }
             } catch (e) { console.error(e); }
         });
+
+        // ========== DISTRICT SEARCH ==========
+        document.getElementById('districtSearch').addEventListener('input', function () {
+            clearTimeout(districtDebounceTimer);
+            const query = this.value.trim().toLowerCase();
+            const dropdown = document.getElementById('districtDropdown');
+
+            if (query.length < 1) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            districtDebounceTimer = setTimeout(() => {
+                const districts = window.districtsData;
+                if (!districts) return;
+
+                // Filter matching districts
+                const matches = [];
+                districts.forEach((sedeIds, districtName) => {
+                    if (districtName.toLowerCase().includes(query)) {
+                        matches.push({ name: districtName, count: sedeIds.length });
+                    }
+                });
+
+                // Sort by count descending
+                matches.sort((a, b) => b.count - a.count);
+
+                if (matches.length > 0) {
+                    dropdown.innerHTML = matches.slice(0, 10).map(d => `
+                        <div class="district-item" onclick="filterByDistrict('${d.name.replace(/'/g, "\\'")}')">
+                            <span><i class="bi bi-pin-map text-primary"></i> ${d.name}</span>
+                            <span class="count">${d.count}</span>
+                        </div>
+                    `).join('');
+                    dropdown.style.display = 'block';
+                } else {
+                    dropdown.innerHTML = '<div class="district-item text-muted"><i class="bi bi-info-circle"></i> No se encontraron distritos</div>';
+                    dropdown.style.display = 'block';
+                }
+            }, 150);
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#districtSearch') && !e.target.closest('#districtDropdown')) {
+                document.getElementById('districtDropdown').style.display = 'none';
+            }
+        });
+
+        // Filter by district
+        function filterByDistrict(districtName) {
+            document.getElementById('districtSearch').value = '';
+            document.getElementById('districtDropdown').style.display = 'none';
+
+            activeDistrictFilter = districtName;
+            const sedeIds = window.districtsData.get(districtName) || [];
+
+            // Show/hide markers
+            let visibleCount = 0;
+            const visibleBounds = [];
+
+            Object.entries(allMarkers).forEach(([id, marker]) => {
+                const sedeId = parseInt(id);
+                if (sedeIds.includes(sedeId)) {
+                    if (!markersGroup.hasLayer(marker)) {
+                        markersGroup.addLayer(marker);
+                    }
+                    visibleCount++;
+                    visibleBounds.push(marker.getLatLng());
+                } else {
+                    markersGroup.removeLayer(marker);
+                }
+            });
+
+            // Zoom to filtered bounds
+            if (visibleBounds.length > 0) {
+                const bounds = L.latLngBounds(visibleBounds);
+                map.fitBounds(bounds.pad(0.1));
+            }
+
+            // Show active filter badge
+            document.getElementById('activeDistrictFilter').innerHTML = `
+                <div class="active-filter">
+                    <i class="bi bi-pin-map-fill"></i> ${districtName}
+                    <button onclick="clearDistrictFilter()" title="Quitar filtro">&times;</button>
+                </div>
+            `;
+
+            // Update filtered count
+            const filteredCountEl = document.getElementById('filteredCount');
+            filteredCountEl.innerHTML = `Mostrando: <strong>${visibleCount}</strong> de ${Object.keys(sedesData).length}`;
+            filteredCountEl.style.display = 'block';
+        }
+
+        // Clear district filter
+        function clearDistrictFilter() {
+            activeDistrictFilter = null;
+            document.getElementById('activeDistrictFilter').innerHTML = '';
+            document.getElementById('filteredCount').style.display = 'none';
+
+            // Show all markers
+            Object.values(allMarkers).forEach(marker => {
+                if (!markersGroup.hasLayer(marker)) {
+                    markersGroup.addLayer(marker);
+                }
+            });
+
+            // Fit to all bounds
+            if (markersGroup.getLayers().length > 0) {
+                map.fitBounds(markersGroup.getBounds().pad(0.1));
+            }
+        }
+
         // Load on start
         loadSedes();
     </script>
