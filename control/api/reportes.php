@@ -34,6 +34,10 @@ switch ($action) {
 
 function getDashboard() {
     try {
+        // Cache current date values to avoid repeated function calls in SQL
+        $currentYear = date('Y');
+        $currentMonth = date('m');
+        
         // Sedes activas
         $sedesActivasResult = db()->queryOne("SELECT COUNT(*) as count FROM Sede WHERE activo = 1");
         $sedesActivas = $sedesActivasResult ? $sedesActivasResult['count'] : 0;

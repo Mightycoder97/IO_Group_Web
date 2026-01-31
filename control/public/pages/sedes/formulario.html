@@ -73,6 +73,109 @@
         .suggestion-item:last-child {
             border-bottom: none;
         }
+
+        /* Empresa Search Styles */
+        .empresa-search-container {
+            position: relative;
+        }
+
+        .empresa-search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 280px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .empresa-search-results.show {
+            display: block;
+        }
+
+        .empresa-result-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .empresa-result-item:hover {
+            background: #f8f9fa;
+        }
+
+        .empresa-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .empresa-result-item .empresa-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .empresa-result-item .empresa-ruc {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .empresa-result-item .empresa-type {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: capitalize;
+        }
+
+        .selected-empresa-card {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border: 1px solid #4caf50;
+            border-radius: 8px;
+            padding: 12px 15px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .selected-empresa-card.show {
+            display: flex;
+        }
+
+        .selected-empresa-card .empresa-info {
+            flex: 1;
+        }
+
+        .selected-empresa-card .empresa-info strong {
+            display: block;
+            color: #2e7d32;
+        }
+
+        .selected-empresa-card .empresa-info small {
+            color: #555;
+        }
+
+        .selected-empresa-card .btn-clear {
+            background: none;
+            border: none;
+            color: #d32f2f;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: transform 0.2s;
+        }
+
+        .selected-empresa-card .btn-clear:hover {
+            transform: scale(1.1);
+        }
+
+        .no-results-text {
+            padding: 15px;
+            text-align: center;
+            color: #888;
+        }
     </style>
 </head>
 
@@ -97,8 +200,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -131,10 +238,32 @@
                             <!-- SECTION: Existing Empresa Select (hidden by default) -->
                             <div class="row g-3 mb-3" id="existingEmpresaSection" style="display: none;">
                                 <div class="col-12">
-                                    <label class="form-label">Seleccionar Empresa *</label>
-                                    <select class="form-select" id="id_empresa">
-                                        <option value="">Seleccione empresa existente...</option>
-                                    </select>
+                                    <label class="form-label">Buscar Empresa *</label>
+                                    <!-- Hidden input for form submission -->
+                                    <input type="hidden" id="id_empresa" value="">
+
+                                    <!-- Search input -->
+                                    <div class="empresa-search-container">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                            <input type="text" class="form-control" id="empresaSearchInput"
+                                                placeholder="Escribe para buscar por razón social o RUC..."
+                                                autocomplete="off">
+                                        </div>
+                                        <div class="empresa-search-results" id="empresaSearchResults"></div>
+                                    </div>
+
+                                    <!-- Selected empresa card -->
+                                    <div class="selected-empresa-card mt-2" id="selectedEmpresaCard">
+                                        <div class="empresa-info">
+                                            <strong id="selectedEmpresaName">-</strong>
+                                            <small id="selectedEmpresaRuc">-</small>
+                                        </div>
+                                        <button type="button" class="btn-clear" onclick="clearSelectedEmpresa()"
+                                            title="Quitar selección">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -392,19 +521,28 @@
                 suggestionsDiv.classList.remove('show');
             }
         });
-        // ========== LOAD EMPRESAS ==========
+        // ========== EMPRESA SEARCH (Real-time) ==========
+        let allEmpresas = [];
+        let empresaSearchTimeout = null;
+        const empresaSearchInput = document.getElementById('empresaSearchInput');
+        const empresaSearchResults = document.getElementById('empresaSearchResults');
+        const selectedEmpresaCard = document.getElementById('selectedEmpresaCard');
+
+        // Load all empresas initially for local filtering
         async function loadEmpresas() {
             try {
                 const result = await api.get('/empresas');
                 if (result.success) {
-                    const select = document.getElementById('id_empresa');
-                    select.innerHTML = '<option value="">Seleccione empresa existente...</option>' +
-                        result.data.map(e => `<option value="${e.id_empresa}">${e.razon_social} (${e.ruc})</option>`).join('');
+                    allEmpresas = result.data;
+                    // If coming from empresa parameter, auto-select it
                     if (empresaParam) {
-                        select.value = empresaParam;
-                        // If coming from empresa, switch to existing mode
-                        document.getElementById('modeExisting').checked = true;
-                        toggleClientMode();
+                        const empresa = allEmpresas.find(e => e.id_empresa == empresaParam);
+                        if (empresa) {
+                            selectEmpresa(empresa);
+                            // Switch to existing mode
+                            document.getElementById('modeExisting').checked = true;
+                            toggleClientMode();
+                        }
                     }
                 }
             } catch (err) {
@@ -412,6 +550,82 @@
             }
         }
         loadEmpresas();
+
+        // Real-time search with debounce
+        empresaSearchInput.addEventListener('input', function () {
+            clearTimeout(empresaSearchTimeout);
+            const query = this.value.trim().toLowerCase();
+
+            if (query.length < 2) {
+                empresaSearchResults.classList.remove('show');
+                return;
+            }
+
+            empresaSearchTimeout = setTimeout(() => {
+                filterEmpresas(query);
+            }, 200);
+        });
+
+        // Focus shows results if query exists
+        empresaSearchInput.addEventListener('focus', function () {
+            const query = this.value.trim().toLowerCase();
+            if (query.length >= 2) {
+                filterEmpresas(query);
+            }
+        });
+
+        function filterEmpresas(query) {
+            const filtered = allEmpresas.filter(e => {
+                const razonSocial = (e.razon_social || '').toLowerCase();
+                const ruc = (e.ruc || '').toLowerCase();
+                return razonSocial.includes(query) || ruc.includes(query);
+            }).slice(0, 10); // Limit to 10 results
+
+            if (filtered.length === 0) {
+                empresaSearchResults.innerHTML = '<div class="no-results-text"><i class="bi bi-search"></i> No se encontraron empresas</div>';
+            } else {
+                empresaSearchResults.innerHTML = filtered.map(e => `
+                    <div class="empresa-result-item" onclick="selectEmpresa(${JSON.stringify(e).replace(/"/g, '&quot;')})">
+                        <div class="empresa-name"><i class="bi bi-building"></i> ${e.razon_social}</div>
+                        <div class="empresa-ruc">RUC: ${e.ruc}</div>
+                        <div class="empresa-type">${(e.tipo_empresa || '').replace('_', ' ')}</div>
+                    </div>
+                `).join('');
+            }
+            empresaSearchResults.classList.add('show');
+        }
+
+        function selectEmpresa(empresa) {
+            // Update hidden input
+            document.getElementById('id_empresa').value = empresa.id_empresa;
+
+            // Update card display
+            document.getElementById('selectedEmpresaName').textContent = empresa.razon_social;
+            document.getElementById('selectedEmpresaRuc').textContent = `RUC: ${empresa.ruc}`;
+
+            // Show card, hide search input
+            selectedEmpresaCard.classList.add('show');
+            empresaSearchInput.closest('.empresa-search-container').style.display = 'none';
+            empresaSearchResults.classList.remove('show');
+        }
+
+        function clearSelectedEmpresa() {
+            // Clear hidden input
+            document.getElementById('id_empresa').value = '';
+
+            // Hide card, show search input
+            selectedEmpresaCard.classList.remove('show');
+            empresaSearchInput.closest('.empresa-search-container').style.display = 'block';
+            empresaSearchInput.value = '';
+            empresaSearchInput.focus();
+        }
+
+        // Close search results when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.empresa-search-container')) {
+                empresaSearchResults.classList.remove('show');
+            }
+        });
 
         // ========== MODE TOGGLE ==========
         function toggleClientMode() {
@@ -437,9 +651,19 @@
             try {
                 const result = await api.get(`/sedes/${id}`);
                 if (result.success) {
-                    setTimeout(() => {
-                        document.getElementById('id_empresa').value = result.data.id_empresa || '';
-                    }, 500);
+                    // Wait for empresas to load, then select the empresa
+                    const checkEmpresas = setInterval(() => {
+                        if (allEmpresas.length > 0) {
+                            clearInterval(checkEmpresas);
+                            const empresa = allEmpresas.find(e => e.id_empresa == result.data.id_empresa);
+                            if (empresa) {
+                                selectEmpresa(empresa);
+                            }
+                        }
+                    }, 100);
+                    // Timeout after 5 seconds
+                    setTimeout(() => clearInterval(checkEmpresas), 5000);
+
                     document.getElementById('nombre_comercial').value = result.data.nombre_comercial || '';
                     document.getElementById('direccion').value = result.data.direccion || '';
                     document.getElementById('distrito').value = result.data.distrito || '';

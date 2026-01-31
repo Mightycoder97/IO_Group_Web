@@ -1,6 +1,28 @@
 /**
  * IO Group - Main Application JS
+ * Optimized with memoization and global utilities
  */
+
+// Global debounce utility - reusable across pages
+function debounce(fn, ms = 300) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), ms);
+    };
+}
+
+// Global throttle utility - for scroll/resize events
+function throttle(fn, ms = 100) {
+    let lastCall = 0;
+    return function (...args) {
+        const now = Date.now();
+        if (now - lastCall >= ms) {
+            lastCall = now;
+            fn.apply(this, args);
+        }
+    };
+}
 
 // Active nav item
 document.addEventListener('DOMContentLoaded', function () {
@@ -14,9 +36,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Sidebar template with permission filtering
+// Sidebar template with permission filtering and memoization
+let _sidebarCache = { html: null, userId: null };
+
 function getSidebarHTML() {
     const user = getUser();
+    const userId = user?.id_usuario || null;
+
+    // Return cached version if user hasn't changed
+    if (_sidebarCache.html && _sidebarCache.userId === userId) {
+        return _sidebarCache.html;
+    }
+
     const isAdmin = user?.rol === 'admin';
 
     // Base path for pages
@@ -41,7 +72,7 @@ function getSidebarHTML() {
         return `<div class="nav-section"><div class="nav-section-title">${title}</div></div>${visibleItems.join('')}`;
     };
 
-    return `
+    const html = `
         <div class="sidebar-header">
             <i class="bi bi-recycle" style="font-size: 2rem; color: #81C784;"></i>
             <h2 style="color: white; font-size: 1.1rem; margin: 0.5rem 0 0 0;">IO Control</h2>
@@ -88,6 +119,10 @@ function getSidebarHTML() {
             ` : ''}
         </nav>
     `;
+
+    // Cache the result
+    _sidebarCache = { html: html, userId };
+    return html;
 }
 
 // Initialize page

@@ -1,6 +1,6 @@
 /**
  * IO Group - API Client
- * Updated for PHP backend
+ * Optimized with caching, abort handling, and request deduplication
  */
 
 // Detect base path for API
@@ -13,6 +13,11 @@ const getApiBase = () => {
 };
 
 const API_BASE = getApiBase();
+
+// Simple cache for GET requests
+const _apiCache = new Map();
+const _pendingRequests = new Map();
+const CACHE_TTL = 30000; // 30 seconds
 
 const api = {
     getToken() {
@@ -32,7 +37,6 @@ const api = {
      * Converts /entity?action=stats to /entity.php?action=stats
      */
     buildUrl(endpoint) {
-        // Parse the endpoint
         let [path, queryString] = endpoint.split('?');
         const parts = path.split('/').filter(p => p);
 
@@ -40,18 +44,12 @@ const api = {
 
         const entity = parts[0];
         const id = parts[1];
-
-        // Build base URL with .php extension
         let url = `${API_BASE}/${entity}.php`;
-
-        // Build query parameters
         const params = new URLSearchParams(queryString || '');
 
-        // Add ID if present
         if (id && !isNaN(id)) {
             params.set('id', id);
         } else if (id) {
-            // It's an action like /auth/login
             params.set('action', id);
         }
 
@@ -59,30 +57,88 @@ const api = {
         return queryStr ? `${url}?${queryStr}` : url;
     },
 
-    async request(method, endpoint, data = null) {
+    /**
+     * Clear cache for a specific endpoint or all cache
+     */
+    clearCache(endpoint = null) {
+        if (endpoint) {
+            const url = this.buildUrl(endpoint);
+            _apiCache.delete(url);
+        } else {
+            _apiCache.clear();
+        }
+    },
+
+    async request(method, endpoint, data = null, options = {}) {
         const url = this.buildUrl(endpoint);
-        const options = {
+        const cacheKey = `${method}:${url}`;
+        const { cache = method === 'GET', signal } = options;
+
+        // Check cache for GET requests
+        if (cache && method === 'GET') {
+            const cached = _apiCache.get(cacheKey);
+            if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+                return cached.data;
+            }
+        }
+
+        // Deduplicate concurrent identical GET requests
+        if (method === 'GET' && _pendingRequests.has(cacheKey)) {
+            return _pendingRequests.get(cacheKey);
+        }
+
+        const fetchOptions = {
             method,
             headers: this.getHeaders()
         };
 
+        if (signal) fetchOptions.signal = signal;
         if (data && (method === 'POST' || method === 'PUT')) {
-            options.body = JSON.stringify(data);
+            fetchOptions.body = JSON.stringify(data);
         }
 
-        const response = await fetch(url, options);
+        const requestPromise = (async () => {
+            try {
+                const response = await fetch(url, fetchOptions);
 
-        if (response.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = getBasePath() + '/pages/login.html';
-            return;
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = getBasePath() + '/pages/login.html';
+                    return { success: false, message: 'Sesión expirada' };
+                }
+
+                const result = await response.json();
+
+                // Cache successful GET responses
+                if (cache && method === 'GET' && result.success !== false) {
+                    _apiCache.set(cacheKey, { data: result, timestamp: Date.now() });
+                }
+
+                // Invalidate related cache on mutations
+                if (method !== 'GET') {
+                    const entity = endpoint.split('/')[1]?.split('?')[0];
+                    if (entity) {
+                        for (const key of _apiCache.keys()) {
+                            if (key.includes(entity)) _apiCache.delete(key);
+                        }
+                    }
+                }
+
+                return result;
+            } finally {
+                _pendingRequests.delete(cacheKey);
+            }
+        })();
+
+        if (method === 'GET') {
+            _pendingRequests.set(cacheKey, requestPromise);
         }
 
-        return response.json();
+        return requestPromise;
     },
 
-    get(endpoint) { return this.request('GET', endpoint); },
+    get(endpoint, options) { return this.request('GET', endpoint, null, options); },
     post(endpoint, data) { return this.request('POST', endpoint, data); },
     put(endpoint, data) { return this.request('PUT', endpoint, data); },
     delete(endpoint) { return this.request('DELETE', endpoint); }

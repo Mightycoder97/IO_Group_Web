@@ -29,6 +29,7 @@ switch ($method) {
 
 /**
  * Get pending payments grouped by sede
+ * Optimized: replaced subqueries with JOINs for better performance
  */
 function getPendientes() {
     canView();
@@ -37,6 +38,7 @@ function getPendientes() {
     $estado = isset($_GET['estado']) && $_GET['estado'] !== '' ? $_GET['estado'] : null;
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100)));
     
+    // Optimized query using LEFT JOIN instead of correlated subqueries
     $sql = "SELECT s.id_servicio, s.id_sede, s.mes_servicio,
             s.fecha_ejecucion as fecha_servicio,
             COALESCE(s.estado_pago, 'pendiente') as estado_pago,
@@ -44,11 +46,18 @@ function getPendientes() {
             se.nombre_comercial as sede_nombre, 
             se.contacto_telefono, se.tarifa_servicio, se.distrito, se.direccion,
             e.razon_social as empresa_razon_social,
-            (SELECT COUNT(*) FROM GestionCobranza gc WHERE gc.id_servicio = s.id_servicio) as num_gestiones,
-            (SELECT fecha_gestion FROM GestionCobranza gc WHERE gc.id_servicio = s.id_servicio ORDER BY fecha_gestion DESC LIMIT 1) as ultima_gestion
+            COALESCE(gc_stats.num_gestiones, 0) as num_gestiones,
+            gc_stats.ultima_gestion
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+            LEFT JOIN (
+                SELECT id_servicio, 
+                       COUNT(*) as num_gestiones,
+                       MAX(fecha_gestion) as ultima_gestion
+                FROM GestionCobranza 
+                GROUP BY id_servicio
+            ) gc_stats ON gc_stats.id_servicio = s.id_servicio
             WHERE se.tarifa_servicio > 0";
     
     $params = [];
