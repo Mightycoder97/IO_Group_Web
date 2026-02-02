@@ -1,13 +1,12 @@
 <?php
 /**
- * Geocode all sedes using Mapbox API
- * Run this script from command line: php geocode_sedes_mapbox.php
+ * Geocode all sedes using Google Maps API
+ * Run this script from command line: php geocode_sedes_google.php
  */
 
 require_once __DIR__ . '/config/database.php';
-
-// Mapbox Access Token
-$MAPBOX_TOKEN = 'pk.eyJ1IjoibWlnaHR5Y29kZXIiLCJhIjoiY21sMmlpZm92MGkwYTNjcHY1aXg3YzRrdiJ9.Flaa7i5dlavkb4r8P9opvQ';
+$mapsConfig = require_once __DIR__ . '/config/maps.php';
+$GOOGLE_API_KEY = $mapsConfig['api_key'];
 
 // Get all active sedes with addresses
 $sedes = db()->query("
@@ -41,10 +40,11 @@ foreach ($sedes as $sede) {
     
     echo "[$id] Geocoding: $fullAddress ... ";
     
-    // Call Mapbox Geocoding API
-    $url = "https://api.mapbox.com/geocoding/v5/mapbox.places/" . urlencode($fullAddress) . ".json";
-    $url .= "?access_token=" . $MAPBOX_TOKEN;
-    $url .= "&country=PE&language=es&limit=1";
+    // Call Google Maps Geocoding API
+    $url = "https://maps.googleapis.com/maps/api/geocode/json";
+    $url .= "?address=" . urlencode($fullAddress);
+    $url .= "&key=" . $GOOGLE_API_KEY;
+    $url .= "&region=pe&language=es";
     
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -63,16 +63,22 @@ foreach ($sedes as $sede) {
     
     $data = json_decode($response, true);
     
-    if (empty($data['features'])) {
+    if ($data['status'] !== 'OK') {
+        echo "ERROR ({$data['status']})\n";
+        $errors[] = ['id' => $id, 'error' => $data['status'], 'address' => $fullAddress];
+        continue;
+    }
+    
+    if (empty($data['results'])) {
         echo "NOT FOUND\n";
         $errors[] = ['id' => $id, 'error' => 'No results', 'address' => $fullAddress];
         continue;
     }
     
-    $feature = $data['features'][0];
-    $coords = $feature['geometry']['coordinates']; // [lng, lat]
-    $lat = $coords[1];
-    $lng = $coords[0];
+    $result = $data['results'][0];
+    $location = $result['geometry']['location'];
+    $lat = $location['lat'];
+    $lng = $location['lng'];
     $coordsGps = "$lat, $lng";
     
     echo "OK -> $coordsGps\n";
@@ -85,13 +91,13 @@ foreach ($sedes as $sede) {
         'new_coords' => $coordsGps,
         'lat' => $lat,
         'lng' => $lng,
-        'place_name' => $feature['place_name'] ?? ''
+        'place_name' => $result['formatted_address']
     ];
     
     $updates[] = "UPDATE Sede SET coordenadas_gps = '$coordsGps', fecha_modificacion = NOW() WHERE id_sede = $id;";
     
-    // Rate limiting - Mapbox allows many requests but let's be nice
-    usleep(100000); // 100ms delay between requests
+    // Rate limiting - Google standard is 50 requests/sec, but let's be safe
+    usleep(100000); // 100ms delay
 }
 
 echo "\n=== RESULTS ===\n";
@@ -100,7 +106,7 @@ echo "Errors: " . count($errors) . "\n\n";
 
 // Output SQL file
 $sqlFile = __DIR__ . '/geocode_updates.sql';
-$sqlContent = "-- Mapbox Geocoding Updates - Generated " . date('Y-m-d H:i:s') . "\n";
+$sqlContent = "-- Google Maps Geocoding Updates - Generated " . date('Y-m-d H:i:s') . "\n";
 $sqlContent .= "-- Total updates: " . count($updates) . "\n\n";
 $sqlContent .= "START TRANSACTION;\n\n";
 $sqlContent .= implode("\n", $updates);

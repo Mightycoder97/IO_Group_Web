@@ -1,19 +1,36 @@
 #!/usr/bin/env node
 /**
- * Geocode all sedes using Mapbox API
- * Run: node geocode_sedes_mapbox.js
+ * Geocode all sedes using Google Maps API
+ * Run: node geocode_sedes_google.js
  */
 
 const https = require('https');
 const fs = require('fs');
+const path = require('path');
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibWlnaHR5Y29kZXIiLCJhIjoiY21sMmlpZm92MGkwYTNjcHY1aXg3YzRrdiJ9.Flaa7i5dlavkb4r8P9opvQ';
+// Read API Key from config.js
+let GOOGLE_API_KEY = '';
+try {
+    const configPath = path.resolve(__dirname, '../public/js/config.js');
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const match = configContent.match(/GOOGLE_MAPS_API_KEY:\s*'([^']+)'/);
+    if (match && match[1]) {
+        GOOGLE_API_KEY = match[1];
+    } else {
+        throw new Error('Could not find GOOGLE_MAPS_API_KEY in config.js');
+    }
+} catch (e) {
+    console.error('Error reading config.js:', e.message);
+    process.exit(1);
+}
+
 const API_BASE = 'https://iogroup.pe/control/api';
 
 // Simple fetch wrapper
 function fetch(url) {
     return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
+        const client = url.startsWith('https') ? https : require('http');
+        client.get(url, (res) => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
@@ -29,15 +46,15 @@ function fetch(url) {
 
 // Geocode a single address
 async function geocodeAddress(address) {
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${MAPBOX_TOKEN}&country=PE&language=es&limit=1`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_API_KEY}&region=pe&language=es`;
     const data = await fetch(url);
 
-    if (data.features && data.features.length > 0) {
-        const coords = data.features[0].geometry.coordinates;
+    if (data.status === 'OK' && data.results && data.results.length > 0) {
+        const location = data.results[0].geometry.location;
         return {
-            lat: coords[1],
-            lng: coords[0],
-            place_name: data.features[0].place_name
+            lat: location.lat,
+            lng: location.lng,
+            formatted_address: data.results[0].formatted_address
         };
     }
     return null;
@@ -117,7 +134,7 @@ async function main() {
     console.log(`Errors: ${errors.length}`);
 
     // Generate SQL
-    const sqlContent = `-- Mapbox Geocoding Updates - Generated ${new Date().toISOString()}
+    const sqlContent = `-- Google Maps Geocoding Updates - Generated ${new Date().toISOString()}
 -- Total updates: ${updates.length}
 
 START TRANSACTION;
