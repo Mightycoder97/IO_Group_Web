@@ -297,6 +297,11 @@
 
             document.getElementById('latitud').value = lat.toFixed(6);
             document.getElementById('longitud').value = lng.toFixed(6);
+
+            // Initialize autocomplete if available
+            if (typeof initAutocomplete === 'function') {
+                initAutocomplete();
+            }
         }
         // Load data if editing
         async function loadData() {
@@ -531,41 +536,44 @@
         let searchTimeout = null;
 
         // Initialize Google Places Autocomplete on direccion field
-        const autocomplete = new google.maps.places.Autocomplete(direccionInput, {
-            componentRestrictions: { country: 'PE' },
-            fields: ['address_components', 'geometry', 'formatted_address', 'name'],
-            types: ['address']
-        });
+        let autocomplete;
+        function initAutocomplete() {
+            autocomplete = new google.maps.places.Autocomplete(direccionInput, {
+                componentRestrictions: { country: 'PE' },
+                fields: ['address_components', 'geometry', 'formatted_address', 'name'],
+                types: ['address']
+            });
 
-        autocomplete.addListener('place_changed', function () {
-            const place = autocomplete.getPlace();
-            if (!place.geometry || !place.geometry.location) return;
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) return;
 
-            const lat = place.geometry.location.lat();
-            const lng = place.geometry.location.lng();
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
 
-            // Extract district from address components
-            let distrito = '';
-            if (place.address_components) {
-                for (const component of place.address_components) {
-                    if (component.types.includes('locality')) {
-                        distrito = component.long_name;
-                        break;
-                    } else if (component.types.includes('sublocality_level_1') && !distrito) {
-                        distrito = component.long_name;
+                // Extract district from address components
+                let distrito = '';
+                if (place.address_components) {
+                    for (const component of place.address_components) {
+                        if (component.types.includes('locality')) {
+                            distrito = component.long_name;
+                            break;
+                        } else if (component.types.includes('sublocality_level_1') && !distrito) {
+                            distrito = component.long_name;
+                        }
                     }
                 }
-            }
 
-            document.getElementById('distrito').value = distrito;
+                document.getElementById('distrito').value = distrito;
 
-            // Update map and coordinates
-            marker.setPosition({ lat, lng });
-            map.panTo({ lat, lng });
-            map.setZoom(17);
-            document.getElementById('latitud').value = lat.toFixed(6);
-            document.getElementById('longitud').value = lng.toFixed(6);
-        });
+                // Update map and coordinates
+                marker.setPosition({ lat, lng });
+                map.panTo({ lat, lng });
+                map.setZoom(17);
+                document.getElementById('latitud').value = lat.toFixed(6);
+                document.getElementById('longitud').value = lng.toFixed(6);
+            });
+        }
         // ==================== GEOLOCATION (Use my location) ====================
         btnMyLocation.addEventListener('click', function () {
             if (!navigator.geolocation) {

@@ -583,21 +583,24 @@
             document.getElementById('btnClearSearch').classList.remove('d-none');
         }
         // Autocomplete search with Google Places
-        const addressInput = document.getElementById('addressSearch');
-        const autocomplete = new google.maps.places.Autocomplete(addressInput, {
-            componentRestrictions: { country: 'PE' },
-            fields: ['geometry', 'formatted_address', 'name'],
-            types: ['geocode', 'establishment']
-        });
+        let autocomplete;
+        function initSearch() {
+            const addressInput = document.getElementById('addressSearch');
+            autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                componentRestrictions: { country: 'PE' },
+                fields: ['geometry', 'formatted_address', 'name'],
+                types: ['geocode', 'establishment']
+            });
 
-        autocomplete.addListener('place_changed', function () {
-            const place = autocomplete.getPlace();
-            if (place.geometry && place.geometry.location) {
-                const lat = place.geometry.location.lat();
-                const lng = place.geometry.location.lng();
-                searchLocation(lat, lng);
-            }
-        });
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
+                if (place.geometry && place.geometry.location) {
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    searchLocation(lat, lng);
+                }
+            });
+        }
 
         function selectAddress(lat, lng, name) {
             document.getElementById('addressSearch').value = name.substring(0, 50);
@@ -758,7 +761,6 @@
         }
 
         // Apply combined filters (district + frequency)
-        // Apply combined filters (district + frequency)
         function applyFilters() {
             const districtSedeIds = activeDistrictFilter ? (window.districtsData.get(activeDistrictFilter) || []) : null;
 
@@ -808,6 +810,7 @@
         // Load on start
         loadGoogleMapsAPI().then(() => {
             initMap();
+            initSearch();
             loadSedes();
         }).catch(err => console.error('Error loading Google Maps:', err));
     </script>
