@@ -12,12 +12,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Mapbox GL JS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
     <link href="/css/global.css" rel="stylesheet">
-    <!-- Mapbox Search JS -->
-    <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.5.0/web.js"></script>
     <style>
         #map {
             height: 350px;
@@ -45,26 +40,28 @@
             position: relative;
         }
 
-        /* Mapbox Geocoder Styles */
-        .mapbox-geocoder-container {
-            width: 100%;
+        /* Google Places Autocomplete Styles */
+        .pac-container {
+            z-index: 10000;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: none;
+            margin-top: 4px;
         }
 
-        .mapbox-geocoder-container mapbox-geocoder {
-            width: 100%;
+        .pac-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            font-size: 14px;
         }
 
-        .mapbox-geocoder-container input {
-            width: 100% !important;
-            padding: 0.375rem 0.75rem !important;
-            font-size: 1rem !important;
-            border: 1px solid #dee2e6 !important;
-            border-radius: 0.375rem !important;
+        .pac-item:hover {
+            background-color: #f0f7f0;
         }
 
-        .mapbox-geocoder-container input:focus {
-            border-color: #86b7fe !important;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+        .pac-item-query {
+            font-weight: 500;
+            color: #1B5E20;
         }
 
         /* Empresa Search Styles */
@@ -324,10 +321,8 @@
                                 <div class="col-md-12 address-search">
                                     <label class="form-label">Dirección * <small class="text-muted">(busca y
                                             selecciona)</small></label>
-                                    <!-- Hidden input to store the final address -->
-                                    <input type="hidden" id="direccion" required>
-                                    <!-- Mapbox Geocoder container -->
-                                    <div class="mapbox-geocoder-container" id="geocoderContainer"></div>
+                                    <input type="text" class="form-control" id="direccion" required
+                                        placeholder="Ej: Av. Javier Prado 1234, San Isidro">
                                     <small class="text-muted mt-1 d-block"><i class="bi bi-info-circle"></i> Escribe la
                                         dirección y selecciona una opción</small>
                                 </div>
@@ -393,7 +388,8 @@
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5BSUAso_yWVNijpWB1NbHhhX5n4HIwsU&libraries=places&language=es&region=PE"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js?v=2.0"></script>
     <script>
@@ -401,41 +397,60 @@
         initPage('sedes');
         const id = getUrlParam('id');
         const empresaParam = getUrlParam('empresa');
-        // ========== MAP INITIALIZATION (Mapbox GL JS) ==========
-        const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibWlnaHR5Y29kZXIiLCJhIjoiY21sMmlpZm92MGkwYTNjcHY1aXg3YzRrdiJ9.Flaa7i5dlavkb4r8P9opvQ';
-        mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+        // ========== MAP INITIALIZATION (Google Maps) ==========
+        const GOOGLE_API_KEY = 'AIzaSyA5BSUAso_yWVNijpWB1NbHhhX5n4HIwsU';
 
         // Lima, Peru center coordinates  
         const defaultLat = -12.0464;
         const defaultLng = -77.0428;
 
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: [defaultLng, defaultLat],
-            zoom: 12
-        });
+        let map, marker;
 
-        // Add navigation controls
-        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        // Initialize Google Map
+        function initGoogleMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: defaultLat, lng: defaultLng },
+                zoom: 12,
+                mapTypeControl: true,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
 
-        let marker = null;
+            // Click on map to place marker
+            map.addListener('click', function (e) {
+                placeMarker(e.latLng.lat(), e.latLng.lng());
+            });
 
-        // Function to place/move marker
+            // Initialize Places Autocomplete
+            initAutocomplete();
+        }
+
+        // Place or move marker
         function placeMarker(lat, lng) {
             if (marker) {
-                marker.setLngLat([lng, lat]);
+                marker.setPosition({ lat, lng });
             } else {
-                marker = new mapboxgl.Marker({ draggable: true, color: '#1B5E20' })
-                    .setLngLat([lng, lat])
-                    .addTo(map);
-                // Update coordinates when marker is dragged
-                marker.on('dragend', function () {
-                    const lngLat = marker.getLngLat();
-                    updateCoordinates(lngLat.lat, lngLat.lng);
+                marker = new google.maps.Marker({
+                    position: { lat, lng },
+                    map: map,
+                    draggable: true,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: '#1B5E20',
+                        fillOpacity: 1,
+                        strokeColor: '#fff',
+                        strokeWeight: 2
+                    }
+                });
+
+                marker.addListener('dragend', function () {
+                    const pos = marker.getPosition();
+                    updateCoordinates(pos.lat(), pos.lng());
                 });
             }
-            map.flyTo({ center: [lng, lat], zoom: 16 });
+            map.panTo({ lat, lng });
+            map.setZoom(16);
             updateCoordinates(lat, lng);
         }
 
@@ -443,67 +458,65 @@
             document.getElementById('coordenadas_gps').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
         }
 
-        // Click on map to place marker
-        map.on('click', function (e) {
-            placeMarker(e.lngLat.lat, e.lngLat.lng);
-        });
-        // ========== ADDRESS SEARCH (Mapbox Geocoding) ==========
+        // ========== ADDRESS SEARCH (Google Places Autocomplete) ==========
         const direccionInput = document.getElementById('direccion');
 
-        // Initialize Mapbox Geocoder after script loads
-        const searchScript = document.getElementById('search-js');
-        searchScript.onload = function () {
-            const geocoder = new mapboxsearch.MapboxGeocoder();
-            geocoder.accessToken = MAPBOX_ACCESS_TOKEN;
-            geocoder.options = {
-                language: 'es',
-                country: 'PE',
-                proximity: [-77.0428, -12.0464], // Lima center
-                placeholder: 'Ej: Av. Javier Prado 1234, San Isidro'
-            };
+        function initAutocomplete() {
+            const autocomplete = new google.maps.places.Autocomplete(direccionInput, {
+                componentRestrictions: { country: 'PE' },
+                fields: ['address_components', 'geometry', 'formatted_address', 'name'],
+                types: ['address']
+            });
 
-            // Append geocoder to container
-            document.getElementById('geocoderContainer').appendChild(geocoder);
+            // Bias results to Peru/Lima
+            autocomplete.setBounds(new google.maps.LatLngBounds(
+                { lat: -18.35, lng: -81.33 },  // SW Peru
+                { lat: -0.04, lng: -68.65 }    // NE Peru
+            ));
 
-            // Handle address selection
-            geocoder.addEventListener('retrieve', (event) => {
-                const feature = event.detail;
-                if (!feature || !feature.geometry) return;
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
 
-                const coords = feature.geometry.coordinates;
-                const lng = coords[0];
-                const lat = coords[1];
+                if (!place.geometry || !place.geometry.location) {
+                    showToast('No se encontraron detalles para esta dirección', 'warning');
+                    return;
+                }
 
-                // Get address components
-                const fullAddress = feature.properties?.full_address || feature.properties?.place_name || '';
-                const addressParts = fullAddress.split(',').map(p => p.trim());
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
 
-                // Update hidden direccion field
-                direccionInput.value = addressParts[0] || fullAddress;
+                // Extract address components
+                let distrito = '', provincia = '', departamento = '';
 
-                // Try to fill location fields from context
-                const context = feature.properties?.context || {};
-                const distritoField = document.getElementById('distrito');
-                const provinciaField = document.getElementById('provincia');
-                const departamentoField = document.getElementById('departamento');
+                if (place.address_components) {
+                    for (const component of place.address_components) {
+                        const types = component.types;
+                        if (types.includes('locality')) {
+                            distrito = component.long_name;
+                        } else if (types.includes('administrative_area_level_2')) {
+                            provincia = component.long_name;
+                        } else if (types.includes('administrative_area_level_1')) {
+                            departamento = component.long_name;
+                        } else if (types.includes('sublocality_level_1') && !distrito) {
+                            distrito = component.long_name;
+                        }
+                    }
+                }
 
-                // Mapbox context includes: locality, place, district, region, country
-                if (context.locality?.name) distritoField.value = context.locality.name;
-                else if (context.place?.name) distritoField.value = context.place.name;
-                else if (addressParts.length >= 2) distritoField.value = addressParts[1];
+                // Fill form fields
+                document.getElementById('distrito').value = distrito;
+                document.getElementById('provincia').value = provincia;
+                document.getElementById('departamento').value = departamento;
 
-                if (context.district?.name) provinciaField.value = context.district.name;
-                else if (addressParts.length >= 3) provinciaField.value = addressParts[2];
-
-                if (context.region?.name) departamentoField.value = context.region.name;
-                else if (addressParts.length >= 4) departamentoField.value = addressParts[3];
-
-                // Place marker on map
+                // Place marker
                 placeMarker(lat, lng);
 
                 showToast('Dirección seleccionada', 'success');
             });
-        };
+        }
+
+        // Initialize map when page loads
+        initGoogleMap();
         // ========== EMPRESA SEARCH (Real-time) ==========
         let allEmpresas = [];
         let empresaSearchTimeout = null;
