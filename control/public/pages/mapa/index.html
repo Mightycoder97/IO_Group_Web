@@ -344,8 +344,7 @@
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5BSUAso_yWVNijpWB1NbHhhX5n4HIwsU&libraries=places&language=es&region=PE"></script>
+    <script src="../../js/config.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js?v=2.0"></script>
     <script>
@@ -356,7 +355,6 @@
         let debounceTimer, districtDebounceTimer;
         let allMarkers = {}; // Store markers by id_sede for filtering
         let activeDistrictFilter = null;
-        const GOOGLE_API_KEY = 'AIzaSyA5BSUAso_yWVNijpWB1NbHhhX5n4HIwsU';
 
         // Frequency color mapping
         const frequencyColors = {
@@ -389,18 +387,35 @@
             return frequencyLabels[frecuencia?.toLowerCase()] || frequencyLabels['null'];
         }
 
-        // Initialize Google Maps
-        map = new google.maps.Map(document.getElementById('mapaContainer'), {
-            center: { lat: -12.0464, lng: -77.0428 },
-            zoom: 11,
-            mapTypeControl: true,
-            streetViewControl: false,
-            fullscreenControl: true
-        });
-
         // Store all markers for filtering
         let allGoogleMarkers = {};
-        let infoWindow = new google.maps.InfoWindow();
+        let infoWindow;
+
+        // Load Google Maps API dynamically
+        function loadGoogleMapsAPI() {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places&language=es&region=PE`;
+                script.async = true;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        // Initialize map after API loads
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('mapaContainer'), {
+                center: { lat: -12.0464, lng: -77.0428 },
+                zoom: 11,
+                mapTypeControl: true,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+            infoWindow = new google.maps.InfoWindow();
+
+
+        }
 
         // Load sedes
         async function loadSedes() {
@@ -680,30 +695,8 @@
             document.getElementById('districtDropdown').style.display = 'none';
 
             activeDistrictFilter = districtName;
-            const sedeIds = window.districtsData.get(districtName) || [];
 
-            // Show/hide markers
-            let visibleCount = 0;
-            const visibleBounds = [];
-
-            Object.entries(allMarkers).forEach(([id, marker]) => {
-                const sedeId = parseInt(id);
-                if (sedeIds.includes(sedeId)) {
-                    if (!markersGroup.hasLayer(marker)) {
-                        markersGroup.addLayer(marker);
-                    }
-                    visibleCount++;
-                    visibleBounds.push(marker.getLatLng());
-                } else {
-                    markersGroup.removeLayer(marker);
-                }
-            });
-
-            // Zoom to filtered bounds
-            if (visibleBounds.length > 0) {
-                const bounds = L.latLngBounds(visibleBounds);
-                map.fitBounds(bounds.pad(0.1));
-            }
+            applyFilters();
 
             // Show active filter badge
             document.getElementById('activeDistrictFilter').innerHTML = `
@@ -713,7 +706,6 @@
                 </div>
             `;
 
-            updateFilteredCount(visibleCount);
         }
 
         // Filter by frequency
@@ -766,13 +758,15 @@
         }
 
         // Apply combined filters (district + frequency)
+        // Apply combined filters (district + frequency)
         function applyFilters() {
             const districtSedeIds = activeDistrictFilter ? (window.districtsData.get(activeDistrictFilter) || []) : null;
 
             let visibleCount = 0;
-            const visibleBounds = [];
+            const visibleBounds = new google.maps.LatLngBounds();
 
-            Object.entries(allMarkers).forEach(([id, marker]) => {
+            Object.entries(allMarkers).forEach(([id, markerInfo]) => {
+                const marker = markerInfo.marker;
                 const sedeId = parseInt(id);
                 const sede = sedesData[sedeId];
                 const sedeFrecuencia = (sede?.frecuencia || 'null').toLowerCase();
@@ -785,20 +779,17 @@
                     (activeFrequencyFilter === 'null' ? !sede?.frecuencia : sedeFrecuencia === activeFrequencyFilter);
 
                 if (passesDistrictFilter && passesFrequencyFilter) {
-                    if (!markersGroup.hasLayer(marker)) {
-                        markersGroup.addLayer(marker);
-                    }
+                    marker.setMap(map);
                     visibleCount++;
-                    visibleBounds.push(marker.getLatLng());
+                    visibleBounds.extend(marker.getPosition());
                 } else {
-                    markersGroup.removeLayer(marker);
+                    marker.setMap(null);
                 }
             });
 
             // Zoom to filtered bounds
-            if (visibleBounds.length > 0) {
-                const bounds = L.latLngBounds(visibleBounds);
-                map.fitBounds(bounds.pad(0.1));
+            if (visibleCount > 0 && !visibleBounds.isEmpty()) {
+                map.fitBounds(visibleBounds);
             }
 
             updateFilteredCount(visibleCount);
@@ -815,7 +806,10 @@
         }
 
         // Load on start
-        loadSedes();
+        loadGoogleMapsAPI().then(() => {
+            initMap();
+            loadSedes();
+        }).catch(err => console.error('Error loading Google Maps:', err));
     </script>
 </body>
 
