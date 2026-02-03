@@ -90,8 +90,12 @@ class MapController {
 
             if (!matchesSearch) return false;
 
-            // 2. Frequency Filter
-            if (s.frecuencia && !this.filters.frequencies.has(s.frecuencia)) return false;
+            // 2. Frequency Filter (Case Insensitive)
+            if (s.frecuencia) {
+                const normalizedFreq = s.frecuencia.trim().toLowerCase();
+                const activeFilters = Array.from(this.filters.frequencies).map(f => f.toLowerCase());
+                if (!activeFilters.includes(normalizedFreq)) return false;
+            }
 
             // 3. Nearby Filter
             if (this.filters.nearby && this.filters.userLocation && s.coordenadas_gps) {
