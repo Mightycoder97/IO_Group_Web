@@ -20,6 +20,7 @@ class MapController {
         this.filters = {
             search: '',
             frequencies: new Set(['Diario', 'Interdiario', 'Semanal', 'Quincenal']),
+            districts: new Set(),
             nearby: false,
             radius: 10, // km
             userLocation: null
