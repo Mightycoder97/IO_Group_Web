@@ -11,14 +11,22 @@ class MapController {
         this.sedes = [];
         this.infoWindow = null;
         this.userMarker = null;
+        // Locations
+        this.userMarker = null;
         this.userCircle = null;
+        this.referenceMarker = null; // Blue pin for "Center"
+        this.referenceLocation = null; // { lat, lng }
+
         this.defaultLocation = { lat: -12.0464, lng: -77.0428 }; // Lima
         this.searchDebounce = null;
-        this.MarkerClass = null; // Store Marker class
+        this.MarkerClass = null;
+
+        // Services
+        this.geocoder = null;
 
         // Filter State
         this.filters = {
-            search: '',
+            search: '', // Now used for CLIENT search (filter list)
             frequencies: new Set(['Diario', 'Interdiario', 'Semanal', 'Quincenal']),
             districts: new Set(),
             nearby: false,
@@ -35,9 +43,12 @@ class MapController {
         }
 
         // Import libraries (Required for loading=async)
+        // Import libraries (Required for loading=async)
         const { Map } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-        // Also ensure libraries needed for MarkerClusterer or other features are ready if implicit.
+
+        // Initialize Geocoder
+        this.geocoder = new google.maps.Geocoder();
 
         const mapOptions = {
             center: this.defaultLocation,
@@ -60,13 +71,29 @@ class MapController {
     setupEventListeners() {
         // Search Input
         // Search Input
+        // Search Input (Local + Geocode on Enter)
         const searchInput = document.getElementById('mapSearchInput');
         if (searchInput) {
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleGeocodeSearch(e.target.value);
+                }
+            });
+
             searchInput.addEventListener('input', (e) => {
+                // Local filter logic
                 this.filters.search = e.target.value.toLowerCase().trim();
                 this.applyFilters();
             });
         }
+
+        // Map Click -> Place Reference Pin
+        this.map.addListener('click', (e) => {
+            if (e.latLng) {
+                const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+                this.setReferenceLocation(pos, "Ubicación seleccionada");
+            }
+        });
 
         // Custom Zoom Controls
         document.getElementById('zoomIn')?.addEventListener('click', () => this.map.setZoom(this.map.getZoom() + 1));
@@ -81,11 +108,115 @@ class MapController {
             const response = await api.get('/sedes?mapa=1');
             if (response.success) {
                 this.sedes = response.data;
+                this.populateDistrictFilter();
                 this.applyFilters();
             }
         } catch (error) {
             console.error('Error loading sedes:', error);
             showToast('Error cargando mapa', 'danger');
+        }
+    }
+
+    populateDistrictFilter() {
+        if (!this.sedes || this.sedes.length === 0) return;
+
+        const container = document.getElementById('districtFilters');
+        if (!container) {
+            console.warn('District filter container not found');
+            return;
+        }
+
+        // Extract and sort districts
+        const districts = [...new Set(this.sedes.map(s => s.distrito).filter(d => d && d.trim().length > 0))].sort();
+
+        if (districts.length === 0) {
+            container.innerHTML = '<div class="text-muted small">No se encontraron distritos</div>';
+            return;
+        }
+
+        container.innerHTML = ''; // Clear loading spinner
+
+        districts.forEach(dist => {
+            const safeId = dist.replace(/[^a-zA-Z0-9]/g, '_');
+            const div = document.createElement('div');
+            div.className = 'form-check';
+            div.innerHTML = `
+                <input class="form-check-input filter-district" type="checkbox" value="${dist}" id="dist_${safeId}">
+                <label class="form-check-label small" for="dist_${safeId}">${dist}</label>
+            `;
+            container.appendChild(div);
+        });
+
+        // Listeners
+        container.querySelectorAll('.filter-district').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.filters.districts.add(e.target.value);
+                } else {
+                    this.filters.districts.delete(e.target.value);
+                }
+                this.applyFilters();
+            });
+        });
+    }
+
+    handleGeocodeSearch(address) {
+        if (!address) return;
+
+        const request = {
+            address: address,
+            componentRestrictions: { country: 'PE' }
+        };
+
+        this.geocoder.geocode(request, (results, status) => {
+            if (status === 'OK' && results[0]) {
+                const location = results[0].geometry.location;
+                const pos = { lat: location.lat(), lng: location.lng() };
+
+                this.setReferenceLocation(pos, results[0].formatted_address);
+                this.map.setCenter(pos);
+                this.map.setZoom(14);
+            } else {
+                showToast('No se encontró la dirección: ' + status, 'warning');
+            }
+        });
+    }
+
+    setReferenceLocation(pos, title = "Referencia") {
+        this.referenceLocation = pos;
+
+        // Create or Update Blue Marker
+        if (!this.referenceMarker) {
+            const pin = new this.PinElement({
+                scale: 1.2,
+                background: '#0d6efd', // Blue
+                borderColor: '#ffffff',
+                glyphColor: '#ffffff',
+                glyph: '★'
+            });
+
+            this.referenceMarker = new this.AdvancedMarkerElement({
+                position: pos,
+                map: this.map,
+                title: title,
+                content: pin,
+                gmpDraggable: true
+            });
+
+            // Update on drag end
+            this.referenceMarker.addListener('dragend', (e) => {
+                this.referenceLocation = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+                if (this.filters.nearby) this.applyFilters();
+            });
+
+        } else {
+            this.referenceMarker.position = pos;
+            this.referenceMarker.title = title;
+        }
+
+        // If nearby filter is ON, re-calc distances
+        if (this.filters.nearby) {
+            this.applyFilters();
         }
     }
 
