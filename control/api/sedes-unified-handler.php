@@ -89,6 +89,23 @@ function handleUnifiedCreate($user, $data) {
             ]
         );
         
+        // 4. Create ContratoServicio
+        $contrato = $data['contrato'] ?? [];
+        if (!empty($contrato['fecha_inicio']) && !empty($contrato['frecuencia']) && isset($contrato['tarifa'])) {
+            db()->insert(
+                "INSERT INTO ContratoServicio (id_sede, fecha_inicio, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, activo) 
+                 VALUES (?, ?, ?, ?, ?, ?, 1)",
+                [
+                    $sedeId,
+                    $contrato['fecha_inicio'],
+                    $contrato['frecuencia'],
+                    $contrato['peso_limite_kg'] ?? null,
+                    $contrato['tarifa'],
+                    $contrato['tipo_tarifa'] ?? 'por_servicio'
+                ]
+            );
+        }
+
         // Commit transaction
         $pdo->commit();
         

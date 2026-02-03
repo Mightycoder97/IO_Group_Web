@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS Empresa (
     distrito VARCHAR(100),
     provincia VARCHAR(100),
     departamento VARCHAR(100),
+    rubro VARCHAR(100),
     telefono VARCHAR(20),
     email VARCHAR(100),
     activo TINYINT(1) DEFAULT 1,
@@ -214,13 +215,14 @@ CREATE TABLE IF NOT EXISTS Servicio (
     id_ruta INT,
     id_planta INT NOT NULL,
     id_contrato INT,
-    codigo_servicio VARCHAR(50),
-    fecha_programada DATE NOT NULL,
+    mes_servicio VARCHAR(50),
     fecha_ejecucion DATE,
-    hora_llegada TIME,
-    hora_salida TIME,
     estado ENUM('programado', 'en_curso', 'completado', 'cancelado') DEFAULT 'programado',
     observaciones TEXT,
+    estado_pago ENUM('pendiente', 'pagado') DEFAULT 'pendiente',
+    fecha_pago DATE,
+    forma_pago VARCHAR(50),
+    descripcion_residuo VARCHAR(255),
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
     fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (id_sede) REFERENCES Sede(id_sede),
@@ -289,22 +291,11 @@ CREATE TABLE IF NOT EXISTS Guia (
 -- ============================================
 CREATE TABLE IF NOT EXISTS Factura (
     id_factura INT AUTO_INCREMENT PRIMARY KEY,
-    id_servicio INT NOT NULL UNIQUE,
-    serie VARCHAR(10),
-    numero_factura VARCHAR(20) NOT NULL,
-    fecha_emision DATE NOT NULL,
-    monto_subtotal DECIMAL(10,2),
-    igv DECIMAL(10,2),
-    monto_total DECIMAL(10,2) NOT NULL,
-    estado ENUM('emitida', 'pagada', 'anulada', 'vencida') DEFAULT 'emitida',
-    fecha_vencimiento DATE,
-    fecha_pago DATE,
-    metodo_pago VARCHAR(50),
-    doc_escaneado VARCHAR(255),
-    observaciones TEXT,
+    id_servicio INT NOT NULL,
+    numero_factura VARCHAR(50) NOT NULL,
+    doc_escaneado VARCHAR(500),
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-    fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_servicio) REFERENCES Servicio(id_servicio)
+    FOREIGN KEY (id_servicio) REFERENCES Servicio(id_servicio) ON DELETE CASCADE
 );
 
 -- ============================================
@@ -324,15 +315,38 @@ CREATE TABLE IF NOT EXISTS AuditLog (
 );
 
 -- ============================================
+-- TABLA: Prospecto
+-- ============================================
+CREATE TABLE IF NOT EXISTS Prospecto (
+    id_prospecto INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_comercial VARCHAR(200) NOT NULL,
+    tipo_cliente ENUM('persona', 'empresa') DEFAULT 'persona',
+    ruc VARCHAR(11),
+    dni VARCHAR(15),
+    telefono VARCHAR(20),
+    email VARCHAR(100),
+    direccion VARCHAR(255),
+    distrito VARCHAR(100),
+    fuente VARCHAR(50),
+    estado ENUM('nuevo', 'contactado', 'interesado', 'propuesta', 'negociacion', 'ganado', 'perdido') DEFAULT 'nuevo',
+    valor_potencial DECIMAL(10,2),
+    notas TEXT,
+    id_usuario_asignado INT,
+    fecha_proximo_contacto DATE,
+    activo TINYINT(1) DEFAULT 1,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario_asignado) REFERENCES Usuario(id_usuario)
+);
+
+-- ============================================
 -- INDICES
 -- ============================================
 CREATE INDEX idx_empresa_cliente ON Empresa(id_cliente);
 CREATE INDEX idx_sede_empresa ON Sede(id_empresa);
 CREATE INDEX idx_contrato_sede ON ContratoServicio(id_sede);
-CREATE INDEX idx_servicio_fecha ON Servicio(fecha_programada);
 CREATE INDEX idx_servicio_estado ON Servicio(estado);
 CREATE INDEX idx_ruta_fecha ON Ruta(fecha);
-CREATE INDEX idx_factura_estado ON Factura(estado);
 CREATE INDEX idx_vehiculo_placa ON Vehiculo(placa);
 CREATE INDEX idx_empleado_dni ON Empleado(dni);
 
@@ -342,8 +356,7 @@ CREATE INDEX idx_empleado_dni ON Empleado(dni);
 CREATE OR REPLACE VIEW vw_ServiciosCompleto AS
 SELECT 
     s.id_servicio,
-    s.codigo_servicio,
-    s.fecha_programada,
+    s.mes_servicio,
     s.fecha_ejecucion,
     s.estado,
     se.nombre_comercial AS sede_nombre,
@@ -357,8 +370,8 @@ SELECT
     m.peso_kg,
     m.tipo_residuo,
     f.numero_factura,
-    f.monto_total,
-    f.estado AS factura_estado
+    -- f.monto_total, -- Nota: tabla factura simplificada ya no tiene monto, ajustar si es necesario
+    s.estado_pago
 FROM Servicio s
 INNER JOIN Sede se ON s.id_sede = se.id_sede
 INNER JOIN Empresa e ON se.id_empresa = e.id_empresa

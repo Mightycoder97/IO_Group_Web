@@ -186,6 +186,23 @@ function create() {
             $data['contacto_email'] ?? null
         ]
     );
+
+    // Create contract if data is provided
+    $contrato = $data['contrato'] ?? [];
+    if (!empty($contrato['fecha_inicio']) && !empty($contrato['frecuencia']) && isset($contrato['tarifa'])) {
+        db()->insert(
+            "INSERT INTO ContratoServicio (id_sede, fecha_inicio, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, activo) 
+             VALUES (?, ?, ?, ?, ?, ?, 1)",
+            [
+                $id,
+                $contrato['fecha_inicio'],
+                $contrato['frecuencia'],
+                $contrato['peso_limite_kg'] ?? null,
+                $contrato['tarifa'],
+                $contrato['tipo_tarifa'] ?? 'por_servicio'
+            ]
+        );
+    }
     
     db()->execute(
         "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Sede', ?, 'INSERT', ?)",
