@@ -288,12 +288,15 @@ class MapController {
             }
 
             // 4. Nearby Filter
-            if (this.filters.nearby && this.filters.userLocation && s.coordenadas_gps) {
+            // If nearby is enabled, we need a center point (reference or user location)
+            let centerPoint = this.referenceLocation || this.filters.userLocation;
+
+            if (this.filters.nearby && centerPoint && s.coordenadas_gps) {
                 const [lat, lng] = s.coordenadas_gps.split(',').map(Number);
                 if (!isNaN(lat) && !isNaN(lng)) {
                     const distance = this.calculateDistance(
-                        this.filters.userLocation.lat,
-                        this.filters.userLocation.lng,
+                        centerPoint.lat,
+                        centerPoint.lng,
                         lat,
                         lng
                     );
