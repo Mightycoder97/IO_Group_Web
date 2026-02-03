@@ -46,6 +46,7 @@ class MapController {
         // Import libraries (Required for loading=async)
         const { Map } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+        const { Autocomplete } = await google.maps.importLibrary("places");
 
         // Initialize Geocoder
         this.geocoder = new google.maps.Geocoder();
@@ -63,6 +64,7 @@ class MapController {
 
         this.AdvancedMarkerElement = AdvancedMarkerElement;
         this.PinElement = PinElement;
+        this.Autocomplete = Autocomplete;
 
         this.setupEventListeners();
         await this.loadSedes();
@@ -73,7 +75,7 @@ class MapController {
         const searchInput = document.getElementById('mapSearchInput');
         if (searchInput) {
             // Initialize Autocomplete
-            const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+            const autocomplete = new this.Autocomplete(searchInput, {
                 componentRestrictions: { country: "pe" },
                 fields: ["formatted_address", "geometry", "name"],
                 strictBounds: false,
