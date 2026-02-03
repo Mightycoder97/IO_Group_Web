@@ -245,6 +245,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get('id');
         let map, marker;
+        let MapClass, MarkerClass, AutocompleteClass;
         let currentData = null;
 
         // Load Google Maps API dynamically
@@ -260,8 +261,12 @@
         }
 
         // Initialize Google Maps
-        function initMap(lat = -12.0464, lng = -77.0428) {
-            map = new google.maps.Map(document.getElementById('map'), {
+        async function initMap(lat = -12.0464, lng = -77.0428) {
+            MapClass = (await google.maps.importLibrary("maps")).Map;
+            MarkerClass = (await google.maps.importLibrary("marker")).Marker;
+            AutocompleteClass = (await google.maps.importLibrary("places")).Autocomplete;
+
+            map = new MapClass(document.getElementById('map'), {
                 center: { lat, lng },
                 zoom: 15,
                 mapTypeControl: true,
@@ -269,7 +274,7 @@
                 fullscreenControl: true
             });
 
-            marker = new google.maps.Marker({
+            marker = new MarkerClass({
                 position: { lat, lng },
                 map: map,
                 draggable: true,

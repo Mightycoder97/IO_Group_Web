@@ -403,6 +403,7 @@
         const defaultLng = -77.0428;
 
         let map, marker;
+        let MapClass, MarkerClass, AutocompleteClass;
 
         // Load Google Maps API dynamically
         function loadGoogleMapsAPI() {
@@ -417,8 +418,13 @@
         }
 
         // Initialize Google Map
-        function initGoogleMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
+        async function initGoogleMap() {
+            // Import libraries
+            MapClass = (await google.maps.importLibrary("maps")).Map;
+            MarkerClass = (await google.maps.importLibrary("marker")).Marker;
+            AutocompleteClass = (await google.maps.importLibrary("places")).Autocomplete;
+
+            map = new MapClass(document.getElementById('map'), {
                 center: { lat: defaultLat, lng: defaultLng },
                 zoom: 12,
                 mapTypeControl: true,
@@ -440,7 +446,7 @@
             if (marker) {
                 marker.setPosition({ lat, lng });
             } else {
-                marker = new google.maps.Marker({
+                marker = new MarkerClass({
                     position: { lat, lng },
                     map: map,
                     draggable: true,
@@ -472,7 +478,7 @@
         const direccionInput = document.getElementById('direccion');
 
         function initAutocomplete() {
-            const autocomplete = new google.maps.places.Autocomplete(direccionInput, {
+            const autocomplete = new AutocompleteClass(direccionInput, {
                 componentRestrictions: { country: 'PE' },
                 fields: ['address_components', 'geometry', 'formatted_address', 'name'],
                 types: ['address']

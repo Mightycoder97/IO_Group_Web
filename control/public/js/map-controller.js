@@ -14,6 +14,7 @@ class MapController {
         this.userCircle = null;
         this.defaultLocation = { lat: -12.0464, lng: -77.0428 }; // Lima
         this.searchDebounce = null;
+        this.MarkerClass = null; // Store Marker class
     }
 
     async init() {
@@ -23,11 +24,19 @@ class MapController {
             return;
         }
 
+        // Import libraries (Required for loading=async)
+        const { Map } = await google.maps.importLibrary("maps");
+        const { Marker } = await google.maps.importLibrary("marker");
+        // Also ensure libraries needed for MarkerClusterer or other features are ready if implicit.
+
         const mapOptions = {
             center: this.defaultLocation,
             zoom: 12,
             disableDefaultUI: true, // Custom UI for cleaner look
             zoomControl: false,      // We'll add custom zoom buttons
+            // MapId is required for AdvancedMarkerElement, but we are using legacy Marker for now via importLibrary.
+            // If we wanted to use AdvancedMarkerElement we would need a MapId.
+            // mapId: "DEMO_MAP_ID", 
             styles: [
                 {
                     featureType: "poi",
@@ -37,7 +46,7 @@ class MapController {
             ]
         };
 
-        this.map = new google.maps.Map(document.getElementById('map'), mapOptions);
+        this.map = new Map(document.getElementById('map'), mapOptions);
         this.infoWindow = new google.maps.InfoWindow();
 
         // Initialize Marker Clusterer
@@ -46,6 +55,7 @@ class MapController {
             this.markerCluster = new markerClusterer.MarkerClusterer({ map: this.map, markers: [] });
         }
 
+        this.MarkerClass = Marker; // Store for reuse
         this.setupEventListeners();
         await this.loadSedes();
     }
@@ -82,6 +92,9 @@ class MapController {
     }
 
     renderMarkers(sedesToRender) {
+        // Use passed class or fallback
+        const MarkerConstructor = this.MarkerClass || google.maps.Marker;
+
         // Clear existing markers
         if (this.markerCluster) {
             this.markerCluster.clearMarkers();
@@ -100,11 +113,10 @@ class MapController {
             const position = { lat, lng };
             bounds.extend(position);
 
-            const marker = new google.maps.Marker({
+            const marker = new MarkerConstructor({
                 position,
                 map: this.map,
                 title: sede.nombre_comercial,
-                // Optimization: Simple icon or optimize flag
                 optimized: true
             });
 
