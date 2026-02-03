@@ -5,816 +5,234 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
-    <title>Mapa de Sedes - IO Control</title>
+    <title>Mapa de Sedes - IO Group</title>
+
+    <!-- Preconnect -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://maps.googleapis.com" crossorigin>
+
+    <!-- Styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+
     <style>
-        #mapaContainer {
-            height: calc(100vh - 140px);
-            border-radius: 8px;
+        /* Modern Fullscreen Map Layout */
+        body {
             overflow: hidden;
         }
 
-        .search-container {
-            background: white;
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        .main-content {
+            padding: 0 !important;
+            height: 100vh;
+            position: relative;
         }
 
-        .sede-popup {
-            min-width: 200px;
-        }
-
-        .sede-popup h6 {
-            margin: 0 0 8px 0;
-            color: #1B5E20;
-        }
-
-        .sede-popup p {
-            margin: 4px 0;
-            font-size: 13px;
-        }
-
-        .search-result-marker {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.7;
-                transform: scale(1.1);
-            }
-        }
-
-        .nearby-results {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .nearby-item {
-            padding: 8px 12px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-        }
-
-        .nearby-item:hover {
-            background: #f5f5f5;
-        }
-
-        .nearby-item .distance {
-            font-weight: bold;
-            color: #1B5E20;
-            margin-right: 8px;
-        }
-
-        .autocomplete-dropdown {
+        #map-wrapper {
             position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
+            height: 100%;
+            z-index: 1;
         }
 
-        .autocomplete-item {
-            padding: 10px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
+        #map {
+            width: 100%;
+            height: 100%;
         }
 
-        .autocomplete-item:hover {
-            background: #f0f0f0;
-        }
-
-        /* Legend styles */
-        .legend-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            padding: 4px 8px;
-            background: #f8f9fa;
-            border-radius: 4px;
-        }
-
-        .legend-color {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .legend-item:hover {
-            background: #e8f5e9;
-            transform: scale(1.02);
-        }
-
-        .legend-item.active {
-            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
-            color: white;
-        }
-
-        /* District search */
-        .district-dropdown {
+        /* Glassmorphism Floating Panel */
+        .glass-panel {
             position: absolute;
-            width: 100%;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 0 0 8px 8px;
-            max-height: 250px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            top: 20px;
+            left: 20px;
+            width: 380px;
+            max-width: calc(100% - 40px);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            z-index: 10;
+            transition: all 0.3s ease;
         }
 
-        .district-item {
-            padding: 10px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
         }
 
-        .district-item:hover {
-            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
-        }
-
-        .district-item .count {
-            background: #1B5E20;
-            color: white;
-            padding: 2px 8px;
+        .search-box input {
+            padding-left: 45px;
+            height: 50px;
             border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         }
 
-        .active-filter {
-            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 8px;
-            font-size: 13px;
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #1B5E20;
+            font-size: 1.2rem;
         }
 
-        .active-filter button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 20px;
-            height: 20px;
+        /* Floating Controls */
+        .floating-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .map-btn {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            cursor: pointer;
+            background: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 1.2rem;
+            color: #555;
+            transition: transform 0.2s, background 0.2s;
+            cursor: pointer;
         }
 
-        .active-filter button:hover {
-            background: rgba(255, 255, 255, 0.4);
+        .map-btn:hover {
+            transform: scale(1.05);
+            color: #1B5E20;
+        }
+
+        .map-btn.primary {
+            background: #1B5E20;
+            color: white;
+        }
+
+        /* Sidebar Toggle Override */
+        .sidebar-toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+        }
+
+        /* Info Window Styling */
+        .map-info-window {
+            padding: 5px;
+            max-width: 250px;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .glass-panel {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 20px 20px 0 0;
+                padding: 15px 20px 30px;
+            }
+
+            .floating-controls {
+                bottom: 180px;
+                /* Above the panel */
+            }
         }
     </style>
 </head>
 
-<body class="control-app">
+<body>
     <div class="app-container">
+        <!-- Sidebar (Hidden by default on mobile, existing logic handles it) -->
         <aside class="sidebar" id="sidebar"></aside>
+
         <main class="main-content">
-            <nav class="top-nav">
-                <div class="breadcrumb-container">
-                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Mapa de Sedes</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div class="user-menu">
-                    <div class="dropdown">
-                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
-                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
-                                    Contraseña</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
-                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-            <div class="content-area">
-                <div class="row g-3">
-                    <!-- Search Panel -->
-                    <div class="col-lg-4">
-                        <!-- District Search -->
-                        <div class="search-container">
-                            <h6><i class="bi bi-pin-map-fill text-primary"></i> Buscar por Distrito</h6>
-                            <div class="position-relative">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="districtSearch"
-                                        placeholder="Escribe un distrito..." autocomplete="off">
-                                </div>
-                                <div class="district-dropdown" id="districtDropdown"></div>
-                            </div>
-                            <div id="activeDistrictFilter"></div>
-                        </div>
+            <!-- Sidebar Toggle (Floating) -->
+            <button class="btn btn-light shadow-sm sidebar-toggle-btn d-md-none" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
 
-                        <!-- Address Search -->
-                        <div class="search-container mt-3">
-                            <h6><i class="bi bi-geo-alt"></i> Buscar Ubicación</h6>
-                            <div class="position-relative">
-                                <div class="input-group mb-2">
-                                    <input type="text" class="form-control" id="addressSearch"
-                                        placeholder="Escribe una dirección...">
-                                    <button class="btn btn-primary" id="btnSearch"><i class="bi bi-search"></i></button>
-                                </div>
-                                <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
-                            </div>
-                            <small class="text-muted"><i class="bi bi-info-circle"></i> También puedes hacer clic en el
-                                mapa</small>
-                            <button class="btn btn-outline-secondary btn-sm w-100 mt-2 d-none" id="btnClearSearch">
-                                <i class="bi bi-x-circle"></i> Limpiar búsqueda
-                            </button>
-                            <div id="nearbyResults" class="nearby-results mt-3"></div>
-                        </div>
+            <!-- Map Container -->
+            <div id="map-wrapper">
+                <div id="map"></div>
+            </div>
 
-                        <!-- Legend -->
-                        <div class="search-container mt-3">
-                            <h6><i class="bi bi-palette-fill text-success"></i> Leyenda - Frecuencia de Recojo <small
-                                    class="text-muted">(clic para filtrar)</small></h6>
-                            <div class="legend-container" id="legendContainer">
-                                <div class="legend-item" data-frecuencia="diario" onclick="filterByFrequency('diario')"
-                                    style="cursor: pointer;" title="Clic para filtrar">
-                                    <div class="legend-color" style="background: #D32F2F;"></div>
-                                    <span>Diario</span>
-                                </div>
-                                <div class="legend-item" data-frecuencia="semanal"
-                                    onclick="filterByFrequency('semanal')" style="cursor: pointer;"
-                                    title="Clic para filtrar">
-                                    <div class="legend-color" style="background: #FF6F00;"></div>
-                                    <span>Semanal</span>
-                                </div>
-                                <div class="legend-item" data-frecuencia="quincenal"
-                                    onclick="filterByFrequency('quincenal')" style="cursor: pointer;"
-                                    title="Clic para filtrar">
-                                    <div class="legend-color" style="background: #FBC02D;"></div>
-                                    <span>Quincenal</span>
-                                </div>
-                                <div class="legend-item" data-frecuencia="mensual"
-                                    onclick="filterByFrequency('mensual')" style="cursor: pointer;"
-                                    title="Clic para filtrar">
-                                    <div class="legend-color" style="background: #388E3C;"></div>
-                                    <span>Mensual</span>
-                                </div>
-                                <div class="legend-item" data-frecuencia="bimestral"
-                                    onclick="filterByFrequency('bimestral')" style="cursor: pointer;"
-                                    title="Clic para filtrar">
-                                    <div class="legend-color" style="background: #1976D2;"></div>
-                                    <span>Bimestral</span>
-                                </div>
-                                <div class="legend-item" data-frecuencia="trimestral"
-                                    onclick="filterByFrequency('trimestral')" style="cursor: pointer;"
-                                    title="Clic para filtrar">
-                                    <div class="legend-color" style="background: #7B1FA2;"></div>
-                                    <span>Trimestral</span>
-                                </div>
-                                <div class="legend-item" data-frecuencia="eventual"
-                                    onclick="filterByFrequency('eventual')" style="cursor: pointer;"
-                                    title="Clic para filtrar">
-                                    <div class="legend-color" style="background: #616161;"></div>
-                                    <span>Eventual</span>
-                                </div>
-                                <div class="legend-item" data-frecuencia="null" onclick="filterByFrequency('null')"
-                                    style="cursor: pointer;" title="Clic para filtrar">
-                                    <div class="legend-color" style="background: #212121;"></div>
-                                    <span>Sin contrato</span>
-                                </div>
-                            </div>
-                            <div id="activeFrequencyFilter"></div>
-                        </div>
+            <!-- Floating Search Panel -->
+            <div class="glass-panel">
+                <h5 class="mb-3 fw-bold text-success"><i class="bi bi-map-fill me-2"></i>Mapa de Sedes</h5>
 
-                        <!-- Summary -->
-                        <div class="search-container mt-3">
-                            <h6><i class="bi bi-bar-chart-fill text-info"></i> Resumen</h6>
-                            <p class="mb-1">Sedes en mapa: <strong id="sedesCount">0</strong></p>
-                            <p class="mb-0 text-muted" id="filteredCount" style="display: none;"></p>
-                        </div>
-                    </div>
-                    <!-- Map -->
-                    <div class="col-lg-8">
-                        <div id="mapaContainer"></div>
-                    </div>
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" class="form-control" id="mapSearchInput" placeholder="Buscar sede, distrito...">
                 </div>
+
+                <div class="d-flex gap-2">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                        <i class="bi bi-broadcast"></i> <span id="totalSedes">-</span> Sedes
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
+                        <i class="bi bi-geo-alt"></i> En vivo
+                    </span>
+                </div>
+            </div>
+
+            <!-- Floating Controls -->
+            <div class="floating-controls">
+                <button class="map-btn primary" id="btnMyLocation" title="Mi Ubicación">
+                    <i class="bi bi-crosshair"></i>
+                </button>
+                <button class="map-btn" id="zoomIn" title="Acercar">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <button class="map-btn" id="zoomOut" title="Alejar">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
             </div>
         </main>
     </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+
     <script src="../../js/config.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js?v=2.0"></script>
+    <script src="../../js/map-controller.js"></script> <!-- New Controller -->
+
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('mapa');
-        let map, sedesData = {}, markersGroup;
-        let searchMarker, searchCircle;
-        let debounceTimer, districtDebounceTimer;
-        let allMarkers = {}; // Store markers by id_sede for filtering
-        let activeDistrictFilter = null;
 
-        // Frequency color mapping
-        const frequencyColors = {
-            'diario': '#D32F2F',
-            'semanal': '#FF6F00',
-            'quincenal': '#FBC02D',
-            'mensual': '#388E3C',
-            'bimestral': '#1976D2',
-            'trimestral': '#7B1FA2',
-            'eventual': '#616161',
-            'null': '#212121' // No contract
-        };
-
-        const frequencyLabels = {
-            'diario': 'Diario',
-            'semanal': 'Semanal',
-            'quincenal': 'Quincenal',
-            'mensual': 'Mensual',
-            'bimestral': 'Bimestral',
-            'trimestral': 'Trimestral',
-            'eventual': 'Eventual',
-            'null': 'Sin contrato'
-        };
-
-        function getFrequencyColor(frecuencia) {
-            return frequencyColors[frecuencia?.toLowerCase()] || frequencyColors['null'];
-        }
-
-        function getFrequencyLabel(frecuencia) {
-            return frequencyLabels[frecuencia?.toLowerCase()] || frequencyLabels['null'];
-        }
-
-        // Store all markers for filtering
-        let allGoogleMarkers = {};
-        let infoWindow;
-
-        // Load Google Maps API dynamically
-        function loadGoogleMapsAPI() {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places&language=es&region=PE`;
-                script.async = true;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-
-        // Initialize map after API loads
-        function initMap() {
-            map = new google.maps.Map(document.getElementById('mapaContainer'), {
-                center: { lat: -12.0464, lng: -77.0428 },
-                zoom: 11,
-                mapTypeControl: true,
-                streetViewControl: false,
-                fullscreenControl: true
-            });
-            infoWindow = new google.maps.InfoWindow();
-
-            infoWindow = new google.maps.InfoWindow();
-
-            // Click on map
-            map.addListener('click', function (e) {
-                searchLocation(e.latLng.lat(), e.latLng.lng());
-            });
-        }
-
-        // Load sedes
-        async function loadSedes() {
-            try {
-                const result = await api.get('/sedes?mapa=1');
-                if (result.success && result.data) {
-                    const districts = new Map(); // Track districts and their sede counts
-                    const bounds = new google.maps.LatLngBounds();
-
-                    result.data.forEach(sede => {
-                        if (sede.coordenadas_gps) {
-                            const parts = sede.coordenadas_gps.split(',');
-                            if (parts.length === 2) {
-                                const lat = parseFloat(parts[0].trim());
-                                const lng = parseFloat(parts[1].trim());
-                                if (!isNaN(lat) && !isNaN(lng)) {
-                                    sedesData[sede.id_sede] = { ...sede, lat, lng };
-
-                                    // Track districts
-                                    const distrito = (sede.distrito || 'Sin distrito').trim();
-                                    if (!districts.has(distrito)) {
-                                        districts.set(distrito, []);
-                                    }
-                                    districts.get(distrito).push(sede.id_sede);
-
-                                    // Get color for frequency
-                                    const color = getFrequencyColor(sede.frecuencia);
-                                    const frecuenciaLabel = getFrequencyLabel(sede.frecuencia);
-                                    const frecuenciaBadge = `<span style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${frecuenciaLabel}</span>`;
-
-                                    // Create Google Maps marker
-                                    const marker = new google.maps.Marker({
-                                        position: { lat, lng },
-                                        map: map,
-                                        icon: {
-                                            path: google.maps.SymbolPath.CIRCLE,
-                                            scale: 9,
-                                            fillColor: color,
-                                            fillOpacity: 1,
-                                            strokeColor: '#fff',
-                                            strokeWeight: 2
-                                        },
-                                        title: sede.nombre_comercial
-                                    });
-
-                                    // Create info window content
-                                    const infoContent = `
-                                        <div class="sede-popup">
-                                            <h6>${sede.nombre_comercial}</h6>
-                                            <p><i class="bi bi-building"></i> ${sede.empresa_razon_social || '-'}</p>
-                                            <p><i class="bi bi-geo-alt"></i> ${sede.direccion || '-'}</p>
-                                            <p><i class="bi bi-pin-map"></i> ${sede.distrito || ''}, ${sede.provincia || ''}</p>
-                                            <p><i class="bi bi-clock"></i> Frecuencia: ${frecuenciaBadge}</p>
-                                        </div>
-                                    `;
-
-                                    marker.addListener('click', () => {
-                                        infoWindow.setContent(infoContent);
-                                        infoWindow.open(map, marker);
-                                    });
-
-                                    allGoogleMarkers[sede.id_sede] = marker;
-                                    allMarkers[sede.id_sede] = { lat, lng, marker };
-                                    bounds.extend({ lat, lng });
-                                }
-                            }
-                        }
-                    });
-
-                    // Store districts for search
-                    window.districtsData = districts;
-
-                    document.getElementById('sedesCount').textContent = Object.keys(sedesData).length;
-
-                    // Fit bounds to all markers
-                    if (Object.keys(allGoogleMarkers).length > 0) {
-                        map.fitBounds(bounds);
-                    }
+        // Load Maps API with Async and Callback
+        function loadMaps() {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&libraries=places&language=es&region=PE&loading=async`;
+            script.async = true;
+            script.onload = () => {
+                // Initialize Controller once API is loaded
+                if (window.mapController) {
+                    window.mapController.init();
                 }
-            } catch (err) {
-                console.error('Error loading sedes:', err);
-            }
-        }
-        // Haversine distance calculation
-        function calcDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLng / 2) * Math.sin(dLng / 2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        }
-        // Find nearby clients
-        function findNearbyClients(lat, lng, radiusKm = 1) {
-            const nearby = [];
-            Object.values(sedesData).forEach(sede => {
-                const dist = calcDistance(lat, lng, sede.lat, sede.lng);
-                if (dist <= radiusKm) {
-                    nearby.push({ ...sede, distance: dist });
-                }
-            });
-            return nearby.sort((a, b) => a.distance - b.distance);
-        }
-        // Show nearby results
-        function showNearbyResults(nearby) {
-            const container = document.getElementById('nearbyResults');
-            if (nearby.length === 0) {
-                container.innerHTML = '<div class="alert alert-info mb-0 py-2"><i class="bi bi-info-circle"></i> No hay clientes en un radio de 1 km</div>';
-            } else {
-                container.innerHTML = `
-                    <div class="text-muted small mb-2"><i class="bi bi-check-circle text-success"></i> ${nearby.length} cliente(s) en radio de 1 km:</div>
-                    ${nearby.slice(0, 10).map(s => `
-                        <div class="nearby-item" onclick="zoomToSede(${s.lat}, ${s.lng}, ${s.id_sede})">
-                            <span class="distance">${s.distance < 1 ? (s.distance * 1000).toFixed(0) + ' m' : s.distance.toFixed(2) + ' km'}</span>
-                            <span>${s.nombre_comercial}</span>
-                        </div>
-                    `).join('')}
-                `;
-            }
-        }
-        function zoomToSede(lat, lng, id) {
-            map.panTo({ lat, lng });
-            map.setZoom(16);
-        }
-        // Search location
-        function searchLocation(lat, lng) {
-            // Remove existing search marker
-            if (searchMarker) {
-                searchMarker.setMap(null);
-            }
-            // Remove existing circle
-            if (searchCircle) {
-                searchCircle.setMap(null);
-            }
-
-            // Create search result marker
-            searchMarker = new google.maps.Marker({
-                position: { lat, lng },
-                map: map,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 12,
-                    fillColor: '#2563eb',
-                    fillOpacity: 1,
-                    strokeColor: '#fff',
-                    strokeWeight: 3
-                }
-            });
-
-            // Add circle for 1km radius
-            searchCircle = new google.maps.Circle({
-                map: map,
-                center: { lat, lng },
-                radius: 1000, // meters
-                fillColor: '#2563eb',
-                fillOpacity: 0.1,
-                strokeColor: '#2563eb',
-                strokeWeight: 2
-            });
-
-            map.panTo({ lat, lng });
-            map.setZoom(14);
-            showNearbyResults(findNearbyClients(lat, lng, 1));
-            document.getElementById('btnClearSearch').classList.remove('d-none');
-        }
-        // Autocomplete search with Google Places
-        let autocomplete;
-        function initSearch() {
-            const addressInput = document.getElementById('addressSearch');
-            autocomplete = new google.maps.places.Autocomplete(addressInput, {
-                componentRestrictions: { country: 'PE' },
-                fields: ['geometry', 'formatted_address', 'name'],
-                types: ['geocode', 'establishment']
-            });
-
-            autocomplete.addListener('place_changed', function () {
-                const place = autocomplete.getPlace();
-                if (place.geometry && place.geometry.location) {
-                    const lat = place.geometry.location.lat();
-                    const lng = place.geometry.location.lng();
-                    searchLocation(lat, lng);
-                }
-            });
+            };
+            document.head.appendChild(script);
         }
 
-        function selectAddress(lat, lng, name) {
-            document.getElementById('addressSearch').value = name.substring(0, 50);
-            searchLocation(lat, lng);
-        }
-
-        // Clear search
-        document.getElementById('btnClearSearch').addEventListener('click', function () {
-            if (searchMarker) searchMarker.setMap(null);
-            if (searchCircle) searchCircle.setMap(null);
-            document.getElementById('addressSearch').value = '';
-            document.getElementById('nearbyResults').innerHTML = '';
-            this.classList.add('d-none');
-            // Fit to all markers
-            if (Object.keys(allGoogleMarkers).length > 0) {
-                const bounds = new google.maps.LatLngBounds();
-                Object.values(sedesData).forEach(s => {
-                    bounds.extend({ lat: s.lat, lng: s.lng });
-                });
-                map.fitBounds(bounds);
-            }
-        });
-        // Search button
-        document.getElementById('btnSearch').addEventListener('click', async function () {
-            const query = document.getElementById('addressSearch').value.trim();
-            if (!query) return;
-
-            // Use Geocoder for direct search
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({
-                address: query,
-                componentRestrictions: { country: 'PE' }
-            }, (results, status) => {
-                if (status === 'OK' && results[0]) {
-                    const location = results[0].geometry.location;
-                    searchLocation(location.lat(), location.lng());
-                }
-            });
-        });
-
-        // ========== DISTRICT SEARCH ==========
-        document.getElementById('districtSearch').addEventListener('input', function () {
-            clearTimeout(districtDebounceTimer);
-            const query = this.value.trim().toLowerCase();
-            const dropdown = document.getElementById('districtDropdown');
-
-            if (query.length < 1) {
-                dropdown.style.display = 'none';
-                return;
-            }
-
-            districtDebounceTimer = setTimeout(() => {
-                const districts = window.districtsData;
-                if (!districts) return;
-
-                // Filter matching districts
-                const matches = [];
-                districts.forEach((sedeIds, districtName) => {
-                    if (districtName.toLowerCase().includes(query)) {
-                        matches.push({ name: districtName, count: sedeIds.length });
-                    }
-                });
-
-                // Sort by count descending
-                matches.sort((a, b) => b.count - a.count);
-
-                if (matches.length > 0) {
-                    dropdown.innerHTML = matches.slice(0, 10).map(d => `
-                        <div class="district-item" onclick="filterByDistrict('${d.name.replace(/'/g, "\\'")}')">
-                            <span><i class="bi bi-pin-map text-primary"></i> ${d.name}</span>
-                            <span class="count">${d.count}</span>
-                        </div>
-                    `).join('');
-                    dropdown.style.display = 'block';
-                } else {
-                    dropdown.innerHTML = '<div class="district-item text-muted"><i class="bi bi-info-circle"></i> No se encontraron distritos</div>';
-                    dropdown.style.display = 'block';
-                }
-            }, 150);
-        });
-
-        // Hide dropdown when clicking outside
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('#districtSearch') && !e.target.closest('#districtDropdown')) {
-                document.getElementById('districtDropdown').style.display = 'none';
-            }
-        });
-
-        // Filter by district
-        function filterByDistrict(districtName) {
-            document.getElementById('districtSearch').value = '';
-            document.getElementById('districtDropdown').style.display = 'none';
-
-            activeDistrictFilter = districtName;
-
-            applyFilters();
-
-            // Show active filter badge
-            document.getElementById('activeDistrictFilter').innerHTML = `
-                <div class="active-filter">
-                    <i class="bi bi-pin-map-fill"></i> ${districtName}
-                    <button onclick="clearDistrictFilter()" title="Quitar filtro">&times;</button>
-                </div>
-            `;
-
-        }
-
-        // Filter by frequency
-        let activeFrequencyFilter = null;
-
-        function filterByFrequency(frecuencia) {
-            // Toggle if same frequency clicked
-            if (activeFrequencyFilter === frecuencia) {
-                clearFrequencyFilter();
-                return;
-            }
-
-            activeFrequencyFilter = frecuencia;
-
-            // Update legend visual
-            document.querySelectorAll('.legend-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.frecuencia === frecuencia) {
-                    item.classList.add('active');
-                }
-            });
-
-            applyFilters();
-
-            // Show active filter badge
-            const color = frequencyColors[frecuencia] || '#212121';
-            const label = frequencyLabels[frecuencia] || 'Sin contrato';
-            document.getElementById('activeFrequencyFilter').innerHTML = `
-                <div class="active-filter" style="background: ${color};">
-                    <i class="bi bi-clock"></i> ${label}
-                    <button onclick="clearFrequencyFilter()" title="Quitar filtro">&times;</button>
-                </div>
-            `;
-        }
-
-        function clearFrequencyFilter() {
-            activeFrequencyFilter = null;
-            document.getElementById('activeFrequencyFilter').innerHTML = '';
-            document.querySelectorAll('.legend-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            applyFilters();
-        }
-
-        // Clear district filter
-        function clearDistrictFilter() {
-            activeDistrictFilter = null;
-            document.getElementById('activeDistrictFilter').innerHTML = '';
-            applyFilters();
-        }
-
-        // Apply combined filters (district + frequency)
-        function applyFilters() {
-            const districtSedeIds = activeDistrictFilter ? (window.districtsData.get(activeDistrictFilter) || []) : null;
-
-            let visibleCount = 0;
-            const visibleBounds = new google.maps.LatLngBounds();
-
-            Object.entries(allMarkers).forEach(([id, markerInfo]) => {
-                const marker = markerInfo.marker;
-                const sedeId = parseInt(id);
-                const sede = sedesData[sedeId];
-                const sedeFrecuencia = (sede?.frecuencia || 'null').toLowerCase();
-
-                // Check district filter
-                const passesDistrictFilter = !districtSedeIds || districtSedeIds.includes(sedeId);
-
-                // Check frequency filter
-                const passesFrequencyFilter = !activeFrequencyFilter ||
-                    (activeFrequencyFilter === 'null' ? !sede?.frecuencia : sedeFrecuencia === activeFrequencyFilter);
-
-                if (passesDistrictFilter && passesFrequencyFilter) {
-                    marker.setMap(map);
-                    visibleCount++;
-                    visibleBounds.extend(marker.getPosition());
-                } else {
-                    marker.setMap(null);
-                }
-            });
-
-            // Zoom to filtered bounds
-            if (visibleCount > 0 && !visibleBounds.isEmpty()) {
-                map.fitBounds(visibleBounds);
-            }
-
-            updateFilteredCount(visibleCount);
-        }
-
-        function updateFilteredCount(visibleCount) {
-            const filteredCountEl = document.getElementById('filteredCount');
-            if (activeDistrictFilter || activeFrequencyFilter) {
-                filteredCountEl.innerHTML = `Mostrando: <strong>${visibleCount}</strong> de ${Object.keys(sedesData).length}`;
-                filteredCountEl.style.display = 'block';
-            } else {
-                filteredCountEl.style.display = 'none';
-            }
-        }
-
-        // Load on start
-        loadGoogleMapsAPI().then(() => {
-            initMap();
-            initSearch();
-            loadSedes();
-        }).catch(err => console.error('Error loading Google Maps:', err));
+        loadMaps();
     </script>
 </body>
 

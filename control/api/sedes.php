@@ -45,11 +45,18 @@ function getAll() {
     if ($mapa) {
         $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.provincia,
                 s.coordenadas_gps, e.razon_social as empresa_razon_social,
-                (SELECT cs.frecuencia FROM ContratoServicio cs 
-                 WHERE cs.id_sede = s.id_sede AND cs.activo = 1 
-                 ORDER BY cs.fecha_inicio DESC LIMIT 1) as frecuencia
+                cs.frecuencia
                 FROM Sede s
                 INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+                LEFT JOIN (
+                    SELECT id_sede, frecuencia
+                    FROM ContratoServicio cs1
+                    WHERE activo = 1 AND NOT EXISTS (
+                        SELECT 1 FROM ContratoServicio cs2 
+                        WHERE cs2.id_sede = cs1.id_sede AND cs2.activo = 1 AND cs2.fecha_inicio > cs1.fecha_inicio
+                    )
+                    GROUP BY id_sede
+                ) cs ON s.id_sede = cs.id_sede
                 WHERE s.coordenadas_gps IS NOT NULL AND s.coordenadas_gps != '' AND s.activo = 1
                 ORDER BY s.nombre_comercial";
         $data = db()->query($sql);
