@@ -35,13 +35,6 @@ class MapController {
             disableDefaultUI: true, // Custom UI for cleaner look
             zoomControl: false,      // We'll add custom zoom buttons
             mapId: "DEMO_MAP_ID",    // Required for AdvancedMarkerElement
-            styles: [
-                {
-                    featureType: "poi",
-                    elementType: "labels",
-                    stylers: [{ visibility: "off" }]
-                }
-            ]
         };
 
         this.map = new Map(document.getElementById('map'), mapOptions);
@@ -120,10 +113,10 @@ class MapController {
                 position,
                 map: this.map,
                 title: sede.nombre_comercial,
-                content: pin.element
+                content: pin
             });
 
-            marker.addListener('click', () => {
+            marker.addListener('gmp-click', () => {
                 this.showInfoWindow(marker, sede);
             });
 
@@ -196,7 +189,7 @@ class MapController {
                             position: pos,
                             map: this.map,
                             title: "Mi ubicación",
-                            content: pin.element
+                            content: pin
                         });
 
                         this.userCircle = new google.maps.Circle({
