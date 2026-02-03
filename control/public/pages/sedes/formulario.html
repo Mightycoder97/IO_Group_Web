@@ -432,6 +432,8 @@
                             <div class="mt-4">
                                 <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i>
                                     Guardar</button>
+                                <button type="button" class="btn btn-danger" id="btnDelete" style="display: none;"
+                                    onclick="deleteClient()"><i class="bi bi-trash"></i> Eliminar</button>
                                 <a href="listar.html" class="btn btn-secondary">Cancelar</a>
                             </div>
                         </form>
@@ -707,6 +709,7 @@
             document.getElementById('newClientSection').style.display = 'none';
             document.getElementById('existingEmpresaSection').style.display = 'block';
             document.getElementById('activeToggleContainer').style.display = 'block';
+            document.getElementById('btnDelete').style.display = 'inline-block';
             loadData();
         }
         async function loadData() {
@@ -868,6 +871,27 @@
                 showToast('Error guardando', 'danger');
             }
         });
+
+        // ========== DELETE FUNCTION ==========
+        async function deleteClient() {
+            if (!confirm('¿Estás seguro de que deseas eliminar este cliente?')) {
+                return;
+            }
+            try {
+                const result = await api.delete(`/sedes/${id}`);
+                if (result.success) {
+                    showToast('Cliente eliminado correctamente');
+                    setTimeout(() => {
+                        window.location.href = 'listar.html';
+                    }, 1500);
+                } else {
+                    showToast(result.message || 'Error al eliminar', 'danger');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Error al procesar la solicitud', 'danger');
+            }
+        }
     </script>
 </body>
 
