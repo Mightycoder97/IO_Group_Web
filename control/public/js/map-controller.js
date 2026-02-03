@@ -70,12 +70,48 @@ class MapController {
             const response = await api.get('/sedes?mapa=1');
             if (response.success) {
                 this.sedes = response.data;
-                this.renderMarkers(this.sedes);
+                this.applyFilters();
             }
         } catch (error) {
             console.error('Error loading sedes:', error);
             showToast('Error cargando mapa', 'danger');
         }
+    }
+
+    applyFilters() {
+        if (!this.sedes) return;
+
+        const filtered = this.sedes.filter(s => {
+            // 1. Search Filter
+            const matchesSearch = !this.filters.search ||
+                (s.nombre_comercial && s.nombre_comercial.toLowerCase().includes(this.filters.search)) ||
+                (s.direccion && s.direccion.toLowerCase().includes(this.filters.search)) ||
+                (s.distrito && s.distrito.toLowerCase().includes(this.filters.search));
+
+            if (!matchesSearch) return false;
+
+            // 2. Frequency Filter
+            if (s.frecuencia && !this.filters.frequencies.has(s.frecuencia)) return false;
+
+            // 3. Nearby Filter
+            if (this.filters.nearby && this.filters.userLocation && s.coordenadas_gps) {
+                const [lat, lng] = s.coordenadas_gps.split(',').map(Number);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const distance = this.calculateDistance(
+                        this.filters.userLocation.lat,
+                        this.filters.userLocation.lng,
+                        lat,
+                        lng
+                    );
+                    if (distance > this.filters.radius) return false;
+                }
+            }
+
+            return true;
+        });
+
+        document.getElementById('totalSedes').textContent = filtered.length;
+        this.renderMarkers(filtered);
     }
 
     renderMarkers(sedesToRender) {
@@ -147,23 +183,24 @@ class MapController {
         this.infoWindow.open(this.map, marker);
     }
 
-    filterSedes(query) {
-        query = query.toLowerCase().trim();
-        if (!query) {
-            this.renderMarkers(this.sedes);
-            return;
-        }
-
-        const filtered = this.sedes.filter(s =>
-            (s.nombre_comercial && s.nombre_comercial.toLowerCase().includes(query)) ||
-            (s.direccion && s.direccion.toLowerCase().includes(query)) ||
-            (s.distrito && s.distrito.toLowerCase().includes(query))
-        );
-
-        this.renderMarkers(filtered);
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the earth in km
+        const dLat = this.deg2rad(lat2 - lat1);
+        const dLon = this.deg2rad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const d = R * c; // Distance in km
+        return d;
     }
 
-    locateUser() {
+    deg2rad(deg) {
+        return deg * (Math.PI / 180);
+    }
+
+    getUserLocation(silent = false) {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -172,46 +209,54 @@ class MapController {
                         lng: position.coords.longitude,
                     };
 
-                    if (!this.userMarker) {
-                        const pin = new this.PinElement({
-                            scale: 1,
-                            background: '#4285F4',
-                            borderColor: '#ffffff',
-                            glyphColor: '#ffffff'
-                        });
+                    this.filters.userLocation = pos;
+                    this.updateUserMarker(pos);
 
-                        this.userMarker = new this.AdvancedMarkerElement({
-                            position: pos,
-                            map: this.map,
-                            title: "Mi ubicación",
-                            content: pin
-                        });
-
-                        this.userCircle = new google.maps.Circle({
-                            strokeColor: "#4285F4",
-                            strokeOpacity: 0.8,
-                            strokeWeight: 1,
-                            fillColor: "#4285F4",
-                            fillOpacity: 0.15,
-                            map: this.map,
-                            center: pos,
-                            radius: position.coords.accuracy,
-                        });
-                    } else {
-                        this.userMarker.position = pos;
-                        this.userCircle.setCenter(pos);
-                        this.userCircle.setRadius(position.coords.accuracy);
+                    if (!silent) {
+                        this.map.panTo(pos);
+                        this.map.setZoom(15);
+                        // If nearby toggle is on, re-apply filters now that we have location
+                        if (this.filters.nearby) this.applyFilters();
                     }
-
-                    this.map.panTo(pos);
-                    this.map.setZoom(15);
                 },
                 () => {
-                    showToast('Error al obtener ubicación', 'warning');
+                    if (!silent) showToast('Error al obtener ubicación', 'warning');
                 }
             );
         } else {
-            showToast('Tu navegador no soporta geolocalización', 'warning');
+            if (!silent) showToast('Tu navegador no soporta geolocalización', 'warning');
+        }
+    }
+
+    updateUserMarker(pos) {
+        if (!this.userMarker) {
+            const pin = new this.PinElement({
+                scale: 1,
+                background: '#4285F4',
+                borderColor: '#ffffff',
+                glyphColor: '#ffffff'
+            });
+
+            this.userMarker = new this.AdvancedMarkerElement({
+                position: pos,
+                map: this.map,
+                title: "Mi ubicación",
+                content: pin
+            });
+
+            this.userCircle = new google.maps.Circle({
+                strokeColor: "#4285F4",
+                strokeOpacity: 0.8,
+                strokeWeight: 1,
+                fillColor: "#4285F4",
+                fillOpacity: 0.15,
+                map: this.map,
+                center: pos,
+                radius: 500, // Default visual radius or derived from accuracy
+            });
+        } else {
+            this.userMarker.position = pos;
+            this.userCircle.setCenter(pos);
         }
     }
 }

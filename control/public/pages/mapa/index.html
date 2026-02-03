@@ -29,10 +29,8 @@
         }
 
         #map-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+            position: relative;
+            width: auto;
             height: 100%;
             z-index: 1;
         }
@@ -160,47 +158,101 @@
         <!-- Sidebar (Hidden by default on mobile, existing logic handles it) -->
         <aside class="sidebar" id="sidebar"></aside>
 
-        <main class="main-content">
+        <main class="main-content d-flex">
             <!-- Sidebar Toggle (Floating) -->
             <button class="btn btn-light shadow-sm sidebar-toggle-btn d-md-none" onclick="toggleSidebar()">
                 <i class="bi bi-list"></i>
             </button>
 
+            <!-- Tools Sidebar -->
+            <aside class="map-tools-sidebar bg-white border-end p-3 d-flex flex-column"
+                style="width: 350px; min-width: 350px; z-index: 5; overflow-y: auto;">
+                <h5 class="mb-4 fw-bold text-success"><i class="bi bi-map-fill me-2"></i>Mapa de Sedes</h5>
+
+                <!-- Search -->
+                <div class="mb-4">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Buscar</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i
+                                class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 bg-light" id="mapSearchInput"
+                            placeholder="Sede, distrito, dirección...">
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="mb-4">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Frecuencia de Recojo</label>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input filter-frequency" type="checkbox" value="Diario"
+                                id="freqDiario" checked>
+                            <label class="form-check-label" for="freqDiario">Diario</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-frequency" type="checkbox" value="Interdiario"
+                                id="freqInterdiario" checked>
+                            <label class="form-check-label" for="freqInterdiario">Interdiario</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-frequency" type="checkbox" value="Semanal"
+                                id="freqSemanal" checked>
+                            <label class="form-check-label" for="freqSemanal">Semanal</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input filter-frequency" type="checkbox" value="Quincenal"
+                                id="freqQuincenal" checked>
+                            <label class="form-check-label" for="freqQuincenal">Quincenal</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nearby -->
+                <div class="mb-auto">
+                    <label class="form-label small text-muted text-uppercase fw-bold">Clientes Cercanos</label>
+                    <div class="card bg-light border-0">
+                        <div class="card-body p-3">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="nearbyToggle">
+                                <label class="form-check-label" for="nearbyToggle">Activar filtro de cercanía</label>
+                            </div>
+                            <input type="range" class="form-range" min="1" max="50" step="1" id="radiusRange" disabled>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>1 km</span>
+                                <span id="radiusValue">10 km</span>
+                                <span>50 km</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="mt-3 pt-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Mostrando:</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                            <i class="bi bi-geo-alt"></i> <span id="totalSedes">-</span> Sedes
+                        </span>
+                    </div>
+                </div>
+            </aside>
+
             <!-- Map Container -->
-            <div id="map-wrapper">
+            <div id="map-wrapper" class="flex-grow-1 position-relative">
                 <div id="map"></div>
-            </div>
 
-            <!-- Floating Search Panel -->
-            <div class="glass-panel">
-                <h5 class="mb-3 fw-bold text-success"><i class="bi bi-map-fill me-2"></i>Mapa de Sedes</h5>
-
-                <div class="search-box">
-                    <i class="bi bi-search"></i>
-                    <input type="text" class="form-control" id="mapSearchInput" placeholder="Buscar sede, distrito...">
+                <!-- Floating Controls -->
+                <div class="floating-controls" style="bottom: 30px; right: 20px;">
+                    <button class="map-btn primary" id="btnMyLocation" title="Mi Ubicación">
+                        <i class="bi bi-crosshair"></i>
+                    </button>
+                    <button class="map-btn" id="zoomIn" title="Acercar">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                    <button class="map-btn" id="zoomOut" title="Alejar">
+                        <i class="bi bi-dash-lg"></i>
+                    </button>
                 </div>
-
-                <div class="d-flex gap-2">
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
-                        <i class="bi bi-broadcast"></i> <span id="totalSedes">-</span> Sedes
-                    </span>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">
-                        <i class="bi bi-geo-alt"></i> En vivo
-                    </span>
-                </div>
-            </div>
-
-            <!-- Floating Controls -->
-            <div class="floating-controls">
-                <button class="map-btn primary" id="btnMyLocation" title="Mi Ubicación">
-                    <i class="bi bi-crosshair"></i>
-                </button>
-                <button class="map-btn" id="zoomIn" title="Acercar">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
-                <button class="map-btn" id="zoomOut" title="Alejar">
-                    <i class="bi bi-dash-lg"></i>
-                </button>
             </div>
         </main>
     </div>
