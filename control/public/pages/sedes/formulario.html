@@ -738,6 +738,17 @@
                     document.getElementById('contacto_telefono').value = result.data.contacto_telefono || '';
                     document.getElementById('contacto_email').value = result.data.contacto_email || '';
                     document.getElementById('sede_activo').checked = (result.data.activo == 1);
+
+                    // Load contract data (take the most recent one)
+                    if (result.data.contratos && result.data.contratos.length > 0) {
+                        const contrato = result.data.contratos[0];
+                        document.getElementById('contrato_fecha_inicio').value = contrato.fecha_inicio || '';
+                        document.getElementById('contrato_fecha_fin').value = contrato.fecha_fin || '';
+                        document.getElementById('contrato_frecuencia').value = contrato.frecuencia || 'diario';
+                        document.getElementById('contrato_tarifa').value = contrato.tarifa || '';
+                        document.getElementById('contrato_tipo_tarifa').value = contrato.tipo_tarifa || 'por_servicio';
+                        document.getElementById('contrato_peso_limite').value = contrato.peso_limite_kg || '';
+                    }
                     // If coordinates exist, show marker on map
                     if (result.data.coordenadas_gps) {
                         const coords = result.data.coordenadas_gps.split(',').map(c => parseFloat(c.trim()));
@@ -751,7 +762,7 @@
             }
         }
         // ========== DATE CALCULATION ==========
-        document.getElementById('contrato_fecha_inicio').addEventListener('change', function() {
+        document.getElementById('contrato_fecha_inicio').addEventListener('change', function () {
             const startDate = this.value;
             if (startDate) {
                 const date = new Date(startDate);
