@@ -158,17 +158,17 @@
         <!-- Sidebar (Hidden by default on mobile, existing logic handles it) -->
         <aside class="sidebar" id="sidebar"></aside>
 
-        <main class="main-content d-flex">
+        <main class="main-content position-relative">
             <!-- Sidebar Toggle (Floating) -->
             <button class="btn btn-light shadow-sm sidebar-toggle-btn d-md-none" onclick="toggleSidebar()">
                 <i class="bi bi-list"></i>
             </button>
 
             <!-- Tools Sidebar -->
-            <aside class="map-tools-sidebar bg-white border-end d-flex flex-column shadow-sm"
-                style="width: 350px; min-width: 350px; z-index: 5; height: 100vh; overflow-y: hidden;">
+            <aside class="map-tools-sidebar d-flex flex-column shadow-lg"
+                style="position: absolute; top: 0; left: 0; width: 350px; min-width: 350px; z-index: 10; height: 100vh; overflow-y: hidden; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
                 <!-- Header -->
-                <div class="p-4 border-bottom bg-white">
+                <div class="p-4 border-bottom bg-transparent">
                     <h5 class="fw-bold text-success mb-3"><i class="bi bi-map-fill me-2"></i>Mapa de Sedes</h5>
                     <label class="form-label small text-muted text-uppercase fw-bold">Buscar</label>
                     <div class="input-group">
@@ -242,7 +242,7 @@
             </aside>
 
             <!-- Map Container -->
-            <div id="map-wrapper" class="flex-grow-1 position-relative">
+            <div id="map-wrapper" class="position-absolute w-100 h-100 top-0 start-0">
                 <div id="map"></div>
 
                 <!-- Floating Controls -->
