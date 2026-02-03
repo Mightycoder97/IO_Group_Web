@@ -118,6 +118,7 @@ class MapController {
     }
 
     populateDistrictFilter() {
+        console.log('Populating district filter... Sedes count:', this.sedes ? this.sedes.length : 0);
         if (!this.sedes || this.sedes.length === 0) return;
 
         const container = document.getElementById('districtFilters');
@@ -192,7 +193,7 @@ class MapController {
                 background: '#0d6efd', // Blue
                 borderColor: '#ffffff',
                 glyphColor: '#ffffff',
-                glyph: '★'
+                glyphText: '★'
             });
 
             this.referenceMarker = new this.AdvancedMarkerElement({
