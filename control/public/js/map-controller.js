@@ -95,10 +95,7 @@ class MapController {
             // So we primarily rely on selection.
             // But if they type "Starbucks" and don't select, maybe we still want to filter local names?
             // Let's keep local filter on 'input' for simple text matching of existing pins.
-            searchInput.addEventListener('input', (e) => {
-                this.filters.search = e.target.value.toLowerCase().trim();
-                this.applyFilters();
-            });
+
         }
 
         // Map Click -> Place Reference Pin
@@ -267,15 +264,7 @@ class MapController {
         if (!this.sedes) return;
 
         const filtered = this.sedes.filter(s => {
-            // 1. Search Filter
-            const matchesSearch = !this.filters.search ||
-                (s.nombre_comercial && s.nombre_comercial.toLowerCase().includes(this.filters.search)) ||
-                (s.direccion && s.direccion.toLowerCase().includes(this.filters.search)) ||
-                (s.distrito && s.distrito.toLowerCase().includes(this.filters.search));
-
-            if (!matchesSearch) return false;
-
-            // 2. Frequency Filter (Case Insensitive)
+            // 1. Frequency Filter (Case Insensitive)
             if (s.frecuencia) {
                 const normalizedFreq = s.frecuencia.trim().toLowerCase();
                 const activeFilters = Array.from(this.filters.frequencies).map(f => f.toLowerCase());
