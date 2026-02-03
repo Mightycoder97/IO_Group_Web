@@ -62,6 +62,7 @@ class MapController {
         const searchInput = document.getElementById('mapSearchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
+                console.log('Search input:', e.target.value);
                 this.filters.search = e.target.value.toLowerCase().trim();
                 this.applyFilters();
             });
@@ -97,6 +98,8 @@ class MapController {
                 (s.nombre_comercial && s.nombre_comercial.toLowerCase().includes(this.filters.search)) ||
                 (s.direccion && s.direccion.toLowerCase().includes(this.filters.search)) ||
                 (s.distrito && s.distrito.toLowerCase().includes(this.filters.search));
+
+            if (this.filters.search && matchesSearch) console.log('Match found:', s.nombre_comercial);
 
             if (!matchesSearch) return false;
 
