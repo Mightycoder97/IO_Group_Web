@@ -62,7 +62,6 @@ class MapController {
         const searchInput = document.getElementById('mapSearchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
-                console.log('Search input:', e.target.value);
                 this.filters.search = e.target.value.toLowerCase().trim();
                 this.applyFilters();
             });
@@ -99,8 +98,6 @@ class MapController {
                 (s.direccion && s.direccion.toLowerCase().includes(this.filters.search)) ||
                 (s.distrito && s.distrito.toLowerCase().includes(this.filters.search));
 
-            if (this.filters.search && matchesSearch) console.log('Match found:', s.nombre_comercial);
-
             if (!matchesSearch) return false;
 
             // 2. Frequency Filter (Case Insensitive)
@@ -110,7 +107,12 @@ class MapController {
                 if (!activeFilters.includes(normalizedFreq)) return false;
             }
 
-            // 3. Nearby Filter
+            // 3. District Filter (New)
+            if (this.filters.districts.size > 0) {
+                if (!s.distrito || !this.filters.districts.has(s.distrito)) return false;
+            }
+
+            // 4. Nearby Filter
             if (this.filters.nearby && this.filters.userLocation && s.coordenadas_gps) {
                 const [lat, lng] = s.coordenadas_gps.split(',').map(Number);
                 if (!isNaN(lat) && !isNaN(lng)) {
@@ -128,10 +130,13 @@ class MapController {
         });
 
         document.getElementById('totalSedes').textContent = filtered.length;
-        this.renderMarkers(filtered);
+
+        // Pass 'true' for shouldFitBounds if there is an active search or filter that warrants it
+        const hasActiveSearch = this.filters.search.length > 0;
+        this.renderMarkers(filtered, hasActiveSearch);
     }
 
-    renderMarkers(sedesToRender) {
+    renderMarkers(sedesToRender, shouldFitBounds = false) {
         // Clear existing markers
         if (this.markerCluster) {
             this.markerCluster.clearMarkers();
@@ -140,6 +145,7 @@ class MapController {
         this.markers = [];
 
         const bounds = new google.maps.LatLngBounds();
+        let hasValidBounds = false;
 
         this.markers = sedesToRender.map(sede => {
             if (!sede.coordenadas_gps) return null;
@@ -149,6 +155,7 @@ class MapController {
 
             const position = { lat, lng };
             bounds.extend(position);
+            hasValidBounds = true;
 
             const pin = new this.PinElement({
                 scale: 1,
@@ -174,14 +181,20 @@ class MapController {
         // Add to Clusterer - AdvancedMarkerElement is supported by newer markerclusterer
         if (this.markerCluster) {
             this.markerCluster.addMarkers(this.markers);
-        } else {
-            // No action needed as map is set properly in constructor
         }
 
-        // Fit bounds only on initial load or empty search
-        if (!this.hasFitBounds && this.markers.length > 0) {
+        // Fit bounds logic: Initial load OR explicit request (search)
+        if ((!this.hasFitBounds || shouldFitBounds) && hasValidBounds && this.markers.length > 0) {
             this.map.fitBounds(bounds);
             this.hasFitBounds = true;
+
+            // If only 1 marker, zoom out a bit so it's not too close
+            if (this.markers.length === 1) {
+                const listener = google.maps.event.addListener(this.map, "idle", () => {
+                    if (this.map.getZoom() > 16) this.map.setZoom(16);
+                    google.maps.event.removeListener(listener);
+                });
+            }
         }
     }
 
