@@ -15,6 +15,15 @@ class MapController {
         this.defaultLocation = { lat: -12.0464, lng: -77.0428 }; // Lima
         this.searchDebounce = null;
         this.MarkerClass = null; // Store Marker class
+
+        // Filter State
+        this.filters = {
+            search: '',
+            frequencies: new Set(['Diario', 'Interdiario', 'Semanal', 'Quincenal']),
+            nearby: false,
+            radius: 10, // km
+            userLocation: null
+        };
     }
 
     async init() {
