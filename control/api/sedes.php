@@ -290,20 +290,11 @@ function delete($id) {
         return;
     }
     
-    // Check for active contracts
-    $contratos = db()->queryOne(
-        "SELECT COUNT(*) as count FROM ContratoServicio WHERE id_sede = ? AND activo = 1",
+    // Cascade soft delete: Deactivate associated contracts
+    db()->execute(
+        "UPDATE ContratoServicio SET activo = 0, fecha_modificacion = NOW() WHERE id_sede = ?",
         [$id]
     );
-    
-    if ($contratos['count'] > 0) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se puede eliminar: la sede tiene contratos activos asociados'
-        ]);
-        return;
-    }
     
     db()->execute(
         "UPDATE Sede SET activo = 0, fecha_modificacion = NOW() WHERE id_sede = ?",
