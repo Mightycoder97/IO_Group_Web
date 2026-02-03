@@ -170,17 +170,28 @@
                 <!-- Header -->
                 <div class="p-4 border-bottom bg-transparent">
                     <h5 class="fw-bold text-success mb-3"><i class="bi bi-map-fill me-2"></i>Mapa de Sedes</h5>
-                    <label class="form-label small text-muted text-uppercase fw-bold">Buscar</label>
+                    <label class="form-label small text-muted text-uppercase fw-bold">Buscar Dirección</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i
                                 class="bi bi-search text-muted"></i></span>
                         <input type="text" class="form-control border-start-0 bg-light" id="mapSearchInput"
-                            placeholder="Sede, distrito, dirección...">
+                            placeholder="Av. Javier Prado, Calle Las Begonias...">
                     </div>
                 </div>
 
                 <!-- Scrollable Content -->
                 <div class="p-4 overflow-y-auto flex-grow-1">
+                    <!-- District Filter -->
+                    <div class="mb-4">
+                        <label class="form-label small text-muted text-uppercase fw-bold">Filtrar por Distrito</label>
+                        <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 150px;"
+                            id="districtFilters">
+                            <div class="text-center text-muted small py-2">
+                                <div class="spinner-border spinner-border-sm" role="status"></div> Cargando distritos...
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Filters -->
                     <div class="mb-4">
                         <label class="form-label small text-muted text-uppercase fw-bold">Frecuencia de Recojo</label>
