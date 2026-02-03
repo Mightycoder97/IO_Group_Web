@@ -120,11 +120,12 @@ try {
     $contrato = $data['contrato'] ?? [];
     if (!empty($contrato['fecha_inicio']) && !empty($contrato['frecuencia']) && isset($contrato['tarifa'])) {
         db()->insert(
-            "INSERT INTO ContratoServicio (id_sede, fecha_inicio, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, activo) 
-             VALUES (?, ?, ?, ?, ?, ?, 1)",
+            "INSERT INTO ContratoServicio (id_sede, fecha_inicio, fecha_fin, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, activo) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
             [
                 $sedeId,
                 $contrato['fecha_inicio'],
+                $contrato['fecha_fin'] ?? null,
                 $contrato['frecuencia'],
                 $contrato['peso_limite_kg'] ?? null,
                 $contrato['tarifa'],

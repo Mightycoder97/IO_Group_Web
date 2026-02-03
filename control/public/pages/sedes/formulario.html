@@ -320,6 +320,12 @@
                                     <input type="text" class="form-control" id="nombre_comercial" required
                                         placeholder="Ej: Clínica Sonrisa - Miraflores">
                                 </div>
+                                <div class="col-md-12" id="activeToggleContainer" style="display: none;">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="sede_activo" checked>
+                                        <label class="form-check-label" for="sede_activo">Sede Activa</label>
+                                    </div>
+                                </div>
                                 <div class="col-md-12 address-search">
                                     <label class="form-label">Dirección * <small class="text-muted">(busca y
                                             selecciona)</small></label>
@@ -388,6 +394,10 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Fecha Inicio *</label>
                                     <input type="date" class="form-control" id="contrato_fecha_inicio" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha Fin (1 año por defecto)</label>
+                                    <input type="date" class="form-control" id="contrato_fecha_fin" readonly>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Frecuencia *</label>
@@ -696,6 +706,7 @@
             document.getElementById('modeToggle').style.display = 'none';
             document.getElementById('newClientSection').style.display = 'none';
             document.getElementById('existingEmpresaSection').style.display = 'block';
+            document.getElementById('activeToggleContainer').style.display = 'block';
             loadData();
         }
         async function loadData() {
@@ -724,7 +735,9 @@
                     document.getElementById('coordenadas_gps').value = result.data.coordenadas_gps || '';
                     document.getElementById('contacto_nombre').value = result.data.contacto_nombre || '';
                     document.getElementById('contacto_telefono').value = result.data.contacto_telefono || '';
+                    document.getElementById('contacto_telefono').value = result.data.contacto_telefono || '';
                     document.getElementById('contacto_email').value = result.data.contacto_email || '';
+                    document.getElementById('sede_activo').checked = (result.data.activo == 1);
                     // If coordinates exist, show marker on map
                     if (result.data.coordenadas_gps) {
                         const coords = result.data.coordenadas_gps.split(',').map(c => parseFloat(c.trim()));
@@ -737,6 +750,16 @@
                 showToast('Error cargando datos', 'danger');
             }
         }
+        // ========== DATE CALCULATION ==========
+        document.getElementById('contrato_fecha_inicio').addEventListener('change', function() {
+            const startDate = this.value;
+            if (startDate) {
+                const date = new Date(startDate);
+                date.setFullYear(date.getFullYear() + 1);
+                document.getElementById('contrato_fecha_fin').value = date.toISOString().split('T')[0];
+            }
+        });
+
         // ========== FORM SUBMIT ==========
         document.getElementById('dataForm').addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -754,12 +777,16 @@
                 coordenadas_gps: document.getElementById('coordenadas_gps').value || null,
                 contacto_nombre: document.getElementById('contacto_nombre').value || null,
                 contacto_telefono: document.getElementById('contacto_telefono').value || null,
-                contacto_email: document.getElementById('contacto_email').value || null
+                contacto_nombre: document.getElementById('contacto_nombre').value || null,
+                contacto_telefono: document.getElementById('contacto_telefono').value || null,
+                contacto_email: document.getElementById('contacto_email').value || null,
+                activo: document.getElementById('sede_activo').checked
             };
 
             // Build contrato data
             const contratoData = {
                 fecha_inicio: document.getElementById('contrato_fecha_inicio').value,
+                fecha_fin: document.getElementById('contrato_fecha_fin').value,
                 frecuencia: document.getElementById('contrato_frecuencia').value,
                 tarifa: document.getElementById('contrato_tarifa').value,
                 tipo_tarifa: document.getElementById('contrato_tipo_tarifa').value,
