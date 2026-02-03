@@ -69,19 +69,31 @@ class MapController {
     }
 
     setupEventListeners() {
-        // Search Input
-        // Search Input
-        // Search Input (Local + Geocode on Enter)
+        // Search Input (Google Places Autocomplete)
         const searchInput = document.getElementById('mapSearchInput');
         if (searchInput) {
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    this.handleGeocodeSearch(e.target.value);
-                }
+            // Initialize Autocomplete
+            const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+                componentRestrictions: { country: "pe" },
+                fields: ["formatted_address", "geometry", "name"],
+                strictBounds: false,
             });
 
+            // Bind to map bounds (bias results to current view)
+            autocomplete.bindTo("bounds", this.map);
+
+            // Listen for selection
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                this.handlePlaceSelect(place);
+            });
+
+            // Keep local filter if user just types but doesn't select?
+            // User requested: "una vez que seleccione una de la lista desplegable... se ubicara"
+            // So we primarily rely on selection.
+            // But if they type "Starbucks" and don't select, maybe we still want to filter local names?
+            // Let's keep local filter on 'input' for simple text matching of existing pins.
             searchInput.addEventListener('input', (e) => {
-                // Local filter logic
                 this.filters.search = e.target.value.toLowerCase().trim();
                 this.applyFilters();
             });
@@ -92,6 +104,10 @@ class MapController {
             if (e.latLng) {
                 const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
                 this.setReferenceLocation(pos, "Ubicación seleccionada");
+                // DO NOT auto-enable nearby on click unless requested.
+                // User requirement: "que me deje poner un pin... y ver los clientes cercanos"
+                // Usually implies they might want to toggle it manually or it auto-updates if already on.
+                // Keeping current behavior: updates reference, if nearby is on it updates results.
             }
         });
 
@@ -101,6 +117,50 @@ class MapController {
 
         // My Location
         document.getElementById('btnMyLocation')?.addEventListener('click', () => this.locateUser());
+    }
+
+    handlePlaceSelect(place) {
+        if (!place.geometry || !place.geometry.location) {
+            // User entered the name of a Place that was not suggested and passed the 'place_changed' event
+            showToast("No se encontraron detalles para: " + place.name, 'warning');
+            return;
+        }
+
+        const pos = {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng()
+        };
+
+        // 1. Set Reference Location
+        this.setReferenceLocation(pos, place.name || place.formatted_address);
+
+        // 2. Center Map
+        if (place.geometry.viewport) {
+            this.map.fitBounds(place.geometry.viewport);
+        } else {
+            this.map.setCenter(pos);
+            this.map.setZoom(15);
+        }
+
+        // 3. Auto-Enable Nearby Filter
+        const nearbyToggle = document.getElementById('nearbyToggle');
+        if (nearbyToggle && !nearbyToggle.checked) {
+            nearbyToggle.checked = true;
+            this.filters.nearby = true;
+            document.getElementById('radiusRange').disabled = false;
+        }
+
+        // 4. Apply Filters (Nearby filter usage is triggered by setReferenceLocation + this.filters.nearby update)
+        this.applyFilters();
+
+        // Clear search text filter so it doesn't hide nearby results that don't match the address string
+        // (Use case: Search "Av Arequipa", select it. We want to see ALL clients near Av Arequipa, not clients named "Av Arequipa")
+        this.filters.search = '';
+        // We might want to keep the text in the input for visibility, but clear the *filter* logic
+        // But setupEventListeners listens to 'input'. 
+        // If we leave text in input, 'input' event won't fire automatically, so filters.search remains as is.
+        // We should explicitly clear `this.filters.search`.
+        // Optionally, clear the input or leave it? Leaving it is better UX for "Location: X".
     }
 
     async loadSedes() {
@@ -161,27 +221,7 @@ class MapController {
         });
     }
 
-    handleGeocodeSearch(address) {
-        if (!address) return;
 
-        const request = {
-            address: address,
-            componentRestrictions: { country: 'PE' }
-        };
-
-        this.geocoder.geocode(request, (results, status) => {
-            if (status === 'OK' && results[0]) {
-                const location = results[0].geometry.location;
-                const pos = { lat: location.lat(), lng: location.lng() };
-
-                this.setReferenceLocation(pos, results[0].formatted_address);
-                this.map.setCenter(pos);
-                this.map.setZoom(14);
-            } else {
-                showToast('No se encontró la dirección: ' + status, 'warning');
-            }
-        });
-    }
 
     setReferenceLocation(pos, title = "Referencia") {
         this.referenceLocation = pos;
