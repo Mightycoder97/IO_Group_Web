@@ -40,11 +40,6 @@ class MapController {
         this.map = new Map(document.getElementById('map'), mapOptions);
         this.infoWindow = new google.maps.InfoWindow();
 
-        // Initialize Marker Clusterer
-        if (window.markerClusterer) {
-            this.markerCluster = new markerClusterer.MarkerClusterer({ map: this.map, markers: [] });
-        }
-
         this.AdvancedMarkerElement = AdvancedMarkerElement;
         this.PinElement = PinElement;
 
