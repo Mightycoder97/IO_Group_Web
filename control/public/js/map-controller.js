@@ -58,11 +58,12 @@ class MapController {
 
     setupEventListeners() {
         // Search Input
+        // Search Input
         const searchInput = document.getElementById('mapSearchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
-                clearTimeout(this.searchDebounce);
-                this.searchDebounce = setTimeout(() => this.filterSedes(e.target.value), 300);
+                this.filters.search = e.target.value.toLowerCase().trim();
+                this.applyFilters();
             });
         }
 
