@@ -380,7 +380,11 @@
                             direccion: s.direccion || '',
                             distrito: s.distrito || '',
                             tarifa: s.tarifa_servicio || 0,
+<<<<<<< HEAD
                             telefono: s.telefono || s.contacto_telefono || '',
+=======
+                            telefono: s.contacto_telefono || '',
+>>>>>>> 96add6b (update)
                             peso: '', obs: ''
                         }));
                     }
@@ -433,7 +437,11 @@
         function sendWhatsApp(sedeId) {
             const cliente = clientesEnRuta.find(c => c.id_sede == sedeId) || allClientes.find(c => c.id_sede == sedeId);
             if (!cliente) return;
+<<<<<<< HEAD
             const telefono = cliente.telefono || cliente.contacto_telefono;
+=======
+            const telefono = cliente.contacto_telefono;
+>>>>>>> 96add6b (update)
             if (!telefono) {
                 showToast('Cliente sin teléfono registrado', 'warning');
                 return;
@@ -452,7 +460,11 @@
             }
             let count = 0;
             clientesEnRuta.forEach((cliente, i) => {
+<<<<<<< HEAD
                 const telefono = cliente.telefono || cliente.contacto_telefono;
+=======
+                const telefono = cliente.contacto_telefono;
+>>>>>>> 96add6b (update)
                 if (telefono) {
                     count++;
                     setTimeout(() => sendWhatsApp(cliente.id_sede), i * 1500);
@@ -518,7 +530,11 @@
                     direccion: cliente.direccion || '',
                     distrito: cliente.distrito || '',
                     tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
+<<<<<<< HEAD
                     telefono: cliente.contacto_telefono || cliente.telefono || '',
+=======
+                    telefono: cliente.contacto_telefono || '',
+>>>>>>> 96add6b (update)
                     tipo_pago: '', obs: ''
                 });
                 renderClientesTable();

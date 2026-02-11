@@ -40,9 +40,15 @@ function getAll() {
     $params = [];
     
     if ($search) {
+<<<<<<< HEAD
         $sql .= " AND (c.nombre LIKE ? OR c.dni LIKE ? OR c.email LIKE ?)";
         $searchTerm = "%$search%";
         $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm]);
+=======
+        $sql .= " AND (c.nombre LIKE ? OR c.dni LIKE ?)";
+        $searchTerm = "%$search%";
+        $params = array_merge($params, [$searchTerm, $searchTerm]);
+>>>>>>> 96add6b (update)
     }
     
     if ($activo !== null) {
@@ -91,10 +97,13 @@ function create() {
     
     $nombre = $data['nombre'] ?? '';
     $dni = $data['dni'] ?? null;
+<<<<<<< HEAD
     $telefono = $data['telefono'] ?? null;
     $email = $data['email'] ?? null;
     $direccion = $data['direccion'] ?? null;
     $notas = $data['notas'] ?? null;
+=======
+>>>>>>> 96add6b (update)
     
     if (empty($nombre)) {
         http_response_code(400);
@@ -113,8 +122,13 @@ function create() {
     }
     
     $id = db()->insert(
+<<<<<<< HEAD
         "INSERT INTO Cliente (nombre, dni, telefono, email, direccion, notas) VALUES (?, ?, ?, ?, ?, ?)",
         [$nombre, $dni, $telefono, $email, $direccion, $notas]
+=======
+        "INSERT INTO Cliente (nombre, dni) VALUES (?, ?)",
+        [$nombre, $dni]
+>>>>>>> 96add6b (update)
     );
     
     // Audit log
@@ -151,10 +165,13 @@ function update($id) {
     
     $nombre = $data['nombre'] ?? $existing['nombre'];
     $dni = $data['dni'] ?? $existing['dni'];
+<<<<<<< HEAD
     $telefono = $data['telefono'] ?? $existing['telefono'];
     $email = $data['email'] ?? $existing['email'];
     $direccion = $data['direccion'] ?? $existing['direccion'];
     $notas = $data['notas'] ?? $existing['notas'];
+=======
+>>>>>>> 96add6b (update)
     $activo = isset($data['activo']) ? $data['activo'] : $existing['activo'];
     
     // Check DNI uniqueness for other clients
@@ -171,8 +188,13 @@ function update($id) {
     }
     
     db()->execute(
+<<<<<<< HEAD
         "UPDATE Cliente SET nombre = ?, dni = ?, telefono = ?, email = ?, direccion = ?, notas = ?, activo = ?, fecha_modificacion = NOW() WHERE id_cliente = ?",
         [$nombre, $dni, $telefono, $email, $direccion, $notas, $activo, $id]
+=======
+        "UPDATE Cliente SET nombre = ?, dni = ?, activo = ?, fecha_modificacion = NOW() WHERE id_cliente = ?",
+        [$nombre, $dni, $activo, $id]
+>>>>>>> 96add6b (update)
     );
     
     // Audit log

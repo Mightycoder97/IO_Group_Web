@@ -72,6 +72,7 @@ try {
         $clienteId = $existingEmpresa['id_cliente'];
     } else {
         // 1. Create Cliente
+<<<<<<< HEAD
         // Schema: nombre, tipo_documento, dni, telefono, email, direccion, notas, activo
         $clienteId = db()->insert(
             "INSERT INTO Cliente (nombre, dni, telefono, email) VALUES (?, ?, ?, ?)",
@@ -80,6 +81,14 @@ try {
                 $cliente['documento'] ?? null,
                 $cliente['telefono'] ?? null,
                 $cliente['email'] ?? null
+=======
+        // Schema: nombre, tipo_documento, dni, activo
+        $clienteId = db()->insert(
+            "INSERT INTO Cliente (nombre, dni) VALUES (?, ?)",
+            [
+                $cliente['nombre_completo'],
+                $cliente['documento'] ?? null
+>>>>>>> 96add6b (update)
             ]
         );
         
