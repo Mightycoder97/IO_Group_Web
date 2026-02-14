@@ -19,9 +19,25 @@ def clean_value(val):
         return f"'{val.strftime('%Y-%m-%d %H:%M:%S')}'"
     return f"'{str(val)}'"
 
+def parse_estado(val):
+    if not val:
+        return "'programado'"
+    
+    s = str(val).strip().upper()
+    
+    # Operational Status Mapping
+    # Keywords indicating the service was ABORTED/NOT DONE
+    if any(x in s for x in ['NO SE HIZO', 'NO UBICO', 'NO LE HICIERON', 'REPROGRAMADO', 'ANULADO', 'FALSO FLETE']):
+        return "'cancelado'"
+    
+    # "CANCELADO" in accounting means PAID, so the service was COMPLETED.
+    # Payment methods also imply completion.
+    return "'completado'"
+
 def generate_sql():
     print(f"Reading {EXCEL_FILE}...")
     wb = openpyxl.load_workbook(EXCEL_FILE, read_only=True, data_only=True)
+
     
     with open(OUTPUT_SQL, 'w', encoding='utf-8') as f:
         f.write("-- Import script for DATA 2026\n")
@@ -183,9 +199,20 @@ def generate_sql():
                 val_contrato = clean_value(row[5])
                 val_mes = clean_value(row[6])
                 val_fej = clean_value(row[7])
-                val_estado = clean_value(row[8])
+                
+                # Parse operational state from Excel 'estado' column
+                val_estado = parse_estado(row[8])
+                
                 # row[9] is observaciones - SKIP NOT IN SCHEMA ANYMORE
                 val_ep = clean_value(row[10]) # estado_pago
+                
+                # Logic: If state is 'completado' (meaning it was PAID/CANCELADO), 
+                # and estado_pago is NULL/empty, default it to 'pagado'
+                if val_ep == 'NULL' and val_estado == "'completado'":
+                    val_ep = "'pagado'"
+                elif val_ep == 'NULL':
+                    val_ep = "'pendiente'"
+                
                 val_fp = clean_value(row[11]) # fecha_pago
                 val_forma = clean_value(row[12]) # forma_pago
                 val_desc = clean_value(row[13]) # descripcion_residuo
