@@ -26,7 +26,7 @@ class MapController {
 
         // Filter State
         this.filters = {
-            search: '', // Now used for CLIENT search (filter list)
+            search: '',
             frequencies: new Set(['Diario', 'Interdiario', 'Semanal', 'Quincenal', 'Mensual']),
             districts: new Set(),
             nearby: false,
@@ -42,21 +42,19 @@ class MapController {
             return;
         }
 
-        // Import libraries (Required for loading=async)
-        // Import libraries (Required for loading=async)
         const { Map } = await google.maps.importLibrary("maps");
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
         const { Autocomplete } = await google.maps.importLibrary("places");
 
-        // Initialize Geocoder
         this.geocoder = new google.maps.Geocoder();
 
         const mapOptions = {
             center: this.defaultLocation,
             zoom: 12,
-            disableDefaultUI: true, // Custom UI for cleaner look
-            zoomControl: false,      // We'll add custom zoom buttons
-            mapId: "DEMO_MAP_ID",    // Required for AdvancedMarkerElement
+            disableDefaultUI: true,
+            zoomControl: false,
+            mapId: "DEMO_MAP_ID",
+            clickableIcons: false, // Reduce clutter
         };
 
         this.map = new Map(document.getElementById('map'), mapOptions);
@@ -71,56 +69,80 @@ class MapController {
     }
 
     setupEventListeners() {
-        // Frequency Filters
-        document.querySelectorAll('.filter-frequency').forEach(checkbox => {
-            checkbox.addEventListener('change', (e) => {
-                const freq = e.target.value;
-                if (e.target.checked) {
-                    this.filters.frequencies.add(freq);
-                } else {
+        // 1. Frequency Chips
+        document.querySelectorAll('.filter-chip').forEach(btn => {
+            // Set initial state based on default filters
+            const freq = btn.dataset.freq;
+            this.updateChipVisuals(btn, this.filters.frequencies.has(freq));
+
+            btn.addEventListener('click', (e) => {
+                const freq = e.target.dataset.freq;
+                if (this.filters.frequencies.has(freq)) {
                     this.filters.frequencies.delete(freq);
+                    this.updateChipVisuals(e.target, false);
+                } else {
+                    this.filters.frequencies.add(freq);
+                    this.updateChipVisuals(e.target, true);
                 }
                 this.applyFilters();
             });
         });
 
-        // Search Input (Google Places Autocomplete)
+        // 2. Search Input (Google Places Autocomplete)
         const searchInput = document.getElementById('mapSearchInput');
         if (searchInput) {
-            // Initialize Autocomplete
             const autocomplete = new this.Autocomplete(searchInput, {
                 componentRestrictions: { country: "pe" },
                 fields: ["formatted_address", "geometry", "name"],
                 strictBounds: false,
             });
-
-            // Bind to map bounds (bias results to current view)
             autocomplete.bindTo("bounds", this.map);
-
-            // Listen for selection
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
                 this.handlePlaceSelect(place);
             });
-
-            // Keep local filter if user just types but doesn't select?
-            // User requested: "una vez que seleccione una de la lista desplegable... se ubicara"
-            // So we primarily rely on selection.
-            // But if they type "Starbucks" and don't select, maybe we still want to filter local names?
-            // Let's keep local filter on 'input' for simple text matching of existing pins.
-
         }
 
-        // Map Click -> Place Reference Pin
+        // 3. Map Click -> Place Reference Pin + Auto Nearby
         this.map.addListener('click', (e) => {
             if (e.latLng) {
                 const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-                this.setReferenceLocation(pos, "Ubicación seleccionada");
-                // DO NOT auto-enable nearby on click unless requested.
-                // User requirement: "que me deje poner un pin... y ver los clientes cercanos"
-                // Usually implies they might want to toggle it manually or it auto-updates if already on.
-                // Keeping current behavior: updates reference, if nearby is on it updates results.
+
+                // Activate Nearby Mode automatically
+                this.activateNearbyMode(pos, "Ubicación seleccionada");
             }
+        });
+
+        // 4. Nearby Toggle
+        const nearbyToggle = document.getElementById('nearbyToggle');
+        if (nearbyToggle) {
+            nearbyToggle.addEventListener('change', (e) => {
+                this.filters.nearby = e.target.checked;
+                this.toggleRadarControls(e.target.checked);
+                this.applyFilters();
+
+                if (e.target.checked && !this.referenceLocation && !this.filters.userLocation) {
+                    showToast('Haz clic en el mapa para establecer el centro', 'info');
+                }
+            });
+        }
+
+        // 5. Radius Slider
+        const radiusRange = document.getElementById('radiusRange');
+        if (radiusRange) {
+            radiusRange.addEventListener('input', (e) => {
+                this.filters.radius = parseInt(e.target.value);
+                document.getElementById('radiusValue').textContent = this.filters.radius;
+                // Debounce filter application for slider? Or live? Live is fine for < 1000 items
+                this.applyFilters();
+            });
+        }
+
+        // 6. Clear Districts
+        document.getElementById('clearDistrictsBtn')?.addEventListener('click', () => {
+            this.filters.districts.clear();
+            document.querySelectorAll('.filter-district').forEach(cb => cb.checked = false);
+            this.applyFilters();
         });
 
         // Custom Zoom Controls
@@ -131,9 +153,44 @@ class MapController {
         document.getElementById('btnMyLocation')?.addEventListener('click', () => this.locateUser());
     }
 
+    updateChipVisuals(btn, isActive) {
+        if (isActive) {
+            btn.classList.remove('btn-light', 'text-dark');
+            btn.classList.add('btn-success', 'text-white');
+        } else {
+            btn.classList.remove('btn-success', 'text-white');
+            btn.classList.add('btn-light', 'text-dark');
+        }
+    }
+
+    toggleRadarControls(enabled) {
+        const controls = document.getElementById('radarControls');
+        const range = document.getElementById('radiusRange');
+        if (enabled) {
+            controls.classList.remove('opacity-50');
+            range.disabled = false;
+        } else {
+            controls.classList.add('opacity-50');
+            range.disabled = true;
+        }
+    }
+
+    activateNearbyMode(pos, title) {
+        // Set State
+        this.filters.nearby = true;
+
+        // Update UI
+        const toggle = document.getElementById('nearbyToggle');
+        if (toggle && !toggle.checked) toggle.checked = true;
+        this.toggleRadarControls(true);
+
+        // Set Reference and Filter
+        this.setReferenceLocation(pos, title);
+        // setReference calls applyFilters if nearby is true
+    }
+
     handlePlaceSelect(place) {
         if (!place.geometry || !place.geometry.location) {
-            // User entered the name of a Place that was not suggested and passed the 'place_changed' event
             showToast("No se encontraron detalles para: " + place.name, 'warning');
             return;
         }
@@ -143,10 +200,6 @@ class MapController {
             lng: place.geometry.location.lng()
         };
 
-        // 1. Set Reference Location
-        this.setReferenceLocation(pos, place.name || place.formatted_address);
-
-        // 2. Center Map
         if (place.geometry.viewport) {
             this.map.fitBounds(place.geometry.viewport);
         } else {
@@ -154,25 +207,11 @@ class MapController {
             this.map.setZoom(15);
         }
 
-        // 3. Auto-Enable Nearby Filter
-        const nearbyToggle = document.getElementById('nearbyToggle');
-        if (nearbyToggle && !nearbyToggle.checked) {
-            nearbyToggle.checked = true;
-            this.filters.nearby = true;
-            document.getElementById('radiusRange').disabled = false;
-        }
+        // Auto-Enable Nearby
+        this.activateNearbyMode(pos, place.name || place.formatted_address);
 
-        // 4. Apply Filters (Nearby filter usage is triggered by setReferenceLocation + this.filters.nearby update)
-        this.applyFilters();
-
-        // Clear search text filter so it doesn't hide nearby results that don't match the address string
-        // (Use case: Search "Av Arequipa", select it. We want to see ALL clients near Av Arequipa, not clients named "Av Arequipa")
+        // Reset text search filter to allow seeing nearby items
         this.filters.search = '';
-        // We might want to keep the text in the input for visibility, but clear the *filter* logic
-        // But setupEventListeners listens to 'input'. 
-        // If we leave text in input, 'input' event won't fire automatically, so filters.search remains as is.
-        // We should explicitly clear `this.filters.search`.
-        // Optionally, clear the input or leave it? Leaving it is better UX for "Location: X".
     }
 
     async loadSedes() {
@@ -190,16 +229,11 @@ class MapController {
     }
 
     populateDistrictFilter() {
-        console.log('Populating district filter... Sedes count:', this.sedes ? this.sedes.length : 0);
         if (!this.sedes || this.sedes.length === 0) return;
 
         const container = document.getElementById('districtFilters');
-        if (!container) {
-            console.warn('District filter container not found');
-            return;
-        }
+        if (!container) return;
 
-        // Extract and sort districts
         const districts = [...new Set(this.sedes.map(s => s.distrito).filter(d => d && d.trim().length > 0))].sort();
 
         if (districts.length === 0) {
@@ -207,12 +241,12 @@ class MapController {
             return;
         }
 
-        container.innerHTML = ''; // Clear loading spinner
+        container.innerHTML = '';
 
         districts.forEach(dist => {
             const safeId = dist.replace(/[^a-zA-Z0-9]/g, '_');
             const div = document.createElement('div');
-            div.className = 'form-check';
+            div.className = 'form-check mb-1';
             div.innerHTML = `
                 <input class="form-check-input filter-district" type="checkbox" value="${dist}" id="dist_${safeId}">
                 <label class="form-check-label small" for="dist_${safeId}">${dist}</label>
@@ -232,8 +266,6 @@ class MapController {
             });
         });
     }
-
-
 
     setReferenceLocation(pos, title = "Referencia") {
         this.referenceLocation = pos;
@@ -267,7 +299,7 @@ class MapController {
             this.referenceMarker.title = title;
         }
 
-        // If nearby filter is ON, re-calc distances
+        // Apply filters
         if (this.filters.nearby) {
             this.applyFilters();
         }
@@ -277,20 +309,19 @@ class MapController {
         if (!this.sedes) return;
 
         const filtered = this.sedes.filter(s => {
-            // 1. Frequency Filter (Case Insensitive)
+            // 1. Frequency Filter
             if (s.frecuencia) {
                 const normalizedFreq = s.frecuencia.trim().toLowerCase();
                 const activeFilters = Array.from(this.filters.frequencies).map(f => f.toLowerCase());
                 if (!activeFilters.includes(normalizedFreq)) return false;
             }
 
-            // 3. District Filter (New)
+            // 2. District Filter
             if (this.filters.districts.size > 0) {
                 if (!s.distrito || !this.filters.districts.has(s.distrito)) return false;
             }
 
-            // 4. Nearby Filter
-            // If nearby is enabled, we need a center point (reference or user location)
+            // 3. Nearby Filter
             let centerPoint = this.referenceLocation || this.filters.userLocation;
 
             if (this.filters.nearby && centerPoint && s.coordenadas_gps) {
@@ -311,13 +342,15 @@ class MapController {
 
         document.getElementById('totalSedes').textContent = filtered.length;
 
-        // Pass 'true' for shouldFitBounds if there is an active search or filter that warrants it
-        const hasActiveSearch = this.filters.search.length > 0;
-        this.renderMarkers(filtered, hasActiveSearch);
+        // Only fit bounds if searching or if nearby is OFF (if nearby is ON, we usually want to stay focused on the center)
+        // Actually, if nearby is ON, it's nice to see what's found. 
+        // Let's rely on standard fitBounds logic but maybe not re-fit every single time we toggle a chip?
+        // For now, consistent behavior:
+        this.renderMarkers(filtered, false);
     }
 
-    renderMarkers(sedesToRender, shouldFitBounds = false) {
-        // Clear existing markers
+    renderMarkers(sedesToRender, forceFit = false) {
+        // Clear existing
         if (this.markerCluster) {
             this.markerCluster.clearMarkers();
         }
@@ -329,7 +362,6 @@ class MapController {
 
         this.markers = sedesToRender.map(sede => {
             if (!sede.coordenadas_gps) return null;
-
             const [lat, lng] = sede.coordenadas_gps.split(',').map(Number);
             if (isNaN(lat) || isNaN(lng)) return null;
 
@@ -358,22 +390,19 @@ class MapController {
             return marker;
         }).filter(m => m !== null);
 
-        // Add to Clusterer - AdvancedMarkerElement is supported by newer markerclusterer
         if (this.markerCluster) {
             this.markerCluster.addMarkers(this.markers);
         }
 
-        // Fit bounds logic: Initial load OR explicit request (search)
-        if ((!this.hasFitBounds || shouldFitBounds) && hasValidBounds && this.markers.length > 0) {
-            this.map.fitBounds(bounds);
-            this.hasFitBounds = true;
-
-            // If only 1 marker, zoom out a bit so it's not too close
-            if (this.markers.length === 1) {
-                const listener = google.maps.event.addListener(this.map, "idle", () => {
-                    if (this.map.getZoom() > 16) this.map.setZoom(16);
-                    google.maps.event.removeListener(listener);
-                });
+        // Re-fit logic
+        // If it's a "Force Fit" (search result) -> Do it.
+        // If it's the first load -> Do it.
+        // If we are filtering, we generally might not want to jump around unless results are 0 or changed drastically?
+        // Simpler: fit bounds if forceFit is true OR if we have not fit yet.
+        if (forceFit || !this.hasFitBounds) {
+            if (hasValidBounds && this.markers.length > 0) {
+                this.map.fitBounds(bounds);
+                this.hasFitBounds = true;
             }
         }
     }
@@ -394,7 +423,7 @@ class MapController {
     }
 
     calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the earth in km
+        const R = 6371;
         const dLat = this.deg2rad(lat2 - lat1);
         const dLon = this.deg2rad(lon2 - lon1);
         const a =
@@ -402,8 +431,7 @@ class MapController {
             Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const d = R * c; // Distance in km
-        return d;
+        return R * c;
     }
 
     deg2rad(deg) {
@@ -462,7 +490,7 @@ class MapController {
                 fillOpacity: 0.15,
                 map: this.map,
                 center: pos,
-                radius: 500, // Default visual radius or derived from accuracy
+                radius: 500,
             });
         } else {
             this.userMarker.position = pos;
