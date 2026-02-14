@@ -34,7 +34,6 @@ switch ($action) {
 
 function getDashboard() {
     try {
-    try {
         // Cache current date values to avoid repeated function calls in SQL
         // Allow overriding via GET params
         $filterMonth = isset($_GET['month']) ? intval($_GET['month']) : intval(date('m'));
