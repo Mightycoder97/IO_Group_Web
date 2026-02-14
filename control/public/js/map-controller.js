@@ -71,6 +71,19 @@ class MapController {
     }
 
     setupEventListeners() {
+        // Frequency Filters
+        document.querySelectorAll('.filter-frequency').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const freq = e.target.value;
+                if (e.target.checked) {
+                    this.filters.frequencies.add(freq);
+                } else {
+                    this.filters.frequencies.delete(freq);
+                }
+                this.applyFilters();
+            });
+        });
+
         // Search Input (Google Places Autocomplete)
         const searchInput = document.getElementById('mapSearchInput');
         if (searchInput) {
