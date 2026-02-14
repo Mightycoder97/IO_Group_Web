@@ -247,6 +247,18 @@ function create() {
     }
     
     $id = db()->insert(
+        "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, codigo_servicio, fecha_programada, fecha_ejecucion, hora_llegada, hora_salida, estado) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+            $id_sede,
+            $data['id_ruta'] ?? null,
+            $id_planta,
+            $data['id_contrato'] ?? null,
+            $data['codigo_servicio'] ?? null,
+            $fecha_programada,
+            $data['fecha_ejecucion'] ?? null,
+            $data['hora_llegada'] ?? null,
+            $data['hora_salida'] ?? null,
             $data['estado'] ?? 'programado'
         ]
     );
