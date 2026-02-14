@@ -37,9 +37,28 @@ header('Content-Type: text/html; charset=utf-8');
             $coords = db()->queryOne("SELECT COUNT(*) as c FROM Sede WHERE coordenadas_gps IS NOT NULL AND coordenadas_gps != ''");
             echo "<tr><td>Sedes with Coordinates</td><td>" . $coords['c'] . "</td></tr>";
 
-            // Active Sedes with Coordinates (Map Query)
-            $mapQuery = db()->queryOne("SELECT COUNT(*) as c FROM Sede WHERE activo = 1 AND coordenadas_gps IS NOT NULL AND coordenadas_gps != ''");
-            echo "<tr><td><strong>Map Query Candidates</strong> (Active + Coords)</td><td><strong>" . $mapQuery['c'] . "</strong></td></tr>";
+            // Active Sedes with Coordinates (Map Query Logic - simple)
+            $mapQuerySimple = db()->queryOne("SELECT COUNT(*) as c FROM Sede WHERE activo = 1 AND coordenadas_gps IS NOT NULL AND coordenadas_gps != ''");
+            echo "<tr><td><strong>Map Candidates (Simple)</strong> (Active + Coords)</td><td><strong>" . $mapQuerySimple['c'] . "</strong></td></tr>";
+            
+            // Active Sedes with Coordinates AND Valid Empresa (INNER JOIN)
+            $mapQueryJoin = db()->queryOne("
+                SELECT COUNT(*) as c 
+                FROM Sede s
+                INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+                WHERE s.activo = 1 AND s.coordenadas_gps IS NOT NULL AND s.coordenadas_gps != ''
+            ");
+            echo "<tr><td><strong>Map Query Actual (with INNER JOIN Empresa)</strong></td><td><strong style='color:red'>" . $mapQueryJoin['c'] . "</strong></td></tr>";
+
+            // Count Orphans
+            $orphans = db()->queryOne("
+                SELECT COUNT(*) as c 
+                FROM Sede s
+                LEFT JOIN Empresa e ON s.id_empresa = e.id_empresa
+                WHERE s.activo = 1 AND e.id_empresa IS NULL
+            ");
+            echo "<tr><td>Orphaned Sedes (Active but no valid Empresa)</td><td>" . $orphans['c'] . "</td></tr>";
+
             
             // Inactive with Coordinates
             $inactiveCoords = db()->queryOne("SELECT COUNT(*) as c FROM Sede WHERE activo = 0 AND coordenadas_gps IS NOT NULL AND coordenadas_gps != ''");
