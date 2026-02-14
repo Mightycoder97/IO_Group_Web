@@ -34,9 +34,22 @@ switch ($action) {
 
 function getDashboard() {
     try {
+    try {
         // Cache current date values to avoid repeated function calls in SQL
-        $currentYear = date('Y');
-        $currentMonth = date('m');
+        // Allow overriding via GET params
+        $filterMonth = isset($_GET['month']) ? intval($_GET['month']) : intval(date('m'));
+        $filterYear = isset($_GET['year']) ? intval($_GET['year']) : intval(date('Y'));
+        
+        // Ensure valid range
+        if ($filterMonth < 1 || $filterMonth > 12) $filterMonth = intval(date('m'));
+        if ($filterYear < 2000 || $filterYear > 2100) $filterYear = intval(date('Y'));
+        
+        $currentMonth = $filterMonth;
+        $currentYear = $filterYear;
+        
+        // Build date string for SQL comparisons
+        $filterDateStart = "$currentYear-$currentMonth-01";
+        $filterDateEnd = date("Y-m-t", strtotime($filterDateStart));
         
         // Sedes activas
         $sedesActivasResult = db()->queryOne("SELECT COUNT(*) as count FROM Sede WHERE activo = 1");
@@ -47,8 +60,8 @@ function getDashboard() {
             "SELECT COUNT(DISTINCT s.id_sede) as count 
              FROM Servicio sv 
              INNER JOIN Sede s ON sv.id_sede = s.id_sede
-             WHERE MONTH(sv.fecha_ejecucion) = MONTH(CURDATE()) 
-             AND YEAR(sv.fecha_ejecucion) = YEAR(CURDATE())
+             WHERE MONTH(sv.fecha_ejecucion) = $currentMonth 
+             AND YEAR(sv.fecha_ejecucion) = $currentYear
              AND sv.estado IN ('completado', 'en_curso', 'programado')"
         );
         $sedesConServicio = $sedesConServicioResult ? $sedesConServicioResult['count'] : 0;
@@ -56,7 +69,8 @@ function getDashboard() {
         // Porcentaje de sedes con servicio
         $porcentajeServicio = $sedesActivas > 0 ? round(($sedesConServicio / $sedesActivas) * 100, 1) : 0;
         
-        // Facturación últimos 12 meses - basado en servicios con factura y tarifa de sede
+        // Facturación últimos 12 meses (ending at selected date)
+        // Logic: Show 12 months up to the selected year/month
         $facturacion12Meses = db()->query(
             "SELECT 
                 DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
@@ -66,7 +80,8 @@ function getDashboard() {
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              INNER JOIN Factura f ON s.id_servicio = f.id_servicio
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.fecha_ejecucion >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+             WHERE s.fecha_ejecucion <= '$filterDateEnd' 
+             AND s.fecha_ejecucion >= DATE_SUB('$filterDateStart', INTERVAL 11 MONTH)
              AND s.estado = 'completado'
              GROUP BY DATE_FORMAT(s.fecha_ejecucion, '%Y-%m')
              ORDER BY mes ASC"
@@ -74,6 +89,8 @@ function getDashboard() {
         if (!$facturacion12Meses) $facturacion12Meses = [];
         
         // Pagos pendientes - servicios completados con estado_pago pendiente
+        // GLOBAL (All time) - usually user wants total pending regardless of month selected
+        // But let's keep it global as it is debt.
         $pagosPendientes = db()->queryOne(
             "SELECT 
                 COUNT(*) as total_facturas,
@@ -88,7 +105,7 @@ function getDashboard() {
             $pagosPendientes = ['total_facturas' => 0, 'monto_total' => 0];
         }
         
-        // Empresas con pagos pendientes
+        // Empresas con pagos pendientes (GLOBAL)
         $empresasPendientesResult = db()->queryOne(
             "SELECT COUNT(DISTINCT e.id_empresa) as count
              FROM Servicio s
@@ -99,23 +116,23 @@ function getDashboard() {
         );
         $empresasPendientes = $empresasPendientesResult ? $empresasPendientesResult['count'] : 0;
         
-        // Ingresos este mes - servicios completados y pagados este mes
+        // Ingresos este mes seleccionado
         $ingresosMesResult = db()->queryOne(
             "SELECT COALESCE(SUM(cs.tarifa), 0) as total 
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE MONTH(s.fecha_ejecucion) = MONTH(CURDATE()) 
-             AND YEAR(s.fecha_ejecucion) = YEAR(CURDATE())
+             WHERE MONTH(s.fecha_ejecucion) = $currentMonth 
+             AND YEAR(s.fecha_ejecucion) = $currentYear
              AND s.estado = 'completado'
              AND s.estado_pago = 'pagado'"
         );
         $ingresosMes = $ingresosMesResult ? $ingresosMesResult['total'] : 0;
         
-        // Servicios este mes - usando fecha_ejecucion
+        // Servicios este mes
         $serviciosMesResult = db()->queryOne(
             "SELECT COUNT(*) as count FROM Servicio 
-             WHERE MONTH(fecha_ejecucion) = MONTH(CURDATE()) AND YEAR(fecha_ejecucion) = YEAR(CURDATE())"
+             WHERE MONTH(fecha_ejecucion) = $currentMonth AND YEAR(fecha_ejecucion) = $currentYear"
         );
         $serviciosMes = $serviciosMesResult ? $serviciosMesResult['count'] : 0;
         
@@ -126,20 +143,25 @@ function getDashboard() {
                 COALESCE(SUM(CASE WHEN estado = 'en_curso' THEN 1 ELSE 0 END), 0) as en_curso,
                 COALESCE(SUM(CASE WHEN estado = 'completado' THEN 1 ELSE 0 END), 0) as completados
              FROM Servicio 
-             WHERE MONTH(fecha_ejecucion) = MONTH(CURDATE()) AND YEAR(fecha_ejecucion) = YEAR(CURDATE())"
+             WHERE MONTH(fecha_ejecucion) = $currentMonth AND YEAR(fecha_ejecucion) = $currentYear"
         );
         $serviciosBreakdown = $serviciosBreakdownResult ?: ['programados' => 0, 'en_curso' => 0, 'completados' => 0];
         
         // Rutas este mes
         $rutasMesResult = db()->queryOne(
             "SELECT COUNT(*) as count FROM Ruta 
-             WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE())"
+             WHERE MONTH(fecha) = $currentMonth AND YEAR(fecha) = $currentYear"
         );
         $rutasMes = $rutasMesResult ? $rutasMesResult['count'] : 0;
         
         echo json_encode([
             'success' => true,
             'data' => [
+                'periodo' => [
+                    'month' => $currentMonth,
+                    'year' => $currentYear,
+                    'month_name' => strftime('%B', strtotime("$currentYear-$currentMonth-01"))
+                ],
                 'sedes_activas' => intval($sedesActivas),
                 'sedes_con_servicio' => intval($sedesConServicio),
                 'porcentaje_servicio' => $porcentajeServicio,

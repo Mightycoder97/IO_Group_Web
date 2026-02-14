@@ -69,15 +69,39 @@
                 <!-- Welcome Header -->
                 <div class="dashboard-header">
                     <div class="row align-items-center">
-                        <div class="col-lg-6">
+                        <div class="col-lg-5">
                             <div class="header-content">
                                 <div class="header-greeting" id="headerGreeting">Buenos días</div>
                                 <h1 class="header-title" id="headerUserName">Bienvenido a IO Control</h1>
                                 <div class="header-date" id="headerDate">Cargando...</div>
                             </div>
                         </div>
-                        <div class="col-lg-6">
-                            <div class="header-stats d-flex justify-content-lg-end">
+                        <div class="col-lg-7">
+                            <div class="header-stats d-flex justify-content-lg-end align-items-center gap-3">
+                                <!-- Date Filter -->
+                                <div class="dashboard-filter d-flex align-items-center gap-2">
+                                    <select class="form-select form-select-sm" id="dashboardMonth"
+                                        onchange="loadDashboard()">
+                                        <option value="1">Enero</option>
+                                        <option value="2">Febrero</option>
+                                        <option value="3">Marzo</option>
+                                        <option value="4">Abril</option>
+                                        <option value="5">Mayo</option>
+                                        <option value="6">Junio</option>
+                                        <option value="7">Julio</option>
+                                        <option value="8">Agosto</option>
+                                        <option value="9">Septiembre</option>
+                                        <option value="10">Octubre</option>
+                                        <option value="11">Noviembre</option>
+                                        <option value="12">Diciembre</option>
+                                    </select>
+                                    <select class="form-select form-select-sm" id="dashboardYear"
+                                        onchange="loadDashboard()">
+                                        <option value="2024">2024</option>
+                                        <option value="2025">2025</option>
+                                        <option value="2026">2026</option>
+                                    </select>
+                                </div>
                                 <div class="header-stat">
                                     <div class="header-stat-value" id="headerServiciosMes">--</div>
                                     <div class="header-stat-label">Servicios del Mes</div>
@@ -257,9 +281,17 @@
             document.getElementById('headerDate').textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
         }
 
+        // Initialize date selectors
+        const today = new Date();
+        document.getElementById('dashboardMonth').value = today.getMonth() + 1;
+        document.getElementById('dashboardYear').value = today.getFullYear();
+
         async function loadDashboard() {
             try {
-                const result = await api.get('/reportes?action=dashboard');
+                const month = document.getElementById('dashboardMonth').value;
+                const year = document.getElementById('dashboardYear').value;
+
+                const result = await api.get(`/reportes?action=dashboard&month=${month}&year=${year}`);
                 if (result.success) {
                     const data = result.data;
 
