@@ -27,7 +27,7 @@ class MapController {
         // Filter State
         this.filters = {
             search: '', // Now used for CLIENT search (filter list)
-            frequencies: new Set(['Diario', 'Interdiario', 'Semanal', 'Quincenal']),
+            frequencies: new Set(['Diario', 'Interdiario', 'Semanal', 'Quincenal', 'Mensual']),
             districts: new Set(),
             nearby: false,
             radius: 10, // km
