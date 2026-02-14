@@ -44,13 +44,14 @@ function getPendientes() {
             COALESCE(s.estado_pago, 'pendiente') as estado_pago,
             s.fecha_pago, s.forma_pago,
             se.nombre_comercial as sede_nombre, 
-            se.contacto_telefono, se.tarifa_servicio, se.distrito, se.direccion,
+            se.contacto_telefono, cs.tarifa as tarifa_servicio, se.distrito, se.direccion,
             e.razon_social as empresa_razon_social,
             COALESCE(gc_stats.num_gestiones, 0) as num_gestiones,
             gc_stats.ultima_gestion
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+            LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
             LEFT JOIN (
                 SELECT id_servicio, 
                        COUNT(*) as num_gestiones,
@@ -58,7 +59,7 @@ function getPendientes() {
                 FROM GestionCobranza 
                 GROUP BY id_servicio
             ) gc_stats ON gc_stats.id_servicio = s.id_servicio
-            WHERE se.tarifa_servicio > 0";
+            WHERE cs.tarifa > 0";
     
     $params = [];
     
@@ -81,18 +82,19 @@ function getPendientes() {
     // Calculate summary stats
     $stats = db()->queryOne("
         SELECT 
-            SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN se.tarifa_servicio ELSE 0 END) as total_pendiente,
+            SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN cs.tarifa ELSE 0 END) as total_pendiente,
             SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' 
                 AND DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 
-                THEN se.tarifa_servicio ELSE 0 END) as total_vencido,
+                THEN cs.tarifa ELSE 0 END) as total_vencido,
             SUM(CASE WHEN s.estado_pago = 'pagado' 
                 AND MONTH(s.fecha_pago) = MONTH(CURDATE()) 
                 AND YEAR(s.fecha_pago) = YEAR(CURDATE())
-                THEN se.tarifa_servicio ELSE 0 END) as cobrado_mes,
+                THEN cs.tarifa ELSE 0 END) as cobrado_mes,
             COUNT(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN 1 END) as count_pendientes
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
-        WHERE se.tarifa_servicio > 0
+        LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+        WHERE cs.tarifa > 0
     ");
     
     echo json_encode([
@@ -221,12 +223,13 @@ function getReporteDiario() {
     $pagos = db()->queryOne("
         SELECT 
             COUNT(*) as cantidad,
-            SUM(se.tarifa_servicio) as total,
-            SUM(CASE WHEN s.forma_pago = 'transferencia' THEN se.tarifa_servicio ELSE 0 END) as transferencia,
-            SUM(CASE WHEN s.forma_pago IN ('yape', 'plin') THEN se.tarifa_servicio ELSE 0 END) as yape_plin,
-            SUM(CASE WHEN s.forma_pago = 'efectivo' THEN se.tarifa_servicio ELSE 0 END) as efectivo
+            SUM(cs.tarifa) as total,
+            SUM(CASE WHEN s.forma_pago = 'transferencia' THEN cs.tarifa ELSE 0 END) as transferencia,
+            SUM(CASE WHEN s.forma_pago IN ('yape', 'plin') THEN cs.tarifa ELSE 0 END) as yape_plin,
+            SUM(CASE WHEN s.forma_pago = 'efectivo' THEN cs.tarifa ELSE 0 END) as efectivo
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
+        LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
         WHERE s.fecha_pago = ? AND s.estado_pago = 'pagado'
     ", [$fecha]);
     
@@ -234,12 +237,13 @@ function getReporteDiario() {
     $pendientes = db()->queryOne("
         SELECT 
             COUNT(*) as cantidad,
-            SUM(se.tarifa_servicio) as total,
-            SUM(CASE WHEN DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 THEN se.tarifa_servicio ELSE 0 END) as vencido
+            SUM(cs.tarifa) as total,
+            SUM(CASE WHEN DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 THEN cs.tarifa ELSE 0 END) as vencido
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
+        LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
         WHERE COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
-        AND se.tarifa_servicio > 0
+        AND cs.tarifa > 0
     ");
     
     echo json_encode([

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,6 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
 </head>
+
 <body class="control-app">
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
@@ -34,8 +36,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -104,10 +110,7 @@
                                         <option value="cancelado">Cancelado</option>
                                     </select>
                                 </div>
-                                <div class="col-md-9">
-                                    <label class="form-label">Observaciones</label>
-                                    <input type="text" class="form-control" id="observaciones">
-                                </div>
+
                             </div>
                             <div class="mt-4">
                                 <button type="submit" class="btn btn-primary"><i class="bi bi-check"></i>
@@ -152,7 +155,7 @@
                 const contratos = await api.get('/contratos');
                 if (contratos.success) {
                     document.getElementById('id_contrato').innerHTML = '<option value="">Sin contrato</option>' +
-                        contratos.data.map(c => `<option value="${c.id_contrato}">${c.codigo_contrato || '#' + c.id_contrato} - ${c.sede_nombre || ''}</option>`).join('');
+                        contratos.data.map(c => `<option value="${c.id_contrato}">#${c.id_contrato} - ${c.sede_nombre || ''}</option>`).join('');
                 }
             } catch (err) {
                 console.error('Error loading dropdowns:', err);
@@ -169,7 +172,7 @@
                     const contratos = await api.get(`/contratos?sede=${sedeId}`);
                     if (contratos.success) {
                         document.getElementById('id_contrato').innerHTML = '<option value="">Sin contrato</option>' +
-                            contratos.data.map(c => `<option value="${c.id_contrato}">${c.codigo_contrato || '#' + c.id_contrato}</option>`).join('');
+                            contratos.data.map(c => `<option value="${c.id_contrato}">#${c.id_contrato}</option>`).join('');
                     }
                 } catch (err) { }
             }
@@ -195,7 +198,7 @@
                     document.getElementById('hora_llegada').value = result.data.hora_llegada || '';
                     document.getElementById('hora_salida').value = result.data.hora_salida || '';
                     document.getElementById('estado').value = result.data.estado || 'programado';
-                    document.getElementById('observaciones').value = result.data.observaciones || '';
+
                 }
             } catch (err) {
                 showToast('Error cargando datos', 'danger');
@@ -213,8 +216,7 @@
                 fecha_ejecucion: document.getElementById('fecha_ejecucion').value || null,
                 hora_llegada: document.getElementById('hora_llegada').value || null,
                 hora_salida: document.getElementById('hora_salida').value || null,
-                estado: document.getElementById('estado').value,
-                observaciones: document.getElementById('observaciones').value || null
+                estado: document.getElementById('estado').value
             };
             try {
                 const result = id
@@ -232,4 +234,5 @@
         });
     </script>
 </body>
+
 </html>

@@ -102,11 +102,10 @@ function create() {
     }
     
     $id = db()->insert(
-        "INSERT INTO ContratoServicio (id_sede, codigo_contrato, fecha_inicio, fecha_fin, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, observaciones) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO ContratoServicio (id_sede, fecha_inicio, fecha_fin, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, observaciones) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         [
             $id_sede,
-            $data['codigo_contrato'] ?? null,
             $fecha_inicio,
             $data['fecha_fin'] ?? null,
             $frecuencia,
@@ -150,7 +149,6 @@ function update($id) {
     db()->execute(
         "UPDATE ContratoServicio SET 
             id_sede = COALESCE(?, id_sede),
-            codigo_contrato = ?,
             fecha_inicio = COALESCE(?, fecha_inicio),
             fecha_fin = ?,
             frecuencia = COALESCE(?, frecuencia),
@@ -163,7 +161,6 @@ function update($id) {
          WHERE id_contrato = ?",
         [
             $data['id_sede'] ?? null,
-            $data['codigo_contrato'] ?? $existing['codigo_contrato'],
             $data['fecha_inicio'] ?? null,
             $data['fecha_fin'] ?? $existing['fecha_fin'],
             $data['frecuencia'] ?? null,

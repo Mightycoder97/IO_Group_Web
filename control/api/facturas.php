@@ -40,10 +40,11 @@ function getAll() {
     
     $sql = "SELECT f.id_factura, f.id_servicio, f.numero_factura, f.doc_escaneado, f.fecha_creacion,
             s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
-            se.nombre_comercial as sede_nombre, se.tarifa_servicio
+            se.nombre_comercial as sede_nombre, cs.tarifa as tarifa_servicio
             FROM Factura f
             INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
             INNER JOIN Sede se ON s.id_sede = se.id_sede
+            LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
             WHERE 1=1";
     $params = [];
     
@@ -74,10 +75,11 @@ function getOne($id) {
     
     $factura = db()->queryOne(
         "SELECT f.*, s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
-                se.nombre_comercial as sede_nombre, se.tarifa_servicio
+                se.nombre_comercial as sede_nombre, cs.tarifa as tarifa_servicio
          FROM Factura f
          INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
          INNER JOIN Sede se ON s.id_sede = se.id_sede
+         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
          WHERE f.id_factura = ?",
         [$id]
     );

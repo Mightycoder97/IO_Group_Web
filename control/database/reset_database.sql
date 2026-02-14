@@ -82,7 +82,7 @@ CREATE TABLE `Sede` (
     `contacto_nombre` VARCHAR(100),
     `contacto_telefono` VARCHAR(20),
     `contacto_email` VARCHAR(100),
-    `tarifa_servicio` DECIMAL(10,2) DEFAULT 0,
+
     `activo` TINYINT(1) DEFAULT 1,
     `fecha_creacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `fecha_modificacion` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -163,7 +163,7 @@ CREATE TABLE `Ruta` (
 CREATE TABLE `ContratoServicio` (
     `id_contrato` INT AUTO_INCREMENT PRIMARY KEY,
     `id_sede` INT NOT NULL,
-    `codigo_contrato` VARCHAR(50),
+
     `fecha_inicio` DATE NOT NULL,
     `fecha_fin` DATE,
     `frecuencia` ENUM('diario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual') NOT NULL,

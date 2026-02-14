@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS Sede (
 CREATE TABLE IF NOT EXISTS ContratoServicio (
     id_contrato INT AUTO_INCREMENT PRIMARY KEY,
     id_sede INT NOT NULL,
-    codigo_contrato VARCHAR(50),
+
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE,
     frecuencia ENUM('diario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual') NOT NULL,
@@ -221,7 +221,6 @@ CREATE TABLE IF NOT EXISTS Servicio (
     mes_servicio VARCHAR(50),
     fecha_ejecucion DATE,
     estado ENUM('programado', 'en_curso', 'completado', 'cancelado') DEFAULT 'programado',
-    observaciones TEXT,
     estado_pago ENUM('pendiente', 'pagado') DEFAULT 'pendiente',
     fecha_pago DATE,
     forma_pago VARCHAR(50),
@@ -423,7 +422,7 @@ UNION ALL
 
 SELECT 
     'ContratoServicio',
-    CONCAT('Contrato ', IFNULL(codigo_contrato, id_contrato)),
+    CONCAT('Contrato #', id_contrato),
     (SELECT nombre_comercial FROM Sede WHERE id_sede = ContratoServicio.id_sede),
     fecha_fin,
     DATEDIFF(fecha_fin, CURDATE()),

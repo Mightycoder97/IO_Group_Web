@@ -36,8 +36,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -52,17 +56,11 @@
                     <div class="card-body">
                         <form id="dataForm">
                             <div class="row g-3">
-                                <!-- Cliente y Código -->
-                                <div class="col-md-8">
+                                <div class="col-md-12">
                                     <label class="form-label">Cliente (Sede) *</label>
                                     <select class="form-select" id="id_sede" required>
                                         <option value="">Seleccione...</option>
                                     </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Código de Contrato</label>
-                                    <input type="text" class="form-control" id="codigo_contrato"
-                                        placeholder="CS-2024-001">
                                 </div>
 
                                 <!-- Fechas y Estado -->
@@ -292,7 +290,7 @@
                     setTimeout(() => {
                         document.getElementById('id_sede').value = d.id_sede || '';
                     }, 500);
-                    document.getElementById('codigo_contrato').value = d.codigo_contrato || '';
+
                     document.getElementById('fecha_inicio').value = d.fecha_inicio || '';
                     document.getElementById('fecha_fin').value = d.fecha_fin || '';
                     document.getElementById('frecuencia').value = d.frecuencia || '';
@@ -322,7 +320,7 @@
             e.preventDefault();
             const data = {
                 id_sede: document.getElementById('id_sede').value,
-                codigo_contrato: document.getElementById('codigo_contrato').value || null,
+
                 fecha_inicio: document.getElementById('fecha_inicio').value,
                 fecha_fin: document.getElementById('fecha_fin').value || null,
                 frecuencia: document.getElementById('frecuencia').value,

@@ -49,11 +49,11 @@ function getAll() {
     // Consulta con nueva estructura de Servicio
     $sql = "SELECT s.id_servicio, s.id_sede, s.id_ruta, s.id_planta, s.id_contrato,
             s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
-            s.estado, s.observaciones,
+            s.estado,
             COALESCE(s.estado_pago, 'pendiente') as estado_pago,
             s.fecha_pago, s.forma_pago, s.descripcion_residuo,
             se.nombre_comercial as sede_nombre, se.direccion as sede_direccion, 
-            se.tarifa_servicio, se.contacto_telefono,
+            cs.tarifa as tarifa_servicio, se.contacto_telefono,
             e.razon_social as empresa_razon_social,
             p.nombre_comercial as planta_nombre,
             NULL as numero_contrato,
@@ -63,6 +63,7 @@ function getAll() {
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+            LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
             LEFT JOIN Planta p ON s.id_planta = p.id_planta
             LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
@@ -246,20 +247,7 @@ function create() {
     }
     
     $id = db()->insert(
-        "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, codigo_servicio, fecha_programada, fecha_ejecucion, hora_llegada, hora_salida, estado, observaciones) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-            $id_sede,
-            $data['id_ruta'] ?? null,
-            $id_planta,
-            $data['id_contrato'] ?? null,
-            $data['codigo_servicio'] ?? null,
-            $fecha_programada,
-            $data['fecha_ejecucion'] ?? null,
-            $data['hora_llegada'] ?? null,
-            $data['hora_salida'] ?? null,
-            $data['estado'] ?? 'programado',
-            $data['observaciones'] ?? null
+            $data['estado'] ?? 'programado'
         ]
     );
     
@@ -317,7 +305,6 @@ function update($id) {
             estado = ?,
             estado_pago = ?,
             fecha_pago = ?,
-            observaciones = ?,
             fecha_modificacion = NOW()
          WHERE id_servicio = ?",
         [
@@ -333,7 +320,6 @@ function update($id) {
             $data['estado'] ?? $existing['estado'],
             $data['estado_pago'] ?? $existing['estado_pago'] ?? 'pendiente',
             $data['fecha_pago'] ?? $existing['fecha_pago'],
-            $data['observaciones'] ?? $existing['observaciones'],
             $id
         ]
     );

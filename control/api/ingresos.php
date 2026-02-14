@@ -45,11 +45,12 @@ function getIngresosServicios() {
     $id_sede = $_GET['id_sede'] ?? null;
     
     $sql = "SELECT s.id_servicio, s.mes_servicio, s.fecha_ejecucion, s.fecha_pago, s.forma_pago,
-            se.nombre_comercial as sede_nombre, se.tarifa_servicio as monto,
+            se.nombre_comercial as sede_nombre, cs.tarifa as monto,
             e.razon_social as empresa_razon_social
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+            LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
             WHERE s.estado_pago = 'pagado'
             AND s.fecha_pago BETWEEN ? AND ?";
     $params = [$fecha_desde, $fecha_hasta];
@@ -71,14 +72,15 @@ function getIngresosServicios() {
     // Totales por método de pago
     $totales = db()->queryOne("
         SELECT 
-            SUM(se.tarifa_servicio) as total,
-            SUM(CASE WHEN s.forma_pago = 'transferencia' THEN se.tarifa_servicio ELSE 0 END) as transferencia,
-            SUM(CASE WHEN s.forma_pago IN ('yape', 'plin') THEN se.tarifa_servicio ELSE 0 END) as yape_plin,
-            SUM(CASE WHEN s.forma_pago = 'efectivo' THEN se.tarifa_servicio ELSE 0 END) as efectivo,
-            SUM(CASE WHEN s.forma_pago IS NULL OR s.forma_pago NOT IN ('transferencia', 'yape', 'plin', 'efectivo') THEN se.tarifa_servicio ELSE 0 END) as otros,
+            SUM(cs.tarifa) as total,
+            SUM(CASE WHEN s.forma_pago = 'transferencia' THEN cs.tarifa ELSE 0 END) as transferencia,
+            SUM(CASE WHEN s.forma_pago IN ('yape', 'plin') THEN cs.tarifa ELSE 0 END) as yape_plin,
+            SUM(CASE WHEN s.forma_pago = 'efectivo' THEN cs.tarifa ELSE 0 END) as efectivo,
+            SUM(CASE WHEN s.forma_pago IS NULL OR s.forma_pago NOT IN ('transferencia', 'yape', 'plin', 'efectivo') THEN cs.tarifa ELSE 0 END) as otros,
             COUNT(*) as cantidad
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
+        LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
         WHERE s.estado_pago = 'pagado'
         AND s.fecha_pago BETWEEN ? AND ?
     ", [$fecha_desde, $fecha_hasta]);
@@ -110,7 +112,7 @@ function getIngresosNuevosClientes() {
     $sql = "SELECT i.*, 
             se.nombre_comercial as sede_nombre,
             e.razon_social as empresa_razon_social,
-            c.codigo_contrato, c.tarifa
+            c.tarifa
             FROM IngresoNuevoCliente i
             INNER JOIN Sede se ON i.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
@@ -224,9 +226,10 @@ function getConsolidacion() {
     $servicios = db()->queryOne("
         SELECT 
             COUNT(*) as cantidad,
-            SUM(se.tarifa_servicio) as total
+            SUM(cs.tarifa) as total
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
+        LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
         WHERE s.estado_pago = 'pagado'
         AND s.fecha_pago BETWEEN ? AND ?
     ", [$fecha_desde, $fecha_hasta]);
@@ -245,9 +248,10 @@ function getConsolidacion() {
         SELECT 
             COALESCE(s.forma_pago, 'no_especificado') as metodo,
             COUNT(*) as cantidad,
-            SUM(se.tarifa_servicio) as total
+            SUM(cs.tarifa) as total
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
+        LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
         WHERE s.estado_pago = 'pagado'
         AND s.fecha_pago BETWEEN ? AND ?
         GROUP BY COALESCE(s.forma_pago, 'no_especificado')
@@ -258,9 +262,10 @@ function getConsolidacion() {
     $porDia = db()->query("
         SELECT 
             s.fecha_pago as fecha,
-            SUM(se.tarifa_servicio) as total
+            SUM(cs.tarifa) as total
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
+        LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
         WHERE s.estado_pago = 'pagado'
         AND s.fecha_pago BETWEEN ? AND ?
         GROUP BY s.fecha_pago
@@ -315,11 +320,12 @@ function getIngresosPorRuta() {
                    s.fecha_pago, s.forma_pago,
                    se.id_sede, se.nombre_comercial as sede_nombre, 
                    se.direccion as sede_direccion, se.distrito,
-                   se.tarifa_servicio as monto,
+                   cs.tarifa as monto,
                    e.razon_social as empresa_razon_social
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+            LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
             WHERE s.id_ruta = ?
             ORDER BY s.id_servicio
         ", [$ruta['id_ruta']]);

@@ -157,11 +157,11 @@ for svc in all_services:
     fecha = f"'{svc['fecha_servicio']}'" if svc['fecha_servicio'] else 'NULL'
     desc = f"'{svc['descripcion_residuo']}'" if svc['descripcion_residuo'] else 'NULL'
     forma = f"'{svc['forma_pago']}'" if svc['forma_pago'] else 'NULL'
-    obs = f"'{svc['observaciones']}'" if svc['observaciones'] else 'NULL'
+
     estado = svc['estado_pago']
     
-    sql = f"""INSERT INTO Servicio (id_sede, mes_servicio, fecha_ejecucion, descripcion_residuo, forma_pago, observaciones, estado_pago, fecha_pago, estado)
-SELECT se.id_sede, {mes}, {fecha}, {desc}, {forma}, {obs}, '{estado}', {fecha_pago}, 'completado'
+    sql = f"""INSERT INTO Servicio (id_sede, mes_servicio, fecha_ejecucion, descripcion_residuo, forma_pago, estado_pago, fecha_pago, estado)
+SELECT se.id_sede, {mes}, {fecha}, {desc}, {forma}, '{estado}', {fecha_pago}, 'completado'
 FROM Sede se
 INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
 WHERE e.ruc = '{svc['ruc']}'

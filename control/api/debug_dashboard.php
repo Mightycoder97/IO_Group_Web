@@ -45,10 +45,11 @@ try {
         "SELECT 
             DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
             DATE_FORMAT(s.fecha_ejecucion, '%b %Y') as mes_label,
-            COALESCE(SUM(se.tarifa_servicio), 0) as total
+            COALESCE(SUM(cs.tarifa), 0) as total
          FROM Servicio s
          INNER JOIN Sede se ON s.id_sede = se.id_sede
          INNER JOIN Factura f ON s.id_servicio = f.id_servicio
+         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
          WHERE s.fecha_ejecucion >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
          AND s.estado = 'completado'
          GROUP BY DATE_FORMAT(s.fecha_ejecucion, '%Y-%m')
@@ -64,9 +65,10 @@ try {
     $result = $db->queryOne(
         "SELECT 
             COUNT(*) as total_facturas,
-            COALESCE(SUM(se.tarifa_servicio), 0) as monto_total
+            COALESCE(SUM(cs.tarifa), 0) as monto_total
          FROM Servicio s
          INNER JOIN Sede se ON s.id_sede = se.id_sede
+         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
          WHERE s.estado = 'completado'
          AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'"
     );
@@ -93,9 +95,10 @@ try {
 echo "6. Testing Ingresos mes...\n";
 try {
     $result = $db->queryOne(
-        "SELECT COALESCE(SUM(se.tarifa_servicio), 0) as total 
+        "SELECT COALESCE(SUM(cs.tarifa), 0) as total 
          FROM Servicio s
          INNER JOIN Sede se ON s.id_sede = se.id_sede
+         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
          WHERE MONTH(s.fecha_ejecucion) = MONTH(CURDATE()) 
          AND YEAR(s.fecha_ejecucion) = YEAR(CURDATE())
          AND s.estado = 'completado'

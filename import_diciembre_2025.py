@@ -102,8 +102,8 @@ INSERT INTO Empresa (id_cliente, razon_social, ruc, direccion_fiscal, distrito, 
 SELECT LAST_INSERT_ID(), '{razon}', '{ruc}', '{dir}', '{distrito}', '{tel}'
 WHERE NOT EXISTS (SELECT 1 FROM Empresa WHERE ruc = '{ruc}');
 
-INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, contacto_telefono, tarifa_servicio)
-SELECT id_empresa, razon_social, direccion_fiscal, distrito, telefono, 0.00
+INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, contacto_telefono)
+SELECT id_empresa, razon_social, direccion_fiscal, distrito, telefono
 FROM Empresa WHERE ruc = '{ruc}'
 AND NOT EXISTS (SELECT 1 FROM Sede s JOIN Empresa e ON s.id_empresa=e.id_empresa WHERE e.ruc = '{ruc}');
 """)

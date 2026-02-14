@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script para actualizar la tarifa de servicio en Sede
+Script para actualizar la tarifa en ContratoServicio
 basándose en el RUC de la empresa y el "Monto por Servicio" del Excel.
 """
 
@@ -24,10 +24,10 @@ def clean_ruc(x):
 df_valid['RUC'] = df_valid['RUC'].apply(clean_ruc)
 df_valid = df_valid[df_valid['RUC'] != '']
 
-# Generar SQL para actualizar Sede.tarifa_servicio
+# Generar SQL para actualizar ContratoServicio.tarifa
 sql_statements = []
 sql_statements.append("-- ========================================")
-sql_statements.append("-- Actualización de tarifas en Sede")
+sql_statements.append("-- Actualización de tarifas en ContratoServicio")
 sql_statements.append("-- Basado en Monto por Servicio del Excel")
 sql_statements.append("-- Generado automáticamente")
 sql_statements.append("-- ========================================")
@@ -43,11 +43,12 @@ for ruc, monto in ruc_montos.items():
     try:
         monto_float = float(monto)
         if ruc and monto_float > 0:
-            # Actualizar Sede.tarifa_servicio a través de Empresa.ruc
-            sql = f"""UPDATE Sede s
+            # Actualizar ContratoServicio.tarifa a través de Sede -> Empresa.ruc
+            sql = f"""UPDATE ContratoServicio cs
+INNER JOIN Sede s ON cs.id_sede = s.id_sede
 INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
-SET s.tarifa_servicio = {monto_float}
-WHERE e.ruc = '{ruc}';"""
+SET cs.tarifa = {monto_float}
+WHERE e.ruc = '{ruc}' AND cs.activo = 1;"""
             sql_statements.append(sql)
             sql_statements.append("")
             count += 1
@@ -55,10 +56,10 @@ WHERE e.ruc = '{ruc}';"""
         pass  # Skip invalid montos
 
 # Escribir archivo SQL
-with open('control/database/update_tarifas_sede.sql', 'w', encoding='utf-8') as f:
+with open('control/database/update_tarifas_contrato.sql', 'w', encoding='utf-8') as f:
     f.write('\n'.join(sql_statements))
 
-print(f"Archivo generado: control/database/update_tarifas_sede.sql")
+print(f"Archivo generado: control/database/update_tarifas_contrato.sql")
 print(f"Total actualizaciones: {count}")
 
 # Mostrar primeros ejemplos
