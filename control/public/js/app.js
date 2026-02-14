@@ -73,7 +73,7 @@ function getSidebarHTML() {
     };
 
     const html = `
-        <div class="sidebar-header">
+        <div class="sidebar-brand">
             <i class="bi bi-recycle" style="font-size: 2rem; color: #81C784;"></i>
             <h2 style="color: white; font-size: 1.1rem; margin: 0.5rem 0 0 0;">IO Control</h2>
         </div>
