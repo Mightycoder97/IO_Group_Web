@@ -20,17 +20,40 @@
         /* Modern Fullscreen Map Layout */
         body {
             overflow: hidden;
+            margin: 0;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            height: 100%;
+            flex-shrink: 0;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            z-index: 1000;
+            transition: transform 0.3s ease;
         }
 
         .main-content {
-            padding: 0 !important;
-            height: 100vh;
+            flex-grow: 1;
+            height: 100%;
             position: relative;
+            padding: 0 !important;
+            overflow: hidden;
         }
 
         #map-wrapper {
-            position: relative;
-            width: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100%;
             z-index: 1;
         }
@@ -155,8 +178,17 @@
 
 <body class="control-app">
     <div class="app-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
         <!-- Main Content -->
         <main class="main-content position-relative">
+
+            <!-- Sidebar Toggle (Mobile Only) -->
+            <button class="btn btn-light shadow-sm sidebar-toggle-btn d-md-none" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
 
             <!-- Safe Area for Map Controls (Top Left) -->
             <div class="position-absolute top-0 start-0 p-3" style="z-index: 100; max-width: 400px; width: 100%;">
@@ -290,7 +322,11 @@
     <script src="../../js/map-controller.js?v=2.4"></script>
 
     <script>
-        // Init logic same as before
+        // Init Sidebar
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('mapa');
+
+        // Init Map
         (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + "places"); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
             key: API_CONFIG.GOOGLE_MAPS_API_KEY,
             v: "weekly",
