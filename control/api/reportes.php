@@ -119,6 +119,17 @@ function getDashboard() {
         );
         $serviciosMes = $serviciosMesResult ? $serviciosMesResult['count'] : 0;
         
+        // Servicios breakdown per status (Current Month)
+        $serviciosBreakdownResult = db()->queryOne(
+            "SELECT 
+                COALESCE(SUM(CASE WHEN estado = 'programado' THEN 1 ELSE 0 END), 0) as programados,
+                COALESCE(SUM(CASE WHEN estado = 'en_curso' THEN 1 ELSE 0 END), 0) as en_curso,
+                COALESCE(SUM(CASE WHEN estado = 'completado' THEN 1 ELSE 0 END), 0) as completados
+             FROM Servicio 
+             WHERE MONTH(fecha_ejecucion) = MONTH(CURDATE()) AND YEAR(fecha_ejecucion) = YEAR(CURDATE())"
+        );
+        $serviciosBreakdown = $serviciosBreakdownResult ?: ['programados' => 0, 'en_curso' => 0, 'completados' => 0];
+        
         // Rutas este mes
         $rutasMesResult = db()->queryOne(
             "SELECT COUNT(*) as count FROM Ruta 
@@ -138,6 +149,9 @@ function getDashboard() {
                 'facturas_pendientes' => intval($pagosPendientes['total_facturas']),
                 'ingresos_mes' => floatval($ingresosMes),
                 'servicios_mes' => intval($serviciosMes),
+                'servicios_programados' => intval($serviciosBreakdown['programados']),
+                'servicios_en_curso' => intval($serviciosBreakdown['en_curso']),
+                'servicios_completados' => intval($serviciosBreakdown['completados']),
                 'rutas_mes' => intval($rutasMes)
             ]
         ]);

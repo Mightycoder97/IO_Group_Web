@@ -367,14 +367,26 @@
         function renderServiciosChart(data) {
             const ctx = document.getElementById('chartServicios').getContext('2d');
 
-            // Simulated data - you can enhance this with real data
-            const completados = data.sedes_con_servicio || 0;
-            const total = data.servicios_mes || 0;
-            const programados = Math.round(total * 0.3);
-            const enCurso = Math.round(total * 0.1);
-            const comp = total - programados - enCurso;
+            // Use real data from API
+            // Fallback to simulated logic only if API doesn't return breakdown (for backward compat)
+            let completados = data.servicios_completados;
+            let programados = data.servicios_programados;
+            let enCurso = data.servicios_en_curso;
 
-            document.getElementById('serviciosCompletados').textContent = comp > 0 ? comp : 0;
+            // If data is missing (old API response), use simulation
+            if (completados === undefined) {
+                const total = data.servicios_mes || 0;
+                programados = Math.round(total * 0.3);
+                enCurso = Math.round(total * 0.1);
+                completados = total - programados - enCurso;
+            }
+
+            // Ensure non-negative
+            completados = Math.max(0, completados);
+            programados = Math.max(0, programados);
+            enCurso = Math.max(0, enCurso);
+
+            document.getElementById('serviciosCompletados').textContent = completados;
             document.getElementById('serviciosProgramados').textContent = programados;
             document.getElementById('serviciosEnCurso').textContent = enCurso;
 
@@ -385,7 +397,7 @@
                 data: {
                     labels: ['Completados', 'Programados', 'En Curso'],
                     datasets: [{
-                        data: [comp > 0 ? comp : 0, programados, enCurso],
+                        data: [completados, programados, enCurso],
                         backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b'],
                         borderWidth: 0,
                         cutout: '75%'
