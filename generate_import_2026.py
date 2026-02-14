@@ -203,8 +203,11 @@ def generate_sql():
                 # Parse operational state from Excel 'estado' column
                 val_estado = parse_estado(row[8])
                 
-                # row[9] is observaciones - SKIP NOT IN SCHEMA ANYMORE
-                val_ep = clean_value(row[10]) # estado_pago
+                # Correct Mapping based on populate_servicio.py (Excel structure)
+                # row[0]=id, [1]=emp(skip), [2]=sede, [3]=ruta, [4]=planta, [5]=contrato, [6]=mes, [7]=fecha_ej, [8]=estado
+                # row[9]=estado_pago, [10]=fecha_pago, [11]=forma_pago, [12]=descripcion_residuo
+                
+                val_ep = clean_value(row[9])  # estado_pago
                 
                 # Logic: If state is 'completado' (meaning it was PAID/CANCELADO), 
                 # and estado_pago is NULL/empty, default it to 'pagado'
@@ -213,9 +216,9 @@ def generate_sql():
                 elif val_ep == 'NULL':
                     val_ep = "'pendiente'"
                 
-                val_fp = clean_value(row[11]) # fecha_pago
-                val_forma = clean_value(row[12]) # forma_pago
-                val_desc = clean_value(row[13]) # descripcion_residuo
+                val_fp = clean_value(row[10]) # fecha_pago
+                val_forma = clean_value(row[11]) # forma_pago
+                val_desc = clean_value(row[12]) # descripcion_residuo
                 
                 f.write(f"INSERT INTO Servicio (id_servicio, id_sede, id_ruta, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, fecha_pago, forma_pago, descripcion_residuo) VALUES ({val_id}, {val_sede}, {val_ruta}, {val_planta}, {val_contrato}, {val_mes}, {val_fej}, {val_estado}, {val_ep}, {val_fp}, {val_forma}, {val_desc});\n")
             f.write("\n")
