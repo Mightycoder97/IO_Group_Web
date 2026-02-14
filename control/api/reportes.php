@@ -77,7 +77,7 @@ function getDashboard() {
                 COALESCE(SUM(cs.tarifa), 0) as total
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
-             INNER JOIN Factura f ON s.id_servicio = f.id_servicio
+             LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
              WHERE s.fecha_ejecucion <= '$filterDateEnd' 
              AND s.fecha_ejecucion >= DATE_SUB('$filterDateStart', INTERVAL 11 MONTH)
@@ -221,25 +221,37 @@ function getFacturacionReport() {
     $mes = $_GET['mes'] ?? date('m');
     $anio = $_GET['anio'] ?? date('Y');
     
+    // Schema correction: Factura table only has: id_factura, id_servicio, numero_factura, doc_escaneado, fecha_creacion
+    // We must join with Servicio and ContratoServicio to get details and amounts
+    
     $facturas = db()->query(
-        "SELECT f.*, s.codigo_servicio, e.razon_social as empresa_razon_social
+        "SELECT f.*, 
+                s.fecha_ejecucion, 
+                s.estado_pago,
+                e.razon_social as empresa_razon_social,
+                COALESCE(cs.tarifa, 0) as monto_total
          FROM Factura f
          INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
          INNER JOIN Sede se ON s.id_sede = se.id_sede
          INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
-         WHERE MONTH(f.fecha_emision) = ? AND YEAR(f.fecha_emision) = ?
-         ORDER BY f.fecha_emision",
+         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+         WHERE MONTH(f.fecha_creacion) = ? AND YEAR(f.fecha_creacion) = ?
+         ORDER BY f.fecha_creacion DESC",
         [$mes, $anio]
     );
     
+    // Calculate totals based on the same logic
+    // Using s.estado_pago for status instead of f.estado which doesn't exist
     $totales = db()->queryOne(
         "SELECT 
             COUNT(*) as total_facturas,
-            COALESCE(SUM(monto_total), 0) as total_facturado,
-            COALESCE(SUM(CASE WHEN estado = 'pagada' THEN monto_total ELSE 0 END), 0) as total_cobrado,
-            COALESCE(SUM(CASE WHEN estado = 'emitida' THEN monto_total ELSE 0 END), 0) as total_pendiente
-         FROM Factura 
-         WHERE MONTH(fecha_emision) = ? AND YEAR(fecha_emision) = ? AND estado != 'anulada'",
+            COALESCE(SUM(cs.tarifa), 0) as total_facturado,
+            COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN cs.tarifa ELSE 0 END), 0) as total_cobrado,
+            COALESCE(SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN cs.tarifa ELSE 0 END), 0) as total_pendiente
+         FROM Factura f
+         INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
+         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+         WHERE MONTH(f.fecha_creacion) = ? AND YEAR(f.fecha_creacion) = ?",
         [$mes, $anio]
     );
     
