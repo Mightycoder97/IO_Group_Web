@@ -36,6 +36,8 @@ function getPendientes() {
     
     $cliente = $_GET['cliente'] ?? null;
     $estado = isset($_GET['estado']) && $_GET['estado'] !== '' ? $_GET['estado'] : null;
+    $fecha_inicio = $_GET['fecha_inicio'] ?? null;
+    $fecha_fin = $_GET['fecha_fin'] ?? null;
     $limit = min(500, max(10, intval($_GET['limit'] ?? 100)));
     
     // Optimized query using LEFT JOIN instead of correlated subqueries
@@ -45,13 +47,15 @@ function getPendientes() {
             s.fecha_pago, s.forma_pago,
             se.nombre_comercial as sede_nombre, 
             se.contacto_telefono, cs.tarifa as tarifa_servicio, se.distrito, se.direccion,
-            e.razon_social as empresa_razon_social,
+            e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
+            f.numero_factura, f.id_factura,
             COALESCE(gc_stats.num_gestiones, 0) as num_gestiones,
             gc_stats.ultima_gestion
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+            LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
             LEFT JOIN (
                 SELECT id_servicio, 
                        COUNT(*) as num_gestiones,
@@ -67,9 +71,20 @@ function getPendientes() {
         $sql .= " AND COALESCE(s.estado_pago, 'pendiente') = ?";
         $params[] = $estado;
     }
+
+    if ($fecha_inicio) {
+        $sql .= " AND s.fecha_ejecucion >= ?";
+        $params[] = $fecha_inicio;
+    }
+
+    if ($fecha_fin) {
+        $sql .= " AND s.fecha_ejecucion <= ?";
+        $params[] = $fecha_fin;
+    }
     
     if ($cliente) {
-        $sql .= " AND (se.nombre_comercial LIKE ? OR e.razon_social LIKE ?)";
+        $sql .= " AND (se.nombre_comercial LIKE ? OR e.razon_social LIKE ? OR f.numero_factura LIKE ?)";
+        $params[] = "%$cliente%";
         $params[] = "%$cliente%";
         $params[] = "%$cliente%";
     }
@@ -79,7 +94,14 @@ function getPendientes() {
     
     $data = db()->query($sql, $params);
     
-    // Calculate summary stats
+    // Calculate summary stats (Global or filtered? Keeping global context for overdue/pending is usually better for 'Total Pending')
+    // However, if filters are applied, maybe stats should reflect that? 
+    // Usually dashboard headers show "Total Business State" regardless of list filter, unless explicit date range for report.
+    // For now, let's keep stats global but maybe respect date range if provided for specific reporting?
+    // Let's stick to global stats for the top cards as per typical dashboard behavior, 
+    // but we can add a 'filtered_total' if needed. 
+    // The previous implementation had global stats. Let's maintain that for consistency with the UI cards which look like "Total Pending".
+    
     $stats = db()->queryOne("
         SELECT 
             SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN cs.tarifa ELSE 0 END) as total_pendiente,
