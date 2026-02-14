@@ -33,6 +33,7 @@ class MapController {
             radius: 10, // km
             userLocation: null
         };
+        this.selectedSedes = new Set(); // Multi-select state
     }
 
     async init() {
@@ -69,129 +70,79 @@ class MapController {
     }
 
     setupEventListeners() {
-        // 1. Frequency Chips
-        document.querySelectorAll('.filter-chip').forEach(btn => {
-            // Set initial state based on default filters
+        // 1. Frequency Filters
+        document.querySelectorAll('.filter-freq').forEach(btn => {
             const freq = btn.dataset.freq;
-            this.updateChipVisuals(btn, this.filters.frequencies.has(freq));
+            // Initial State check
+            if (this.filters.frequencies.has(freq)) {
+                this.updateFreqBtnVisuals(btn, true);
+            }
 
             btn.addEventListener('click', (e) => {
                 const freq = e.target.dataset.freq;
                 if (this.filters.frequencies.has(freq)) {
                     this.filters.frequencies.delete(freq);
-                    this.updateChipVisuals(e.target, false);
+                    this.updateFreqBtnVisuals(e.target, false);
                 } else {
                     this.filters.frequencies.add(freq);
-                    this.updateChipVisuals(e.target, true);
+                    this.updateFreqBtnVisuals(e.target, true);
                 }
                 this.applyFilters();
             });
         });
 
-        // 2. Search Input (Google Places Autocomplete)
-        const searchInput = document.getElementById('mapSearchInput');
-        if (searchInput) {
-            const autocomplete = new this.Autocomplete(searchInput, {
+        // 2. Address Search (Google Places)
+        const addressInput = document.getElementById('addressSearch');
+        if (addressInput) {
+            const autocomplete = new this.Autocomplete(addressInput, {
                 componentRestrictions: { country: "pe" },
-                fields: ["formatted_address", "geometry", "name"],
-                strictBounds: false,
+                fields: ["geometry", "name", "formatted_address"],
             });
             autocomplete.bindTo("bounds", this.map);
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
-                this.handlePlaceSelect(place);
+                this.handleAddressSelect(place);
+                addressInput.value = ''; // Clear after selection
             });
         }
 
-        // 3. Map Click -> Place Reference Pin + Auto Nearby
-        this.map.addListener('click', (e) => {
-            if (e.latLng) {
-                const pos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+        // 3. Smart Sede Search (Input)
+        const sedeInput = document.getElementById('sedeSearch');
+        const resultsContainer = document.getElementById('sedeSearchResults');
 
-                // Activate Nearby Mode automatically
-                this.activateNearbyMode(pos, "Ubicación seleccionada");
-            }
-        });
+        if (sedeInput) {
+            sedeInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                this.handleSedeSearch(query, resultsContainer);
+            });
 
-        // 4. Nearby Toggle
-        const nearbyToggle = document.getElementById('nearbyToggle');
-        if (nearbyToggle) {
-            nearbyToggle.addEventListener('change', (e) => {
-                this.filters.nearby = e.target.checked;
-                this.toggleRadarControls(e.target.checked);
-                this.applyFilters();
-
-                if (e.target.checked && !this.referenceLocation && !this.filters.userLocation) {
-                    showToast('Haz clic en el mapa para establecer el centro', 'info');
+            // Close results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!sedeInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+                    resultsContainer.classList.add('d-none');
                 }
             });
         }
 
-        // 5. Radius Slider
-        const radiusRange = document.getElementById('radiusRange');
-        if (radiusRange) {
-            radiusRange.addEventListener('input', (e) => {
-                this.filters.radius = parseInt(e.target.value);
-                document.getElementById('radiusValue').textContent = this.filters.radius;
-                // Debounce filter application for slider? Or live? Live is fine for < 1000 items
-                this.applyFilters();
-            });
-        }
-
-        // 6. Clear Districts
-        document.getElementById('clearDistrictsBtn')?.addEventListener('click', () => {
-            this.filters.districts.clear();
-            document.querySelectorAll('.filter-district').forEach(cb => cb.checked = false);
-            this.applyFilters();
+        // 4. Clear Map Button
+        document.getElementById('clearMapBtn')?.addEventListener('click', () => {
+            this.clearMapSelection();
         });
-
-        // Custom Zoom Controls
-        document.getElementById('zoomIn')?.addEventListener('click', () => this.map.setZoom(this.map.getZoom() + 1));
-        document.getElementById('zoomOut')?.addEventListener('click', () => this.map.setZoom(this.map.getZoom() - 1));
-
-        // My Location
-        document.getElementById('btnMyLocation')?.addEventListener('click', () => this.locateUser());
     }
 
-    updateChipVisuals(btn, isActive) {
+    updateFreqBtnVisuals(btn, isActive) {
         if (isActive) {
-            btn.classList.remove('btn-light', 'text-dark');
-            btn.classList.add('btn-success', 'text-white');
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('btn-secondary', 'text-white');
         } else {
-            btn.classList.remove('btn-success', 'text-white');
-            btn.classList.add('btn-light', 'text-dark');
+            btn.classList.remove('btn-secondary', 'text-white');
+            btn.classList.add('btn-outline-secondary');
         }
     }
 
-    toggleRadarControls(enabled) {
-        const controls = document.getElementById('radarControls');
-        const range = document.getElementById('radiusRange');
-        if (enabled) {
-            controls.classList.remove('opacity-50');
-            range.disabled = false;
-        } else {
-            controls.classList.add('opacity-50');
-            range.disabled = true;
-        }
-    }
-
-    activateNearbyMode(pos, title) {
-        // Set State
-        this.filters.nearby = true;
-
-        // Update UI
-        const toggle = document.getElementById('nearbyToggle');
-        if (toggle && !toggle.checked) toggle.checked = true;
-        this.toggleRadarControls(true);
-
-        // Set Reference and Filter
-        this.setReferenceLocation(pos, title);
-        // setReference calls applyFilters if nearby is true
-    }
-
-    handlePlaceSelect(place) {
+    handleAddressSelect(place) {
         if (!place.geometry || !place.geometry.location) {
-            showToast("No se encontraron detalles para: " + place.name, 'warning');
+            showToast("No se encontraron detalles de ubicación", 'warning');
             return;
         }
 
@@ -200,18 +151,86 @@ class MapController {
             lng: place.geometry.location.lng()
         };
 
+        // Create Reference Pin
+        this.setReferenceLocation(pos, place.name || place.formatted_address);
+
+        // View: fit bounds or center
         if (place.geometry.viewport) {
             this.map.fitBounds(place.geometry.viewport);
         } else {
             this.map.setCenter(pos);
             this.map.setZoom(15);
         }
+    }
 
-        // Auto-Enable Nearby
-        this.activateNearbyMode(pos, place.name || place.formatted_address);
+    handleSedeSearch(query, container) {
+        if (query.length < 2) {
+            container.classList.add('d-none');
+            return;
+        }
 
-        // Reset text search filter to allow seeing nearby items
-        this.filters.search = '';
+        const matches = this.sedes.filter(s =>
+            s.nombre_comercial.toLowerCase().includes(query) ||
+            s.direccion.toLowerCase().includes(query)
+        ).slice(0, 10); // Limit to 10 suggestions
+
+        if (matches.length === 0) {
+            container.innerHTML = '<div class="list-group-item small text-muted">No se encontraron resultados</div>';
+        } else {
+            container.innerHTML = '';
+            matches.forEach(sede => {
+                const item = document.createElement('button');
+                item.className = 'list-group-item list-group-item-action suggestion-item small border-0 border-bottom';
+                item.innerHTML = `
+                    <div class="fw-bold text-dark">${sede.nombre_comercial}</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">${sede.direccion}</div>
+                `;
+                item.onclick = () => {
+                    this.addSedeToSelection(sede);
+                    container.classList.add('d-none');
+                    document.getElementById('sedeSearch').value = '';
+                };
+                container.appendChild(item);
+            });
+        }
+        container.classList.remove('d-none');
+    }
+
+    addSedeToSelection(sede) {
+        // Avoid duplicates
+        if (this.selectedSedes.has(sede.id_sede)) return;
+
+        this.selectedSedes.add(sede.id_sede);
+
+        // Add Chip Visual
+        const chipContainer = document.getElementById('selectedSedesContainer');
+        const chip = document.createElement('div');
+        chip.className = 'sede-chip';
+        chip.innerHTML = `
+            ${sede.nombre_comercial}
+            <button type="button" class="btn-close" aria-label="Remove"></button>
+        `;
+        chip.querySelector('.btn-close').onclick = () => {
+            this.removeSedeFromSelection(sede.id_sede);
+            chip.remove();
+        };
+        chipContainer.appendChild(chip);
+
+        // Update Map
+        this.applyFilters({ forceFit: true });
+    }
+
+    removeSedeFromSelection(id) {
+        this.selectedSedes.delete(id);
+        this.applyFilters();
+    }
+
+    clearMapSelection() {
+        this.selectedSedes.clear();
+        document.getElementById('selectedSedesContainer').innerHTML = '';
+        this.referenceMarker = null; // Also clear address pin? Maybe.
+        this.setReferenceLocation(null); // Clear ref
+        this.applyFilters();
     }
 
     async loadSedes() {
@@ -270,14 +289,22 @@ class MapController {
     setReferenceLocation(pos, title = "Referencia") {
         this.referenceLocation = pos;
 
+        if (!pos) {
+            if (this.referenceMarker) {
+                this.referenceMarker.map = null;
+                this.referenceMarker = null;
+            }
+            return;
+        }
+
         // Create or Update Blue Marker
         if (!this.referenceMarker) {
             const pin = new this.PinElement({
                 scale: 1.2,
-                background: '#0d6efd', // Blue
+                background: '#dc3545', // Red for address
                 borderColor: '#ffffff',
                 glyphColor: '#ffffff',
-                glyphText: '★'
+                glyphHtml: '<i class="bi bi-geo-alt-fill"></i>'
             });
 
             this.referenceMarker = new this.AdvancedMarkerElement({
@@ -291,62 +318,57 @@ class MapController {
             // Update on drag end
             this.referenceMarker.addListener('dragend', (e) => {
                 this.referenceLocation = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-                if (this.filters.nearby) this.applyFilters();
+                // Logic based on drag?
             });
 
         } else {
             this.referenceMarker.position = pos;
             this.referenceMarker.title = title;
         }
-
-        // Apply filters
-        if (this.filters.nearby) {
-            this.applyFilters();
-        }
     }
 
-    applyFilters() {
+    applyFilters(options = {}) {
         if (!this.sedes) return;
 
-        const filtered = this.sedes.filter(s => {
-            // 1. Frequency Filter
+        // Logic:
+        // 1. If NO sedes selected and NO address search (referenceLocation) -> Show ALL (clustered) filtered by Frequency.
+        // 2. If sedes selected -> Show ONLY selected sedes (filtered by Frequency).
+        // 3. If address selected -> Show ALL nearby (filtered by Frequency).
+
+        // Wait, User asked for "Sedes listing NO LONGER WANTED". 
+        // Interpretation: Default view could be either EMPTY or CLUSTERED. 
+        // "Minimalist" usually implies clean map. 
+        // Let's go with: 
+        // - If nothing selected -> Show NOTHING? Or Show Clusters?
+        // - "Smart search of sedes... allow selecting several". This implies the map builds up as you select.
+        // - Let's Default to SHOWING ALL CLUSTERED (it's better for context) but allow cleaning.
+
+        // Refined Logic (Pro):
+        // Base set: If 'selectedSedes' has items, use those. ELSE use ALL.
+        // Filter that base set by Frequency.
+
+        let sourceSet = this.sedes;
+        const isSelectionMode = this.selectedSedes.size > 0;
+
+        if (isSelectionMode) {
+            sourceSet = this.sedes.filter(s => this.selectedSedes.has(s.id_sede));
+        }
+
+        const filtered = sourceSet.filter(s => {
+            // Frequency Filter
             if (s.frecuencia) {
                 const normalizedFreq = s.frecuencia.trim().toLowerCase();
                 const activeFilters = Array.from(this.filters.frequencies).map(f => f.toLowerCase());
                 if (!activeFilters.includes(normalizedFreq)) return false;
             }
-
-            // 2. District Filter
-            if (this.filters.districts.size > 0) {
-                if (!s.distrito || !this.filters.districts.has(s.distrito)) return false;
-            }
-
-            // 3. Nearby Filter
-            let centerPoint = this.referenceLocation || this.filters.userLocation;
-
-            if (this.filters.nearby && centerPoint && s.coordenadas_gps) {
-                const [lat, lng] = s.coordenadas_gps.split(',').map(Number);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    const distance = this.calculateDistance(
-                        centerPoint.lat,
-                        centerPoint.lng,
-                        lat,
-                        lng
-                    );
-                    if (distance > this.filters.radius) return false;
-                }
-            }
-
             return true;
         });
 
-        document.getElementById('totalSedes').textContent = filtered.length;
+        // Visible Count Update
+        const countSpan = document.getElementById('visibleSedesCount');
+        if (countSpan) countSpan.textContent = filtered.length;
 
-        // Only fit bounds if searching or if nearby is OFF (if nearby is ON, we usually want to stay focused on the center)
-        // Actually, if nearby is ON, it's nice to see what's found. 
-        // Let's rely on standard fitBounds logic but maybe not re-fit every single time we toggle a chip?
-        // For now, consistent behavior:
-        this.renderMarkers(filtered, false);
+        this.renderMarkers(filtered, options.forceFit || false);
     }
 
     renderMarkers(sedesToRender, forceFit = false) {
