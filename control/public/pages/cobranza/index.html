@@ -350,12 +350,13 @@
         // Load Data
         async function loadData() {
             setLoading(true);
+            const searchTerm = document.getElementById('search').value;
             const params = new URLSearchParams({
-                cliente: document.getElementById('search').value,
+                cliente: searchTerm,
                 estado: document.getElementById('statusFilter').value,
                 fecha_inicio: document.getElementById('dateStart').value,
                 fecha_fin: document.getElementById('dateEnd').value,
-                limit: 500
+                limit: searchTerm ? 500 : 20
             });
 
             try {
