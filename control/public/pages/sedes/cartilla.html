@@ -306,6 +306,9 @@
                                             onclick="sortColumn('fecha')">
                                             Fecha Servicio <span class="sort-icon"></span>
                                         </th>
+                                        <th class="sortable" data-sort="fecha_pago" onclick="sortColumn('fecha_pago')">
+                                            Fecha Pago <span class="sort-icon"></span>
+                                        </th>
                                         <th class="sortable" data-sort="estado_pago"
                                             onclick="sortColumn('estado_pago')">
                                             Estado Pago <span class="sort-icon"></span>
@@ -317,7 +320,7 @@
                                 </thead>
                                 <tbody id="serviciosBody">
                                     <tr>
-                                        <td colspan="3" class="text-center py-3">Cargando...</td>
+                                        <td colspan="4" class="text-center py-3">Cargando...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -488,7 +491,7 @@
         function renderServicios(servicios) {
             const tbody = document.getElementById('serviciosBody');
             if (servicios.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Sin servicios registrados</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Sin servicios registrados</td></tr>';
                 return;
             }
 
@@ -509,6 +512,7 @@
                 return `
                 <tr>
                     <td><strong>${formatDate(fechaServicio)}</strong>${s.mes_servicio ? `<br><small class="text-muted">${s.mes_servicio}</small>` : ''}</td>
+                    <td>${s.fecha_pago ? formatDate(s.fecha_pago) : '-'}</td>
                     <td>${estadoPago}</td>
                     <td>${tarifa > 0 ? `<strong>S/ ${tarifa.toFixed(0)}</strong>` : '-'}</td>
                 </tr>
