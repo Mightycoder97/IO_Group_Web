@@ -316,11 +316,12 @@
                                         <th class="sortable" data-sort="tarifa" onclick="sortColumn('tarifa')">
                                             Tarifa <span class="sort-icon"></span>
                                         </th>
+                                        <th>Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody id="serviciosBody">
                                     <tr>
-                                        <td colspan="4" class="text-center py-3">Cargando...</td>
+                                        <td colspan="5" class="text-center py-3">Cargando...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -491,7 +492,7 @@
         function renderServicios(servicios) {
             const tbody = document.getElementById('serviciosBody');
             if (servicios.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Sin servicios registrados</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Sin servicios registrados</td></tr>';
                 return;
             }
 
@@ -515,6 +516,11 @@
                     <td>${s.fecha_pago ? formatDate(s.fecha_pago) : '-'}</td>
                     <td>${estadoPago}</td>
                     <td>${tarifa > 0 ? `<strong>S/ ${tarifa.toFixed(0)}</strong>` : '-'}</td>
+                    <td>
+                        <a href="../servicios/formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary" target="_blank" title="Editar Servicio">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
                 </tr>
             `}).join('');
         }
