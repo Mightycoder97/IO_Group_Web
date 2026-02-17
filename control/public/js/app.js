@@ -89,8 +89,7 @@ function getSidebarHTML() {
         navItem('calendario/index.html', 'calendar3', 'Calendario', 'rutas'),
         navItem('rutas/listar.html', 'truck', 'Asignar Rutas', 'rutas'),
         navItem('rutas/historial.html', 'clock-history', 'Historial Rutas', 'rutas'),
-
-
+        navItem('servicios/listar.html', 'tools', 'Servicios', 'rutas')
     ])}
             
             ${section('Financiero', [

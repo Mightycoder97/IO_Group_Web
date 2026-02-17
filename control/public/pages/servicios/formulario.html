@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Servicio - IO Group</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/global.css" rel="stylesheet">
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="listar.html">Servicios</a></li>
+                            <li class="breadcrumb-item active" id="pageTitle">Nuevo Servicio</li>
+                        </ol>
+                    </nav>
+                </div>
+                <!-- User Menu -->
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-tools"></i> <span id="formTitle">Nuevo Servicio</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="dataForm">
+                            <div class="row g-3">
+                                <!-- Datos Principales -->
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2">Información General</h6>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Sede / Cliente *</label>
+                                    <select class="form-select" id="id_sede" required>
+                                        <option value="">Seleccione Sede...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Planta *</label>
+                                    <select class="form-select" id="id_planta" required>
+                                        <option value="">Seleccione Planta...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Ruta</label>
+                                    <select class="form-select" id="id_ruta">
+                                        <option value="">Sin Ruta Asignada</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha Programada *</label>
+                                    <input type="date" class="form-control" id="fecha_programada" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Fecha Ejecución</label>
+                                    <input type="date" class="form-control" id="fecha_ejecucion">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Hora Llegada</label>
+                                    <input type="time" class="form-control" id="hora_llegada">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Hora Salida</label>
+                                    <input type="time" class="form-control" id="hora_salida">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Estado Servicio</label>
+                                    <select class="form-select" id="estado">
+                                        <option value="programado">Programado</option>
+                                        <option value="en_curso">En Curso</option>
+                                        <option value="completado">Completado</option>
+                                        <option value="cancelado">Cancelado</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Estado Pago</label>
+                                    <select class="form-select" id="estado_pago">
+                                        <option value="pendiente">Pendiente</option>
+                                        <option value="pagado">Pagado</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Fecha Pago</label>
+                                    <input type="date" class="form-control" id="fecha_pago">
+                                </div>
+
+                                <!-- Datos del Residuo -->
+                                <div class="col-12 mt-4">
+                                    <h6 class="text-primary border-bottom pb-2">Detalle de Residuos</h6>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Descripción del Residuo</label>
+                                    <textarea class="form-control" id="descripcion_residuo" rows="2"></textarea>
+                                </div>
+
+                                <!-- Documentos Relacionados -->
+                                <div class="col-12 mt-4">
+                                    <h6 class="text-primary border-bottom pb-2">Documentos Asociados</h6>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Manifiesto</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="numero_manifiesto"
+                                            placeholder="N° Manifiesto" readonly>
+                                        <button class="btn btn-outline-secondary" type="button"
+                                            onclick="goToManifiesto()"><i class="bi bi-eye"></i></button>
+                                    </div>
+                                    <input type="hidden" id="id_manifiesto">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Guía Remisión</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="numero_guia" placeholder="N° Guía"
+                                            readonly>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="goToGuia()"><i
+                                                class="bi bi-eye"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Factura</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="numero_factura"
+                                            placeholder="N° Factura" readonly>
+                                        <button class="btn btn-outline-secondary" type="button"
+                                            onclick="goToFactura()"><i class="bi bi-eye"></i></button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i>
+                                    Guardar</button>
+                                <a href="listar.html" class="btn btn-secondary">Cancelar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js?v=2.1"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('rutas');
+
+        const id = getUrlParam('id');
+
+        // Initial setup
+        if (id) {
+            document.getElementById('pageTitle').textContent = 'Editar Servicio';
+            document.getElementById('formTitle').textContent = 'Editar Servicio #' + id;
+            loadData();
+        } else {
+            // Set default date
+            document.getElementById('fecha_programada').valueAsDate = new Date();
+        }
+
+        loadSelects();
+
+        async function loadSelects() {
+            try {
+                // Load Sedes (with optimized unified endpoint if check passed, else manually)
+                // For now, loading simple list. Optimally should user a search inputs for sedes 
+                // but let's load all for now as per other forms pattern (might be heavy if >1000)
+                // Actually, let's use the unified sedes endpoint or just sedes
+                const sedesRes = await api.get('/sedes-unified?limit=1000');
+                if (sedesRes.success) {
+                    const select = document.getElementById('id_sede');
+                    sedesRes.data.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id_sede;
+                        opt.textContent = `${s.nombre_comercial} - ${s.empresa_razon_social}`;
+                        select.appendChild(opt);
+                    });
+                }
+
+                // Load Plantas
+                const plantasRes = await api.get('/plantas');
+                if (plantasRes.success) {
+                    const select = document.getElementById('id_planta');
+                    plantasRes.data.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id_planta;
+                        opt.textContent = p.nombre_comercial;
+                        select.appendChild(opt);
+                    });
+                }
+
+                // Load Rutas (active ones ideally)
+                const rutasRes = await api.get('/rutas?limit=50'); // limit to recent
+                if (rutasRes.success) {
+                    const select = document.getElementById('id_ruta');
+                    rutasRes.data.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = r.id_ruta;
+                        opt.textContent = `Ruta ${new Date(r.fecha).toLocaleDateString()} - ${r.vehiculo_placa}`;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error cargando listas', 'warning');
+            }
+        }
+
+        async function loadData() {
+            try {
+                const result = await api.get(`/servicios/${id}`);
+                if (result.success) {
+                    const d = result.data;
+                    document.getElementById('id_sede').value = d.id_sede || '';
+                    document.getElementById('id_planta').value = d.id_planta || '';
+                    document.getElementById('id_ruta').value = d.id_ruta || '';
+
+                    document.getElementById('fecha_programada').value = d.fecha_programada || '';
+                    document.getElementById('fecha_ejecucion').value = d.fecha_ejecucion || '';
+                    document.getElementById('hora_llegada').value = d.hora_llegada || '';
+                    document.getElementById('hora_salida').value = d.hora_salida || '';
+
+                    document.getElementById('estado').value = d.estado || 'programado';
+                    document.getElementById('estado_pago').value = d.estado_pago || 'pendiente';
+                    document.getElementById('fecha_pago').value = d.fecha_pago || '';
+
+                    document.getElementById('descripcion_residuo').value = d.descripcion_residuo || '';
+
+                    // Documents
+                    if (d.manifiesto) {
+                        document.getElementById('numero_manifiesto').value = d.manifiesto.numero_manifiesto;
+                        document.getElementById('id_manifiesto').value = d.manifiesto.id_manifiesto;
+                    } else {
+                        document.getElementById('numero_manifiesto').value = 'No generado';
+                    }
+
+                    if (d.guia) {
+                        document.getElementById('numero_guia').value = d.guia.numero_guia;
+                    } else {
+                        document.getElementById('numero_guia').value = 'No generada';
+                    }
+
+                    if (d.factura) {
+                        document.getElementById('numero_factura').value = d.factura.numero_factura;
+                    } else {
+                        document.getElementById('numero_factura').value = 'No generada';
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error cargando servicio', 'danger');
+            }
+        }
+
+        document.getElementById('dataForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                id_sede: document.getElementById('id_sede').value,
+                id_planta: document.getElementById('id_planta').value,
+                id_ruta: document.getElementById('id_ruta').value || null,
+                fecha_programada: document.getElementById('fecha_programada').value,
+                fecha_ejecucion: document.getElementById('fecha_ejecucion').value || null,
+                hora_llegada: document.getElementById('hora_llegada').value || null,
+                hora_salida: document.getElementById('hora_salida').value || null,
+                estado: document.getElementById('estado').value,
+                estado_pago: document.getElementById('estado_pago').value,
+                fecha_pago: document.getElementById('fecha_pago').value || null,
+                descripcion_residuo: document.getElementById('descripcion_residuo').value
+            };
+
+            try {
+                const result = id
+                    ? await api.put(`/servicios/${id}`, data)
+                    : await api.post('/servicios', data);
+
+                if (result.success) {
+                    showToast('Servicio guardado exitosamente');
+                    setTimeout(() => window.location.href = 'listar.html', 1500);
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error guardando servicio', 'danger');
+            }
+        });
+
+        function goToManifiesto() {
+            const manId = document.getElementById('id_manifiesto').value;
+            if (manId) window.open(`../manifiestos/formulario.html?id=${manId}`, '_blank');
+            else showToast('No hay manifiesto asociado', 'info');
+        }
+
+        function goToGuia() {
+            showToast('Módulo de Guías en desarrollo', 'info');
+        }
+
+        function goToFactura() {
+            showToast('Módulo de Facturas en desarrollo', 'info');
+        }
+
+    </script>
+</body>
+
+</html>

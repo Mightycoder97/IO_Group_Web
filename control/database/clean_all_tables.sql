@@ -48,9 +48,9 @@ ALTER TABLE Cliente AUTO_INCREMENT = 1;
 DELETE FROM Empleado;
 ALTER TABLE Empleado AUTO_INCREMENT = 1;
 
-DELETE FROM Vehiculo;
-ALTER TABLE Vehiculo AUTO_INCREMENT = 1;
+-- DELETE FROM Vehiculo;
+-- ALTER TABLE Vehiculo AUTO_INCREMENT = 1;
 
--- NOTA: Se excluyen AuditLog, Planta y Usuario según ediciones recientes
+-- NOTA: Se excluyen AuditLog, Planta, Usuario y Vehiculo según ediciones recientes
 
 SET FOREIGN_KEY_CHECKS = 1;

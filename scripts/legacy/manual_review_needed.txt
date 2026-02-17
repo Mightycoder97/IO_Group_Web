@@ -1,0 +1,122 @@
+REVISION REQUERIDA: Hoja 'LADY SEGOVIA NARVAEZ' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'DIAGNOSTICO Y SALUD PERU' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'PLURAL MEDICAL' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'COLS D' LIMA MANUEL ALEJANDRO' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'CESAR SANCHEZ' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'DARWIN ROBLES' sin RUC. Se intentó match por nombre.
+ERROR: Hoja 'monica carrillo' no se detectó encabezado de servicios.
+REVISION REQUERIDA: Hoja 'MANUEL DIAZ' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'vidal lopez' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'CERRADO11' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'MARIA DE LOS ANGELES' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'LUIS TOLENTINO' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'CIRO GUARDIA SMP' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'JOSE BENDEZU' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'CERRADO15' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'CERRADO - ONLY PETS' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'fabiola chininin' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'LIZ RODRIGUEZ' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'DAVID CUBAS' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'EDGAR SALCEDO' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'CÉSAR AUGUSTO FERNANDEZ QUINTAN' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'SKRABONJA SIMON JUAN MARCOS' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'LILIAN GIOVANNA SÁNCHEZ 1' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'ECOSSALUD E.I.R.L. ' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'MARFA.LAB S.A.C.' tiene encabezados pero no se extrajeron servicios.
+ERROR: Hoja 'MERY ROSARIO ESCOBAR VASQUEZ' no se detectó encabezado de servicios.
+INFO: Hoja 'FLORES EGOCHEAGA NELLY SEVELYN' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'ECOBIO Mediclab SAC ' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'CALZADILLA HUDSON YESLANY MAREN' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'ANDERSON DE LA CRUZ CARBAJAL ' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'MARIA ALEJANDRA  ESCALANTE CONT' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'SANTANA RIBEIRO DE OLIVEIRA MAR' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'CLINICA VETERINARIA SAN ROQUE L' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'DEL AGUILA TRINIDAD MARINEY (2)' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'NANVAS IMPORT SAC     ' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'ROSA MILAGRITOS MARTINEZ BRAVO' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'SANCHEZ PLASENCIA ELENA ROSA   ' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Rosa Concepción García Saavedra' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'MIGUEL ANGEL JIMENEZ MANRIQUE' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'MIGUEL ANGEL JIMENEZ MANRIQUE' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'SUSANIBAR ENCARNACION EDWARD ' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'TUANAMA PIZANGO DARVIN' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'MATE INVERSIONES E.I.R.L.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'VAMOS-PET SHOP S.A.C.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'VIDA SALUD OCUPACIONAL S.A. (2)' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'VIDA SALUD OCUPACIONAL S.A.C.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Trauma y rehabilitación sport s' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'CONTRERAS QUINTERO GERALDINE YO' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'VET SANTA LUCIA SAC' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'OMEGA ODONTOLOGIA ESPECIALI (2)' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'POLICLINICO MICAELA BASTIDAS EI' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'SALUS LABORIS SAC STA. CLRA ATE' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'SALUS LABORIS SAC HUACHIPA' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'SALUS LABORIS SAC PUENTE PIEDRA' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'KIRUSAMI S.A.C.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'HORUS DOGPACKERS S.A.C.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja ' CARSEC SAC' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'INVERSIONES BASHAR S.A.C.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'INSTITUTO GUESTALT DE LIMA S.A.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'VITA DENTIS S.A.C.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'INTEGRAL MEDICAL CARE S.A.C.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'VETERINARIA KUSI ALKHO SAC' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'F45 E.I.R.L.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'ONCOLOGIA INTEGRAL ' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'SALIS SANTIAGO LESLY NORA' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja ' DIABETES SOY DIABETICO' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'REHABLIMA E.I.R.L.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'MELYSALUD (2)' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Jannet Melissa Salcedo Macal2' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Jannet Melissa Salcedo Macalupu' tiene encabezados pero no se extrajeron servicios.
+ERROR: Hoja '2007 EMPRESA MUN CHO' no se detectó encabezado de servicios.
+INFO: Hoja 'ORAL ESTHETIC CLASS EIRL' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Centro Médico Juan XXIII SAC' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'ASISTENCIA VETERINARIA SALUD AN' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'Livia Teresa Rivas Ortega' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'MENDIZABAL ARIZMENDI ARMANDO' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'ECHEVARRIA ANGULO MARIA' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'HERNANDEZ ANDRADE MILIUSKA EDWI' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'ASIRI DENTAL MEDIC SAC' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'HIDALGO CRUZ SOFIA MARIVEL' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'MINISTERIO DE DEFENSA Ejército ' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'DE ABREU BECERRA DIANA CLARA   ' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja 'ARAUJO ROBLES JORGE LUIS     ' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'ARMONIZACION FACIAL PERU SAC   ' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'CLINICA FELINA JACOBITA S.A (2)' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'SALUD XPRESS SOCIEDAD ANONIMA C' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'MARIA PATRICIA NAVAS CORDERO' sin RUC. Se intentó match por nombre.
+REVISION REQUERIDA: Hoja ' HUERTAS RAMOS ANGELA ASTRID' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'VES OMONTE GUTIERREZ JOHAN R' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Maribel Jacqueline Vila Guillén' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Bazan Varas Maruja Consuelo' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'LUNA HUANCA IGNACIO' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'CARLOS GIL GABRIEL CALVO MAC' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'GARCIA MIRANDA CESAR ARTURO' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'samantha rojas        ' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'ANCONGrupo consorcio vet' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'Bertha paullo pomahuacre de Mon' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'Bertha paullo pomahuacre de Mon' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja ' SERVSALUD SAC       ' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja ' LAU SALAZAR MIGUEL ANGEL      ' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Melissa Fiorella Becerra Trujil' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Judith Chavarria Quispe' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Luz pilar solis javier' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'DETECTA CENTRO ONCOLOGICO S (2)' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'GRUPO VETERINARIO LAS VIÑAS (2)' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'GRUPO VETERINARIO LAS VIÑAS SAC' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'HOJA(4)' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'CONSULTORIO DENTAL DR. CUADROS ' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'ATM SERVET SAC' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'GARCIA RAMIREZ WASHINGTON' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'VitalPro SAC' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'DENTALISTA S.A.C.' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'consultorio médico pulso & vida' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'centro odontológico Loladent sa' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Torres Paxi Keyla Jeaneth ' tiene encabezados pero no se extrajeron servicios.
+INFO: Hoja 'Juan Diego Flores Rodas' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'hoja 2 (2)' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'hoja 2 (2)' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'hoja 2' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'hoja 2' tiene encabezados pero no se extrajeron servicios.
+REVISION REQUERIDA: Hoja 'HOJA 1 (3)' sin RUC. Se intentó match por nombre.
+INFO: Hoja 'HOJA 1 (3)' tiene encabezados pero no se extrajeron servicios.

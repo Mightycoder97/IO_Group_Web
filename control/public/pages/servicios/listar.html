@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Servicios - IO Group</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/global.css" rel="stylesheet">
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Servicios</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <div class="content-area">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div>
+                            <h5 class="table-title mb-0"><i class="bi bi-tools"></i> Servicios</h5>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <input type="date" class="form-control form-control-sm" id="fechaDesde"
+                                style="width: 130px;" placeholder="Desde">
+                            <input type="date" class="form-control form-control-sm" id="fechaHasta"
+                                style="width: 130px;" placeholder="Hasta">
+                            <select class="form-select form-select-sm" id="estadoFilter" style="width: 130px;">
+                                <option value="">Estado</option>
+                                <option value="programado">Programado</option>
+                                <option value="en_curso">En Curso</option>
+                                <option value="completado">Completado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                            <input type="text" class="form-control form-control-sm" id="searchInput"
+                                placeholder="Buscar cliente..." style="width: 200px;">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </button>
+                            <a href="formulario.html" class="btn btn-primary btn-sm" id="btnNew">
+                                <i class="bi bi-plus-circle"></i> Nuevo
+                            </a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Cód.</th>
+                                    <th>Cliente / Sede</th>
+                                    <th>Fecha Ejec.</th>
+                                    <th>Estado Service</th>
+                                    <th>Estado Pago</th>
+                                    <th>Residuo</th>
+                                    <th width="100">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation" class="mt-3">
+                        <ul class="pagination justify-content-center" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js?v=2.1"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('rutas'); // Using 'rutas' permission for now as services are part of operations
+
+        let currentPage = 1;
+        const limit = 20;
+
+        async function loadData(page = 1) {
+            currentPage = page;
+            try {
+                const desde = document.getElementById('fechaDesde').value;
+                const hasta = document.getElementById('fechaHasta').value;
+                const estado = document.getElementById('estadoFilter').value;
+                const busqueda = document.getElementById('searchInput').value;
+
+                let url = `/servicios?page=${page}&limit=${limit}`;
+                if (desde) url += `&fecha_desde=${desde}`;
+                if (hasta) url += `&fecha_hasta=${hasta}`;
+                if (estado) url += `&estado=${estado}`;
+                if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`;
+
+                const result = await api.get(url);
+
+                if (result.success) {
+                    renderTable(result.data);
+                    renderPagination(result.total, result.page, result.limit, 'pagination', loadData);
+                } else {
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error cargando datos</td></tr>';
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error cargando datos', 'danger');
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No se encontraron servicios</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(s => {
+                const fecha = s.fecha_servicio ? new Date(s.fecha_servicio).toLocaleDateString('es-PE') : '-';
+                const estadoBadge = getEstadoBadge(s.estado);
+                const pagoBadge = s.estado_pago === 'pagado'
+                    ? '<span class="badge bg-success">Pagado</span>'
+                    : '<span class="badge bg-warning text-dark">Pendiente</span>';
+
+                return `
+                <tr>
+                    <td><small class="text-muted">${s.codigo_servicio || s.id_servicio}</small></td>
+                    <td>
+                        <strong>${s.sede_nombre || 'Sede desconocida'}</strong><br>
+                        <small class="text-muted">${s.empresa_razon_social || ''}</small>
+                    </td>
+                    <td>${fecha}</td>
+                    <td>${estadoBadge}</td>
+                    <td>${pagoBadge}</td>
+                    <td>${s.descripcion_residuo || '-'}</td>
+                    <td>
+                        <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary" title="Ver/Editar">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        ${canEdit() ? `
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteService(${s.id_servicio})" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>` : ''}
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function getEstadoBadge(estado) {
+            const config = {
+                'programado': { bg: 'bg-secondary', icon: 'bi-clock' },
+                'en_curso': { bg: 'bg-primary', icon: 'bi-truck' },
+                'completado': { bg: 'bg-success', icon: 'bi-check-circle' },
+                'cancelado': { bg: 'bg-danger', icon: 'bi-x-circle' }
+            };
+            const c = config[estado] || config['programado'];
+            return `<span class="badge ${c.bg}"><i class="bi ${c.icon}"></i> ${estado}</span>`;
+        }
+
+        async function deleteService(id) {
+            if (!confirmDelete()) return;
+            try {
+                const result = await api.delete(`/servicios/${id}`);
+                if (result.success) {
+                    showToast('Servicio eliminado');
+                    loadData(currentPage);
+                } else {
+                    showToast(result.message, 'danger');
+                }
+            } catch (err) {
+                showToast('Error eliminando', 'danger');
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('fechaDesde').value = '';
+            document.getElementById('fechaHasta').value = '';
+            document.getElementById('estadoFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            loadData(1);
+        }
+
+        // Debounce search
+        let timeout = null;
+        document.getElementById('searchInput').addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => loadData(1), 500);
+        });
+
+        document.getElementById('fechaDesde').addEventListener('change', () => loadData(1));
+        document.getElementById('fechaHasta').addEventListener('change', () => loadData(1));
+        document.getElementById('estadoFilter').addEventListener('change', () => loadData(1));
+
+        loadData();
+    </script>
+</body>
+
+</html>
