@@ -15,7 +15,7 @@
         storageExpiry: 7,               // Days before showing again
         testMode: true,                 // Set to false for production
         // Google Sheets Web App URL - REPLACE WITH YOUR OWN AFTER SETUP
-        googleSheetsUrl: 'YOUR_GOOGLE_SHEETS_WEB_APP_URL'
+        googleSheetsUrl: 'https://script.google.com/macros/s/AKfycbx3woX6IGoNU91bGntIfiVYUhBEV_5AAHEhR6vI2vOAPcIq6cWbLzgfMr-rBAYkOxvb4Q/exec'
     };
 
     // DOM Elements
