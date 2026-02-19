@@ -42,10 +42,14 @@ function getAll() {
     // Optimized query using LEFT JOIN instead of correlated subqueries
     $sql = "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca, v.modelo as vehiculo_modelo,
             COUNT(DISTINCT s.id_servicio) as total_servicios,
-            COUNT(DISTINCT s.id_sede) as sedes_count
+            COUNT(DISTINCT s.id_sede) as sedes_count,
+            CONCAT(ch.nombres, ' ', ch.apellidos) as chofer_nombre,
+            CONCAT(ay.nombres, ' ', ay.apellidos) as ayudante_nombre
             FROM Ruta r
             INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
             LEFT JOIN Servicio s ON s.id_ruta = r.id_ruta
+            LEFT JOIN Empleado ch ON r.id_chofer = ch.id_empleado
+            LEFT JOIN Empleado ay ON r.id_ayudante = ay.id_empleado
             WHERE 1=1";
     $params = [];
     
@@ -88,9 +92,13 @@ function getOne($id) {
     
     try {
         $ruta = db()->queryOne(
-            "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca
-             FROM Ruta r 
-             INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo 
+            "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca,
+                    CONCAT(ch.nombres, ' ', ch.apellidos) as chofer_nombre,
+                    CONCAT(ay.nombres, ' ', ay.apellidos) as ayudante_nombre
+             FROM Ruta r
+             INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
+             LEFT JOIN Empleado ch ON r.id_chofer = ch.id_empleado
+             LEFT JOIN Empleado ay ON r.id_ayudante = ay.id_empleado
              WHERE r.id_ruta = ?",
             [$id]
         );
@@ -137,6 +145,8 @@ function create() {
         $id_vehiculo = $data['id_vehiculo'] ?? null;
         $fecha = $data['fecha'] ?? null;
         $sedes = $data['sedes'] ?? [];
+        $id_chofer = $data['id_chofer'] ?? null;
+        $id_ayudante = $data['id_ayudante'] ?? null;
         
         if (empty($id_vehiculo) || empty($fecha)) {
             http_response_code(400);
@@ -156,8 +166,8 @@ function create() {
             db()->execute("DELETE FROM Servicio WHERE id_ruta = ?", [$id]);
             
             db()->execute(
-                "UPDATE Ruta SET estado = ?, observaciones = ?, fecha_modificacion = NOW() WHERE id_ruta = ?",
-                [$data['estado'] ?? 'programada', $data['observaciones'] ?? null, $id]
+                "UPDATE Ruta SET estado = ?, observaciones = ?, id_chofer = ?, id_ayudante = ?, fecha_modificacion = NOW() WHERE id_ruta = ?",
+                [$data['estado'] ?? 'programada', $data['observaciones'] ?? null, $id_chofer, $id_ayudante, $id]
             );
         } else {
             // Auto-generate codigo_ruta: R-YYYYMMDD-VID-COUNTER
@@ -171,8 +181,8 @@ function create() {
             
             // Create new route (simplified - only essential fields)
             $id = db()->insert(
-                "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, estado) VALUES (?, ?, ?, 'programada')",
-                [$id_vehiculo, $codigo_ruta, $fecha]
+                "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, estado, id_chofer, id_ayudante) VALUES (?, ?, ?, 'programada', ?, ?)",
+                [$id_vehiculo, $codigo_ruta, $fecha, $id_chofer, $id_ayudante]
             );
         }
         
@@ -234,6 +244,8 @@ function update($id) {
             km_final = ?,
             estado = ?,
             observaciones = ?,
+            id_chofer = ?,
+            id_ayudante = ?,
             fecha_modificacion = NOW()
          WHERE id_ruta = ?",
         [
@@ -246,6 +258,8 @@ function update($id) {
             $data['km_final'] ?? $existing['km_final'],
             $data['estado'] ?? $existing['estado'],
             $data['observaciones'] ?? $existing['observaciones'],
+            $data['id_chofer'] ?? $existing['id_chofer'],
+            $data['id_ayudante'] ?? $existing['id_ayudante'],
             $id
         ]
     );

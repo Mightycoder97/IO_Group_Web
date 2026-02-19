@@ -100,6 +100,11 @@
             <span><strong>Fecha:</strong> <span id="pa-fecha">-</span></span>
             <span><strong>Total:</strong> <span id="pa-total">0</span> clientes</span>
         </div>
+        <div
+            style="font-size: 9px; color: #555; border-top: 1px solid #ccc; padding: 3px 0 5px; margin-bottom: 6px; display: flex; gap: 32px;">
+            <span><i>Chofer:</i> <strong id="pa-chofer">-</strong></span>
+            <span><i>Ayudante:</i> <strong id="pa-ayudante">-</strong></span>
+        </div>
         <table class="ruta-detail-table table table-bordered">
             <thead>
                 <tr>
@@ -197,11 +202,16 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header" style="background:#1B5E20; color:white;">
-                    <h5 class="modal-title" id="verRutaModalLabel">
-                        <i class="bi bi-truck me-1"></i> <span id="modalVehiculo">-</span>
-                        &nbsp;&middot;&nbsp;
-                        <span id="modalFecha">-</span>
-                    </h5>
+                    <div>
+                        <h5 class="modal-title" id="verRutaModalLabel">
+                            <i class="bi bi-truck me-1"></i> <span id="modalVehiculo">-</span>
+                            &nbsp;&middot;&nbsp;
+                            <span id="modalFecha">-</span>
+                        </h5>
+                        <div style="font-size: 11px; opacity: 0.85; margin-top: 2px;">
+                            <span id="modalChoferLine"></span>
+                        </div>
+                    </div>
                     <div class="d-flex align-items-center gap-2 ms-auto">
                         <span class="badge bg-light text-dark me-2" id="modalTotal">0 clientes</span>
                         <button class="btn btn-sm btn-light" onclick="printRuta()" title="Imprimir hoja de ruta">
@@ -345,6 +355,7 @@
             document.getElementById('modalFecha').textContent = rutaMeta
                 ? new Date(rutaMeta.fecha + 'T12:00:00').toLocaleDateString('es-PE') : '-';
             document.getElementById('modalTotal').textContent = '...';
+            document.getElementById('modalChoferLine').textContent = '';
             document.getElementById('modalTbody').innerHTML =
                 '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm text-success me-2"></div>Cargando...</td></tr>';
 
@@ -360,9 +371,14 @@
                 }
 
                 const servicios = result.data.servicios || [];
-                currentRutaData = { meta: rutaMeta, servicios };
+                currentRutaData = { meta: rutaMeta, servicios, ruta: result.data };
 
                 document.getElementById('modalTotal').textContent = `${servicios.length} clientes`;
+                // Chofer / Ayudante subtle line
+                const ch = result.data.chofer_nombre;
+                const ay = result.data.ayudante_nombre;
+                const chLine = [ch ? `Chofer: ${ch}` : '', ay ? `Ayudante: ${ay}` : ''].filter(Boolean).join('  ·  ');
+                document.getElementById('modalChoferLine').textContent = chLine;
 
                 if (servicios.length === 0) {
                     document.getElementById('modalTbody').innerHTML =
@@ -391,13 +407,15 @@
         function printRuta() {
             if (!currentRutaData) return;
 
-            const { meta, servicios } = currentRutaData;
+            const { meta, servicios, ruta } = currentRutaData;
 
             // Populate hidden print area
             document.getElementById('pa-vehiculo').textContent = meta?.vehiculo_placa || '-';
             document.getElementById('pa-fecha').textContent = meta
                 ? new Date(meta.fecha + 'T12:00:00').toLocaleDateString('es-PE') : '-';
             document.getElementById('pa-total').textContent = servicios.length;
+            document.getElementById('pa-chofer').textContent = ruta?.chofer_nombre || '-';
+            document.getElementById('pa-ayudante').textContent = ruta?.ayudante_nombre || '-';
             document.getElementById('pa-tbody').innerHTML = servicios.map((s, i) => `
                 <tr>
                     <td style="text-align:center;font-weight:700">${i + 1}</td>
