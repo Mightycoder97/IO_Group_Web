@@ -796,7 +796,11 @@
                     id_vehiculo: selectedVehiculo.id_vehiculo,
                     fecha: fecha,
                     estado: 'programada',
-                    sedes: clientesEnRuta.map(c => c.id_sede),
+                    sedes: clientesEnRuta.map(c => ({
+                        id_sede: c.id_sede,
+                        forma_pago: c.tipo_pago || null,
+                        obs: c.obs || null
+                    })),
                     id_chofer: id_chofer || null,
                     id_ayudante: id_ayudante || null
                 });

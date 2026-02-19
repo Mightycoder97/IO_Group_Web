@@ -198,10 +198,21 @@ function create() {
         
         // Create services for each sede - use fecha_ejecucion and estado programado
         if (!empty($sedes)) {
-            foreach ($sedes as $orden => $id_sede) {
+            foreach ($sedes as $orden => $sedeItem) {
+                // Accept both plain ID (legacy) and object {id_sede, forma_pago, obs}
+                if (is_array($sedeItem)) {
+                    $id_sede       = $sedeItem['id_sede'] ?? null;
+                    $forma_pago    = $sedeItem['forma_pago'] ?? null;
+                    $desc_residuo  = $sedeItem['obs'] ?? null;
+                } else {
+                    $id_sede      = $sedeItem;
+                    $forma_pago   = null;
+                    $desc_residuo = null;
+                }
+                if (!$id_sede) continue;
                 db()->insert(
-                    "INSERT INTO Servicio (id_ruta, id_sede, fecha_ejecucion, estado) VALUES (?, ?, ?, 'programado')",
-                    [$id, $id_sede, $fecha]
+                    "INSERT INTO Servicio (id_ruta, id_sede, fecha_ejecucion, estado, forma_pago, descripcion_residuo) VALUES (?, ?, ?, 'programado', ?, ?)",
+                    [$id, $id_sede, $fecha, $forma_pago, $desc_residuo]
                 );
             }
         }
