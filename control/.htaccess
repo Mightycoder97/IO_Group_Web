@@ -41,6 +41,7 @@ RewriteRule ^api/sedes-unified(.*)$ api/sedes-unified.php [QSA,L]
 RewriteRule ^api/prospectos(.*)$ api/prospectos.php [QSA,L]
 RewriteRule ^api/usuarios(.*)$ api/usuarios.php [QSA,L]
 RewriteRule ^api/calendario(.*)$ api/calendario.php [QSA,L]
+RewriteRule ^api/control_ruta(.*)$ api/control_ruta.php [QSA,L]
 
 # Static files in public folder
 RewriteRule ^pages/(.*)$ public/pages/$1 [L]

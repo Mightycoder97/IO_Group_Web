@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Control de Ruta - IO Group</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/global.css" rel="stylesheet">
+    <style>
+        /* ============================
+           CONTROL DE RUTA – Styles
+           ============================ */
+
+        /* Split-panel layout */
+        .control-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 1rem;
+            height: calc(100vh - 120px);
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .control-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .panel-left {
+                max-height: 340px;
+            }
+        }
+
+        /* Panels */
+        .panel-left,
+        .panel-right {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 0.75rem 1rem;
+            background: #1B5E20;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .panel-body {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Route list items */
+        .ruta-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .ruta-item:hover {
+            background: #f1f8e9;
+        }
+
+        .ruta-item.active {
+            background: #e8f5e9;
+            border-left: 3px solid #1B5E20;
+        }
+
+        .ruta-item .ruta-fecha {
+            font-weight: 700;
+            color: #1B5E20;
+            font-size: 0.9rem;
+        }
+
+        .ruta-item .ruta-meta {
+            font-size: 0.78rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* Progress pill */
+        .prog-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .prog-pill.warn {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .prog-pill.done {
+            background: #e8f5e9;
+            color: #1B5E20;
+        }
+
+        .prog-pill.none {
+            background: #f5f5f5;
+            color: #888;
+        }
+
+        /* Sede card */
+        .sede-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            transition: box-shadow 0.15s;
+        }
+
+        .sede-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .sede-card-header {
+            padding: 0.6rem 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .sede-card-body {
+            padding: 0.75rem 1rem;
+        }
+
+        /* Action strips */
+        .action-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .action-strip+.action-strip {
+            margin-top: 0.5rem;
+        }
+
+        .action-strip label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #555;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .action-strip select,
+        .action-strip input[type="checkbox"] {
+            flex-shrink: 0;
+        }
+
+        /* Digital signature badge */
+        .firma-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #e3f2fd;
+            color: #0d47a1;
+            border: 1px solid #bbdefb;
+        }
+
+        .firma-badge.pago {
+            background: #f3e5f5;
+            color: #6a1b9a;
+            border-color: #ce93d8;
+        }
+
+        /* Progress bar container */
+        .progress-bar-wrap {
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            flex-shrink: 0;
+        }
+
+        /* Save bar */
+        .save-bar {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #dee2e6;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #aaa;
+            gap: 0.5rem;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+        }
+
+        /* Status badges */
+        .badge-estado {
+            font-size: 0.7rem;
+        }
+
+        /* Verified row highlight */
+        .sede-card.verified-both .sede-card-header {
+            background: #e8f5e9;
+            border-bottom-color: #c8e6c9;
+        }
+
+        /* Compact form controls */
+        .form-select-xs {
+            font-size: 0.78rem;
+            padding: 0.2rem 0.5rem;
+            height: auto;
+        }
+
+        .btn-xs {
+            padding: 0.15rem 0.5rem;
+            font-size: 0.76rem;
+        }
+
+        /* Scrollbar */
+        .panel-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .panel-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .panel-body::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 4px;
+        }
+
+        /* Print */
+        @media print {
+
+            .sidebar,
+            .top-nav,
+            .breadcrumb-container,
+            .user-menu {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="control-app">
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="listar.html">Rutas</a></li>
+                            <li class="breadcrumb-item active">Control de Ruta</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
+                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area" style="padding: 1rem;">
+                <!-- Page title -->
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0" style="color:#1B5E20; font-weight:700;">
+                        <i class="bi bi-clipboard2-check-fill me-2"></i>Control de Ruta
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <input type="date" id="filtroFecha" class="form-control form-control-sm" style="width:140px;"
+                            placeholder="Filtrar por fecha">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="clearFiltro()">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Split layout -->
+                <div class="control-layout">
+
+                    <!-- Left panel: route list -->
+                    <div class="panel-left">
+                        <div class="panel-header">
+                            <i class="bi bi-list-ul"></i>
+                            Rutas Programadas
+                            <span class="badge bg-light text-dark ms-auto" id="totalRutas">0</span>
+                        </div>
+                        <div class="panel-body" id="rutasList">
+                            <div class="empty-state">
+                                <div class="spinner-border spinner-border-sm text-success"></div>
+                                <span>Cargando rutas...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right panel: route detail / sede controls -->
+                    <div class="panel-right">
+                        <div class="panel-header" id="detailHeader">
+                            <i class="bi bi-truck"></i>
+                            <span id="detailTitle">Selecciona una ruta</span>
+                            <span class="badge bg-light text-dark ms-auto d-none" id="detailCount"></span>
+                        </div>
+
+                        <!-- Progress bar (hidden until route loaded) -->
+                        <div class="progress-bar-wrap d-none" id="progressWrap">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted fw-semibold">Progreso de verificación</small>
+                                <small id="progressLabel" class="text-muted">0 / 0</small>
+                            </div>
+                            <div class="progress" style="height:6px;">
+                                <div class="progress-bar bg-success" id="progressBar" role="progressbar"
+                                    style="width:0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Sedes list -->
+                        <div class="panel-body p-3" id="sedesList">
+                            <div class="empty-state">
+                                <i class="bi bi-arrow-left-circle"></i>
+                                <span>Selecciona una ruta de la lista para ver sus sedes</span>
+                            </div>
+                        </div>
+
+                        <!-- Save bar (hidden until route loaded) -->
+                        <div class="save-bar d-none" id="saveBar">
+                            <div>
+                                <small class="text-muted" id="saveHint">Verifica todas las sedes para guardar</small>
+                            </div>
+                            <button class="btn btn-success" id="btnGuardar" disabled onclick="guardarCambios()">
+                                <i class="bi bi-floppy-fill me-1"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js?v=2.0"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('rutas');
+
+        // ========================
+        // State
+        // ========================
+        let allRutas = [];
+        let currentRutaId = null;
+
+        // Local edits: { [id_servicio]: { estado, estado_pago, forma_pago, firmaServicio, firmaPago } }
+        let localEdits = {};
+
+        // Loaded services for current route
+        let currentServicios = [];
+
+        const PAYMENT_METHODS = ['Yape', 'Plin', 'Efectivo', 'Transferencia', 'Cheque', 'Depósito', 'Otro'];
+
+        // ========================
+        // Helpers
+        // ========================
+        function fmtDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr + 'T12:00:00').toLocaleDateString('es-PE', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function fmtDateTime(dtStr) {
+            if (!dtStr) return '-';
+            const d = new Date(dtStr);
+            return d.toLocaleDateString('es-PE') + ' ' + d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getEstadoBadge(estado) {
+            const map = {
+                'programado': ['secondary', 'clock'],
+                'en_curso': ['primary', 'truck'],
+                'completado': ['success', 'check-circle-fill'],
+                'cancelado': ['danger', 'x-circle-fill'],
+            };
+            const [bg, icon] = map[estado] || map['programado'];
+            const label = estado ? (estado.charAt(0).toUpperCase() + estado.slice(1)) : '-';
+            return `<span class="badge bg-${bg} badge-estado"><i class="bi bi-${icon}"></i> ${label}</span>`;
+        }
+
+        function getPagoBadge(estadoPago, formaPago) {
+            if (estadoPago === 'pagado') {
+                return `<span class="badge bg-success badge-estado"><i class="bi bi-currency-dollar"></i> Pagado${formaPago ? ' · ' + formaPago : ''}</span>`;
+            }
+            return `<span class="badge bg-warning text-dark badge-estado"><i class="bi bi-hourglass-split"></i> Pendiente</span>`;
+        }
+
+        function getCurrentUser() {
+            const u = getUser();
+            return u?.nombre_completo || u?.username || 'Usuario';
+        }
+
+        function nowDisplay() {
+            return new Date().toLocaleDateString('es-PE') + ' ' + new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // ========================
+        // Load route list
+        // ========================
+        async function loadRutas() {
+            try {
+                const result = await api.get('/rutas?limit=200');
+                if (!result.success) return;
+
+                allRutas = result.data;
+                applyFiltro();
+            } catch (err) {
+                document.getElementById('rutasList').innerHTML =
+                    '<div class="empty-state"><i class="bi bi-exclamation-circle text-danger"></i><span>Error cargando rutas</span></div>';
+            }
+        }
+
+        function applyFiltro() {
+            const filtro = document.getElementById('filtroFecha').value;
+            let data = [...allRutas];
+
+            if (filtro) {
+                data = data.filter(r => r.fecha === filtro);
+            }
+
+            // Already ordered DESC by API
+            renderRutasList(data);
+        }
+
+        function clearFiltro() {
+            document.getElementById('filtroFecha').value = '';
+            applyFiltro();
+        }
+
+        function renderRutasList(data) {
+            document.getElementById('totalRutas').textContent = data.length;
+            const el = document.getElementById('rutasList');
+
+            if (data.length === 0) {
+                el.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><span>Sin rutas encontradas</span></div>';
+                return;
+            }
+
+            el.innerHTML = data.map(r => {
+                const count = parseInt(r.sedes_count || 0);
+                const isSelected = r.id_ruta == currentRutaId;
+
+                // Determine progress pill color based on route state
+                let pillClass = 'none', pillIcon = 'list';
+                if (r.estado === 'completada') { pillClass = 'done'; pillIcon = 'check-all'; }
+                else if (r.estado === 'en_curso') { pillClass = 'warn'; pillIcon = 'clock'; }
+
+                return `
+            <div class="ruta-item${isSelected ? ' active' : ''}" onclick="selectRuta(${r.id_ruta})" id="ritem-${r.id_ruta}">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="ruta-fecha">${fmtDate(r.fecha)}</div>
+                    ${getEstadoBadge(r.estado)}
+                </div>
+                <div class="ruta-meta d-flex justify-content-between mt-1">
+                    <span><i class="bi bi-truck me-1"></i>${r.vehiculo_placa || '-'} ${r.vehiculo_marca ? '· ' + r.vehiculo_marca : ''}</span>
+                    <span class="prog-pill ${pillClass}">
+                        <i class="bi bi-${pillIcon}"></i>${count} sedes
+                    </span>
+                </div>
+                ${r.chofer_nombre ? `<div class="ruta-meta" style="margin-top:2px;"><i class="bi bi-person me-1"></i>${r.chofer_nombre}</div>` : ''}
+            </div>`;
+            }).join('');
+        }
+
+        // ========================
+        // Select & load route detail
+        // ========================
+        async function selectRuta(id) {
+            if (currentRutaId === id) return;
+
+            currentRutaId = id;
+            localEdits = {};
+
+            // Highlight selected item
+            document.querySelectorAll('.ruta-item').forEach(el => el.classList.remove('active'));
+            const selected = document.getElementById(`ritem-${id}`);
+            if (selected) selected.classList.add('active');
+
+            // Show loading state
+            document.getElementById('detailTitle').textContent = 'Cargando...';
+            document.getElementById('detailCount').classList.add('d-none');
+            document.getElementById('progressWrap').classList.add('d-none');
+            document.getElementById('saveBar').classList.add('d-none');
+            document.getElementById('sedesList').innerHTML =
+                '<div class="empty-state"><div class="spinner-border spinner-border-sm text-success"></div><span>Cargando sedes...</span></div>';
+
+            try {
+                const result = await api.get(`/control_ruta?id_ruta=${id}`, { cache: false });
+                if (!result.success) {
+                    document.getElementById('sedesList').innerHTML =
+                        '<div class="empty-state"><i class="bi bi-exclamation-circle text-danger"></i><span>Error al cargar la ruta</span></div>';
+                    return;
+                }
+
+                const ruta = result.data;
+                currentServicios = ruta.servicios || [];
+
+                // Header
+                document.getElementById('detailTitle').textContent =
+                    `${ruta.vehiculo_placa || '-'} · ${fmtDate(ruta.fecha)}`;
+                const countBadge = document.getElementById('detailCount');
+                countBadge.textContent = `${currentServicios.length} sedes`;
+                countBadge.classList.remove('d-none');
+
+                if (ruta.chofer_nombre || ruta.ayudante_nombre) {
+                    document.getElementById('detailTitle').textContent +=
+                        ` | Chofer: ${ruta.chofer_nombre || '-'}`;
+                }
+
+                // Initialize local edits from server state
+                currentServicios.forEach(s => {
+                    localEdits[s.id_servicio] = {
+                        estado: s.estado,
+                        estado_pago: s.estado_pago || 'pendiente',
+                        forma_pago: s.forma_pago || '',
+                        firmaServicio: s.firma_servicio,
+                        firmaPago: s.firma_pago,
+                        // Track if user touched this in the current session
+                        editadoServicio: false,
+                        editadoPago: false,
+                    };
+                });
+
+                renderSedes();
+                updateProgressAndSave();
+                document.getElementById('progressWrap').classList.remove('d-none');
+                document.getElementById('saveBar').classList.remove('d-none');
+
+            } catch (err) {
+                document.getElementById('sedesList').innerHTML =
+                    '<div class="empty-state"><i class="bi bi-exclamation-circle text-danger"></i><span>Error de conexión</span></div>';
+            }
+        }
+
+        // ========================
+        // Render sedes
+        // ========================
+        function renderSedes() {
+            const el = document.getElementById('sedesList');
+
+            if (currentServicios.length === 0) {
+                el.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><span>Esta ruta no tiene sedes asignadas</span></div>';
+                return;
+            }
+
+            el.innerHTML = currentServicios.map((s, i) => {
+                const edit = localEdits[s.id_servicio];
+                const isVerifiedServicio = edit.estado && edit.estado !== 'programado';
+                const isVerifiedPago = edit.estado_pago === 'pagado' || edit.editadoPago;
+                const bothDone = isVerifiedServicio && (edit.estado_pago === 'pagado');
+
+                return `
+            <div class="sede-card${bothDone ? ' verified-both' : ''}" id="sc-${s.id_servicio}">
+
+                <!-- Card header -->
+                <div class="sede-card-header">
+                    <div>
+                        <strong style="font-size:0.85rem;">${i + 1}. ${s.sede_nombre || '-'}</strong>
+                        <div style="font-size:0.75rem; color:#666;">${s.empresa_razon_social || '-'} · ${s.distrito || ''}</div>
+                    </div>
+                    <div class="d-flex gap-1 align-items-center flex-wrap">
+                        ${getEstadoBadge(edit.estado)}
+                        ${getPagoBadge(edit.estado_pago, edit.forma_pago)}
+                    </div>
+                </div>
+
+                <!-- Card body -->
+                <div class="sede-card-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col-sm-6">
+                            <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>${s.direccion || '-'}</small>
+                        </div>
+                        <div class="col-sm-3">
+                            <small class="text-muted"><i class="bi bi-telephone me-1"></i>${s.contacto_telefono || '-'}</small>
+                        </div>
+                        <div class="col-sm-3 text-end">
+                            <small class="fw-semibold text-success">S/ ${parseFloat(s.tarifa_servicio || 0).toFixed(2)}</small>
+                        </div>
+                    </div>
+
+                    <!-- ① Service confirmation -->
+                    <div class="action-strip mb-1">
+                        <i class="bi bi-check2-circle text-success"></i>
+                        <label>Estado del servicio:</label>
+                        <select class="form-select form-select-xs" id="est-${s.id_servicio}"
+                                onchange="onEstadoChange(${s.id_servicio})"
+                                style="max-width:160px;">
+                            <option value="programado" ${edit.estado === 'programado' ? 'selected' : ''}>Programado</option>
+                            <option value="completado" ${edit.estado === 'completado' ? 'selected' : ''}>Completado ✅</option>
+                            <option value="cancelado"  ${edit.estado === 'cancelado' ? 'selected' : ''}>Cancelado ❌</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-success btn-xs" onclick="confirmarServicio(${s.id_servicio})"
+                                id="btnConfSrv-${s.id_servicio}"
+                                ${isVerifiedServicio && !edit.editadoServicio ? 'disabled' : ''}>
+                            <i class="bi bi-check-lg"></i> Confirmar
+                        </button>
+                        <!-- Firma digital servicio -->
+                        <div id="firma-srv-${s.id_servicio}">
+                            ${edit.firmaServicio ? renderFirma(edit.firmaServicio, false) : ''}
+                        </div>
+                    </div>
+
+                    <!-- ② Payment confirmation -->
+                    <div class="action-strip">
+                        <i class="bi bi-currency-dollar text-primary"></i>
+                        <label>
+                            <input type="checkbox" id="chkPago-${s.id_servicio}" class="form-check-input me-1"
+                                   ${edit.estado_pago === 'pagado' ? 'checked' : ''}
+                                   onchange="onPagoCheck(${s.id_servicio})">
+                            Pago realizado
+                        </label>
+                        <select class="form-select form-select-xs" id="metodo-${s.id_servicio}"
+                                style="max-width:140px;"
+                                ${edit.estado_pago !== 'pagado' ? 'disabled' : ''}
+                                onchange="onMetodoChange(${s.id_servicio})">
+                            <option value="">Método...</option>
+                            ${PAYMENT_METHODS.map(m => `<option value="${m}" ${edit.forma_pago === m ? 'selected' : ''}>${m}</option>`).join('')}
+                        </select>
+                        <button class="btn btn-sm btn-outline-primary btn-xs" onclick="confirmarPago(${s.id_servicio})"
+                                id="btnConfPago-${s.id_servicio}"
+                                ${(edit.estado_pago === 'pagado' && !edit.editadoPago) ? 'disabled' : ''}>
+                            <i class="bi bi-check-lg"></i> Confirmar
+                        </button>
+                        <!-- Firma digital pago -->
+                        <div id="firma-pago-${s.id_servicio}">
+                            ${edit.firmaPago ? renderFirma(edit.firmaPago, true) : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            }).join('');
+        }
+
+        function renderFirma(firma, isPago) {
+            const usuario = firma.usuario || 'Desconocido';
+            const ts = firma.fecha_hora ? fmtDateTime(firma.fecha_hora) : nowDisplay();
+            const cls = isPago ? 'pago' : '';
+            const icon = isPago ? 'bi-pen' : 'bi-person-check';
+            return `<span class="firma-badge ${cls}"><i class="bi ${icon}"></i> ${usuario} · ${ts}</span>`;
+        }
+
+        // ========================
+        // State change handlers
+        // ========================
+        function onEstadoChange(id) {
+            const val = document.getElementById(`est-${id}`).value;
+            localEdits[id].estado = val;
+            localEdits[id].editadoServicio = true;
+            // Enable confirm button
+            document.getElementById(`btnConfSrv-${id}`).disabled = false;
+            refreshSedeCard(id);
+            updateProgressAndSave();
+        }
+
+        function onPagoCheck(id) {
+            const checked = document.getElementById(`chkPago-${id}`).checked;
+            localEdits[id].estado_pago = checked ? 'pagado' : 'pendiente';
+            localEdits[id].editadoPago = true;
+            document.getElementById(`metodo-${id}`).disabled = !checked;
+            document.getElementById(`btnConfPago-${id}`).disabled = false;
+            refreshSedeCard(id);
+            updateProgressAndSave();
+        }
+
+        function onMetodoChange(id) {
+            const val = document.getElementById(`metodo-${id}`).value;
+            localEdits[id].forma_pago = val;
+            localEdits[id].editadoPago = true;
+            document.getElementById(`btnConfPago-${id}`).disabled = false;
+        }
+
+        // ========================
+        // Confirm actions (client-side signature)
+        // ========================
+        function confirmarServicio(id) {
+            const edit = localEdits[id];
+            if (!edit) return;
+
+            const estado = document.getElementById(`est-${id}`).value;
+            if (estado === 'programado') {
+                showToast('Selecciona un estado diferente a "Programado"', 'warning');
+                return;
+            }
+
+            edit.estado = estado;
+            edit.editadoServicio = false; // mark as confirmed
+
+            // Set client-side signature
+            edit.firmaServicio = {
+                usuario: getCurrentUser(),
+                fecha_hora: new Date().toISOString(),
+            };
+
+            // Update UI
+            document.getElementById(`firma-srv-${id}`).innerHTML = renderFirma(edit.firmaServicio, false);
+            document.getElementById(`btnConfSrv-${id}`).disabled = true;
+
+            refreshSedeCard(id);
+            updateProgressAndSave();
+            showToast('Servicio confirmado ✓', 'success');
+        }
+
+        function confirmarPago(id) {
+            const edit = localEdits[id];
+            if (!edit) return;
+
+            const pagoRealizado = document.getElementById(`chkPago-${id}`).checked;
+            const metodo = document.getElementById(`metodo-${id}`).value;
+
+            if (pagoRealizado && !metodo) {
+                showToast('Selecciona el método de pago', 'warning');
+                return;
+            }
+
+            edit.estado_pago = pagoRealizado ? 'pagado' : 'pendiente';
+            edit.forma_pago = metodo;
+            edit.editadoPago = false;
+
+            // Set client-side signature
+            edit.firmaPago = {
+                usuario: getCurrentUser(),
+                fecha_hora: new Date().toISOString(),
+                forma_pago: metodo,
+            };
+
+            document.getElementById(`firma-pago-${id}`).innerHTML = renderFirma(edit.firmaPago, true);
+            document.getElementById(`btnConfPago-${id}`).disabled = true;
+
+            refreshSedeCard(id);
+            updateProgressAndSave();
+            showToast('Pago confirmado ✓', 'success');
+        }
+
+        // ========================
+        // Refresh a single card header badges
+        // ========================
+        function refreshSedeCard(id) {
+            const edit = localEdits[id];
+            const card = document.getElementById(`sc-${id}`);
+            if (!card || !edit) return;
+
+            const bothDone = edit.estado !== 'programado' && edit.estado_pago === 'pagado';
+            card.classList.toggle('verified-both', bothDone);
+
+            // Update badges in header
+            const badgeWrap = card.querySelector('.sede-card-header .d-flex.gap-1');
+            if (badgeWrap) {
+                badgeWrap.innerHTML = getEstadoBadge(edit.estado) + getPagoBadge(edit.estado_pago, edit.forma_pago);
+            }
+        }
+
+        // ========================
+        // Progress & Save button
+        // ========================
+        function updateProgressAndSave() {
+            if (currentServicios.length === 0) return;
+
+            let verified = 0;
+            currentServicios.forEach(s => {
+                const edit = localEdits[s.id_servicio];
+                if (!edit) return;
+                // Verified = servicio confirmado (not programado) & pago definido (whether paid or confirmed as pending)
+                const srvOk = edit.estado !== 'programado' && !!edit.firmaServicio;
+                const pagoOk = !!edit.firmaPago;
+                if (srvOk && pagoOk) verified++;
+            });
+
+            const total = currentServicios.length;
+            const pct = total > 0 ? Math.round((verified / total) * 100) : 0;
+
+            document.getElementById('progressBar').style.width = pct + '%';
+            document.getElementById('progressLabel').textContent = `${verified} / ${total}`;
+
+            const allDone = (verified === total);
+            document.getElementById('btnGuardar').disabled = !allDone;
+            document.getElementById('saveHint').textContent = allDone
+                ? '✅ Todas las sedes verificadas — listo para guardar'
+                : `${total - verified} sede(s) pendiente(s) de verificar`;
+
+            // Also refresh ruta list item progress pill
+            const ruta = allRutas.find(r => r.id_ruta == currentRutaId);
+            if (ruta) {
+                const pill = document.querySelector(`#ritem-${currentRutaId} .prog-pill`);
+                if (pill) {
+                    if (allDone) {
+                        pill.className = 'prog-pill done';
+                        pill.innerHTML = `<i class="bi bi-check-all"></i>${total} sedes ✓`;
+                    } else {
+                        pill.className = 'prog-pill warn';
+                        pill.innerHTML = `<i class="bi bi-clock"></i>${verified}/${total}`;
+                    }
+                }
+            }
+        }
+
+        // ========================
+        // Save (batch update)
+        // ========================
+        async function guardarCambios() {
+            if (!currentRutaId || currentServicios.length === 0) return;
+
+            const btnGuardar = document.getElementById('btnGuardar');
+            btnGuardar.disabled = true;
+            btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+
+            const payload = {
+                id_ruta: currentRutaId,
+                servicios: currentServicios.map(s => {
+                    const edit = localEdits[s.id_servicio];
+                    return {
+                        id_servicio: s.id_servicio,
+                        estado: edit.estado,
+                        estado_pago: edit.estado_pago,
+                        forma_pago: edit.forma_pago || null,
+                        fecha_pago: edit.estado_pago === 'pagado' ? new Date().toISOString().split('T')[0] : null
+                    };
+                })
+            };
+
+            try {
+                const result = await api.put('/control_ruta?action=batch_update', payload);
+
+                if (result.success) {
+                    showToast(result.message || 'Cambios guardados correctamente', 'success');
+
+                    if (result.todos_verificados) {
+                        showToast('✅ Ruta marcada como completada', 'success');
+                        // Update route state in allRutas
+                        const ruta = allRutas.find(r => r.id_ruta == currentRutaId);
+                        if (ruta) ruta.estado = 'completada';
+                        renderRutasList(allRutas);
+
+                        // Re-highlight selected
+                        const selected = document.getElementById(`ritem-${currentRutaId}`);
+                        if (selected) selected.classList.add('active');
+                    }
+
+                    // Reload current route data from server to get persisted signatures
+                    await selectRutaReload(currentRutaId);
+
+                } else {
+                    showToast(result.message || 'Error al guardar', 'danger');
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = '<i class="bi bi-floppy-fill me-1"></i> Guardar Cambios';
+                }
+            } catch (err) {
+                showToast('Error de conexión', 'danger');
+                btnGuardar.disabled = false;
+                btnGuardar.innerHTML = '<i class="bi bi-floppy-fill me-1"></i> Guardar Cambios';
+            }
+        }
+
+        // Reload route detail silently after save
+        async function selectRutaReload(id) {
+            try {
+                // Clear API cache for this endpoint before reloading
+                api.clearCache(`/control_ruta?id_ruta=${id}`);
+                const result = await api.get(`/control_ruta?id_ruta=${id}`, { cache: false });
+                if (!result.success) return;
+
+                const ruta = result.data;
+                currentServicios = ruta.servicios || [];
+
+                currentServicios.forEach(s => {
+                    localEdits[s.id_servicio] = {
+                        estado: s.estado,
+                        estado_pago: s.estado_pago || 'pendiente',
+                        forma_pago: s.forma_pago || '',
+                        firmaServicio: s.firma_servicio,
+                        firmaPago: s.firma_pago,
+                        editadoServicio: false,
+                        editadoPago: false,
+                    };
+                });
+
+                renderSedes();
+                updateProgressAndSave();
+
+                const btnGuardar = document.getElementById('btnGuardar');
+                btnGuardar.innerHTML = '<i class="bi bi-floppy-fill me-1"></i> Guardar Cambios';
+
+            } catch (err) {
+                console.error('Error reloading route:', err);
+            }
+        }
+
+        // ========================
+        // Event listeners
+        // ========================
+        document.getElementById('filtroFecha').addEventListener('change', applyFiltro);
+
+        // ========================
+        // Init
+        // ========================
+        loadRutas();
+    </script>
+
+</body>
+
+</html>
