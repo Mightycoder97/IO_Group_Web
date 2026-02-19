@@ -128,7 +128,7 @@
 
                 if (result.success) {
                     renderTable(result.data);
-                    renderPagination(result.total, result.page, result.limit, 'pagination', loadData);
+                    buildPagination(result.total, result.page, result.limit);
                 } else {
                     document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error cargando datos</td></tr>';
                 }
@@ -200,6 +200,31 @@
             } catch (err) {
                 showToast('Error eliminando', 'danger');
             }
+        }
+
+        function buildPagination(total, page, perPage) {
+            const pages = Math.ceil(total / perPage);
+            const ul = document.getElementById('pagination');
+            if (pages <= 1) { ul.innerHTML = ''; return; }
+
+            let html = `
+                <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="loadData(${page - 1});return false;">‹</a>
+                </li>`;
+
+            const start = Math.max(1, page - 2);
+            const end = Math.min(pages, start + 4);
+            for (let i = start; i <= end; i++) {
+                html += `<li class="page-item ${i === page ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="loadData(${i});return false;">${i}</a>
+                </li>`;
+            }
+
+            html += `<li class="page-item ${page >= pages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="loadData(${page + 1});return false;">›</a>
+                </li>`;
+
+            ul.innerHTML = html;
         }
 
         function clearFilters() {
