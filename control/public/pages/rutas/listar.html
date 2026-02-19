@@ -12,6 +12,156 @@
     <link href="/css/global.css" rel="stylesheet">
     <link href="/css/control.css" rel="stylesheet">
     <!-- Rutas styles now loaded from external control.css for better caching -->
+    <style>
+        /* ===== PRINT BUTTON HIGHLIGHT ===== */
+        #btnImprimir {
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 6px 16px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 6px rgba(13, 110, 253, 0.35);
+            transition: all 0.2s;
+        }
+
+        #btnImprimir:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.45);
+        }
+
+        /* ===== PRINT STYLES: compact & space-efficient ===== */
+        @media print {
+
+            /* Hide all non-essential UI */
+            .sidebar,
+            .top-nav,
+            .breadcrumb-container,
+            .user-menu,
+            .vehiculo-tabs,
+            .search-panel,
+            .distritos-hoy,
+            .d-flex.justify-content-between.align-items-center,
+            .card-header .btn,
+            .card-header .badge,
+            .action-cell,
+            th.action-cell,
+            #btnImprimir,
+            .btn-group {
+                display: none !important;
+            }
+
+            /* Remove all padding/margin for tight layout */
+            body,
+            html {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .app-container,
+            .main-content,
+            .content-area {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .card-body {
+                padding: 0 !important;
+            }
+
+            .card-header {
+                background: #1B5E20 !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 4px 8px !important;
+                font-size: 10px !important;
+            }
+
+            /* Compact table */
+            .hoja-ruta-table {
+                font-size: 8.5pt !important;
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            .hoja-ruta-table th {
+                background: #e8f5e9 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 3px 4px !important;
+                font-size: 7.5pt !important;
+                font-weight: 700 !important;
+                white-space: nowrap;
+            }
+
+            .hoja-ruta-table td {
+                padding: 3px 4px !important;
+                vertical-align: middle !important;
+                line-height: 1.2 !important;
+                font-size: 8pt !important;
+            }
+
+            .hoja-ruta-table td small {
+                font-size: 7.5pt !important;
+            }
+
+            /* Alternate row shading */
+            .hoja-ruta-table tbody tr:nth-child(even) td {
+                background: #f9f9f9 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Selects printed as plain text */
+            .hoja-ruta-table select {
+                border: none !important;
+                background: transparent !important;
+                font-size: 8pt !important;
+            }
+
+            /* Inputs printed as plain text */
+            .hoja-ruta-table input[type="text"] {
+                border: none !important;
+                border-bottom: 1px solid #ccc !important;
+                background: transparent !important;
+                padding: 0 !important;
+                font-size: 8pt !important;
+            }
+
+            /* Show print header */
+            .print-header {
+                display: block !important;
+                padding: 4px 0 6px 0 !important;
+                border-bottom: 2px solid #1B5E20 !important;
+                margin-bottom: 6px !important;
+            }
+
+            .print-header h4 {
+                font-size: 13pt !important;
+                font-weight: 800 !important;
+                color: #1B5E20 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                margin: 0 0 4px 0 !important;
+                text-align: center;
+            }
+
+            /* Page settings */
+            @page {
+                margin: 10mm 8mm;
+                size: A4 landscape;
+            }
+        }
+
+        /* Print header hidden on screen */
+        .print-header {
+            display: none;
+        }
+    </style>
 </head>
 
 <body class="control-app">
@@ -108,8 +258,8 @@
                             <button class="btn btn-success" onclick="saveRuta()">
                                 <i class="bi bi-check"></i> Guardar Ruta
                             </button>
-                            <button class="btn btn-outline-success" onclick="window.print()">
-                                <i class="bi bi-printer"></i>
+                            <button class="btn btn-primary" id="btnImprimir" onclick="window.print()">
+                                <i class="bi bi-printer-fill me-1"></i> Imprimir Hoja de Ruta
                             </button>
                         </div>
                     </div>
