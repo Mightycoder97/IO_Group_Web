@@ -10,9 +10,112 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+    <style>
+        /* ===== PRINT: only show the route detail ===== */
+        @media print {
+            body>*:not(#printArea) {
+                display: none !important;
+            }
+
+            #printArea {
+                display: block !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            .print-title {
+                font-size: 14pt;
+                font-weight: 800;
+                color: #1B5E20;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                text-align: center;
+                margin-bottom: 4px;
+            }
+
+            .print-meta {
+                display: flex;
+                justify-content: space-between;
+                font-size: 10px;
+                border-bottom: 2px solid #1B5E20;
+                padding-bottom: 6px;
+                margin-bottom: 8px;
+            }
+
+            .ruta-detail-table {
+                font-size: 8pt;
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .ruta-detail-table th {
+                background: #e8f5e9 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 3px 4px !important;
+                font-size: 7.5pt !important;
+                font-weight: 700;
+            }
+
+            .ruta-detail-table td {
+                padding: 3px 4px !important;
+                font-size: 8pt !important;
+                line-height: 1.2 !important;
+            }
+
+            .ruta-detail-table tbody tr:nth-child(even) td {
+                background: #f9f9f9 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            @page {
+                margin: 10mm 8mm;
+                size: A4 landscape;
+            }
+        }
+
+        /* Hidden printArea on screen */
+        #printArea {
+            display: none;
+        }
+
+        /* View button style */
+        .btn-ver-ruta {
+            min-width: 32px;
+        }
+    </style>
 </head>
 
 <body class="control-app">
+    <!-- Hidden print area, populated when printing -->
+    <div id="printArea">
+        <div class="print-title">HOJA DE RUTA - IO GROUP</div>
+        <div class="print-meta">
+            <span><strong>Vehículo:</strong> <span id="pa-vehiculo">-</span></span>
+            <span><strong>Fecha:</strong> <span id="pa-fecha">-</span></span>
+            <span><strong>Total:</strong> <span id="pa-total">0</span> clientes</span>
+        </div>
+        <table class="ruta-detail-table table table-bordered">
+            <thead>
+                <tr>
+                    <th style="width:36px">N°</th>
+                    <th>RUC</th>
+                    <th>RAZÓN SOCIAL</th>
+                    <th>NOMBRE COMERCIAL</th>
+                    <th>DIRECCIÓN</th>
+                    <th>DISTRITO</th>
+                    <th>TARIFA</th>
+                </tr>
+            </thead>
+            <tbody id="pa-tbody"></tbody>
+        </table>
+    </div>
+
     <div class="app-container">
         <aside class="sidebar" id="sidebar"></aside>
         <main class="main-content">
@@ -33,8 +136,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -49,9 +156,9 @@
                         </div>
                         <div class="d-flex gap-2 flex-wrap">
                             <input type="date" class="form-control form-control-sm" id="fechaDesde"
-                                style="width: 130px;" placeholder="Desde">
+                                style="width: 130px;">
                             <input type="date" class="form-control form-control-sm" id="fechaHasta"
-                                style="width: 130px;" placeholder="Hasta">
+                                style="width: 130px;">
                             <select class="form-select form-select-sm" id="vehiculoFilter" style="width: 130px;">
                                 <option value="">Vehículo</option>
                             </select>
@@ -70,7 +177,7 @@
                                     <th>Fecha</th>
                                     <th>Vehículo</th>
                                     <th>Clientes</th>
-                                    <th width="100">Acciones</th>
+                                    <th width="130">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -84,6 +191,57 @@
             </div>
         </main>
     </div>
+
+    <!-- Modal: Ver Ruta -->
+    <div class="modal fade" id="verRutaModal" tabindex="-1" aria-labelledby="verRutaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#1B5E20; color:white;">
+                    <h5 class="modal-title" id="verRutaModalLabel">
+                        <i class="bi bi-truck me-1"></i> <span id="modalVehiculo">-</span>
+                        &nbsp;&middot;&nbsp;
+                        <span id="modalFecha">-</span>
+                    </h5>
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <span class="badge bg-light text-dark me-2" id="modalTotal">0 clientes</span>
+                        <button class="btn btn-sm btn-light" onclick="printRuta()" title="Imprimir hoja de ruta">
+                            <i class="bi bi-printer-fill me-1"></i> Imprimir
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover mb-0" id="modalTable">
+                            <thead class="table-success">
+                                <tr>
+                                    <th style="width:40px">N°</th>
+                                    <th>RUC</th>
+                                    <th>RAZÓN SOCIAL</th>
+                                    <th>NOMBRE COMERCIAL</th>
+                                    <th>DIRECCIÓN</th>
+                                    <th>DISTRITO</th>
+                                    <th>TARIFA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalTbody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button class="btn btn-primary" onclick="printRuta()">
+                        <i class="bi bi-printer-fill me-1"></i> Imprimir Hoja de Ruta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js?v=2.0"></script>
@@ -92,6 +250,7 @@
         initPage('rutas');
 
         let allData = [];
+        let currentRutaData = null; // holds the loaded route detail for printing
 
         async function loadVehiculos() {
             try {
@@ -101,9 +260,7 @@
                     select.innerHTML = '<option value="">Vehículo</option>' +
                         result.data.map(v => `<option value="${v.id_vehiculo}">${v.placa}</option>`).join('');
                 }
-            } catch (err) {
-                console.error('Error:', err);
-            }
+            } catch (err) { console.error('Error:', err); }
         }
 
         async function loadData() {
@@ -120,8 +277,6 @@
 
                 if (result.success) {
                     allData = result.data;
-
-                    // Client-side date filter
                     if (desde || hasta) {
                         allData = allData.filter(item => {
                             if (desde && item.fecha < desde) return false;
@@ -129,7 +284,6 @@
                             return true;
                         });
                     }
-
                     renderTable(allData);
                 }
             } catch (err) {
@@ -148,10 +302,6 @@
             return `<span class="badge ${c.bg}"><i class="bi ${c.icon}"></i> ${estado}</span>`;
         }
 
-        function formatTime(t) {
-            return t ? t.substring(0, 5) : '-';
-        }
-
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             if (data.length === 0) {
@@ -161,7 +311,9 @@
 
             tbody.innerHTML = data.map(r => `
                 <tr>
-                    <td><strong>${new Date(r.fecha).toLocaleDateString('es-PE')}</strong></td>
+                    <td><strong>${new Date(r.fecha + 'T12:00:00').toLocaleDateString('es-PE')}</strong><br>
+                        <small class="text-muted">${getEstadoBadge(r.estado)}</small>
+                    </td>
                     <td>
                         <i class="bi bi-truck"></i> ${r.vehiculo_placa || '-'}<br>
                         <small class="text-muted">${r.vehiculo_marca || ''} ${r.vehiculo_modelo || ''}</small>
@@ -170,17 +322,95 @@
                         <span class="badge bg-info">${r.sedes_count || 0} clientes</span>
                     </td>
                     <td>
-                        <a href="listar.html" class="btn btn-sm btn-outline-primary" title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        ${canEdit() ? `
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteRuta(${r.id_ruta})" title="Eliminar">
-                                <i class="bi bi-trash"></i>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-success btn-ver-ruta" onclick="verRuta(${r.id_ruta})" title="Ver ruta">
+                                <i class="bi bi-eye"></i>
                             </button>
-                        ` : ''}
+                            ${canEdit() ? `
+                            <button class="btn btn-outline-danger" onclick="deleteRuta(${r.id_ruta})" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>` : ''}
+                        </div>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        async function verRuta(id) {
+            // Find the route in allData for metadata
+            const rutaMeta = allData.find(r => r.id_ruta == id);
+
+            // Show modal with loading state
+            document.getElementById('modalVehiculo').textContent = rutaMeta?.vehiculo_placa || '-';
+            document.getElementById('modalFecha').textContent = rutaMeta
+                ? new Date(rutaMeta.fecha + 'T12:00:00').toLocaleDateString('es-PE') : '-';
+            document.getElementById('modalTotal').textContent = '...';
+            document.getElementById('modalTbody').innerHTML =
+                '<tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm text-success me-2"></div>Cargando...</td></tr>';
+
+            const modal = new bootstrap.Modal(document.getElementById('verRutaModal'));
+            modal.show();
+
+            try {
+                const result = await api.get(`/rutas/${id}`);
+                if (!result.success) {
+                    document.getElementById('modalTbody').innerHTML =
+                        '<tr><td colspan="7" class="text-center py-4 text-danger">Error al cargar la ruta</td></tr>';
+                    return;
+                }
+
+                const servicios = result.data.servicios || [];
+                currentRutaData = { meta: rutaMeta, servicios };
+
+                document.getElementById('modalTotal').textContent = `${servicios.length} clientes`;
+
+                if (servicios.length === 0) {
+                    document.getElementById('modalTbody').innerHTML =
+                        '<tr><td colspan="7" class="text-center py-4 text-muted">Sin clientes en esta ruta</td></tr>';
+                    return;
+                }
+
+                document.getElementById('modalTbody').innerHTML = servicios.map((s, i) => `
+                    <tr>
+                        <td class="text-center fw-bold">${i + 1}</td>
+                        <td>${s.empresa_ruc || '-'}</td>
+                        <td><small>${s.empresa_razon_social || '-'}</small></td>
+                        <td><strong>${s.sede_nombre || '-'}</strong></td>
+                        <td><small>${s.direccion || '-'}</small></td>
+                        <td>${s.distrito || '-'}</td>
+                        <td>S/ ${parseFloat(s.tarifa_servicio || 0).toFixed(2)}</td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                document.getElementById('modalTbody').innerHTML =
+                    '<tr><td colspan="7" class="text-center py-4 text-danger">Error de conexión</td></tr>';
+            }
+        }
+
+        function printRuta() {
+            if (!currentRutaData) return;
+
+            const { meta, servicios } = currentRutaData;
+
+            // Populate hidden print area
+            document.getElementById('pa-vehiculo').textContent = meta?.vehiculo_placa || '-';
+            document.getElementById('pa-fecha').textContent = meta
+                ? new Date(meta.fecha + 'T12:00:00').toLocaleDateString('es-PE') : '-';
+            document.getElementById('pa-total').textContent = servicios.length;
+            document.getElementById('pa-tbody').innerHTML = servicios.map((s, i) => `
+                <tr>
+                    <td style="text-align:center;font-weight:700">${i + 1}</td>
+                    <td>${s.empresa_ruc || '-'}</td>
+                    <td>${s.empresa_razon_social || '-'}</td>
+                    <td><strong>${s.sede_nombre || '-'}</strong></td>
+                    <td>${s.direccion || '-'}</td>
+                    <td>${s.distrito || '-'}</td>
+                    <td>S/ ${parseFloat(s.tarifa_servicio || 0).toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            window.print();
         }
 
         async function deleteRuta(id) {
@@ -205,12 +435,10 @@
             loadData();
         }
 
-        // Event listeners
         document.getElementById('fechaDesde').addEventListener('change', loadData);
         document.getElementById('fechaHasta').addEventListener('change', loadData);
         document.getElementById('vehiculoFilter').addEventListener('change', loadData);
 
-        // Init
         loadVehiculos();
         loadData();
     </script>
