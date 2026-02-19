@@ -11,63 +11,74 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
     <style>
-        /* ===== PRINT: only show the route detail ===== */
+        /* ===== PRINT STYLES: identical to listar.html ===== */
         @media print {
-            body>*:not(#printArea) {
+
+            /* Hide all non-essential UI */
+            .sidebar,
+            .top-nav,
+            .breadcrumb-container,
+            .user-menu,
+            .table-container,
+            .modal,
+            .modal-backdrop,
+            .app-container>*:not(.print-header) {
                 display: none !important;
             }
 
-            #printArea {
+            /* Show the print header */
+            .print-header {
                 display: block !important;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                padding: 0;
-                margin: 0;
+                padding: 4px 0 6px 0 !important;
+                border-bottom: 2px solid #1B5E20 !important;
+                margin-bottom: 6px !important;
             }
 
-            .print-title {
-                font-size: 14pt;
-                font-weight: 800;
-                color: #1B5E20;
+            .print-header h4 {
+                font-size: 13pt !important;
+                font-weight: 800 !important;
+                color: #1B5E20 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                margin: 0 0 4px 0 !important;
                 text-align: center;
-                margin-bottom: 4px;
             }
 
-            .print-meta {
-                display: flex;
-                justify-content: space-between;
-                font-size: 10px;
-                border-bottom: 2px solid #1B5E20;
-                padding-bottom: 6px;
-                margin-bottom: 8px;
+            body,
+            html {
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
-            .ruta-detail-table {
-                font-size: 8pt;
-                width: 100%;
-                border-collapse: collapse;
+            /* Compact table */
+            .hoja-ruta-table {
+                font-size: 7pt !important;
+                width: 100% !important;
+                border-collapse: collapse !important;
             }
 
-            .ruta-detail-table th {
+            .hoja-ruta-table th {
                 background: #e8f5e9 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                padding: 3px 4px !important;
-                font-size: 7.5pt !important;
-                font-weight: 700;
+                padding: 2px 3px !important;
+                font-size: 6.5pt !important;
+                font-weight: 700 !important;
+                white-space: nowrap;
             }
 
-            .ruta-detail-table td {
-                padding: 3px 4px !important;
-                font-size: 8pt !important;
+            .hoja-ruta-table td {
+                padding: 2px 3px !important;
+                vertical-align: middle !important;
                 line-height: 1.2 !important;
+                font-size: 7pt !important;
             }
 
-            .ruta-detail-table tbody tr:nth-child(even) td {
+            .hoja-ruta-table td small {
+                font-size: 6.5pt !important;
+            }
+
+            .hoja-ruta-table tbody tr:nth-child(even) td {
                 background: #f9f9f9 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -79,8 +90,8 @@
             }
         }
 
-        /* Hidden printArea on screen */
-        #printArea {
+        /* Print header hidden on screen */
+        .print-header {
             display: none;
         }
 
@@ -92,20 +103,20 @@
 </head>
 
 <body class="control-app">
-    <!-- Hidden print area, populated when printing -->
-    <div id="printArea">
-        <div class="print-title">HOJA DE RUTA - IO GROUP</div>
-        <div class="print-meta">
-            <span><strong>Vehículo:</strong> <span id="pa-vehiculo">-</span></span>
-            <span><strong>Fecha:</strong> <span id="pa-fecha">-</span></span>
-            <span><strong>Total:</strong> <span id="pa-total">0</span> clientes</span>
+    <!-- Print Header: same structure as listar.html -->
+    <div class="print-header">
+        <h4>HOJA DE RUTA - IO GROUP</h4>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px;">
+            <div><strong>Vehículo:</strong> <span id="ph-vehiculo">-</span></div>
+            <div><strong>Fecha:</strong> <span id="ph-fecha">-</span></div>
+            <div><strong>Total:</strong> <span id="ph-total">0</span> clientes</div>
         </div>
         <div
-            style="font-size: 9px; color: #555; border-top: 1px solid #ccc; padding: 3px 0 5px; margin-bottom: 6px; display: flex; gap: 32px;">
-            <span><i>Chofer:</i> <strong id="pa-chofer">-</strong></span>
-            <span><i>Ayudante:</i> <strong id="pa-ayudante">-</strong></span>
+            style="font-size:9.5px; color:#555; border-top:1px solid #ccc; padding-top:4px; margin-bottom:6px; display:flex; gap:32px;">
+            <span><i>Chofer:</i> <strong id="ph-chofer">-</strong></span>
+            <span><i>Ayudante:</i> <strong id="ph-ayudante">-</strong></span>
         </div>
-        <table class="ruta-detail-table table table-bordered">
+        <table class="hoja-ruta-table table table-bordered">
             <thead>
                 <tr>
                     <th style="width:36px">N°</th>
@@ -114,10 +125,12 @@
                     <th>NOMBRE COMERCIAL</th>
                     <th>DIRECCIÓN</th>
                     <th>DISTRITO</th>
+                    <th>CONTACTO</th>
+                    <th>TELÉFONO</th>
                     <th>TARIFA</th>
                 </tr>
             </thead>
-            <tbody id="pa-tbody"></tbody>
+            <tbody id="ph-tbody"></tbody>
         </table>
     </div>
 
@@ -231,6 +244,8 @@
                                     <th>NOMBRE COMERCIAL</th>
                                     <th>DIRECCIÓN</th>
                                     <th>DISTRITO</th>
+                                    <th>CONTACTO</th>
+                                    <th>TELÉFONO</th>
                                     <th>TARIFA</th>
                                 </tr>
                             </thead>
@@ -391,6 +406,8 @@
                         <td><strong>${s.sede_nombre || '-'}</strong></td>
                         <td><small>${s.direccion || '-'}</small></td>
                         <td>${s.distrito || '-'}</td>
+                        <td><small>${s.contacto_nombre || '-'}</small></td>
+                        <td><small>${s.contacto_telefono || '-'}</small></td>
                         <td>S/ ${parseFloat(s.tarifa_servicio || 0).toFixed(2)}</td>
                     </tr>
                 `).join('');
@@ -406,21 +423,23 @@
 
             const { meta, servicios, ruta } = currentRutaData;
 
-            // Populate hidden print area
-            document.getElementById('pa-vehiculo').textContent = meta?.vehiculo_placa || '-';
-            document.getElementById('pa-fecha').textContent = meta
+            // Populate print-header (same as listar.html)
+            document.getElementById('ph-vehiculo').textContent = meta?.vehiculo_placa || '-';
+            document.getElementById('ph-fecha').textContent = meta
                 ? new Date(meta.fecha + 'T12:00:00').toLocaleDateString('es-PE') : '-';
-            document.getElementById('pa-total').textContent = servicios.length;
-            document.getElementById('pa-chofer').textContent = ruta?.chofer_nombre || '-';
-            document.getElementById('pa-ayudante').textContent = ruta?.ayudante_nombre || '-';
-            document.getElementById('pa-tbody').innerHTML = servicios.map((s, i) => `
+            document.getElementById('ph-total').textContent = servicios.length;
+            document.getElementById('ph-chofer').textContent = ruta?.chofer_nombre || '-';
+            document.getElementById('ph-ayudante').textContent = ruta?.ayudante_nombre || '-';
+            document.getElementById('ph-tbody').innerHTML = servicios.map((s, i) => `
                 <tr>
                     <td style="text-align:center;font-weight:700">${i + 1}</td>
                     <td>${s.empresa_ruc || '-'}</td>
-                    <td>${s.empresa_razon_social || '-'}</td>
+                    <td><small>${s.empresa_razon_social || '-'}</small></td>
                     <td><strong>${s.sede_nombre || '-'}</strong></td>
-                    <td>${s.direccion || '-'}</td>
+                    <td><small>${s.direccion || '-'}</small></td>
                     <td>${s.distrito || '-'}</td>
+                    <td><small>${s.contacto_nombre || '-'}</small></td>
+                    <td><small>${s.contacto_telefono || '-'}</small></td>
                     <td>S/ ${parseFloat(s.tarifa_servicio || 0).toFixed(2)}</td>
                 </tr>
             `).join('');

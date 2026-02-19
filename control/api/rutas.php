@@ -112,6 +112,7 @@ function getOne($id) {
         // Get services for this route
         $servicios = db()->query(
             "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion,
+                    se.contacto_nombre, se.contacto_telefono,
                     e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
                     cs.tarifa as tarifa_servicio
              FROM Servicio s 

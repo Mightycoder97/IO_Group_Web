@@ -83,7 +83,7 @@
 
             /* Compact table */
             .hoja-ruta-table {
-                font-size: 8.5pt !important;
+                font-size: 7pt !important;
                 width: 100% !important;
                 border-collapse: collapse !important;
             }
@@ -92,21 +92,21 @@
                 background: #e8f5e9 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                padding: 3px 4px !important;
-                font-size: 7.5pt !important;
+                padding: 2px 3px !important;
+                font-size: 6.5pt !important;
                 font-weight: 700 !important;
                 white-space: nowrap;
             }
 
             .hoja-ruta-table td {
-                padding: 3px 4px !important;
+                padding: 2px 3px !important;
                 vertical-align: middle !important;
                 line-height: 1.2 !important;
-                font-size: 8pt !important;
+                font-size: 7pt !important;
             }
 
             .hoja-ruta-table td small {
-                font-size: 7.5pt !important;
+                font-size: 6.5pt !important;
             }
 
             /* Alternate row shading */
@@ -315,6 +315,8 @@
                                         <th>NOMBRE COMERCIAL</th>
                                         <th>DIRECCION</th>
                                         <th>DISTRITO</th>
+                                        <th>CONTACTO</th>
+                                        <th>TELÉFONO</th>
                                         <th>TARIFA</th>
                                         <th style="width: 120px;">TIPO PAGO</th>
                                         <th style="width: 100px;">OBS</th>
@@ -348,6 +350,12 @@
         let allDistritos = new Set();
         let distritoDisplayMap = {};
         let distritosCalendario = [];
+
+        // Normalize district name: remove accents + uppercase for consistent comparison
+        function normDistr(str) {
+            if (!str) return '';
+            return str.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        }
 
         document.getElementById('fechaRuta').value = new Date().toISOString().split('T')[0];
 
@@ -400,9 +408,13 @@
                     distritoDisplayMap = {};
                     allClientes.forEach(c => {
                         if (c.distrito?.trim()) {
-                            const norm = c.distrito.trim().toUpperCase();
+                            const norm = normDistr(c.distrito);
                             allDistritos.add(norm);
-                            if (!distritoDisplayMap[norm]) distritoDisplayMap[norm] = c.distrito.trim();
+                            // Keep the prettiest version (Title Case wins over ALL CAPS)
+                            if (!distritoDisplayMap[norm] ||
+                                distritoDisplayMap[norm] === distritoDisplayMap[norm].toUpperCase()) {
+                                distritoDisplayMap[norm] = c.distrito.trim();
+                            }
                         }
                     });
                     renderDistritoFilter();
@@ -453,8 +465,8 @@
         }
 
         function updateDistritoFilterSelection() {
-            // Preseleccionar distritos del calendario
-            selectedDistritos = new Set(distritosCalendario);
+            // Preseleccionar distritos del calendario — normalize so accents don't break matching
+            selectedDistritos = new Set(distritosCalendario.map(d => normDistr(d)));
             renderDistritoTags();
             filterClientes();
         }
@@ -496,19 +508,22 @@
         const distritoDropdown = document.getElementById('distritoDropdown');
 
         distritoSearchInput.addEventListener('input', function () {
-            const term = this.value.toLowerCase().trim();
-            if (term.length < 1) {
-                distritoDropdown.classList.remove('show');
-                return;
-            }
-            const filtered = Array.from(allDistritos)
-                .filter(d => d.toLowerCase().includes(term) || (distritoDisplayMap[d] || '').toLowerCase().includes(term))
-                .slice(0, 10);
+            const term = normDistr(this.value);
+            showDistritoDropdown(term);
+        });
 
-            if (filtered.length === 0) {
+        function showDistritoDropdown(term = '') {
+            const sorted = Array.from(allDistritos).sort((a, b) =>
+                (distritoDisplayMap[a] || a).localeCompare(distritoDisplayMap[b] || b, 'es'));
+            const filtered = term
+                ? sorted.filter(d => d.includes(term) || normDistr(distritoDisplayMap[d] || '').includes(term))
+                : sorted;
+            const visible = filtered.slice(0, 15);
+
+            if (visible.length === 0) {
                 distritoDropdown.innerHTML = '<div class="distrito-option text-muted">No encontrado</div>';
             } else {
-                distritoDropdown.innerHTML = filtered.map(d => `
+                distritoDropdown.innerHTML = visible.map(d => `
                     <div class="distrito-option ${selectedDistritos.has(d) ? 'selected' : ''}" onclick="addDistrito('${d}')">
                         ${distritoDisplayMap[d] || d}
                         ${selectedDistritos.has(d) ? '<i class="bi bi-check text-success float-end"></i>' : ''}
@@ -516,12 +531,10 @@
                 `).join('');
             }
             distritoDropdown.classList.add('show');
-        });
+        }
 
         distritoSearchInput.addEventListener('focus', function () {
-            if (this.value.length >= 1) {
-                distritoDropdown.classList.add('show');
-            }
+            showDistritoDropdown(normDistr(this.value));
         });
 
         document.addEventListener('click', function (e) {
@@ -577,6 +590,7 @@
                             direccion: s.direccion || '',
                             distrito: s.distrito || '',
                             tarifa: s.tarifa_servicio || 0,
+                            contacto_nombre: s.contacto_nombre || '',
                             telefono: s.contacto_telefono || '',
                             peso: '', obs: ''
                         }));
@@ -610,7 +624,7 @@
             document.getElementById('printFecha').textContent = new Date(document.getElementById('fechaRuta').value).toLocaleDateString('es-PE');
 
             if (clientesEnRuta.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">Sin clientes. Usa el buscador para agregar.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Sin clientes. Usa el buscador para agregar.</td></tr>';
                 return;
             }
             tbody.innerHTML = clientesEnRuta.map((c, i) => `
@@ -621,6 +635,8 @@
                     <td><strong>${c.nombre_comercial}</strong></td>
                     <td><small>${c.direccion || '-'}</small></td>
                     <td>${c.distrito || '-'}</td>
+                    <td><small>${c.contacto_nombre || '-'}</small></td>
+                    <td><small>${c.telefono || '-'}</small></td>
                     <td>S/ ${parseFloat(c.tarifa || 0).toFixed(2)}</td>
                     <td>
                         <select class="form-select form-select-sm" onchange="clientesEnRuta[${i}].tipo_pago=this.value">
@@ -696,7 +712,7 @@
                 const matchTerm = !term || c.nombre_comercial?.toLowerCase().includes(term) ||
                     c.empresa_ruc?.includes(term) || c.distrito?.toLowerCase().includes(term) ||
                     c.empresa_razon_social?.toLowerCase().includes(term);
-                const matchDistrito = distritos.length === 0 || distritos.includes(c.distrito?.toUpperCase());
+                const matchDistrito = distritos.length === 0 || distritos.includes(normDistr(c.distrito));
                 return matchTerm && matchDistrito;
             }).slice(0, 50);
 
@@ -747,6 +763,7 @@
                 razon_social: cliente.empresa_razon_social || '',
                 direccion: cliente.direccion || '',
                 distrito: cliente.distrito || '',
+                contacto_nombre: cliente.contacto_nombre || '',
                 tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
                 telefono: cliente.contacto_telefono || '',
                 tipo_pago: '', obs: ''
