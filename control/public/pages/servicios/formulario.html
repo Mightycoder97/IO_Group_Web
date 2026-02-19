@@ -93,19 +93,11 @@
                                             class="bi bi-calendar3 me-1"></i>Fechas y Horario</h6>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Fecha Ejecución <span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="fecha_ejecucion" required>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Hora Llegada</label>
-                                    <input type="time" class="form-control" id="hora_llegada">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Hora Salida</label>
-                                    <input type="time" class="form-control" id="hora_salida">
-                                </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Ruta Asignada</label>
                                     <select class="form-select" id="id_ruta">
                                         <option value="">Sin Ruta</option>
@@ -365,8 +357,6 @@
                 }
 
                 document.getElementById('fecha_ejecucion').value = d.fecha_ejecucion || d.fecha_servicio || '';
-                document.getElementById('hora_llegada').value = d.hora_llegada || '';
-                document.getElementById('hora_salida').value = d.hora_salida || '';
 
                 document.getElementById('estado').value = d.estado || 'programado';
                 document.getElementById('estado_pago').value = d.estado_pago || 'pendiente';
@@ -418,8 +408,6 @@
                 id_ruta: document.getElementById('id_ruta').value || null,
                 mes_servicio: document.getElementById('mes_servicio').value || null,
                 fecha_ejecucion: document.getElementById('fecha_ejecucion').value || null,
-                hora_llegada: document.getElementById('hora_llegada').value || null,
-                hora_salida: document.getElementById('hora_salida').value || null,
                 estado: document.getElementById('estado').value,
                 estado_pago: document.getElementById('estado_pago').value,
                 forma_pago: document.getElementById('forma_pago').value || null,

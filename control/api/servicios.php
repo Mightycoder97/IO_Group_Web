@@ -246,8 +246,8 @@ function create() {
     }
     
     $id = db()->insert(
-        "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, mes_servicio, fecha_ejecucion, hora_llegada, hora_salida, estado, estado_pago, forma_pago, fecha_pago, descripcion_residuo) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, forma_pago, fecha_pago, descripcion_residuo) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             $id_sede,
             $data['id_ruta'] ?? null,
@@ -255,8 +255,6 @@ function create() {
             $data['id_contrato'] ?? null,
             $data['mes_servicio'] ?? null,
             $fecha_ejecucion,
-            $data['hora_llegada'] ?? null,
-            $data['hora_salida'] ?? null,
             $data['estado'] ?? 'programado',
             $data['estado_pago'] ?? 'pendiente',
             $data['forma_pago'] ?? null,
@@ -312,8 +310,6 @@ function update($id) {
             id_planta = ?,
             mes_servicio = ?,
             fecha_ejecucion = ?,
-            hora_llegada = ?,
-            hora_salida = ?,
             estado = ?,
             estado_pago = ?,
             forma_pago = ?,
@@ -327,8 +323,6 @@ function update($id) {
             $data['id_planta'] ?? $existing['id_planta'],
             $data['mes_servicio'] ?? $existing['mes_servicio'],
             $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion'],
-            $data['hora_llegada'] ?? $existing['hora_llegada'],
-            $data['hora_salida'] ?? $existing['hora_salida'],
             $data['estado'] ?? $existing['estado'],
             $data['estado_pago'] ?? $existing['estado_pago'] ?? 'pendiente',
             $data['forma_pago'] ?? $existing['forma_pago'],
