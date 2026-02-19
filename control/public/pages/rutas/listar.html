@@ -258,9 +258,6 @@
                             <button class="btn btn-success" onclick="saveRuta()">
                                 <i class="bi bi-check"></i> Guardar Ruta
                             </button>
-                            <button class="btn btn-primary" id="btnImprimir" onclick="window.print()">
-                                <i class="bi bi-printer-fill me-1"></i> Imprimir Hoja de Ruta
-                            </button>
                         </div>
                     </div>
                     <!-- Search Results -->
@@ -273,6 +270,10 @@
                         <span><i class="bi bi-list-ol"></i> Clientes en Ruta: <strong
                                 id="vehiculoActual">-</strong></span>
                         <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-outline-primary btn-sm" id="btnImprimir" onclick="window.print()"
+                                title="Imprimir Hoja de Ruta">
+                                <i class="bi bi-printer-fill me-1"></i> Imprimir
+                            </button>
                             <button class="btn btn-success btn-sm" onclick="sendWhatsAppAll()"
                                 title="Confirmar todos por WhatsApp">
                                 <i class="bi bi-whatsapp"></i> Confirmar Todos
@@ -516,10 +517,29 @@
             renderClientesTable();
         }
 
+        // Track which sedes are assigned to OTHER vehicles on the same date
+        let sedesEnOtrasRutas = new Set();
+
         async function loadExistingRoute() {
             const fecha = document.getElementById('fechaRuta').value;
             if (!selectedVehiculo || !fecha) return;
             try {
+                // Load all routes for this date to know which sedes are taken by other trucks
+                const allRoutesResult = await api.get(`/rutas?fecha=${fecha}&limit=50`);
+                sedesEnOtrasRutas = new Set();
+                if (allRoutesResult.success) {
+                    for (const ruta of allRoutesResult.data) {
+                        if (ruta.id_vehiculo == selectedVehiculo.id_vehiculo) continue;
+                        // Get detail of each other route
+                        try {
+                            const detail = await api.get(`/rutas/${ruta.id_ruta}`);
+                            if (detail.success && detail.data.servicios) {
+                                detail.data.servicios.forEach(s => sedesEnOtrasRutas.add(s.id_sede));
+                            }
+                        } catch (e) { }
+                    }
+                }
+
                 const result = await api.get(`/rutas?vehiculo=${selectedVehiculo.id_vehiculo}&fecha=${fecha}`);
                 if (result.success && result.data.length > 0) {
                     const rutaDetail = await api.get(`/rutas/${result.data[0].id_ruta}`);
@@ -536,6 +556,8 @@
                             peso: '', obs: ''
                         }));
                     }
+                } else {
+                    clientesEnRuta = [];
                 }
             } catch (err) { console.error(err); }
         }
@@ -664,21 +686,28 @@
 
         function agregarCliente(sedeId) {
             const cliente = allClientes.find(c => c.id_sede == sedeId);
-            if (cliente && !clientesEnRuta.find(c => c.id_sede == sedeId)) {
-                clientesEnRuta.push({
-                    id_sede: cliente.id_sede,
-                    nombre_comercial: cliente.nombre_comercial || '',
-                    empresa_ruc: cliente.empresa_ruc || cliente.ruc || '',
-                    razon_social: cliente.empresa_razon_social || '',
-                    direccion: cliente.direccion || '',
-                    distrito: cliente.distrito || '',
-                    tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
-                    telefono: cliente.contacto_telefono || '',
-                    tipo_pago: '', obs: ''
-                });
-                renderClientesTable();
-                filterClientes();
+            if (!cliente) return;
+            if (clientesEnRuta.find(c => c.id_sede == sedeId)) return;
+
+            // Validate: sede must not be assigned to another vehicle on the same date
+            if (sedesEnOtrasRutas.has(sedeId)) {
+                showToast(`"${cliente.nombre_comercial}" ya está asignada a otro camión en esta fecha`, 'warning');
+                return;
             }
+
+            clientesEnRuta.push({
+                id_sede: cliente.id_sede,
+                nombre_comercial: cliente.nombre_comercial || '',
+                empresa_ruc: cliente.empresa_ruc || cliente.ruc || '',
+                razon_social: cliente.empresa_razon_social || '',
+                direccion: cliente.direccion || '',
+                distrito: cliente.distrito || '',
+                tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
+                telefono: cliente.contacto_telefono || '',
+                tipo_pago: '', obs: ''
+            });
+            renderClientesTable();
+            filterClientes();
         }
 
         function removerCliente(sedeId) {
@@ -700,7 +729,8 @@
                 });
                 if (result.success) {
                     showToast('Ruta guardada');
-                    clientesEnRuta = [];
+                    // Reload from server so table stays populated
+                    await loadExistingRoute();
                     renderClientesTable();
                 } else {
                     showToast(result.message || 'Error', 'danger');
