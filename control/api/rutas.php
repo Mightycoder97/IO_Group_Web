@@ -111,12 +111,21 @@ function getOne($id) {
         
         // Get services for this route
         $servicios = db()->query(
-            "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion, cs.tarifa as tarifa_servicio,
-                    e.ruc as empresa_ruc, e.razon_social as empresa_razon_social
+            "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion,
+                    e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
+                    cs.tarifa as tarifa_servicio
              FROM Servicio s 
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             LEFT JOIN (
+                 SELECT cs1.id_sede, cs1.tarifa
+                 FROM ContratoServicio cs1
+                 WHERE cs1.activo = 1
+                 AND cs1.fecha_inicio = (
+                     SELECT MAX(cs2.fecha_inicio) FROM ContratoServicio cs2
+                     WHERE cs2.id_sede = cs1.id_sede AND cs2.activo = 1
+                 )
+             ) cs ON s.id_sede = cs.id_sede
              WHERE s.id_ruta = ? ORDER BY s.id_servicio",
             [$id]
         );
