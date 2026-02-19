@@ -1,7 +1,7 @@
 
 import openpyxl
 
-INPUT_FILE = 'control/data/PAGOS CLIENTES LIMA.xlsx'
+INPUT_FILE = 'PAGOS CLIENTES LIMA.xlsx'
 
 try:
     wb = openpyxl.load_workbook(INPUT_FILE, read_only=True)
@@ -12,12 +12,10 @@ try:
         ws = wb[sheet_name]
         
         # Method 1: Iterating rows
-        rows = list(ws.iter_rows(min_row=1, max_row=2, values_only=True))
+        rows = list(ws.iter_rows(min_row=1, max_row=10, values_only=True))
         
-        if len(rows) > 0:
-            print("Row 1:", rows[0])
-        if len(rows) > 1:
-            print("Row 2:", rows[1])
+        for i, row in enumerate(rows):
+            print(f"Row {i+1}:", row)
             
 except Exception as e:
     print(f"Error: {e}")

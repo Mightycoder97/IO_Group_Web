@@ -93,7 +93,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
                                 <input type="text" class="form-control" id="searchCliente"
-                                    placeholder="Buscar cliente por nombre, RUC o distrito...">
+                                    placeholder="Buscar por nombre comercial, razón social, RUC o distrito...">
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -137,6 +137,7 @@
                                     <tr>
                                         <th style="width: 40px;">N°</th>
                                         <th>RUC</th>
+                                        <th>RAZÓN SOCIAL</th>
                                         <th>NOMBRE COMERCIAL</th>
                                         <th>DIRECCION</th>
                                         <th>DISTRITO</th>
@@ -148,7 +149,7 @@
                                 </thead>
                                 <tbody id="clientesTableBody">
                                     <tr>
-                                        <td colspan="9" class="text-center py-4 text-muted">Selecciona un vehículo</td>
+                                        <td colspan="10" class="text-center py-4 text-muted">Selecciona un vehículo</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -377,6 +378,7 @@
                             id_sede: s.id_sede,
                             nombre_comercial: s.sede_nombre || '',
                             empresa_ruc: s.empresa_ruc || '',
+                            razon_social: s.empresa_razon_social || '',
                             direccion: s.direccion || '',
                             distrito: s.distrito || '',
                             tarifa: s.tarifa_servicio || 0,
@@ -395,13 +397,14 @@
             document.getElementById('printFecha').textContent = new Date(document.getElementById('fechaRuta').value).toLocaleDateString('es-PE');
 
             if (clientesEnRuta.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">Sin clientes. Usa el buscador para agregar.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">Sin clientes. Usa el buscador para agregar.</td></tr>';
                 return;
             }
             tbody.innerHTML = clientesEnRuta.map((c, i) => `
                 <tr>
                     <td class="text-center fw-bold">${i + 1}</td>
                     <td>${c.empresa_ruc || '-'}</td>
+                    <td><small>${c.razon_social || '-'}</small></td>
                     <td><strong>${c.nombre_comercial}</strong></td>
                     <td><small>${c.direccion || '-'}</small></td>
                     <td>${c.distrito || '-'}</td>
@@ -478,7 +481,8 @@
             const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
             let filtered = allClientes.filter(c => {
                 const matchTerm = !term || c.nombre_comercial?.toLowerCase().includes(term) ||
-                    c.empresa_ruc?.includes(term) || c.distrito?.toLowerCase().includes(term);
+                    c.empresa_ruc?.includes(term) || c.distrito?.toLowerCase().includes(term) ||
+                    c.empresa_razon_social?.toLowerCase().includes(term);
                 const matchDistrito = distritos.length === 0 || distritos.includes(c.distrito?.toUpperCase());
                 return matchTerm && matchDistrito;
             }).slice(0, 50);
@@ -496,7 +500,7 @@
                                 <strong>${c.nombre_comercial}</strong>
                                 ${inRoute ? '<span class="badge bg-info ms-1">En ruta</span>' : ''}
                                 ${alerta ? `<span class="badge bg-warning text-dark alerta-frecuencia ms-1">Faltan ${alerta.diasRestantes}d</span>` : ''}
-                                <br><small class="text-muted">${c.distrito || ''} | ${c.empresa_ruc || ''}</small>
+                                <br><small class="text-muted">${c.empresa_razon_social ? c.empresa_razon_social + ' | ' : ''}${c.distrito || ''} | ${c.empresa_ruc || ''}</small>
                             </div>
                             ${!inRoute ? '<i class="bi bi-plus-circle text-success"></i>' : ''}
                         </div>
@@ -515,6 +519,7 @@
                     id_sede: cliente.id_sede,
                     nombre_comercial: cliente.nombre_comercial || '',
                     empresa_ruc: cliente.empresa_ruc || cliente.ruc || '',
+                    razon_social: cliente.empresa_razon_social || '',
                     direccion: cliente.direccion || '',
                     distrito: cliente.distrito || '',
                     tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
