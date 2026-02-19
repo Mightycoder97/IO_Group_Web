@@ -815,9 +815,7 @@
                 });
                 if (result.success) {
                     showToast('Ruta guardada');
-                    // Reload from server so table stays populated
-                    await loadExistingRoute();
-                    renderClientesTable();
+                    setTimeout(() => location.reload(), 800);
                 } else {
                     showToast(result.message || 'Error', 'danger');
                 }
