@@ -518,7 +518,8 @@
         }
 
         // Track which sedes are assigned to OTHER vehicles on the same date
-        let sedesEnOtrasRutas = new Set();
+        // Map: id_sede -> placa del vehículo
+        let sedesEnOtrasRutas = new Map();
 
         async function loadExistingRoute() {
             const fecha = document.getElementById('fechaRuta').value;
@@ -526,15 +527,16 @@
             try {
                 // Load all routes for this date to know which sedes are taken by other trucks
                 const allRoutesResult = await api.get(`/rutas?fecha=${fecha}&limit=50`);
-                sedesEnOtrasRutas = new Set();
+                sedesEnOtrasRutas = new Map();
                 if (allRoutesResult.success) {
                     for (const ruta of allRoutesResult.data) {
                         if (ruta.id_vehiculo == selectedVehiculo.id_vehiculo) continue;
+                        const placa = ruta.vehiculo_placa || `V${ruta.id_vehiculo}`;
                         // Get detail of each other route
                         try {
                             const detail = await api.get(`/rutas/${ruta.id_ruta}`);
                             if (detail.success && detail.data.servicios) {
-                                detail.data.servicios.forEach(s => sedesEnOtrasRutas.add(s.id_sede));
+                                detail.data.servicios.forEach(s => sedesEnOtrasRutas.set(s.id_sede, placa));
                             }
                         } catch (e) { }
                     }
@@ -664,17 +666,20 @@
             } else {
                 searchResults.innerHTML = filtered.map(c => {
                     const inRoute = enRutaIds.has(c.id_sede);
+                    const otherPlaca = sedesEnOtrasRutas.get(c.id_sede);
                     const alerta = getAlertaFrecuencia(c);
+                    const isBlocked = !!otherPlaca; // assigned to another truck
                     return `
-                    <div class="cliente-result ${inRoute ? 'in-route' : ''}" onclick="${inRoute ? '' : `agregarCliente(${c.id_sede})`}">
+                    <div class="cliente-result ${inRoute || isBlocked ? 'in-route' : ''}" onclick="${inRoute || isBlocked ? '' : `agregarCliente(${c.id_sede})`}">
                         <div class="d-flex justify-content-between">
                             <div>
                                 <strong>${c.nombre_comercial}</strong>
                                 ${inRoute ? '<span class="badge bg-info ms-1">En ruta</span>' : ''}
+                                ${isBlocked ? `<span class="badge bg-secondary ms-1">En ruta &middot; ${otherPlaca}</span>` : ''}
                                 ${alerta ? `<span class="badge bg-warning text-dark alerta-frecuencia ms-1">Faltan ${alerta.diasRestantes}d</span>` : ''}
                                 <br><small class="text-muted">${c.empresa_razon_social ? c.empresa_razon_social + ' | ' : ''}${c.distrito || ''} | ${c.empresa_ruc || ''}</small>
                             </div>
-                            ${!inRoute ? '<i class="bi bi-plus-circle text-success"></i>' : ''}
+                            ${!inRoute && !isBlocked ? '<i class="bi bi-plus-circle text-success"></i>' : ''}
                         </div>
                     </div>`;
                 }).join('');
@@ -691,7 +696,8 @@
 
             // Validate: sede must not be assigned to another vehicle on the same date
             if (sedesEnOtrasRutas.has(sedeId)) {
-                showToast(`"${cliente.nombre_comercial}" ya está asignada a otro camión en esta fecha`, 'warning');
+                const placa = sedesEnOtrasRutas.get(sedeId);
+                showToast(`"${cliente.nombre_comercial}" ya está asignada al camión ${placa} en esta fecha`, 'warning');
                 return;
             }
 
