@@ -27,7 +27,6 @@
                         </ol>
                     </nav>
                 </div>
-                <!-- User Menu -->
                 <div class="user-menu">
                     <div class="dropdown">
                         <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
@@ -55,37 +54,48 @@
                     <div class="card-body">
                         <form id="dataForm">
                             <div class="row g-3">
-                                <!-- Datos Principales -->
+
+                                <!-- Sección: Información General -->
                                 <div class="col-12">
-                                    <h6 class="text-primary border-bottom pb-2">Información General</h6>
+                                    <h6 class="text-primary border-bottom pb-2"><i
+                                            class="bi bi-info-circle me-1"></i>Información General</h6>
                                 </div>
 
+                                <!-- Sede search -->
                                 <div class="col-md-6">
-                                    <label class="form-label">Sede / Cliente *</label>
-                                    <select class="form-select" id="id_sede" required>
-                                        <option value="">Seleccione Sede...</option>
-                                    </select>
+                                    <label class="form-label">Sede / Cliente <span class="text-danger">*</span></label>
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="sedeSearch"
+                                            placeholder="Buscar por nombre comercial, RUC..." autocomplete="off">
+                                        <div id="sedeDropdown"
+                                            style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:white; border:1px solid #dee2e6; border-radius:4px; max-height:200px; overflow-y:auto; box-shadow:0 4px 6px rgba(0,0,0,.1);">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="id_sede" required>
+                                    <div id="sedeSelected" class="mt-1 small text-success fw-bold"></div>
                                 </div>
+
                                 <div class="col-md-3">
-                                    <label class="form-label">Planta *</label>
+                                    <label class="form-label">Planta <span class="text-danger">*</span></label>
                                     <select class="form-select" id="id_planta" required>
                                         <option value="">Seleccione Planta...</option>
                                     </select>
                                 </div>
+
                                 <div class="col-md-3">
-                                    <label class="form-label">Ruta</label>
-                                    <select class="form-select" id="id_ruta">
-                                        <option value="">Sin Ruta Asignada</option>
-                                    </select>
+                                    <label class="form-label">Mes Servicio</label>
+                                    <input type="month" class="form-control" id="mes_servicio">
+                                </div>
+
+                                <!-- Fechas y horas -->
+                                <div class="col-12 mt-2">
+                                    <h6 class="text-primary border-bottom pb-2"><i
+                                            class="bi bi-calendar3 me-1"></i>Fechas y Horario</h6>
                                 </div>
 
                                 <div class="col-md-3">
-                                    <label class="form-label">Fecha Programada *</label>
-                                    <input type="date" class="form-control" id="fecha_programada" required>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Fecha Ejecución</label>
-                                    <input type="date" class="form-control" id="fecha_ejecucion">
+                                    <label class="form-label">Fecha Ejecución <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="fecha_ejecucion" required>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Hora Llegada</label>
@@ -95,8 +105,20 @@
                                     <label class="form-label">Hora Salida</label>
                                     <input type="time" class="form-control" id="hora_salida">
                                 </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Ruta Asignada</label>
+                                    <select class="form-select" id="id_ruta">
+                                        <option value="">Sin Ruta</option>
+                                    </select>
+                                </div>
 
-                                <div class="col-md-4">
+                                <!-- Estados -->
+                                <div class="col-12 mt-2">
+                                    <h6 class="text-primary border-bottom pb-2"><i class="bi bi-toggles me-1"></i>Estado
+                                        y Pago</h6>
+                                </div>
+
+                                <div class="col-md-3">
                                     <label class="form-label">Estado Servicio</label>
                                     <select class="form-select" id="estado">
                                         <option value="programado">Programado</option>
@@ -105,34 +127,72 @@
                                         <option value="cancelado">Cancelado</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Estado Pago</label>
                                     <select class="form-select" id="estado_pago">
                                         <option value="pendiente">Pendiente</option>
                                         <option value="pagado">Pagado</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label">Forma de Pago</label>
+                                    <select class="form-select" id="forma_pago">
+                                        <option value="">-</option>
+                                        <option value="efectivo">Efectivo</option>
+                                        <option value="transferencia">Transferencia</option>
+                                        <option value="cheque">Cheque</option>
+                                        <option value="credito">Crédito</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label">Fecha Pago</label>
                                     <input type="date" class="form-control" id="fecha_pago">
                                 </div>
 
-                                <!-- Datos del Residuo -->
-                                <div class="col-12 mt-4">
-                                    <h6 class="text-primary border-bottom pb-2">Detalle de Residuos</h6>
+                                <!-- Empleados -->
+                                <div class="col-12 mt-2">
+                                    <h6 class="text-primary border-bottom pb-2"><i
+                                            class="bi bi-people me-1"></i>Personal Asignado</h6>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Chofer</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                                        <select class="form-select" id="id_chofer">
+                                            <option value="">Sin asignar</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Ayudante</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <select class="form-select" id="id_ayudante">
+                                            <option value="">Sin asignar</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Residuos -->
+                                <div class="col-12 mt-2">
+                                    <h6 class="text-primary border-bottom pb-2"><i
+                                            class="bi bi-recycle me-1"></i>Detalle de Residuos</h6>
                                 </div>
 
                                 <div class="col-md-12">
                                     <label class="form-label">Descripción del Residuo</label>
-                                    <textarea class="form-control" id="descripcion_residuo" rows="2"></textarea>
+                                    <textarea class="form-control" id="descripcion_residuo" rows="2"
+                                        placeholder="Tipo y descripción del residuo recogido..."></textarea>
                                 </div>
 
-                                <!-- Documentos Relacionados -->
-                                <div class="col-12 mt-4">
-                                    <h6 class="text-primary border-bottom pb-2">Documentos Asociados</h6>
+                                <!-- Documentos (solo en edición) -->
+                                <div class="col-12 mt-2" id="seccionDocumentos" style="display:none;">
+                                    <h6 class="text-primary border-bottom pb-2"><i
+                                            class="bi bi-file-earmark-text me-1"></i>Documentos Asociados</h6>
                                 </div>
 
-                                <div class="col-md-4">
+                                <div class="col-md-4" id="campoManifiesto" style="display:none;">
                                     <label class="form-label">Manifiesto</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="numero_manifiesto"
@@ -142,7 +202,7 @@
                                     </div>
                                     <input type="hidden" id="id_manifiesto">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-4" id="campoGuia" style="display:none;">
                                     <label class="form-label">Guía Remisión</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="numero_guia" placeholder="N° Guía"
@@ -151,7 +211,7 @@
                                                 class="bi bi-eye"></i></button>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-4" id="campoFactura" style="display:none;">
                                     <label class="form-label">Factura</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="numero_factura"
@@ -163,7 +223,7 @@
 
                             </div>
 
-                            <div class="mt-4">
+                            <div class="mt-4 d-flex gap-2">
                                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i>
                                     Guardar</button>
                                 <a href="listar.html" class="btn btn-secondary">Cancelar</a>
@@ -183,58 +243,99 @@
         initPage('rutas');
 
         const id = getUrlParam('id');
+        let allSedes = [];
 
-        // Initial setup
         if (id) {
             document.getElementById('pageTitle').textContent = 'Editar Servicio';
             document.getElementById('formTitle').textContent = 'Editar Servicio #' + id;
-            loadData();
+            // Show document section in edit mode
+            document.getElementById('seccionDocumentos').style.display = '';
+            document.getElementById('campoManifiesto').style.display = '';
+            document.getElementById('campoGuia').style.display = '';
+            document.getElementById('campoFactura').style.display = '';
         } else {
-            // Set default date
-            document.getElementById('fecha_programada').valueAsDate = new Date();
+            document.getElementById('fecha_ejecucion').valueAsDate = new Date();
+            // Default mes_servicio to current month
+            const now = new Date();
+            document.getElementById('mes_servicio').value =
+                `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         }
 
-        loadSelects();
+        // ── Sede search ──────────────────────────────
+        const sedeSearch = document.getElementById('sedeSearch');
+        const sedeDropdown = document.getElementById('sedeDropdown');
 
+        sedeSearch.addEventListener('input', debounce(async function () {
+            const term = this.value.trim();
+            if (term.length < 2) { sedeDropdown.style.display = 'none'; return; }
+            try {
+                const res = await api.get(`/sedes?search=${encodeURIComponent(term)}&limit=20`, { cache: false });
+                if (res.success) {
+                    renderSedeDropdown(res.data);
+                }
+            } catch (e) { }
+        }, 300));
+
+        function renderSedeDropdown(sedes) {
+            if (!sedes.length) {
+                sedeDropdown.innerHTML = '<div class="p-2 text-muted small">Sin resultados</div>';
+            } else {
+                sedeDropdown.innerHTML = sedes.map(s => `
+                    <div style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f0;"
+                        onmousedown="selectSede(${s.id_sede}, '${(s.nombre_comercial || '').replace(/'/g, "&#39;")}', '${(s.empresa_razon_social || '').replace(/'/g, "&#39;")}')"
+                        onmouseover="this.style.background='#f0f8f0'" onmouseout="this.style.background=''">
+                        <strong>${s.nombre_comercial}</strong><br>
+                        <small class="text-muted">${s.empresa_razon_social || ''} · ${s.distrito || ''}</small>
+                        ${s.tarifa_servicio ? `<span class="badge bg-success ms-1">S/ ${parseFloat(s.tarifa_servicio).toFixed(2)}</span>` : ''}
+                    </div>
+                `).join('');
+            }
+            sedeDropdown.style.display = 'block';
+        }
+
+        function selectSede(id, nombre, empresa) {
+            document.getElementById('id_sede').value = id;
+            sedeSearch.value = nombre;
+            document.getElementById('sedeSelected').textContent = `✓ ${empresa}`;
+            sedeDropdown.style.display = 'none';
+        }
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#sedeSearch') && !e.target.closest('#sedeDropdown')) {
+                sedeDropdown.style.display = 'none';
+            }
+        });
+
+        // ── Load selects ─────────────────────────────
         async function loadSelects() {
             try {
-                // Load Sedes (with optimized unified endpoint if check passed, else manually)
-                // For now, loading simple list. Optimally should user a search inputs for sedes 
-                // but let's load all for now as per other forms pattern (might be heavy if >1000)
-                // Actually, let's use the unified sedes endpoint or just sedes
-                const sedesRes = await api.get('/sedes-unified?limit=1000');
-                if (sedesRes.success) {
-                    const select = document.getElementById('id_sede');
-                    sedesRes.data.forEach(s => {
-                        const opt = document.createElement('option');
-                        opt.value = s.id_sede;
-                        opt.textContent = `${s.nombre_comercial} - ${s.empresa_razon_social}`;
-                        select.appendChild(opt);
-                    });
-                }
-
-                // Load Plantas
+                // Plantas
                 const plantasRes = await api.get('/plantas');
                 if (plantasRes.success) {
-                    const select = document.getElementById('id_planta');
+                    const sel = document.getElementById('id_planta');
                     plantasRes.data.forEach(p => {
-                        const opt = document.createElement('option');
-                        opt.value = p.id_planta;
-                        opt.textContent = p.nombre_comercial;
-                        select.appendChild(opt);
+                        sel.innerHTML += `<option value="${p.id_planta}">${p.nombre_comercial}</option>`;
                     });
                 }
 
-                // Load Rutas (active ones ideally)
-                const rutasRes = await api.get('/rutas?limit=50'); // limit to recent
+                // Rutas recientes
+                const rutasRes = await api.get('/rutas?limit=50');
                 if (rutasRes.success) {
-                    const select = document.getElementById('id_ruta');
+                    const sel = document.getElementById('id_ruta');
                     rutasRes.data.forEach(r => {
-                        const opt = document.createElement('option');
-                        opt.value = r.id_ruta;
-                        opt.textContent = `Ruta ${new Date(r.fecha).toLocaleDateString()} - ${r.vehiculo_placa}`;
-                        select.appendChild(opt);
+                        const fecha = new Date(r.fecha + 'T12:00:00').toLocaleDateString('es-PE');
+                        sel.innerHTML += `<option value="${r.id_ruta}">${fecha} — ${r.vehiculo_placa || ''}</option>`;
                     });
+                }
+
+                // Empleados
+                const empRes = await api.get('/empleados?activo=true');
+                if (empRes.success) {
+                    const options = empRes.data.map(e =>
+                        `<option value="${e.id_empleado}">${e.nombres} ${e.apellidos}</option>`
+                    ).join('');
+                    document.getElementById('id_chofer').innerHTML += options;
+                    document.getElementById('id_ayudante').innerHTML += options;
                 }
             } catch (err) {
                 console.error(err);
@@ -242,67 +343,89 @@
             }
         }
 
+        // ── Load existing data (edit mode) ───────────
         async function loadData() {
             try {
                 const result = await api.get(`/servicios/${id}`);
-                if (result.success) {
-                    const d = result.data;
-                    document.getElementById('id_sede').value = d.id_sede || '';
-                    document.getElementById('id_planta').value = d.id_planta || '';
-                    document.getElementById('id_ruta').value = d.id_ruta || '';
+                if (!result.success) { showToast('Error cargando servicio', 'danger'); return; }
+                const d = result.data;
 
-                    document.getElementById('fecha_programada').value = d.fecha_programada || '';
-                    document.getElementById('fecha_ejecucion').value = d.fecha_ejecucion || '';
-                    document.getElementById('hora_llegada').value = d.hora_llegada || '';
-                    document.getElementById('hora_salida').value = d.hora_salida || '';
+                // Sede
+                document.getElementById('id_sede').value = d.id_sede || '';
+                sedeSearch.value = d.sede_nombre || '';
+                document.getElementById('sedeSelected').textContent = d.empresa_razon_social
+                    ? `✓ ${d.empresa_razon_social}` : '';
 
-                    document.getElementById('estado').value = d.estado || 'programado';
-                    document.getElementById('estado_pago').value = d.estado_pago || 'pendiente';
-                    document.getElementById('fecha_pago').value = d.fecha_pago || '';
+                document.getElementById('id_planta').value = d.id_planta || '';
+                document.getElementById('id_ruta').value = d.id_ruta || '';
 
-                    document.getElementById('descripcion_residuo').value = d.descripcion_residuo || '';
-
-                    // Documents
-                    if (d.manifiesto) {
-                        document.getElementById('numero_manifiesto').value = d.manifiesto.numero_manifiesto;
-                        document.getElementById('id_manifiesto').value = d.manifiesto.id_manifiesto;
-                    } else {
-                        document.getElementById('numero_manifiesto').value = 'No generado';
-                    }
-
-                    if (d.guia) {
-                        document.getElementById('numero_guia').value = d.guia.numero_guia;
-                    } else {
-                        document.getElementById('numero_guia').value = 'No generada';
-                    }
-
-                    if (d.factura) {
-                        document.getElementById('numero_factura').value = d.factura.numero_factura;
-                    } else {
-                        document.getElementById('numero_factura').value = 'No generada';
-                    }
+                // mes_servicio: comes as 'YYYY-MM' or 'YYYY-MM-DD'
+                if (d.mes_servicio) {
+                    document.getElementById('mes_servicio').value = d.mes_servicio.substring(0, 7);
                 }
+
+                document.getElementById('fecha_ejecucion').value = d.fecha_ejecucion || d.fecha_servicio || '';
+                document.getElementById('hora_llegada').value = d.hora_llegada || '';
+                document.getElementById('hora_salida').value = d.hora_salida || '';
+
+                document.getElementById('estado').value = d.estado || 'programado';
+                document.getElementById('estado_pago').value = d.estado_pago || 'pendiente';
+                document.getElementById('forma_pago').value = d.forma_pago || '';
+                document.getElementById('fecha_pago').value = d.fecha_pago || '';
+
+                document.getElementById('descripcion_residuo').value = d.descripcion_residuo || '';
+
+                // Empleados
+                if (d.empleados) {
+                    const chofer = d.empleados.find(e => e.rol === 'chofer');
+                    const ayudante = d.empleados.find(e => e.rol === 'ayudante');
+                    if (chofer) document.getElementById('id_chofer').value = chofer.id_empleado;
+                    if (ayudante) document.getElementById('id_ayudante').value = ayudante.id_empleado;
+                }
+
+                // Documents
+                document.getElementById('numero_manifiesto').value =
+                    d.manifiesto ? d.manifiesto.numero_manifiesto : 'No generado';
+                if (d.manifiesto) document.getElementById('id_manifiesto').value = d.manifiesto.id_manifiesto;
+                document.getElementById('numero_guia').value =
+                    d.guia ? d.guia.numero_guia : 'No generada';
+                document.getElementById('numero_factura').value =
+                    d.factura ? d.factura.numero_factura : 'No generada';
+
             } catch (err) {
                 console.error(err);
                 showToast('Error cargando servicio', 'danger');
             }
         }
 
+        // ── Submit ────────────────────────────────────
         document.getElementById('dataForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const id_sede = document.getElementById('id_sede').value;
+            if (!id_sede) { showToast('Seleciona una sede', 'warning'); return; }
+
+            // Build empleados array
+            const empleados = [];
+            const chofVal = document.getElementById('id_chofer').value;
+            const ayuVal = document.getElementById('id_ayudante').value;
+            if (chofVal) empleados.push({ id_empleado: chofVal, rol: 'chofer' });
+            if (ayuVal) empleados.push({ id_empleado: ayuVal, rol: 'ayudante' });
+
             const data = {
-                id_sede: document.getElementById('id_sede').value,
-                id_planta: document.getElementById('id_planta').value,
+                id_sede,
+                id_planta: document.getElementById('id_planta').value || null,
                 id_ruta: document.getElementById('id_ruta').value || null,
-                fecha_programada: document.getElementById('fecha_programada').value,
+                mes_servicio: document.getElementById('mes_servicio').value || null,
                 fecha_ejecucion: document.getElementById('fecha_ejecucion').value || null,
                 hora_llegada: document.getElementById('hora_llegada').value || null,
                 hora_salida: document.getElementById('hora_salida').value || null,
                 estado: document.getElementById('estado').value,
                 estado_pago: document.getElementById('estado_pago').value,
+                forma_pago: document.getElementById('forma_pago').value || null,
                 fecha_pago: document.getElementById('fecha_pago').value || null,
-                descripcion_residuo: document.getElementById('descripcion_residuo').value
+                descripcion_residuo: document.getElementById('descripcion_residuo').value || null,
+                empleados
             };
 
             try {
@@ -314,7 +437,7 @@
                     showToast('Servicio guardado exitosamente');
                     setTimeout(() => window.location.href = 'listar.html', 1500);
                 } else {
-                    showToast(result.message, 'danger');
+                    showToast(result.message || 'Error al guardar', 'danger');
                 }
             } catch (err) {
                 console.error(err);
@@ -327,15 +450,12 @@
             if (manId) window.open(`../manifiestos/formulario.html?id=${manId}`, '_blank');
             else showToast('No hay manifiesto asociado', 'info');
         }
+        function goToGuia() { showToast('Módulo de Guías en desarrollo', 'info'); }
+        function goToFactura() { showToast('Módulo de Facturas en desarrollo', 'info'); }
 
-        function goToGuia() {
-            showToast('Módulo de Guías en desarrollo', 'info');
-        }
-
-        function goToFactura() {
-            showToast('Módulo de Facturas en desarrollo', 'info');
-        }
-
+        // Init
+        loadSelects();
+        if (id) loadData();
     </script>
 </body>
 

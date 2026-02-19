@@ -237,29 +237,31 @@ function create() {
     $data = json_decode(file_get_contents('php://input'), true);
     
     $id_sede = $data['id_sede'] ?? null;
-    $id_planta = $data['id_planta'] ?? null;
-    $fecha_programada = $data['fecha_programada'] ?? null;
+    $fecha_ejecucion = $data['fecha_ejecucion'] ?? null;
     
-    if (empty($id_sede) || empty($id_planta) || empty($fecha_programada)) {
+    if (empty($id_sede)) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Sede, planta y fecha programada son requeridos']);
+        echo json_encode(['success' => false, 'message' => 'Sede es requerida']);
         return;
     }
     
     $id = db()->insert(
-        "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, codigo_servicio, fecha_programada, fecha_ejecucion, hora_llegada, hora_salida, estado) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, mes_servicio, fecha_ejecucion, hora_llegada, hora_salida, estado, estado_pago, forma_pago, fecha_pago, descripcion_residuo) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             $id_sede,
             $data['id_ruta'] ?? null,
-            $id_planta,
+            $data['id_planta'] ?? null,
             $data['id_contrato'] ?? null,
-            $data['codigo_servicio'] ?? null,
-            $fecha_programada,
-            $data['fecha_ejecucion'] ?? null,
+            $data['mes_servicio'] ?? null,
+            $fecha_ejecucion,
             $data['hora_llegada'] ?? null,
             $data['hora_salida'] ?? null,
-            $data['estado'] ?? 'programado'
+            $data['estado'] ?? 'programado',
+            $data['estado_pago'] ?? 'pendiente',
+            $data['forma_pago'] ?? null,
+            $data['fecha_pago'] ?? null,
+            $data['descripcion_residuo'] ?? null
         ]
     );
     
@@ -307,31 +309,31 @@ function update($id) {
         "UPDATE Servicio SET 
             id_sede = COALESCE(?, id_sede),
             id_ruta = ?,
-            id_planta = COALESCE(?, id_planta),
-            id_contrato = ?,
-            codigo_servicio = ?,
-            fecha_programada = COALESCE(?, fecha_programada),
+            id_planta = ?,
+            mes_servicio = ?,
             fecha_ejecucion = ?,
             hora_llegada = ?,
             hora_salida = ?,
             estado = ?,
             estado_pago = ?,
+            forma_pago = ?,
             fecha_pago = ?,
+            descripcion_residuo = ?,
             fecha_modificacion = NOW()
          WHERE id_servicio = ?",
         [
             $data['id_sede'] ?? null,
             $data['id_ruta'] ?? $existing['id_ruta'],
-            $data['id_planta'] ?? null,
-            $data['id_contrato'] ?? $existing['id_contrato'],
-            $data['codigo_servicio'] ?? $existing['codigo_servicio'],
-            $data['fecha_programada'] ?? null,
+            $data['id_planta'] ?? $existing['id_planta'],
+            $data['mes_servicio'] ?? $existing['mes_servicio'],
             $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion'],
             $data['hora_llegada'] ?? $existing['hora_llegada'],
             $data['hora_salida'] ?? $existing['hora_salida'],
             $data['estado'] ?? $existing['estado'],
             $data['estado_pago'] ?? $existing['estado_pago'] ?? 'pendiente',
+            $data['forma_pago'] ?? $existing['forma_pago'],
             $data['fecha_pago'] ?? $existing['fecha_pago'],
+            $data['descripcion_residuo'] ?? $existing['descripcion_residuo'],
             $id
         ]
     );
