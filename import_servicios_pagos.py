@@ -46,25 +46,33 @@ def clean_sql_val(val):
     if not val_str: return 'NULL'
     return f"'{val_str}'"
 
+DATE_MIN_YEAR = 2019
+DATE_MAX_YEAR = 2026
+
 def parse_date_excel(cell_val):
-    """Parsear una celda que puede ser datetime o texto a formato YYYY-MM-DD."""
+    """Parsear una celda que puede ser datetime o texto a formato YYYY-MM-DD.
+    Solo se aceptan fechas entre 2019 y 2026 inclusive.
+    """
     if isinstance(cell_val, datetime):
-        return cell_val.strftime('%Y-%m-%d')
+        # Validate range for native datetime objects too
+        if DATE_MIN_YEAR <= cell_val.year <= DATE_MAX_YEAR:
+            return cell_val.strftime('%Y-%m-%d')
+        return None  # Out-of-range datetime → skip row
     if not cell_val:
         return None
-    
+
     # Limpiar whitespace y tabs
     val_str = str(cell_val).strip().replace('\t', '')
     if not val_str:
         return None
-    
+
     # Tomar solo la parte de fecha (antes de espacio/hora)
     date_part = val_str.split(' ')[0]
-    
+
     for fmt in DATE_FORMATS:
         try:
             dt = datetime.strptime(date_part, fmt)
-            if 2000 <= dt.year <= 2100:
+            if DATE_MIN_YEAR <= dt.year <= DATE_MAX_YEAR:
                 return dt.strftime('%Y-%m-%d')
         except ValueError:
             pass
