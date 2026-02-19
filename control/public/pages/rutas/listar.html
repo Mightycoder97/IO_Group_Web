@@ -429,7 +429,12 @@
                     serviciosRecientes = {};
                     result.data.forEach(s => {
                         if (!serviciosRecientes[s.id_sede] || s.fecha_ejecucion > serviciosRecientes[s.id_sede].fecha) {
-                            serviciosRecientes[s.id_sede] = { fecha: s.fecha_ejecucion, frecuencia: s.frecuencia || 'mensual' };
+                            serviciosRecientes[s.id_sede] = {
+                                fecha: s.fecha_ejecucion,
+                                frecuencia: s.frecuencia || 'mensual',
+                                forma_pago: s.forma_pago || '',
+                                obs: s.descripcion_residuo || ''
+                            };
                         }
                     });
                 }
@@ -757,6 +762,8 @@
                 return;
             }
 
+            // Pre-fill tipo_pago and obs from last service for this sede
+            const ultimoServicio = serviciosRecientes[cliente.id_sede];
             clientesEnRuta.push({
                 id_sede: cliente.id_sede,
                 nombre_comercial: cliente.nombre_comercial || '',
@@ -767,7 +774,8 @@
                 contacto_nombre: cliente.contacto_nombre || '',
                 tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
                 telefono: cliente.contacto_telefono || '',
-                tipo_pago: '', obs: ''
+                tipo_pago: ultimoServicio?.forma_pago || '',
+                obs: ultimoServicio?.obs || ''
             });
             renderClientesTable();
             filterClientes();
