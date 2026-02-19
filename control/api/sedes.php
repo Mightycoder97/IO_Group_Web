@@ -72,9 +72,19 @@ function getAll() {
     // Consulta optimizada - solo campos necesarios
     $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.activo,
             s.contacto_nombre, s.contacto_telefono, s.contacto_telefono_2, s.coordenadas_gps,
-            e.razon_social as empresa_razon_social, e.ruc as empresa_ruc
+            e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
+            cs.tarifa as tarifa_servicio, cs.frecuencia
             FROM Sede s
             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+            LEFT JOIN (
+                SELECT cs1.id_sede, cs1.tarifa, cs1.frecuencia
+                FROM ContratoServicio cs1
+                WHERE cs1.activo = 1
+                AND cs1.fecha_inicio = (
+                    SELECT MAX(cs2.fecha_inicio) FROM ContratoServicio cs2
+                    WHERE cs2.id_sede = cs1.id_sede AND cs2.activo = 1
+                )
+            ) cs ON s.id_sede = cs.id_sede
             WHERE 1=1";
     $params = [];
     
@@ -95,8 +105,15 @@ function getAll() {
     }
     
     // Count total
-    $countSql = preg_replace('/SELECT .* FROM/', 'SELECT COUNT(*) as total FROM', $sql, 1);
-    $totalResult = db()->queryOne($countSql, $params);
+    $countSql = "SELECT COUNT(*) as total FROM Sede s INNER JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE 1=1";
+    $countParams = [];
+    if ($search) {
+        $countSql .= " AND (s.nombre_comercial LIKE ? OR s.direccion LIKE ? OR e.razon_social LIKE ? OR e.ruc LIKE ?)";
+        $countParams = array_merge($countParams, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+    }
+    if ($empresa) { $countSql .= " AND s.id_empresa = ?"; $countParams[] = $empresa; }
+    if ($activo !== null) { $countSql .= " AND s.activo = ?"; $countParams[] = $activo === 'true' ? 1 : 0; }
+    $totalResult = db()->queryOne($countSql, $countParams);
     $total = $totalResult['total'] ?? 0;
     
     $sql .= " ORDER BY s.nombre_comercial LIMIT ? OFFSET ?";
