@@ -210,11 +210,13 @@ function create() {
                 if (is_array($sedeItem)) {
                     $id_sede       = $sedeItem['id_sede'] ?? null;
                     $forma_pago    = $sedeItem['forma_pago'] ?? null;
-                    $desc_residuo  = $sedeItem['obs'] ?? null;
+                    $obs           = $sedeItem['obs'] ?? null;
+                    $residuo       = $sedeItem['residuo'] ?? null;
                 } else {
                     $id_sede      = $sedeItem;
                     $forma_pago   = null;
-                    $desc_residuo = null;
+                    $obs          = null;
+                    $residuo      = null;
                 }
                 if (!$id_sede) continue;
 
@@ -226,9 +228,9 @@ function create() {
                 $id_contrato = $contrato ? $contrato['id_contrato'] : null;
 
                 db()->insert(
-                    "INSERT INTO Servicio (id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, forma_pago, residuo) 
-                     VALUES (?, ?, ?, ?, ?, ?, 'programado', ?, ?)",
-                    [$id, $id_sede, $id_planta, $id_contrato, $mes_servicio, $fecha, $forma_pago, $desc_residuo]
+                    "INSERT INTO Servicio (id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, forma_pago, residuo, observaciones) 
+                     VALUES (?, ?, ?, ?, ?, ?, 'programado', ?, ?, ?)",
+                    [$id, $id_sede, $id_planta, $id_contrato, $mes_servicio, $fecha, $forma_pago, $residuo, $obs]
                 );
             }
         }

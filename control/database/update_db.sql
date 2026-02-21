@@ -1,4 +1,5 @@
 ALTER TABLE Servicio CHANGE descripcion_residuo residuo ENUM('BIOCONTAMINADO', 'ESPECIAL', 'ANIMAL CONTAMINADO', 'MERMA Y/O DESMEDRO') NULL;
+ALTER TABLE Servicio ADD COLUMN observaciones TEXT AFTER residuo;
 
 CREATE OR REPLACE VIEW vw_ServiciosCompleto AS
 SELECT 
@@ -17,7 +18,9 @@ SELECT
     m.peso_kg,
     m.tipo_residuo,
     f.numero_factura,
-    s.estado_pago
+    s.estado_pago,
+    s.residuo,
+    s.observaciones
 FROM Servicio s
 INNER JOIN Sede se ON s.id_sede = se.id_sede
 INNER JOIN Empresa e ON se.id_empresa = e.id_empresa

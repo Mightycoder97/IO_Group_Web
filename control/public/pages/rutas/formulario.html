@@ -330,6 +330,7 @@
                                         <th>DIRECCION</th>
                                         <th>DISTRITO</th>
                                         <th>TARIFA</th>
+                                        <th style="width: 120px;">OBS</th>
                                         <th style="width: 150px;">RESIDUO</th>
                                         <th style="width: 80px;">ACCIONES</th>
                                     </tr>
@@ -464,7 +465,8 @@
                             telefono: s.telefono || '',
                             tarifa: s.tarifa_servicio || 0,
                             peso: s.peso || '',
-                            obs: s.observaciones || ''
+                            obs: s.observaciones || s.obs || '',
+                            residuo: s.residuo || ''
                         }));
                     }
                     renderClientesTable();
@@ -503,13 +505,15 @@
                     <td><small>${s.direccion || '-'}</small></td>
                     <td>${s.distrito || '-'}</td>
                     <td>S/ ${parseFloat(s.tarifa || 0).toFixed(2)}</td>
+                    <td><input type="text" class="form-control form-control-sm obs-input" value="${s.obs || ''}" 
+                        onchange="updateObs(${s.id_sede}, this.value)" placeholder="..."></td>
                     <td>
-                        <select class="form-select form-select-sm" onchange="updateObs(${s.id_sede}, this.value)">
+                        <select class="form-select form-select-sm" onchange="updateResiduo(${s.id_sede}, this.value)">
                             <option value="">Seleccione...</option>
-                            <option value="BIOCONTAMINADO" ${s.obs === 'BIOCONTAMINADO' ? 'selected' : ''}>BIOCONTAMINADO</option>
-                            <option value="ESPECIAL" ${s.obs === 'ESPECIAL' ? 'selected' : ''}>ESPECIAL</option>
-                            <option value="ANIMAL CONTAMINADO" ${s.obs === 'ANIMAL CONTAMINADO' ? 'selected' : ''}>ANIMAL CONTAMINADO</option>
-                            <option value="MERMA Y/O DESMEDRO" ${s.obs === 'MERMA Y/O DESMEDRO' ? 'selected' : ''}>MERMA Y/O DESMEDRO</option>
+                            <option value="BIOCONTAMINADO" ${s.residuo === 'BIOCONTAMINADO' ? 'selected' : ''}>BIOCONTAMINADO</option>
+                            <option value="ESPECIAL" ${s.residuo === 'ESPECIAL' ? 'selected' : ''}>ESPECIAL</option>
+                            <option value="ANIMAL CONTAMINADO" ${s.residuo === 'ANIMAL CONTAMINADO' ? 'selected' : ''}>ANIMAL CONTAMINADO</option>
+                            <option value="MERMA Y/O DESMEDRO" ${s.residuo === 'MERMA Y/O DESMEDRO' ? 'selected' : ''}>MERMA Y/O DESMEDRO</option>
                         </select>
                     </td>
                     <td class="action-cell">
@@ -536,6 +540,11 @@
             if (sede) sede.obs = valor;
         }
 
+        function updateResiduo(sedeId, valor) {
+            const sede = sedesEnRuta.find(s => s.id_sede == sedeId);
+            if (sede) sede.residuo = valor;
+        }
+
         function agregarCliente() {
             const sedeId = document.getElementById('selectCliente').value;
             if (!sedeId) {
@@ -555,7 +564,8 @@
                     telefono: sede.telefono || '',
                     tarifa: sede.tarifa_servicio || 0,
                     peso: '',
-                    obs: ''
+                    obs: '',
+                    residuo: ''
                 });
                 renderClientesTable();
                 renderClienteSelect();
@@ -607,7 +617,8 @@
                 observaciones: document.getElementById('observaciones').value || null,
                 sedes: sedesEnRuta.map(s => ({
                     id_sede: s.id_sede,
-                    obs: s.obs || null
+                    obs: s.obs || null,
+                    residuo: s.residuo || null
                 }))
             };
             try {

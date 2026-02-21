@@ -320,6 +320,7 @@
                                         <th>TARIFA</th>
                                         <th style="width: 120px;">TIPO PAGO</th>
                                         <th style="width: 100px;">OBS</th>
+                                        <th style="width: 120px;">RESIDUO</th>
                                         <th style="width: 100px;" class="action-cell">ACCIONES</th>
                                     </tr>
                                 </thead>
@@ -434,7 +435,8 @@
                                 frecuencia: s.frecuencia || 'mensual',
                                 peso: s.peso || '',
                                 forma_pago: s.forma_pago || '',
-                                obs: s.residuo || ''
+                                obs: s.observaciones || s.obs || '',
+                                residuo: s.residuo || ''
                             };
                         }
                     });
@@ -600,7 +602,8 @@
                             telefono: s.contacto_telefono || '',
                             peso: s.peso || '',
                             tipo_pago: s.forma_pago || '',
-                            obs: s.residuo || ''
+                            obs: s.observaciones || s.obs || '',
+                            residuo: s.residuo || ''
                         }));
                         // Populate employee selects from saved route
                         const rData = rutaDetail.data;
@@ -656,6 +659,15 @@
                     </td>
                     <td><input type="text" class="form-control form-control-sm obs-input" value="${c.obs || ''}" 
                         onchange="clientesEnRuta[${i}].obs=this.value"></td>
+                    <td>
+                        <select class="form-select form-select-sm" onchange="clientesEnRuta[${i}].residuo=this.value">
+                            <option value="">-</option>
+                            <option value="BIOCONTAMINADO" ${c.residuo === 'BIOCONTAMINADO' ? 'selected' : ''}>BIOCONTAMINADO</option>
+                            <option value="ESPECIAL" ${c.residuo === 'ESPECIAL' ? 'selected' : ''}>ESPECIAL</option>
+                            <option value="ANIMAL CONTAMINADO" ${c.residuo === 'ANIMAL CONTAMINADO' ? 'selected' : ''}>ANIMAL CONTAMINADO</option>
+                            <option value="MERMA Y/O DESMEDRO" ${c.residuo === 'MERMA Y/O DESMEDRO' ? 'selected' : ''}>MERMA Y/O DESMEDRO</option>
+                        </select>
+                    </td>
                     <td class="action-cell">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-success" onclick="sendWhatsApp(${c.id_sede})" title="WhatsApp">
@@ -777,7 +789,8 @@
                 tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
                 telefono: cliente.contacto_telefono || '',
                 tipo_pago: ultimoServicio?.forma_pago || '',
-                obs: ultimoServicio?.obs || ''
+                obs: ultimoServicio?.obs || '',
+                residuo: ultimoServicio?.residuo || ''
             });
             renderClientesTable();
             filterClientes();
@@ -810,7 +823,8 @@
                     sedes: clientesEnRuta.map(c => ({
                         id_sede: c.id_sede,
                         forma_pago: c.tipo_pago || null,
-                        obs: c.obs || null
+                        obs: c.obs || null,
+                        residuo: c.residuo || null
                     })),
                     id_chofer: id_chofer || null,
                     id_ayudante: id_ayudante || null
