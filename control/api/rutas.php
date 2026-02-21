@@ -226,7 +226,7 @@ function create() {
                 $id_contrato = $contrato ? $contrato['id_contrato'] : null;
 
                 db()->insert(
-                    "INSERT INTO Servicio (id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, forma_pago, descripcion_residuo) 
+                    "INSERT INTO Servicio (id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, forma_pago, residuo) 
                      VALUES (?, ?, ?, ?, ?, ?, 'programado', ?, ?)",
                     [$id, $id_sede, $id_planta, $id_contrato, $mes_servicio, $fecha, $forma_pago, $desc_residuo]
                 );

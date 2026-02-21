@@ -179,9 +179,8 @@
                     <td>${pagoBadge}</td>
                     <td>${fechaPago}</td>
                     <td>${s.tarifa_servicio ? 'S/ ' + parseFloat(s.tarifa_servicio).toFixed(2) : '-'}</td>
-                    <td>${s.descripcion_residuo || '-'}</td>
-                    <td>${s.peso_residuo || '-'}</td>
-                    <td>${s.numero_guia || '-'}</td>
+                    <td>${s.residuo || '-'}</td>
+                    <td>${s.peso_kg || '-'}</td>
                     <td>${s.numero_manifiesto || '-'}</td>
                     <td>${s.numero_factura || '-'}</td>
                     <td>

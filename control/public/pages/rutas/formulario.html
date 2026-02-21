@@ -605,7 +605,10 @@
                 fecha: document.getElementById('fecha').value,
                 estado: document.getElementById('estado').value,
                 observaciones: document.getElementById('observaciones').value || null,
-                sedes: sedesEnRuta.map(s => s.id_sede)
+                sedes: sedesEnRuta.map(s => ({
+                    id_sede: s.id_sede,
+                    obs: s.obs || null
+                }))
             };
             try {
                 const result = id

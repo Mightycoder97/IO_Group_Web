@@ -61,7 +61,7 @@ function getRouteServices($id_ruta) {
         // Get services for this route with sede/empresa info and tarifa
         $servicios = db()->query(
             "SELECT s.id_servicio, s.id_sede, s.estado, s.estado_pago, s.forma_pago,
-                    s.fecha_pago, s.descripcion_residuo,
+                    s.fecha_pago, s.residuo,
                     se.nombre_comercial as sede_nombre, se.direccion, se.distrito,
                     se.contacto_nombre, se.contacto_telefono,
                     e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,

@@ -51,8 +51,9 @@ function getAll() {
             s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
             s.estado,
             COALESCE(s.estado_pago, 'pendiente') as estado_pago,
-            s.fecha_pago, s.forma_pago, s.descripcion_residuo,
-            se.nombre_comercial as sede_nombre, se.direccion as sede_direccion, 
+            s.fecha_pago, s.forma_pago, s.residuo,
+            se.nombre_comercial AS sede_nombre,
+            se.direccion AS sede_direccion, 
             cs.tarifa as tarifa_servicio, se.contacto_telefono,
             e.razon_social as empresa_razon_social,
             p.nombre_comercial as planta_nombre,
@@ -251,44 +252,41 @@ function create() {
         echo json_encode(['success' => false, 'message' => 'Sede es requerida']);
         return;
     }
-    
-    $id = db()->insert(
-        "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, forma_pago, fecha_pago, descripcion_residuo) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-            $id_sede,
-            $data['id_ruta'] ?? null,
-            $data['id_planta'] ?? null,
-            $data['id_contrato'] ?? null,
-            $data['mes_servicio'] ?? null,
-            $fecha_ejecucion,
-            $data['estado'] ?? 'programado',
-            $data['estado_pago'] ?? 'pendiente',
-            $data['forma_pago'] ?? null,
-            $data['fecha_pago'] ?? null,
-            $data['descripcion_residuo'] ?? null
-        ]
-    );
-    
-    // Add employees if provided
+        $id_servicio = db()->insert(
+            "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, forma_pago, fecha_pago, residuo) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                $data['id_sede'],
+                $data['id_ruta'] ?? null,
+                $data['id_planta'] ?? null,
+                $data['id_contrato'] ?? null,
+                $data['mes_servicio'] ?? null,
+                $data['fecha_ejecucion'] ?? null,
+                $data['estado'] ?? 'programado',
+                $data['estado_pago'] ?? 'pendiente',
+                $data['forma_pago'] ?? null,
+                $data['fecha_pago'] ?? null,
+                $data['residuo'] ?? null
+            ]
+        ); // Add employees if provided
     if (!empty($data['empleados'])) {
         foreach ($data['empleados'] as $emp) {
             db()->execute(
                 "INSERT INTO ServicioEmpleado (id_servicio, id_empleado, rol) VALUES (?, ?, ?)",
-                [$id, $emp['id_empleado'], $emp['rol'] ?? 'ayudante']
+                [$id_servicio, $emp['id_empleado'], $emp['rol'] ?? 'ayudante']
             );
         }
     }
     
     db()->execute(
         "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Servicio', ?, 'INSERT', ?)",
-        [$user['id'], $id, json_encode($data)]
+        [$user['id'], $id_servicio, json_encode($data)]
     );
     
     echo json_encode([
         'success' => true,
         'message' => 'Servicio creado exitosamente',
-        'id' => $id
+        'id' => $id_servicio
     ]);
 }
 
@@ -317,34 +315,34 @@ function update($id) {
     
     db()->execute(
         "UPDATE Servicio SET 
-            id_sede = COALESCE(?, id_sede),
+            id_sede = ?,
             id_ruta = ?,
             id_planta = ?,
-            mes_servicio = ?,
+            id_contrato = ?,
             fecha_ejecucion = ?,
             estado = ?,
             estado_pago = ?,
             forma_pago = ?,
             fecha_pago = ?,
-            descripcion_residuo = ?,
+            residuo = ?,
+            mes_servicio = ?,
             fecha_modificacion = NOW()
-         WHERE id_servicio = ?",
+        WHERE id_servicio = ?",
         [
-            $data['id_sede'] ?? null,
-            $data['id_ruta'] ?? $existing['id_ruta'],
+            $data['id_sede'] ?? $existing['id_sede'],
+            array_key_exists('id_ruta', $data) ? $data['id_ruta'] : $existing['id_ruta'],
             $data['id_planta'] ?? $existing['id_planta'],
-            $data['mes_servicio'] ?? $existing['mes_servicio'],
+            $data['id_contrato'] ?? $existing['id_contrato'],
             $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion'],
             $data['estado'] ?? $existing['estado'],
-            $data['estado_pago'] ?? $existing['estado_pago'] ?? 'pendiente',
+            $data['estado_pago'] ?? $existing['estado_pago'],
             $data['forma_pago'] ?? $existing['forma_pago'],
             $data['fecha_pago'] ?? $existing['fecha_pago'],
-            $data['descripcion_residuo'] ?? $existing['descripcion_residuo'],
+            $data['residuo'] ?? $existing['residuo'],
+            $data['mes_servicio'] ?? $existing['mes_servicio'],
             $id
         ]
-    );
-    
-    // Update employees if provided
+    );// Update employees if provided
     if (isset($data['empleados'])) {
         db()->execute("DELETE FROM ServicioEmpleado WHERE id_servicio = ?", [$id]);
         foreach ($data['empleados'] as $emp) {
@@ -358,7 +356,7 @@ function update($id) {
     // Handle Manifiesto update/insert if weight or manifest number is provided
     if ($peso_kg !== null || $numero_manifiesto !== null) {
         $man_exists = db()->queryOne("SELECT id_manifiesto FROM Manifiesto WHERE id_servicio = ?", [$id]);
-        $tipo_residuo = $data['descripcion_residuo'] ?? $existing['descripcion_residuo'] ?? 'No especificado';
+        $tipo_residuo = $data['residuo'] ?? $existing['residuo'] ?? 'No especificado';
         
         if ($man_exists) {
             db()->execute(

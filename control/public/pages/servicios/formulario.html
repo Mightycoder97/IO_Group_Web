@@ -174,8 +174,13 @@
 
                                 <div class="col-md-9">
                                     <label class="form-label">Descripción del Residuo</label>
-                                    <textarea class="form-control" id="descripcion_residuo" rows="2"
-                                        placeholder="Tipo y descripción del residuo recogido..."></textarea>
+                                    <select class="form-select" id="residuo">
+                                        <option value="">Selecciones...</option>
+                                        <option value="BIOCONTAMINADO">BIOCONTAMINADO</option>
+                                        <option value="ESPECIAL">ESPECIAL</option>
+                                        <option value="ANIMAL CONTAMINADO">ANIMAL CONTAMINADO</option>
+                                        <option value="MERMA Y/O DESMEDRO">MERMA Y/O DESMEDRO</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Peso (Kg)</label>
@@ -367,7 +372,7 @@
                 document.getElementById('forma_pago').value = d.forma_pago || '';
                 document.getElementById('fecha_pago').value = d.fecha_pago || '';
 
-                document.getElementById('descripcion_residuo').value = d.descripcion_residuo || '';
+                document.getElementById('residuo').value = d.residuo || '';
 
                 // Empleados
                 if (d.empleados) {
@@ -419,7 +424,7 @@
                 estado_pago: document.getElementById('estado_pago').value,
                 forma_pago: document.getElementById('forma_pago').value || null,
                 fecha_pago: document.getElementById('fecha_pago').value || null,
-                descripcion_residuo: document.getElementById('descripcion_residuo').value || null,
+                residuo: document.getElementById('residuo').value || null,
                 peso_kg: document.getElementById('peso_kg').value || null,
                 numero_manifiesto: document.getElementById('numero_manifiesto').value || null,
                 numero_guia: document.getElementById('numero_guia').value || null,

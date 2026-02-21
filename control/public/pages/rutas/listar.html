@@ -432,8 +432,9 @@
                             serviciosRecientes[s.id_sede] = {
                                 fecha: s.fecha_ejecucion,
                                 frecuencia: s.frecuencia || 'mensual',
+                                peso: s.peso || '',
                                 forma_pago: s.forma_pago || '',
-                                obs: s.descripcion_residuo || ''
+                                obs: s.residuo || ''
                             };
                         }
                     });
@@ -597,8 +598,9 @@
                             tarifa: s.tarifa_servicio || 0,
                             contacto_nombre: s.contacto_nombre || '',
                             telefono: s.contacto_telefono || '',
+                            peso: s.peso || '',
                             tipo_pago: s.forma_pago || '',
-                            obs: s.descripcion_residuo || ''
+                            obs: s.residuo || ''
                         }));
                         // Populate employee selects from saved route
                         const rData = rutaDetail.data;
