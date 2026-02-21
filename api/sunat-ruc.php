@@ -28,8 +28,23 @@ if (empty($ruc) || strlen($ruc) !== 11 || !ctype_digit($ruc)) {
     exit;
 }
 
-// API Token - apis.net.pe
-$token = 'sk_12866.VCQaSeG78qshfzt3EFgmgfEXO7PH4HEI';
+// API Token - loaded from environment (SEC-09)
+// Load .env if not already loaded
+$envFile = __DIR__ . '/../control/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (str_starts_with(trim($line), '#')) continue;
+        if (strpos($line, '=') === false) continue;
+        list($key, $value) = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value);
+        if (!getenv($key)) {
+            putenv("$key=$value");
+        }
+    }
+}
+$token = getenv('SUNAT_API_TOKEN') ?: '';
 
 // API URL
 $url = "https://api.apis.net.pe/v2/sunat/ruc?numero=" . urlencode($ruc);

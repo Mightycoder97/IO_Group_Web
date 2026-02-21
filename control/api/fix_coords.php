@@ -9,8 +9,9 @@ header('Content-Type: text/plain');
 
 require_once __DIR__ . '/config/database.php';
 
-// API Key (Hardcoded from what we found in config)
-$GOOGLE_API_KEY = 'AIzaSyA5BSUAso_yWVNijpWB1NbHhhX5n4HIwsU';
+// API Key from environment (SEC-09)
+$mapsConfig = require __DIR__ . '/config/maps.php';
+$GOOGLE_API_KEY = $mapsConfig['api_key'];
 
 // Function to Geocode
 function geocode($address, $key) {

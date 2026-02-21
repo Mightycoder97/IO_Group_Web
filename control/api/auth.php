@@ -28,9 +28,6 @@ switch ($action) {
     case 'register':
         if ($method === 'POST') register();
         break;
-    case 'setup':
-        if ($method === 'POST' || $method === 'GET') setup();
-        break;
     default:
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Endpoint no encontrado']);
@@ -40,6 +37,26 @@ switch ($action) {
  * POST /api/auth.php?action=login
  */
 function login() {
+    // Rate limiting: max 5 attempts per minute per IP
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $rateLimitFile = sys_get_temp_dir() . '/iogroup_login_' . md5($ip) . '.json';
+    $now = time();
+    $attempts = [];
+    if (file_exists($rateLimitFile)) {
+        $attempts = json_decode(file_get_contents($rateLimitFile), true) ?: [];
+        $attempts = array_filter($attempts, fn($t) => $t > $now - 60);
+    }
+    if (count($attempts) >= 5) {
+        http_response_code(429);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Demasiados intentos. Espere 1 minuto.'
+        ]);
+        return;
+    }
+    $attempts[] = $now;
+    file_put_contents($rateLimitFile, json_encode(array_values($attempts)));
+
     $data = json_decode(file_get_contents('php://input'), true);
     
     $username = $data['username'] ?? '';
@@ -281,35 +298,4 @@ function register() {
     ]);
 }
 
-/**
- * POST/GET /api/auth.php?action=setup
- */
-function setup() {
-    // Check if admin exists
-    $admin = db()->queryOne("SELECT COUNT(*) as count FROM Usuario WHERE rol = 'admin'");
-    
-    if ($admin['count'] > 0) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Ya existe un administrador. Use el login normal.'
-        ]);
-        return;
-    }
-
-    // Create default admin
-    $passwordHash = password_hash('Admin123!', PASSWORD_BCRYPT);
-    db()->insert(
-        "INSERT INTO Usuario (username, password_hash, nombre_completo, rol, email) VALUES (?, ?, ?, ?, ?)",
-        ['admin', $passwordHash, 'Administrador del Sistema', 'admin', 'admin@iogroup.pe']
-    );
-
-    echo json_encode([
-        'success' => true,
-        'message' => 'Usuario administrador creado',
-        'credentials' => [
-            'username' => 'admin',
-            'password' => 'Admin123!'
-        ]
-    ]);
-}
+// setup() function has been removed for security (SEC-01)

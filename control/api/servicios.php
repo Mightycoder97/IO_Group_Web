@@ -104,25 +104,32 @@ function getAll() {
         $params[] = $searchTerm;
     }
     
-    // Obtener total para paginación (consulta simplificada)
+    // Obtener total para paginación (consulta con prepared statements - SEC-03 fix)
     $countSql = "SELECT COUNT(DISTINCT s.id_servicio) as total FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             WHERE 1=1";
+    $countParams = [];
     if ($sede) {
-        $countSql .= " AND s.id_sede = " . intval($sede);
+        $countSql .= " AND s.id_sede = ?";
+        $countParams[] = intval($sede);
     }
     if ($estado) {
-        $countSql .= " AND s.estado = '" . addslashes($estado) . "'";
+        $countSql .= " AND s.estado = ?";
+        $countParams[] = $estado;
     }
     if ($cliente) {
-        $countSql .= " AND e.id_cliente = " . intval($cliente);
+        $countSql .= " AND e.id_cliente = ?";
+        $countParams[] = intval($cliente);
     }
     if ($busqueda) {
-        $searchEscaped = addslashes($busqueda);
-        $countSql .= " AND (se.nombre_comercial LIKE '%" . $searchEscaped . "%' OR e.razon_social LIKE '%" . $searchEscaped . "%' OR e.ruc LIKE '%" . $searchEscaped . "%')";
+        $countSql .= " AND (se.nombre_comercial LIKE ? OR e.razon_social LIKE ? OR e.ruc LIKE ?)";
+        $searchTermCount = "%" . $busqueda . "%";
+        $countParams[] = $searchTermCount;
+        $countParams[] = $searchTermCount;
+        $countParams[] = $searchTermCount;
     }
-    $totalResult = db()->queryOne($countSql);
+    $totalResult = db()->queryOne($countSql, $countParams);
     $total = $totalResult['total'] ?? 0;
     
     $sql .= " ORDER BY s.fecha_ejecucion DESC LIMIT ? OFFSET ?";

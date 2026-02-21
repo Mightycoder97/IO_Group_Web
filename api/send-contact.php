@@ -30,17 +30,18 @@ $nombre_empresa = 'IO Group';
 // Enable error logging for debugging
 error_log("Contact form submission started at " . date('Y-m-d H:i:s'));
 
-// Get form data
-$tipo_cliente = $_POST['tipo_cliente'] ?? '';
-$nombre = trim($_POST['nombre'] ?? '');
-$email = trim($_POST['email'] ?? '');
-$telefono = trim($_POST['telefono'] ?? '');
-$servicio = trim($_POST['servicio'] ?? '');
+// Get form data and sanitize for HTML output (SEC-07: prevent XSS in emails)
+$tipo_cliente = htmlspecialchars(trim($_POST['tipo_cliente'] ?? ''), ENT_QUOTES, 'UTF-8');
+$nombre = htmlspecialchars(trim($_POST['nombre'] ?? ''), ENT_QUOTES, 'UTF-8');
+$email_raw = trim($_POST['email'] ?? '');
+$email = htmlspecialchars($email_raw, ENT_QUOTES, 'UTF-8');
+$telefono = htmlspecialchars(trim($_POST['telefono'] ?? ''), ENT_QUOTES, 'UTF-8');
+$servicio = htmlspecialchars(trim($_POST['servicio'] ?? ''), ENT_QUOTES, 'UTF-8');
 
 // Additional fields based on client type
-$dni = trim($_POST['dni'] ?? '');
-$razon_social = trim($_POST['razon_social'] ?? '');
-$ruc = trim($_POST['ruc'] ?? '');
+$dni = htmlspecialchars(trim($_POST['dni'] ?? ''), ENT_QUOTES, 'UTF-8');
+$razon_social = htmlspecialchars(trim($_POST['razon_social'] ?? ''), ENT_QUOTES, 'UTF-8');
+$ruc = htmlspecialchars(trim($_POST['ruc'] ?? ''), ENT_QUOTES, 'UTF-8');
 
 // Validation
 $errors = [];

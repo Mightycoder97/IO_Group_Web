@@ -176,9 +176,24 @@ function create() {
         return;
     }
     
-    if (strlen($password) < 6) {
+    if (strlen($password) < 8) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 6 caracteres']);
+        echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 8 caracteres']);
+        return;
+    }
+    if (!preg_match('/[A-Z]/', $password)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 1 mayúscula']);
+        return;
+    }
+    if (!preg_match('/[0-9]/', $password)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 1 número']);
+        return;
+    }
+    if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 1 carácter especial']);
         return;
     }
     
@@ -269,9 +284,24 @@ function update($id) {
     
     // Update password if provided
     if (!empty($data['password'])) {
-        if (strlen($data['password']) < 6) {
+        if (strlen($data['password']) < 8) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 6 caracteres']);
+            echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 8 caracteres']);
+            return;
+        }
+        if (!preg_match('/[A-Z]/', $data['password'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 1 mayúscula']);
+            return;
+        }
+        if (!preg_match('/[0-9]/', $data['password'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 1 número']);
+            return;
+        }
+        if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $data['password'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 1 carácter especial']);
             return;
         }
         $sql = "UPDATE Usuario SET nombre_completo = ?, email = ?, rol = ?, activo = ?, password_hash = ?, fecha_modificacion = NOW() WHERE id_usuario = ?";

@@ -4,17 +4,34 @@
  * MySQL PDO connection for Hostinger deployment
  */
 
-// Database credentials - Hostinger
-define('DB_HOST', 'localhost');
-define('DB_PORT', '3306');
-define('DB_NAME', 'u511863531_IOGroupBD');
-define('DB_USER', 'u511863531_Sebastian');
-define('DB_PASS', 'Sebas0920%'); 
-define('DB_CHARSET', 'utf8mb4');
+// Load .env file
+$envFile = __DIR__ . '/../../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (str_starts_with(trim($line), '#')) continue;
+        if (strpos($line, '=') === false) continue;
+        list($key, $value) = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value);
+        if (!getenv($key)) {
+            putenv("$key=$value");
+            $_ENV[$key] = $value;
+        }
+    }
+}
 
-// JWT Configuration
-define('JWT_SECRET', 'iogroup_jwt_secret_key_change_in_production_2024');
-define('JWT_EXPIRE', 86400); // 24 hours in seconds
+// Database credentials from environment
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
+define('DB_NAME', getenv('DB_NAME') ?: '');
+define('DB_USER', getenv('DB_USER') ?: '');
+define('DB_PASS', getenv('DB_PASSWORD') ?: '');
+define('DB_CHARSET', getenv('DB_CHARSET') ?: 'utf8mb4');
+
+// JWT Configuration from environment
+define('JWT_SECRET', getenv('JWT_SECRET') ?: '');
+define('JWT_EXPIRE', intval(getenv('JWT_EXPIRE') ?: 86400));
 
 // Timezone
 date_default_timezone_set('America/Lima');
@@ -23,8 +40,14 @@ date_default_timezone_set('America/Lima');
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-// CORS Headers
-header('Access-Control-Allow-Origin: *');
+// CORS Headers - restricted to allowed origin
+$allowedOrigin = getenv('CORS_ORIGIN') ?: 'https://iogroup.pe';
+$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($requestOrigin === $allowedOrigin || $allowedOrigin === '*') {
+    header('Access-Control-Allow-Origin: ' . $allowedOrigin);
+} else {
+    header('Access-Control-Allow-Origin: ' . $allowedOrigin);
+}
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json; charset=UTF-8');
@@ -34,3 +57,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
+

@@ -1,6 +1,7 @@
 <?php
 // Google Maps API Configuration
-// This file should be gitignored
+// API key loaded from environment (SEC-09)
+require_once __DIR__ . '/config.php'; // ensures .env is loaded
 return [
-    'api_key' => 'AIzaSyA5BSUAso_yWVNijpWB1NbHhhX5n4HIwsU'
+    'api_key' => getenv('GOOGLE_MAPS_API_KEY') ?: ''
 ];

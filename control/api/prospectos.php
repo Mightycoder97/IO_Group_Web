@@ -175,6 +175,23 @@ function getStats() {
  * Create new prospecto (public access - no auth required)
  */
 function create() {
+    // Rate limiting for public endpoint: max 3 per minute per IP (SEC-12)
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $rateLimitFile = sys_get_temp_dir() . '/iogroup_prospecto_' . md5($ip) . '.json';
+    $now = time();
+    $attempts = [];
+    if (file_exists($rateLimitFile)) {
+        $attempts = json_decode(file_get_contents($rateLimitFile), true) ?: [];
+        $attempts = array_filter($attempts, fn($t) => $t > $now - 60);
+    }
+    if (count($attempts) >= 3) {
+        http_response_code(429);
+        echo json_encode(['success' => false, 'message' => 'Demasiadas solicitudes. Intente nuevamente en 1 minuto.']);
+        return;
+    }
+    $attempts[] = $now;
+    file_put_contents($rateLimitFile, json_encode(array_values($attempts)));
+
     $data = json_decode(file_get_contents('php://input'), true);
     
     // Validate required fields
