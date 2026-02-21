@@ -405,8 +405,8 @@ function update($id) {
             );
         } else {
             db()->execute(
-                "INSERT INTO Factura (id_servicio, numero_factura, fecha_emision) VALUES (?, ?, COALESCE(?, CURDATE()))",
-                [$id, $numero_factura, $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion']]
+                "INSERT INTO Factura (id_servicio, numero_factura) VALUES (?, ?)",
+                [$id, $numero_factura]
             );
         }
     }
