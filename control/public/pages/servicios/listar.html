@@ -77,17 +77,27 @@
                             <thead>
                                 <tr>
                                     <th>Cód.</th>
-                                    <th>Cliente / Sede</th>
+                                    <th>Mes</th>
                                     <th>Fecha Ejec.</th>
-                                    <th>Estado Service</th>
+                                    <th>Empresa / Sede</th>
+                                    <th>Planta</th>
+                                    <th>Ruta</th>
+                                    <th>Estado Ser.</th>
+                                    <th>Forma Pago</th>
                                     <th>Estado Pago</th>
+                                    <th>Fecha Pago</th>
+                                    <th>Tarifa</th>
                                     <th>Residuo</th>
+                                    <th>Peso (Kg)</th>
+                                    <th>Guía</th>
+                                    <th>Manifiesto</th>
+                                    <th>Factura</th>
                                     <th width="100">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <tr>
-                                    <td colspan="7" class="text-center py-4">Cargando...</td>
+                                    <td colspan="17" class="text-center py-4">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -130,7 +140,7 @@
                     renderTable(result.data);
                     buildPagination(result.total, result.page, result.limit);
                 } else {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error cargando datos</td></tr>';
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="17" class="text-center text-danger">Error cargando datos</td></tr>';
                 }
             } catch (err) {
                 console.error(err);
@@ -141,12 +151,13 @@
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No se encontraron servicios</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="17" class="text-center py-4 text-muted">No se encontraron servicios</td></tr>';
                 return;
             }
 
             tbody.innerHTML = data.map(s => {
                 const fecha = s.fecha_servicio ? new Date(s.fecha_servicio).toLocaleDateString('es-PE') : '-';
+                const fechaPago = s.fecha_pago ? new Date(s.fecha_pago).toLocaleDateString('es-PE') : '-';
                 const estadoBadge = getEstadoBadge(s.estado);
                 const pagoBadge = s.estado_pago === 'pagado'
                     ? '<span class="badge bg-success">Pagado</span>'
@@ -155,14 +166,24 @@
                 return `
                 <tr>
                     <td><small class="text-muted">${s.codigo_servicio || s.id_servicio}</small></td>
-                    <td>
-                        <strong>${s.sede_nombre || 'Sede desconocida'}</strong><br>
-                        <small class="text-muted">${s.empresa_razon_social || ''}</small>
-                    </td>
+                    <td>${s.mes_servicio || '-'}</td>
                     <td>${fecha}</td>
+                    <td>
+                        <strong>${s.empresa_razon_social || '-'}</strong><br>
+                        <small class="text-muted">${s.sede_nombre || '-'}</small>
+                    </td>
+                    <td>${s.planta_nombre || '-'}</td>
+                    <td>${s.id_ruta ? 'Ruta ' + s.id_ruta : '-'}</td>
                     <td>${estadoBadge}</td>
+                    <td>${s.forma_pago || '-'}</td>
                     <td>${pagoBadge}</td>
+                    <td>${fechaPago}</td>
+                    <td>${s.tarifa_servicio ? 'S/ ' + parseFloat(s.tarifa_servicio).toFixed(2) : '-'}</td>
                     <td>${s.descripcion_residuo || '-'}</td>
+                    <td>${s.peso_residuo || '-'}</td>
+                    <td>${s.numero_guia || '-'}</td>
+                    <td>${s.numero_manifiesto || '-'}</td>
+                    <td>${s.numero_factura || '-'}</td>
                     <td>
                         <a href="formulario.html?id=${s.id_servicio}" class="btn btn-sm btn-outline-primary" title="Ver/Editar">
                             <i class="bi bi-eye"></i>

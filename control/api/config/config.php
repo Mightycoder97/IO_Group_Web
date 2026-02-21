@@ -4,20 +4,30 @@
  * MySQL PDO connection for Hostinger deployment
  */
 
-// Load .env file
-$envFile = __DIR__ . '/../../.env';
-if (file_exists($envFile)) {
-    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (str_starts_with(trim($line), '#')) continue;
-        if (strpos($line, '=') === false) continue;
-        list($key, $value) = explode('=', $line, 2);
-        $key = trim($key);
-        $value = trim($value);
-        if (!getenv($key)) {
-            putenv("$key=$value");
-            $_ENV[$key] = $value;
+// Load .env file — try multiple paths for compatibility
+$envPaths = [
+    __DIR__ . '/../../.env',           // control/.env (from config/ dir)
+    __DIR__ . '/../../../control/.env', // fallback absolute
+    dirname($_SERVER['DOCUMENT_ROOT'] ?? '') . '/control/.env',
+];
+$envLoaded = false;
+foreach ($envPaths as $envFile) {
+    if (file_exists($envFile)) {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '' || str_starts_with($line, '#')) continue;
+            if (strpos($line, '=') === false) continue;
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            if (!getenv($key)) {
+                putenv("$key=$value");
+                $_ENV[$key] = $value;
+            }
         }
+        $envLoaded = true;
+        break;
     }
 }
 
