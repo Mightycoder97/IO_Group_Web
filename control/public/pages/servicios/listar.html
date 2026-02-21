@@ -89,6 +89,7 @@
                                     <th>Tarifa</th>
                                     <th>Residuo</th>
                                     <th>Peso (Kg)</th>
+                                    <th>Observaciones</th>
                                     <th>Guía</th>
                                     <th>Manifiesto</th>
                                     <th>Factura</th>
@@ -97,7 +98,7 @@
                             </thead>
                             <tbody id="tableBody">
                                 <tr>
-                                    <td colspan="17" class="text-center py-4">Cargando...</td>
+                                    <td colspan="18" class="text-center py-4">Cargando...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -140,7 +141,7 @@
                     renderTable(result.data);
                     buildPagination(result.total, result.page, result.limit);
                 } else {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="17" class="text-center text-danger">Error cargando datos</td></tr>';
+                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="18" class="text-center text-danger">Error cargando datos</td></tr>';
                 }
             } catch (err) {
                 console.error(err);
@@ -151,7 +152,7 @@
         function renderTable(data) {
             const tbody = document.getElementById('tableBody');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="17" class="text-center py-4 text-muted">No se encontraron servicios</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="18" class="text-center py-4 text-muted">No se encontraron servicios</td></tr>';
                 return;
             }
 
@@ -181,6 +182,8 @@
                     <td>${s.tarifa_servicio ? 'S/ ' + parseFloat(s.tarifa_servicio).toFixed(2) : '-'}</td>
                     <td>${s.residuo || '-'}</td>
                     <td>${s.peso_kg || '-'}</td>
+                    <td><small class="text-muted" style="max-width:150px; display:inline-block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${s.observaciones || ''}">${s.observaciones || '-'}</small></td>
+                    <td>${s.numero_guia || '-'}</td>
                     <td>${s.numero_manifiesto || '-'}</td>
                     <td>${s.numero_factura || '-'}</td>
                     <td>

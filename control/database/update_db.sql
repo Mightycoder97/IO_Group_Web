@@ -1,4 +1,4 @@
-ALTER TABLE Servicio CHANGE descripcion_residuo residuo ENUM('BIOCONTAMINADO', 'ESPECIAL', 'ANIMAL CONTAMINADO', 'MERMA Y/O DESMEDRO') NULL;
+ALTER TABLE Servicio MODIFY residuo ENUM('BIOCONTAMINADO', 'ESPECIAL', 'ANIMAL CONTAMINADO', 'MERMA Y/O DESMEDRO') NULL;
 ALTER TABLE Servicio ADD COLUMN observaciones TEXT AFTER residuo;
 
 CREATE OR REPLACE VIEW vw_ServiciosCompleto AS
@@ -30,3 +30,4 @@ LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
 LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
 LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
 LEFT JOIN Factura f ON s.id_servicio = f.id_servicio;
+    

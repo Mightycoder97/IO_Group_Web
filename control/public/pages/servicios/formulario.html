@@ -188,6 +188,12 @@
                                         placeholder="0.00">
                                 </div>
 
+                                <div class="col-12 mt-2">
+                                    <label class="form-label">Observaciones</label>
+                                    <textarea class="form-control" id="observaciones" rows="2"
+                                        placeholder="Observaciones adicionales..."></textarea>
+                                </div>
+
                                 <!-- Documentos (solo en edición) -->
                                 <div class="col-12 mt-2" id="seccionDocumentos" style="display:none;">
                                     <h6 class="text-primary border-bottom pb-2"><i
@@ -373,6 +379,7 @@
                 document.getElementById('fecha_pago').value = d.fecha_pago || '';
 
                 document.getElementById('residuo').value = d.residuo || '';
+                document.getElementById('observaciones').value = d.observaciones || '';
 
                 // Empleados
                 if (d.empleados) {
@@ -425,6 +432,7 @@
                 forma_pago: document.getElementById('forma_pago').value || null,
                 fecha_pago: document.getElementById('fecha_pago').value || null,
                 residuo: document.getElementById('residuo').value || null,
+                observaciones: document.getElementById('observaciones').value || null,
                 peso_kg: document.getElementById('peso_kg').value || null,
                 numero_manifiesto: document.getElementById('numero_manifiesto').value || null,
                 numero_guia: document.getElementById('numero_guia').value || null,

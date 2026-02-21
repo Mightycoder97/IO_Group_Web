@@ -51,7 +51,7 @@ function getAll() {
             s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
             s.estado,
             COALESCE(s.estado_pago, 'pendiente') as estado_pago,
-            s.fecha_pago, s.forma_pago, s.residuo,
+            s.fecha_pago, s.forma_pago, s.residuo, s.observaciones,
             se.nombre_comercial AS sede_nombre,
             se.direccion AS sede_direccion, 
             cs.tarifa as tarifa_servicio, se.contacto_telefono,
@@ -325,6 +325,7 @@ function update($id) {
             forma_pago = ?,
             fecha_pago = ?,
             residuo = ?,
+            observaciones = ?,
             mes_servicio = ?,
             fecha_modificacion = NOW()
         WHERE id_servicio = ?",
@@ -339,6 +340,7 @@ function update($id) {
             $data['forma_pago'] ?? $existing['forma_pago'],
             $data['fecha_pago'] ?? $existing['fecha_pago'],
             $data['residuo'] ?? $existing['residuo'],
+            $data['observaciones'] ?? $existing['observaciones'] ?? null,
             $data['mes_servicio'] ?? $existing['mes_servicio'],
             $id
         ]
