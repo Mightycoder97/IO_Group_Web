@@ -260,6 +260,8 @@
             document.getElementById('campoManifiesto').style.display = '';
             document.getElementById('campoGuia').style.display = '';
             document.getElementById('campoFactura').style.display = '';
+            // No permitir editar la ruta desde el formulario de servicio
+            document.getElementById('id_ruta').disabled = true;
         } else {
             document.getElementById('fecha_ejecucion').valueAsDate = new Date();
             // Default mes_servicio to current month
