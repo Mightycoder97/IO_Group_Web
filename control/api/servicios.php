@@ -305,6 +305,7 @@ function update($id) {
     $peso_kg = $data['peso_kg'] ?? null;
     $numero_manifiesto = $data['numero_manifiesto'] ?? null;
     $numero_guia = $data['numero_guia'] ?? null;
+    $numero_factura = $data['numero_factura'] ?? null;
     
     $existing = db()->queryOne("SELECT * FROM Servicio WHERE id_servicio = ?", [$id]);
     if (!$existing) {
@@ -389,6 +390,23 @@ function update($id) {
             db()->execute(
                 "INSERT INTO Guia (id_servicio, numero_guia, fecha_emision) VALUES (?, ?, COALESCE(?, CURDATE()))",
                 [$id, $numero_guia, $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion']]
+            );
+        }
+    }
+
+    // Handle Factura update/insert if invoice number is provided
+    if ($numero_factura !== null && trim($numero_factura) !== '') {
+        $factura_exists = db()->queryOne("SELECT id_factura FROM Factura WHERE id_servicio = ?", [$id]);
+        
+        if ($factura_exists) {
+            db()->execute(
+                "UPDATE Factura SET numero_factura = ? WHERE id_servicio = ?",
+                [$numero_factura, $id]
+            );
+        } else {
+            db()->execute(
+                "INSERT INTO Factura (id_servicio, numero_factura, fecha_emision) VALUES (?, ?, COALESCE(?, CURDATE()))",
+                [$id, $numero_factura, $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion']]
             );
         }
     }

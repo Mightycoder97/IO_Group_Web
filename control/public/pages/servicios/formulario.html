@@ -436,6 +436,7 @@
                 peso_kg: document.getElementById('peso_kg').value || null,
                 numero_manifiesto: document.getElementById('numero_manifiesto').value || null,
                 numero_guia: document.getElementById('numero_guia').value || null,
+                numero_factura: document.getElementById('numero_factura').value || null,
                 empleados
             };
 
@@ -464,9 +465,10 @@
         function goToGuia() { showToast('Módulo de Guías en desarrollo', 'info'); }
         function goToFactura() { showToast('Módulo de Facturas en desarrollo', 'info'); }
 
-        // Init
-        loadSelects();
-        if (id) loadData();
+        // Init — cargar selects primero, luego rellenar datos en modo edición
+        loadSelects().then(() => {
+            if (id) loadData();
+        });
     </script>
 </body>
 
