@@ -303,6 +303,11 @@ function update($id) {
     
     $data = json_decode(file_get_contents('php://input'), true);
     
+    // Extract nested fields specifically added
+    $peso_kg = $data['peso_kg'] ?? null;
+    $numero_manifiesto = $data['numero_manifiesto'] ?? null;
+    $numero_guia = $data['numero_guia'] ?? null;
+    
     $existing = db()->queryOne("SELECT * FROM Servicio WHERE id_servicio = ?", [$id]);
     if (!$existing) {
         http_response_code(404);
@@ -350,6 +355,44 @@ function update($id) {
         }
     }
     
+    // Handle Manifiesto update/insert if weight or manifest number is provided
+    if ($peso_kg !== null || $numero_manifiesto !== null) {
+        $man_exists = db()->queryOne("SELECT id_manifiesto FROM Manifiesto WHERE id_servicio = ?", [$id]);
+        $tipo_residuo = $data['descripcion_residuo'] ?? $existing['descripcion_residuo'] ?? 'No especificado';
+        
+        if ($man_exists) {
+            db()->execute(
+                "UPDATE Manifiesto SET numero_manifiesto = COALESCE(?, numero_manifiesto), peso_kg = COALESCE(?, peso_kg), tipo_residuo = ? WHERE id_servicio = ?",
+                [$numero_manifiesto, $peso_kg, $tipo_residuo, $id]
+            );
+        } else {
+            // Only insert if we have at least weight or manifest (and it isn't empty)
+            if ($peso_kg || $numero_manifiesto) {
+                db()->execute(
+                    "INSERT INTO Manifiesto (id_servicio, numero_manifiesto, peso_kg, tipo_residuo) VALUES (?, ?, ?, ?)",
+                    [$id, $numero_manifiesto, $peso_kg ?? 0, $tipo_residuo]
+                );
+            }
+        }
+    }
+
+    // Handle Guia update/insert if guide number is provided
+    if ($numero_guia !== null && trim($numero_guia) !== '') {
+        $guia_exists = db()->queryOne("SELECT id_guia FROM Guia WHERE id_servicio = ?", [$id]);
+        
+        if ($guia_exists) {
+            db()->execute(
+                "UPDATE Guia SET numero_guia = ? WHERE id_servicio = ?",
+                [$numero_guia, $id]
+            );
+        } else {
+            db()->execute(
+                "INSERT INTO Guia (id_servicio, numero_guia, fecha_emision) VALUES (?, ?, COALESCE(?, CURDATE()))",
+                [$id, $numero_guia, $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion']]
+            );
+        }
+    }
+
     db()->execute(
         "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores, datos_nuevos) VALUES (?, 'Servicio', ?, 'UPDATE', ?, ?)",
         [$user['id'], $id, json_encode($existing), json_encode($data)]

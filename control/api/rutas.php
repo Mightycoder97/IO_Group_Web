@@ -196,7 +196,14 @@ function create() {
             );
         }
         
-        // Create services for each sede - use fecha_ejecucion and estado programado
+        // Get default Planta
+        $planta = db()->queryOne("SELECT id_planta FROM Planta LIMIT 1");
+        $id_planta = $planta ? $planta['id_planta'] : null;
+
+        // Calculate mes_servicio from fecha (YYYY-MM)
+        $mes_servicio = substr($fecha, 0, 7);
+
+        // Create services for each sede
         if (!empty($sedes)) {
             foreach ($sedes as $orden => $sedeItem) {
                 // Accept both plain ID (legacy) and object {id_sede, forma_pago, obs}
@@ -210,9 +217,18 @@ function create() {
                     $desc_residuo = null;
                 }
                 if (!$id_sede) continue;
+
+                // Get active Contrato for this Sede to link id_contrato
+                $contrato = db()->queryOne(
+                    "SELECT id_contrato FROM ContratoServicio WHERE id_sede = ? AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1",
+                    [$id_sede]
+                );
+                $id_contrato = $contrato ? $contrato['id_contrato'] : null;
+
                 db()->insert(
-                    "INSERT INTO Servicio (id_ruta, id_sede, fecha_ejecucion, estado, forma_pago, descripcion_residuo) VALUES (?, ?, ?, 'programado', ?, ?)",
-                    [$id, $id_sede, $fecha, $forma_pago, $desc_residuo]
+                    "INSERT INTO Servicio (id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, forma_pago, descripcion_residuo) 
+                     VALUES (?, ?, ?, ?, ?, ?, 'programado', ?, ?)",
+                    [$id, $id_sede, $id_planta, $id_contrato, $mes_servicio, $fecha, $forma_pago, $desc_residuo]
                 );
             }
         }

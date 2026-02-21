@@ -330,7 +330,7 @@
                                         <th>DIRECCION</th>
                                         <th>DISTRITO</th>
                                         <th>TARIFA</th>
-                                        <th style="width: 120px;">OBS</th>
+                                        <th style="width: 150px;">RESIDUO</th>
                                         <th style="width: 80px;">ACCIONES</th>
                                     </tr>
                                 </thead>
@@ -503,8 +503,15 @@
                     <td><small>${s.direccion || '-'}</small></td>
                     <td>${s.distrito || '-'}</td>
                     <td>S/ ${parseFloat(s.tarifa || 0).toFixed(2)}</td>
-                    <td><input type="text" class="form-control form-control-sm obs-input" value="${s.obs || ''}" 
-                        onchange="updateObs(${s.id_sede}, this.value)" placeholder="..."></td>
+                    <td>
+                        <select class="form-select form-select-sm" onchange="updateObs(${s.id_sede}, this.value)">
+                            <option value="">Seleccione...</option>
+                            <option value="BIOCONTAMINADO" ${s.obs === 'BIOCONTAMINADO' ? 'selected' : ''}>BIOCONTAMINADO</option>
+                            <option value="ESPECIAL" ${s.obs === 'ESPECIAL' ? 'selected' : ''}>ESPECIAL</option>
+                            <option value="ANIMAL CONTAMINADO" ${s.obs === 'ANIMAL CONTAMINADO' ? 'selected' : ''}>ANIMAL CONTAMINADO</option>
+                            <option value="MERMA Y/O DESMEDRO" ${s.obs === 'MERMA Y/O DESMEDRO' ? 'selected' : ''}>MERMA Y/O DESMEDRO</option>
+                        </select>
+                    </td>
                     <td class="action-cell">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-success" onclick="sendWhatsApp(${s.id_sede})" title="WhatsApp">
