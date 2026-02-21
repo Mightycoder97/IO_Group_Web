@@ -323,21 +323,24 @@ function delete($id) {
         return;
     }
     
-    // Check for services
-    $servicios = db()->queryOne(
-        "SELECT COUNT(*) as count FROM Servicio WHERE id_ruta = ?",
-        [$id]
-    );
+    // Get all services for this route
+    $servicios = db()->query("SELECT id_servicio FROM Servicio WHERE id_ruta = ?", [$id]);
     
-    if ($servicios['count'] > 0) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se puede eliminar: la ruta tiene servicios asociados'
-        ]);
-        return;
+    if (!empty($servicios)) {
+        $ids = array_map(function($s) { return $s['id_servicio']; }, $servicios);
+        $in = str_repeat('?,', count($ids) - 1) . '?';
+        
+        // Delete related records in Manifiesto, Guia, Factura, ServicioEmpleado
+        db()->execute("DELETE FROM Manifiesto WHERE id_servicio IN ($in)", $ids);
+        db()->execute("DELETE FROM Guia WHERE id_servicio IN ($in)", $ids);
+        db()->execute("DELETE FROM Factura WHERE id_servicio IN ($in)", $ids);
+        db()->execute("DELETE FROM ServicioEmpleado WHERE id_servicio IN ($in)", $ids);
+        
+        // Delete the services themselves
+        db()->execute("DELETE FROM Servicio WHERE id_ruta = ?", [$id]);
     }
     
+    // Finally delete the route
     db()->execute("DELETE FROM Ruta WHERE id_ruta = ?", [$id]);
     
     db()->execute(

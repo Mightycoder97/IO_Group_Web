@@ -448,11 +448,11 @@
         }
 
         async function deleteRuta(id) {
-            if (!confirmDelete()) return;
+            if (!confirm('⚠️ ¡ADVERTENCIA! ¿Estás seguro de eliminar esta ruta temporalmente?\n\nEsta acción eliminará TODA la ruta, incluyendo TODOS los SERVICIOS, MANIFIESTOS, GUÍAS y FACTURAS asociadas.\n\nEsta acción no se puede deshacer.')) return;
             try {
                 const result = await api.delete(`/rutas/${id}`);
                 if (result.success) {
-                    showToast('Ruta eliminada');
+                    showToast('Ruta y todos sus servicios han sido eliminados.');
                     loadData();
                 } else {
                     showToast(result.message, 'danger');
