@@ -92,8 +92,7 @@ function getPendientes() {
         $params[] = "%$cliente%";
     }
     
-    $sql .= " ORDER BY s.fecha_ejecucion DESC LIMIT ?";
-    $params[] = $limit;
+    $sql .= " ORDER BY s.fecha_ejecucion DESC";
     
     $data = db()->query($sql, $params);
     
