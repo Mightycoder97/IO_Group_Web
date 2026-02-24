@@ -29,10 +29,10 @@ switch ($method) {
 function getDistritos() {
     canView();
     
-    // Get unique districts with sede count - much faster than loading all sedes
+    // Get unique districts with sede count - fetch ALL actual districts
     $sql = "SELECT distrito, COUNT(*) as cantidad 
             FROM Sede 
-            WHERE distrito IS NOT NULL AND distrito != '' AND activo = 1
+            WHERE distrito IS NOT NULL AND TRIM(distrito) != ''
             GROUP BY distrito 
             ORDER BY distrito";
     
