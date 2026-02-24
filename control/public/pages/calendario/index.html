@@ -105,8 +105,8 @@
             font-weight: 500;
             padding: 4px 8px;
             border-radius: 10px;
-            background: #4d4d4d;
-            color: white;
+            background: #f0f0f0;
+            color: #333;
             text-transform: capitalize;
         }
 
@@ -339,8 +339,8 @@
 
         // Generate consistent color based on string hash
         function getDistritoColor(distrito) {
-            // All standard districts get dark grey
-            if (!specialTags.includes(distrito)) return '#4d4d4d';
+            // All standard districts get light grey
+            if (!specialTags.includes(distrito)) return '#f0f0f0';
 
             if (distritoColorsFixed[distrito]) return distritoColorsFixed[distrito];
 
@@ -575,8 +575,9 @@
                 if (dayDistritos && dayDistritos.length > 0) {
                     chipsHtml = dayDistritos.map(d => {
                         const color = distritoColors[d];
+                        const textColor = specialTags.includes(d) ? 'white' : '#333';
                         const shortName = d.length > 12 ? d.substring(0, 12) + '.' : d;
-                        return `<span class="distrito-chip" style="background:${color};color:white">${shortName}</span>`;
+                        return `<span class="distrito-chip" style="background:${color};color:${textColor}">${shortName}</span>`;
                     }).join('');
                 }
 
