@@ -27,13 +27,31 @@ function throttle(fn, ms = 100) {
 // Active nav item
 document.addEventListener('DOMContentLoaded', function () {
     const currentPath = window.location.pathname;
+
+    // Default strict exact match
+    let bestMatch = null;
+    let matchLength = 0;
+
     document.querySelectorAll('.nav-item').forEach(item => {
-        if (item.getAttribute('href') && currentPath.includes(item.getAttribute('href').replace('.html', ''))) {
-            item.classList.add('active');
-        } else if (!currentPath.includes(item.getAttribute('href')?.split('/')[0])) {
-            item.classList.remove('active');
+        const href = item.getAttribute('href');
+        item.classList.remove('active');
+        if (href) {
+            // Strip file and query to just get directory path base
+            const basePath = href.split('?')[0].replace('.html', '');
+
+            // If the current path contains this base path, it's a candidate
+            if (currentPath.includes(basePath)) {
+                if (basePath.length > matchLength) {
+                    bestMatch = item;
+                    matchLength = basePath.length;
+                }
+            }
         }
     });
+
+    if (bestMatch) {
+        bestMatch.classList.add('active');
+    }
 });
 
 // Sidebar template with permission filtering and memoization
@@ -135,13 +153,8 @@ function initPage(moduleName) {
         userNameEl.textContent = user.nombre || user.username;
     }
 
-    // Highlight current nav
-    document.querySelectorAll('.nav-item').forEach(item => {
-        const href = item.getAttribute('href');
-        if (href && href.includes(moduleName)) {
-            item.classList.add('active');
-        }
-    });
+    // Highlighting is now robustly handled in DOMContentLoaded, 
+    // removing moduleName based matching which caused multiple highlights.
 
     // Initialize password change modal
     initPasswordModal();
