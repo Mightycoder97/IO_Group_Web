@@ -260,11 +260,17 @@
                     <!-- Panel de Distritos -->
                     <div class="col-lg-3 mb-3">
                         <div class="distritos-panel">
-                            <h6><i class="bi bi-geo-alt"></i> Distritos</h6>
+                            <h6><i class="bi bi-geo-alt"></i> Opciones / Distritos</h6>
                             <div class="input-group input-group-sm mb-2">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="distritoSearch"
-                                    placeholder="Buscar distrito..." oninput="filterDistritos()">
+                                <input type="text" class="form-control" id="distritoSearch" placeholder="Buscar..."
+                                    oninput="filterDistritos()">
+                            </div>
+                            <div class="input-group input-group-sm mb-2">
+                                <input type="text" class="form-control" id="customTagInput"
+                                    placeholder="Añadir nueva opción especial...">
+                                <button class="btn btn-outline-secondary" onclick="addCustomTag()"><i
+                                        class="bi bi-plus-lg"></i></button>
                             </div>
                             <div class="instructions">
                                 <i class="bi bi-info-circle"></i>
@@ -321,6 +327,7 @@
         let selectedDistrito = null;
         let calendarioData = {}; // { "YYYY-MM-DD": ["distrito1", "distrito2"], ... }
         let allDistritos = [];
+        let specialTags = ['QUINCENALES', 'GAMARRA', 'ONCOLOGIA', 'CHORRISALUD', 'ESCUELA EJERCITO', 'SEMANALES', 'MAPEVAS'];
 
         const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -364,12 +371,12 @@
             loadCalendario();
         }
 
-        // Load distritos from optimized endpoint
         async function loadDistritos() {
             try {
                 const result = await api.get('/calendario?action=distritos');
                 if (result.success) {
-                    allDistritos = ['QUINCENALES', ...result.data.map(d => d.distrito)];
+                    const dbDistritos = result.data.map(d => d.distrito);
+                    allDistritos = [...new Set([...specialTags, ...dbDistritos])];
                     renderDistritosList();
                 }
             } catch (err) {
@@ -382,27 +389,33 @@
             const searchInput = document.getElementById('distritoSearch');
             const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-            // Solo mostrar distritos si hay al menos 2 caracteres en el buscador (excepto QUINCENALES)
-            const showQuincenales = allDistritos.includes('QUINCENALES');
-
             if (searchTerm.length < 2) {
-                if (showQuincenales) {
-                    // Mostrar solo QUINCENALES si no hay búsqueda
-                    container.innerHTML = `
-                        <div class="distrito-item ${selectedDistrito === 'QUINCENALES' ? 'active' : ''}" onclick="selectDistrito('QUINCENALES')">
-                            <span>
-                                <span class="distrito-color" style="background: ${distritoColors['QUINCENALES'] || '#ff5722'}"></span>
-                                QUINCENALES
-                            </span>
-                            <span class="badge bg-secondary" id="count-QUINCENALES">0</span>
-                        </div>
-                        <hr class="my-2">
-                        <div class="text-muted small"><i class="bi bi-search"></i> Escribe al menos 2 letras para buscar distritos...</div>
+                const fragment = document.createDocumentFragment();
+                specialTags.forEach(d => {
+                    const div = document.createElement('div');
+                    const safeId = d.replace(/[^a-zA-Z0-9]/g, '-');
+                    div.className = `distrito-item ${selectedDistrito === d ? 'active' : ''}`;
+                    div.onclick = () => selectDistrito(d);
+                    div.innerHTML = `
+                        <span>
+                            <span class="distrito-color" style="background: ${distritoColors[d] || '#999'}"></span>
+                            ${d}
+                        </span>
+                        <span class="badge bg-secondary" id="count-${safeId}">0</span>
                     `;
-                    updateDistritoCounts();
-                    return;
-                }
-                container.innerHTML = '<div class="text-muted small"><i class="bi bi-search"></i> Escribe al menos 2 letras para buscar distritos...</div>';
+                    fragment.appendChild(div);
+                });
+                const hr = document.createElement('hr');
+                hr.className = 'my-2';
+                const msg = document.createElement('div');
+                msg.className = 'text-muted small text-center';
+                msg.innerHTML = '<i class="bi bi-search"></i> Escribe 2 letras para buscar todos los distritos...';
+
+                container.innerHTML = '';
+                container.appendChild(fragment);
+                container.appendChild(hr);
+                container.appendChild(msg);
+                updateDistritoCounts();
                 return;
             }
 
@@ -412,11 +425,11 @@
             }
 
             const filteredDistritos = allDistritos.filter(d =>
-                d.toLowerCase().includes(searchTerm) || d === 'QUINCENALES'
+                d.toLowerCase().includes(searchTerm)
             );
 
             if (filteredDistritos.length === 0) {
-                container.innerHTML = '<div class="text-muted small">No se encontraron distritos</div>';
+                container.innerHTML = '<div class="text-muted small">No se encontraron resultados en el sistema</div>';
                 return;
             }
 
@@ -427,6 +440,7 @@
             const fragment = document.createDocumentFragment();
             limitedDistritos.forEach(d => {
                 const div = document.createElement('div');
+                const safeId = d.replace(/[^a-zA-Z0-9]/g, '-');
                 div.className = `distrito-item ${selectedDistrito === d ? 'active' : ''}`;
                 div.onclick = () => selectDistrito(d);
                 div.innerHTML = `
@@ -434,7 +448,7 @@
                         <span class="distrito-color" style="background: ${distritoColors[d] || '#999'}"></span>
                         ${d}
                     </span>
-                    <span class="badge bg-secondary" id="count-${d.replace(/\s/g, '-')}">0</span>
+                    <span class="badge bg-secondary" id="count-${safeId}">0</span>
                 `;
                 fragment.appendChild(div);
             });
@@ -446,11 +460,25 @@
             if (filteredDistritos.length > 15) {
                 const moreDiv = document.createElement('div');
                 moreDiv.className = 'text-muted small mt-2 text-center';
-                moreDiv.textContent = `+${filteredDistritos.length - 15} distritos más...`;
+                moreDiv.textContent = `+${filteredDistritos.length - 15} opciones más...`;
                 container.appendChild(moreDiv);
             }
 
             updateDistritoCounts();
+        }
+
+        function addCustomTag() {
+            const input = document.getElementById('customTagInput');
+            const val = input.value.trim().toUpperCase();
+            if (!val) return;
+
+            if (!allDistritos.includes(val)) allDistritos.push(val);
+            if (!specialTags.includes(val)) specialTags.push(val);
+
+            input.value = '';
+            selectedDistrito = val; // Auto select it
+            showToast('Etiqueta creada y seleccionada', 'success');
+            renderDistritosList();
         }
 
         function filterDistritos() {
@@ -471,7 +499,8 @@
             });
 
             allDistritos.forEach(d => {
-                const el = document.getElementById('count-' + d.replace(/\s/g, '-'));
+                const safeId = d.replace(/[^a-zA-Z0-9]/g, '-');
+                const el = document.getElementById('count-' + safeId);
                 if (el) el.textContent = counts[d] || 0;
             });
         }
@@ -485,6 +514,13 @@
                 const result = await api.get(`/calendario?mes=${month}&anio=${year}`);
                 if (result.success && result.data) {
                     calendarioData = result.data.dias || {};
+                    // Extract custom tags stored in DB and inject into local runtime tags
+                    Object.values(calendarioData).forEach(tags => {
+                        tags.forEach(t => {
+                            if (!allDistritos.includes(t)) allDistritos.push(t);
+                            if (!specialTags.includes(t)) specialTags.push(t);
+                        });
+                    });
                 } else {
                     calendarioData = {};
                 }
