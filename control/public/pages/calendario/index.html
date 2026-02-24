@@ -105,8 +105,8 @@
             font-weight: 500;
             padding: 4px 8px;
             border-radius: 10px;
-            background: #e3f2fd;
-            color: #1565c0;
+            background: #4d4d4d;
+            color: white;
             text-transform: capitalize;
         }
 
@@ -334,23 +334,26 @@
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
         const distritoColorsFixed = {
-            'QUINCENALES': '#ff5722'
+            'QUINCENALES': '#e64a19' // Dark orange
         };
 
         // Generate consistent color based on string hash
         function getDistritoColor(distrito) {
+            // All standard districts get dark grey
+            if (!specialTags.includes(distrito)) return '#4d4d4d';
+
             if (distritoColorsFixed[distrito]) return distritoColorsFixed[distrito];
 
-            // Hash the string to get consistent color
+            // Hash the string to get consistent color for custom tags
             let hash = 0;
             for (let i = 0; i < distrito.length; i++) {
                 hash = distrito.charCodeAt(i) + ((hash << 5) - hash);
             }
 
-            // Generate HSL color with good saturation and lightness
+            // Generate HSL color with good saturation and DARK lightness
             const h = Math.abs(hash) % 360;
-            const s = 65 + (Math.abs(hash >> 8) % 20); // 65-85%
-            const l = 45 + (Math.abs(hash >> 16) % 15); // 45-60%
+            const s = 60 + (Math.abs(hash >> 8) % 20); // 60-80% saturation
+            const l = 20 + (Math.abs(hash >> 16) % 15); // 20-35% lightness (dark backgrounds)
 
             return `hsl(${h}, ${s}%, ${l}%)`;
         }
@@ -571,10 +574,9 @@
                 let chipsHtml = '';
                 if (dayDistritos && dayDistritos.length > 0) {
                     chipsHtml = dayDistritos.map(d => {
-                        const color = distritoColors[d] || '#e3f2fd';
-                        const textColor = distritoColors[d] ? 'white' : '#1565c0';
+                        const color = distritoColors[d];
                         const shortName = d.length > 12 ? d.substring(0, 12) + '.' : d;
-                        return `<span class="distrito-chip" style="background:${color};color:${textColor}">${shortName}</span>`;
+                        return `<span class="distrito-chip" style="background:${color};color:white">${shortName}</span>`;
                     }).join('');
                 }
 
