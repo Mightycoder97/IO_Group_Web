@@ -97,14 +97,6 @@ function getPendientes() {
     
     $data = db()->query($sql, $params);
     
-    // Calculate summary stats (Global or filtered? Keeping global context for overdue/pending is usually better for 'Total Pending')
-    // However, if filters are applied, maybe stats should reflect that? 
-    // Usually dashboard headers show "Total Business State" regardless of list filter, unless explicit date range for report.
-    // For now, let's keep stats global but maybe respect date range if provided for specific reporting?
-    // Let's stick to global stats for the top cards as per typical dashboard behavior, 
-    // but we can add a 'filtered_total' if needed. 
-    // The previous implementation had global stats. Let's maintain that for consistency with the UI cards which look like "Total Pending".
-    
     $stats = db()->queryOne("
         SELECT 
             SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(cs.tarifa, 0) ELSE 0 END) as total_pendiente,
