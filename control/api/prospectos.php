@@ -21,30 +21,39 @@ $method = $_SERVER['REQUEST_METHOD'];
 $id = $_GET['id'] ?? null;
 $action = $_GET['action'] ?? null;
 
-switch ($method) {
-    case 'GET':
-        if ($action === 'stats') {
-            getStats();
-        } else {
-            $id ? getOne($id) : getAll();
-        }
-        break;
-    case 'POST':
-        create();
-        break;
-    case 'PUT':
-        if ($action === 'estado') {
-            updateEstado($id);
-        } else {
-            update($id);
-        }
-        break;
-    case 'DELETE':
-        delete($id);
-        break;
-    default:
-        http_response_code(405);
-        echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+try {
+    switch ($method) {
+        case 'GET':
+            if ($action === 'stats') {
+                getStats();
+            } else {
+                $id ? getOne($id) : getAll();
+            }
+            break;
+        case 'POST':
+            create();
+            break;
+        case 'PUT':
+            if ($action === 'estado') {
+                updateEstado($id);
+            } else {
+                update($id);
+            }
+            break;
+        case 'DELETE':
+            delete($id);
+            break;
+        default:
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    }
+} catch (\Throwable $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Internal DB Error: ' . $e->getMessage()
+    ]);
+    exit;
 }
 
 /**
