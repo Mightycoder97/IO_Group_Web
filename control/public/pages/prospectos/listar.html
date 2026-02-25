@@ -36,8 +36,12 @@
                             <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
+                                    Contraseña</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
                                         class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -274,10 +278,38 @@
                             <span class="phone-number">${p.telefono}</span>
                         </div>
                         ` : '<div class="prospect-actions no-phone"><span class="text-muted">Sin teléfono</span></div>'}
+                        ${p.es_propietario ? `
+                        <div class="mt-2 pt-2 border-top">
+                            <select class="form-select form-select-sm status-quick-change" onchange="changeStatus(${p.id_prospecto}, this.value)" style="font-size: 0.8rem; background-color: #f8f9fa;">
+                                ${estados.map(e => `<option value="${e}" ${e === estado ? 'selected' : ''}>Cambiar a ${capitalize(e)}</option>`).join('')}
+                            </select>
+                        </div>
+                        ` : ''}
                     </div>
                 `;
                 }).join('');
             });
+        }
+
+        async function changeStatus(id, newStatus) {
+            try {
+                const result = await api.put('/prospectos?action=estado&id=' + id, { estado: newStatus });
+                if (result.success) {
+                    // Update local state and trigger re-render smoothly
+                    const prospect = allData.find(p => p.id_prospecto === id);
+                    if (prospect) {
+                        prospect.estado = newStatus;
+                        renderView();
+                    }
+                } else {
+                    showToast(result.message || 'Error al actualizar estado', 'danger');
+                    renderView(); // Revert to prior choice securely
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error de conexión', 'danger');
+                renderView();
+            }
         }
 
         function renderTable() {
