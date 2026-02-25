@@ -180,8 +180,8 @@ function create() {
     $rateLimitFile = sys_get_temp_dir() . '/iogroup_prospecto_' . md5($ip) . '.json';
     $now = time();
     $attempts = [];
-    if (file_exists($rateLimitFile)) {
-        $attempts = json_decode(file_get_contents($rateLimitFile), true) ?: [];
+    if (@file_exists($rateLimitFile)) {
+        $attempts = @json_decode(@file_get_contents($rateLimitFile), true) ?: [];
         $attempts = array_filter($attempts, fn($t) => $t > $now - 60);
     }
     if (count($attempts) >= 3) {
@@ -190,14 +190,14 @@ function create() {
         return;
     }
     $attempts[] = $now;
-    file_put_contents($rateLimitFile, json_encode(array_values($attempts)));
+    @file_put_contents($rateLimitFile, json_encode(array_values($attempts)));
 
     $data = json_decode(file_get_contents('php://input'), true);
     
     // Validate required fields
-    $nombre = $data['nombre'] ?? $data['nombre_contacto'] ?? '';
-    $telefono = $data['telefono'] ?? '';
-    $vendedor = $data['vendedor'] ?? '';
+    $nombre = !empty($data['nombre']) ? $data['nombre'] : (!empty($data['nombre_contacto']) ? $data['nombre_contacto'] : '');
+    $telefono = !empty($data['telefono']) ? $data['telefono'] : '';
+    $vendedor = !empty($data['vendedor']) ? $data['vendedor'] : '';
     
     if (empty($nombre) || empty($telefono) || empty($vendedor)) {
         http_response_code(400);
@@ -205,15 +205,15 @@ function create() {
         return;
     }
     
-    // Map fields from public form
-    $razonSocial = $data['razonSocial'] ?? $data['razon_social'] ?? null;
-    $ruc = $data['ruc'] ?? null;
-    $email = $data['email'] ?? null;
-    $direccion = $data['direccion'] ?? null;
-    $distrito = $data['distrito'] ?? null;
-    $latitud = $data['latitud'] ?? null;
-    $longitud = $data['longitud'] ?? null;
-    $tipoNegocio = $data['tipoNegocio'] ?? $data['tipo_negocio'] ?? 'Otro';
+    // Map fields from public form - correctly handle empty strings as NULL
+    $razonSocial = !empty($data['razonSocial']) ? $data['razonSocial'] : (!empty($data['razon_social']) ? $data['razon_social'] : null);
+    $ruc = !empty($data['ruc']) ? $data['ruc'] : null;
+    $email = !empty($data['email']) ? $data['email'] : null;
+    $direccion = !empty($data['direccion']) ? $data['direccion'] : null;
+    $distrito = !empty($data['distrito']) ? $data['distrito'] : null;
+    $latitud = ($data['latitud'] !== '' && $data['latitud'] !== null) ? $data['latitud'] : null;
+    $longitud = ($data['longitud'] !== '' && $data['longitud'] !== null) ? $data['longitud'] : null;
+    $tipoNegocio = !empty($data['tipoNegocio']) ? $data['tipoNegocio'] : (!empty($data['tipo_negocio']) ? $data['tipo_negocio'] : 'Otro');
     $observaciones = $data['observaciones'] ?? null;
     
     $id = db()->insert(
