@@ -264,6 +264,7 @@
                         <div class="prospect-info">
                             ${p.distrito ? `<span class="info-item"><i class="bi bi-geo-alt"></i> ${p.distrito}</span>` : ''}
                             ${p.tipo_negocio ? `<span class="info-item"><i class="bi bi-briefcase"></i> ${p.tipo_negocio}</span>` : ''}
+                            <span class="info-item w-100 mt-1 text-primary"><i class="bi bi-person"></i> ${p.vendedor || 'Sin asignar'}</span>
                         </div>
                         ${p.telefono ? `
                         <div class="prospect-actions">
