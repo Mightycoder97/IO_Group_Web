@@ -418,9 +418,9 @@
                 }
                 if (result.success) {
                     showToast(id ? 'Prospecto actualizado' : 'Prospecto creado');
-                    if (!id) {
+                    setTimeout(() => {
                         window.location.href = 'listar.html';
-                    }
+                    }, 1000);
                 } else {
                     showToast(result.message, 'danger');
                 }
