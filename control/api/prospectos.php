@@ -57,76 +57,134 @@ try {
 }
 
 /**
+ * Maps the database row to the structure the frontend expects.
+ */
+function mapProspectoToFrontend($row) {
+    if (!$row) return null;
+    
+    $notas = json_decode($row['notas'], true) ?: [];
+    
+    return [
+        'id_prospecto' => $row['id_prospecto'],
+        'nombre_contacto' => $notas['nombre_contacto'] ?? $row['nombre_comercial'],
+        'razon_social' => ($row['tipo_cliente'] === 'empresa') ? $row['nombre_comercial'] : '',
+        'ruc' => $row['ruc'],
+        'telefono' => $row['telefono'],
+        'email' => $row['email'],
+        'direccion' => $row['direccion'],
+        'distrito' => $row['distrito'],
+        'latitud' => $notas['latitud'] ?? null,
+        'longitud' => $notas['longitud'] ?? null,
+        'tipo_negocio' => $notas['tipo_negocio'] ?? 'Otro',
+        'observaciones' => $notas['observaciones'] ?? '',
+        'vendedor' => $row['vendedor_nombre'] ?? $notas['vendedor'] ?? '',
+        'id_usuario_asignado' => $row['id_usuario_asignado'] ?? null,
+        'estado' => $row['estado'] === 'negociacion' ? 'negociando' : $row['estado'],
+        'fecha_siguiente_contacto' => $row['fecha_proximo_contacto'],
+        'notas_seguimiento' => $notas['notas_seguimiento'] ?? '',
+        'fecha_creacion' => $row['fecha_creacion'],
+        'fecha_modificacion' => $row['fecha_modificacion']
+    ];
+}
+
+/**
  * Helper function to check if current user is the owner of a prospecto
  */
 function isOwner($prospecto, $user) {
     if (!$prospecto || !$user) return false;
-    $vendedor = $prospecto['vendedor'] ?? '';
+    
+    // Check by ID if available
+    $ownerId = $prospecto['id_usuario_asignado'] ?? null;
+    $userId = $user['id_usuario'] ?? $user['id'] ?? null;
+    if ($ownerId && $userId && $ownerId == $userId) {
+        return true;
+    }
+    
+    // Fallback to name check
+    $vendedor = $prospecto['vendedor'] ?? $prospecto['vendedor_nombre'] ?? '';
+    // Unpack from JSON notas if available
+    if (!$vendedor && isset($prospecto['notas'])) {
+        $n = json_decode($prospecto['notas'], true);
+        $vendedor = $n['vendedor'] ?? '';
+    }
     $userName = $user['nombre_completo'] ?? $user['nombre'] ?? $user['username'] ?? '';
-    return strtolower(trim($vendedor)) === strtolower(trim($userName));
+    if ($vendedor && $userName) {
+        return strtolower(trim($vendedor)) === strtolower(trim($userName));
+    }
+    
+    return false;
 }
 
 /**
  * Get all prospectos with filters
- * Hides phone number for non-owners
  */
 function getAll() {
     $user = canView();
-    $userName = $user['nombre_completo'] ?? $user['nombre'] ?? $user['username'] ?? '';
     
     $search = $_GET['search'] ?? '';
     $estado = $_GET['estado'] ?? null;
     $vendedor = $_GET['vendedor'] ?? null;
     $tipo = $_GET['tipo'] ?? null;
     
-    $sql = "SELECT * FROM Prospecto WHERE 1=1";
+    $sql = "SELECT p.*, COALESCE(u.nombre_completo, u.username) AS vendedor_nombre 
+            FROM Prospecto p
+            LEFT JOIN Usuario u ON p.id_usuario_asignado = u.id_usuario
+            WHERE p.activo = 1";
     $params = [];
     
     if ($search) {
-        $sql .= " AND (nombre_contacto LIKE ? OR razon_social LIKE ? OR telefono LIKE ? OR distrito LIKE ?)";
+        $sql .= " AND (p.nombre_comercial LIKE ? OR p.telefono LIKE ? OR p.distrito LIKE ? OR p.ruc LIKE ? OR p.notas LIKE ?)";
         $searchTerm = "%$search%";
-        $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+        $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm]);
     }
     
     if ($estado) {
-        $sql .= " AND estado = ?";
+        if ($estado === 'negociando') $estado = 'negociacion';
+        $sql .= " AND p.estado = ?";
         $params[] = $estado;
     }
     
     if ($vendedor) {
-        $sql .= " AND vendedor = ?";
+        $sql .= " AND (u.nombre_completo = ? OR u.username = ? OR p.notas LIKE ?)";
         $params[] = $vendedor;
+        $params[] = $vendedor;
+        $params[] = "%\"vendedor\":\"$vendedor\"%";
     }
     
     if ($tipo) {
-        $sql .= " AND tipo_negocio = ?";
-        $params[] = $tipo;
+        $sql .= " AND p.notas LIKE ?";
+        $params[] = "%\"tipo_negocio\":\"$tipo\"%";
     }
     
-    $sql .= " ORDER BY fecha_creacion DESC";
+    $sql .= " ORDER BY p.fecha_creacion DESC";
     
     $data = db()->query($sql, $params);
     
-    // Add ownership flag
-    foreach ($data as &$prospecto) {
-        $prospecto['es_propietario'] = isOwner($prospecto, $user);
+    $mappedData = [];
+    foreach ($data as $row) {
+        $prospecto = mapProspectoToFrontend($row);
+        $prospecto['es_propietario'] = isOwner($row, $user);
+        $mappedData[] = $prospecto;
     }
     
     echo json_encode([
         'success' => true,
-        'data' => $data,
-        'total' => count($data)
+        'data' => $mappedData,
+        'total' => count($mappedData)
     ]);
 }
 
 /**
  * Get single prospecto
- * Adds ownership flag for edit restrictions
  */
 function getOne($id) {
     $user = canView();
     
-    $prospecto = db()->queryOne("SELECT * FROM Prospecto WHERE id_prospecto = ?", [$id]);
+    $sql = "SELECT p.*, COALESCE(u.nombre_completo, u.username) AS vendedor_nombre 
+            FROM Prospecto p
+            LEFT JOIN Usuario u ON p.id_usuario_asignado = u.id_usuario
+            WHERE p.id_prospecto = ? AND p.activo = 1";
+    $prospecto = db()->queryOne($sql, [$id]);
     
     if (!$prospecto) {
         http_response_code(404);
@@ -134,11 +192,12 @@ function getOne($id) {
         return;
     }
     
-    $prospecto['es_propietario'] = isOwner($prospecto, $user);
+    $mapped = mapProspectoToFrontend($prospecto);
+    $mapped['es_propietario'] = isOwner($prospecto, $user);
     
     echo json_encode([
         'success' => true,
-        'data' => $prospecto
+        'data' => $mapped
     ]);
 }
 
@@ -150,26 +209,36 @@ function getStats() {
     
     $stats = [];
     
-    // Counts by estado
-    $estados = db()->query("SELECT estado, COUNT(*) as count FROM Prospecto GROUP BY estado");
-    $stats['por_estado'] = array_column($estados, 'count', 'estado');
+    $estados = db()->query("SELECT estado, COUNT(*) as count FROM Prospecto WHERE activo = 1 GROUP BY estado");
+    $stats['por_estado'] = [];
+    foreach ($estados as $row) {
+        $est = $row['estado'] === 'negociacion' ? 'negociando' : $row['estado'];
+        if (!isset($stats['por_estado'][$est])) $stats['por_estado'][$est] = 0;
+        $stats['por_estado'][$est] += $row['count'];
+    }
     
-    // Counts by vendedor
-    $vendedores = db()->query("SELECT vendedor, COUNT(*) as count FROM Prospecto GROUP BY vendedor");
-    $stats['por_vendedor'] = array_column($vendedores, 'count', 'vendedor');
+    $vendedores = db()->query("SELECT COALESCE(u.nombre_completo, u.username, 'Sin asignar') as vendedor, COUNT(*) as count 
+                               FROM Prospecto p 
+                               LEFT JOIN Usuario u ON p.id_usuario_asignado = u.id_usuario 
+                               WHERE p.activo = 1 
+                               GROUP BY p.id_usuario_asignado, vendedor");
+    $stats['por_vendedor'] = [];
+    foreach ($vendedores as $row) {
+         $v = $row['vendedor'];
+         if (!isset($stats['por_vendedor'][$v])) $stats['por_vendedor'][$v] = 0;
+         $stats['por_vendedor'][$v] += $row['count'];
+    }
     
-    // This month stats
     $mesActual = db()->queryOne(
         "SELECT COUNT(*) as total, 
                 SUM(CASE WHEN estado = 'ganado' THEN 1 ELSE 0 END) as ganados
          FROM Prospecto 
-         WHERE MONTH(fecha_creacion) = MONTH(CURRENT_DATE) AND YEAR(fecha_creacion) = YEAR(CURRENT_DATE)"
+         WHERE activo = 1 AND MONTH(fecha_creacion) = MONTH(CURRENT_DATE) AND YEAR(fecha_creacion) = YEAR(CURRENT_DATE)"
     );
     $stats['mes_actual'] = $mesActual;
     
-    // Conversion rate
-    $total = db()->queryOne("SELECT COUNT(*) as total FROM Prospecto");
-    $ganados = db()->queryOne("SELECT COUNT(*) as total FROM Prospecto WHERE estado = 'ganado'");
+    $total = db()->queryOne("SELECT COUNT(*) as total FROM Prospecto WHERE activo = 1");
+    $ganados = db()->queryOne("SELECT COUNT(*) as total FROM Prospecto WHERE estado = 'ganado' AND activo = 1");
     $stats['total'] = $total['total'];
     $stats['ganados'] = $ganados['total'];
     $stats['tasa_conversion'] = $total['total'] > 0 ? round(($ganados['total'] / $total['total']) * 100, 1) : 0;
@@ -184,7 +253,7 @@ function getStats() {
  * Create new prospecto (public access - no auth required)
  */
 function create() {
-    // Rate limiting for public endpoint: max 3 per minute per IP (SEC-12)
+    // Rate limiting for public endpoint: max 3 per minute per IP
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
     $rateLimitFile = sys_get_temp_dir() . '/iogroup_prospecto_' . md5($ip) . '.json';
     $now = time();
@@ -214,7 +283,6 @@ function create() {
         return;
     }
     
-    // Map fields from public form - correctly handle empty strings as NULL
     $razonSocial = !empty($data['razonSocial']) ? $data['razonSocial'] : (!empty($data['razon_social']) ? $data['razon_social'] : null);
     $ruc = !empty($data['ruc']) ? $data['ruc'] : null;
     $email = !empty($data['email']) ? $data['email'] : null;
@@ -224,13 +292,40 @@ function create() {
     $longitud = ($data['longitud'] !== '' && $data['longitud'] !== null) ? $data['longitud'] : null;
     $tipoNegocio = !empty($data['tipoNegocio']) ? $data['tipoNegocio'] : (!empty($data['tipo_negocio']) ? $data['tipo_negocio'] : 'Otro');
     $observaciones = $data['observaciones'] ?? null;
+    $notasSeguimiento = $data['notas_seguimiento'] ?? null;
     
+    $estadoFrontend = $data['estado'] ?? 'nuevo';
+    $estadoDb = $estadoFrontend === 'negociando' ? 'negociacion' : $estadoFrontend;
+    if (!in_array($estadoDb, ['nuevo','contactado','interesado','propuesta','negociacion','ganado','perdido'])) {
+        $estadoDb = 'nuevo';
+    }
+
+    $idUsuario = null;
+    if ($vendedor) {
+        $u = db()->queryOne("SELECT id_usuario FROM Usuario WHERE nombre_completo = ? OR username = ?", [$vendedor, $vendedor]);
+        if ($u) $idUsuario = $u['id_usuario'];
+    }
+
+    $notasArr = [
+        'nombre_contacto' => $nombre,
+        'latitud' => $latitud,
+        'longitud' => $longitud,
+        'tipo_negocio' => $tipoNegocio,
+        'observaciones' => $observaciones,
+        'notas_seguimiento' => $notasSeguimiento,
+        'vendedor' => $vendedor
+    ];
+    $notasJson = json_encode(array_filter($notasArr, fn($v) => $v !== null && $v !== ''));
+
+    $tipoCliente = ($ruc || $razonSocial) ? 'empresa' : 'persona';
+    $nombreComercial = $razonSocial ?: $nombre;
+
     $id = db()->insert(
-        "INSERT INTO Prospecto (nombre_contacto, razon_social, ruc, telefono, email, direccion, distrito, 
-                                latitud, longitud, tipo_negocio, observaciones, vendedor, estado) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'nuevo')",
-        [$nombre, $razonSocial, $ruc, $telefono, $email, $direccion, $distrito, 
-         $latitud, $longitud, $tipoNegocio, $observaciones, $vendedor]
+        "INSERT INTO Prospecto (nombre_comercial, tipo_cliente, ruc, telefono, email, direccion, distrito, 
+                                notas, id_usuario_asignado, estado, fecha_proximo_contacto) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [$nombreComercial, $tipoCliente, $ruc, $telefono, $email, $direccion, $distrito, 
+         $notasJson, $idUsuario, $estadoDb, $data['fecha_siguiente_contacto'] ?? null]
     );
     
     echo json_encode([
@@ -254,56 +349,83 @@ function update($id) {
     
     $data = json_decode(file_get_contents('php://input'), true);
     
-    // Check if exists
-    $existing = db()->queryOne("SELECT * FROM Prospecto WHERE id_prospecto = ?", [$id]);
+    $sql = "SELECT p.*, COALESCE(u.nombre_completo, u.username) AS vendedor_nombre 
+            FROM Prospecto p
+            LEFT JOIN Usuario u ON p.id_usuario_asignado = u.id_usuario
+            WHERE p.id_prospecto = ? AND p.activo = 1";
+    $existing = db()->queryOne($sql, [$id]);
+    
     if (!$existing) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Prospecto no encontrado']);
         return;
     }
     
-    // Check ownership - only owner can edit
     if (!isOwner($existing, $user)) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'No tiene permisos para editar este prospecto']);
         return;
     }
     
-    // Update fields
-    $nombre = $data['nombre_contacto'] ?? $existing['nombre_contacto'];
-    $razonSocial = $data['razon_social'] ?? $existing['razon_social'];
-    $ruc = $data['ruc'] ?? $existing['ruc'];
-    $telefono = $data['telefono'] ?? $existing['telefono'];
-    $email = $data['email'] ?? $existing['email'];
-    $direccion = $data['direccion'] ?? $existing['direccion'];
-    $distrito = $data['distrito'] ?? $existing['distrito'];
-    $latitud = $data['latitud'] ?? $existing['latitud'];
-    $longitud = $data['longitud'] ?? $existing['longitud'];
-    $tipoNegocio = $data['tipo_negocio'] ?? $existing['tipo_negocio'];
-    $observaciones = $data['observaciones'] ?? $existing['observaciones'];
-    $vendedor = $data['vendedor'] ?? $existing['vendedor'];
-    $estado = $data['estado'] ?? $existing['estado'];
-    $fechaSiguiente = $data['fecha_siguiente_contacto'] ?? $existing['fecha_siguiente_contacto'];
-    $notasSeguimiento = $data['notas_seguimiento'] ?? $existing['notas_seguimiento'];
+    $mapped = mapProspectoToFrontend($existing);
     
+    $nombre = $data['nombre_contacto'] ?? $mapped['nombre_contacto'];
+    $razonSocial = $data['razon_social'] ?? $data['razonSocial'] ?? $mapped['razon_social'];
+    $ruc = $data['ruc'] ?? $mapped['ruc'];
+    $telefono = $data['telefono'] ?? $mapped['telefono'];
+    $email = $data['email'] ?? $mapped['email'];
+    $direccion = $data['direccion'] ?? $mapped['direccion'];
+    $distrito = $data['distrito'] ?? $mapped['distrito'];
+    $latitud = $data['latitud'] ?? $mapped['latitud'];
+    $longitud = $data['longitud'] ?? $mapped['longitud'];
+    $tipoNegocio = $data['tipo_negocio'] ?? $data['tipoNegocio'] ?? $mapped['tipo_negocio'];
+    $observaciones = $data['observaciones'] ?? $mapped['observaciones'];
+    $vendedor = $data['vendedor'] ?? $mapped['vendedor'];
+    $estado = $data['estado'] ?? $mapped['estado'];
+    $fechaSiguiente = $data['fecha_siguiente_contacto'] ?? $mapped['fecha_siguiente_contacto'];
+    $notasSeguimiento = $data['notas_seguimiento'] ?? $mapped['notas_seguimiento'];
+    
+    $estadoDb = $estado === 'negociando' ? 'negociacion' : $estado;
+
+    $idUsuario = $existing['id_usuario_asignado'];
+    if (isset($data['vendedor']) && $data['vendedor'] !== $mapped['vendedor']) {
+        $u = db()->queryOne("SELECT id_usuario FROM Usuario WHERE nombre_completo = ? OR username = ?", [$vendedor, $vendedor]);
+        if ($u) $idUsuario = $u['id_usuario'];
+    }
+
+    $notasArr = [
+        'nombre_contacto' => $nombre,
+        'latitud' => $latitud,
+        'longitud' => $longitud,
+        'tipo_negocio' => $tipoNegocio,
+        'observaciones' => $observaciones,
+        'notas_seguimiento' => $notasSeguimiento,
+        'vendedor' => $vendedor
+    ];
+    $notasJson = json_encode(array_filter($notasArr, fn($v) => $v !== null && $v !== ''));
+
+    $tipoCliente = ($ruc || $razonSocial) ? 'empresa' : 'persona';
+    $nombreComercial = $razonSocial ?: $nombre;
+
     db()->execute(
         "UPDATE Prospecto SET 
-            nombre_contacto = ?, razon_social = ?, ruc = ?, telefono = ?, email = ?,
-            direccion = ?, distrito = ?, latitud = ?, longitud = ?, tipo_negocio = ?,
-            observaciones = ?, vendedor = ?, estado = ?, fecha_siguiente_contacto = ?, 
-            notas_seguimiento = ?, fecha_modificacion = NOW()
+            nombre_comercial = ?, tipo_cliente = ?, ruc = ?, telefono = ?, email = ?,
+            direccion = ?, distrito = ?, notas = ?, id_usuario_asignado = ?, estado = ?, 
+            fecha_proximo_contacto = ?
          WHERE id_prospecto = ?",
-        [$nombre, $razonSocial, $ruc, $telefono, $email, $direccion, $distrito,
-         $latitud, $longitud, $tipoNegocio, $observaciones, $vendedor, $estado,
-         $fechaSiguiente, $notasSeguimiento, $id]
+        [$nombreComercial, $tipoCliente, $ruc, $telefono, $email, $direccion, $distrito,
+         $notasJson, $idUsuario, $estadoDb, $fechaSiguiente, $id]
     );
     
     // Audit log
-    db()->execute(
-        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores, datos_nuevos) 
-         VALUES (?, 'Prospecto', ?, 'UPDATE', ?, ?)",
-        [$user['id'], $id, json_encode($existing), json_encode($data)]
-    );
+    $adminId = $user['id'] ?? $user['id_usuario'] ?? null;
+    if ($adminId) {
+        db()->execute(
+            "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores, datos_nuevos) 
+             VALUES (?, 'Prospecto', ?, 'UPDATE', ?, ?)",
+            [$adminId, $id, json_encode($mapped), json_encode($data)]
+        );
+    }
     
     echo json_encode([
         'success' => true,
@@ -332,21 +454,21 @@ function updateEstado($id) {
         return;
     }
     
-    $validEstados = ['nuevo', 'contactado', 'interesado', 'negociando', 'ganado', 'perdido'];
-    if (!in_array($estado, $validEstados)) {
+    $estadoDb = $estado === 'negociando' ? 'negociacion' : $estado;
+    $validEstados = ['nuevo', 'contactado', 'interesado', 'negociacion', 'propuesta', 'ganado', 'perdido'];
+    if (!in_array($estadoDb, $validEstados)) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Estado inválido']);
         return;
     }
     
-    $existing = db()->queryOne("SELECT * FROM Prospecto WHERE id_prospecto = ?", [$id]);
+    $existing = db()->queryOne("SELECT * FROM Prospecto WHERE id_prospecto = ? AND activo = 1", [$id]);
     if (!$existing) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Prospecto no encontrado']);
         return;
     }
     
-    // Check ownership - only owner can update estado
     if (!isOwner($existing, $user)) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'No tiene permisos para modificar este prospecto']);
@@ -354,16 +476,19 @@ function updateEstado($id) {
     }
     
     db()->execute(
-        "UPDATE Prospecto SET estado = ?, fecha_modificacion = NOW() WHERE id_prospecto = ?",
-        [$estado, $id]
+        "UPDATE Prospecto SET estado = ? WHERE id_prospecto = ?",
+        [$estadoDb, $id]
     );
     
     // Audit log
-    db()->execute(
-        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) 
-         VALUES (?, 'Prospecto', ?, 'UPDATE', ?)",
-        [$user['id'], $id, json_encode(['estado' => $estado, 'estado_anterior' => $existing['estado']])]
-    );
+    $adminId = $user['id'] ?? $user['id_usuario'] ?? null;
+    if ($adminId) {
+        db()->execute(
+            "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) 
+             VALUES (?, 'Prospecto', ?, 'UPDATE', ?)",
+            [$adminId, $id, json_encode(['estado' => $estadoDb, 'estado_anterior' => $existing['estado']])]
+        );
+    }
     
     echo json_encode([
         'success' => true,
@@ -383,28 +508,30 @@ function delete($id) {
         return;
     }
     
-    $existing = db()->queryOne("SELECT * FROM Prospecto WHERE id_prospecto = ?", [$id]);
+    $existing = db()->queryOne("SELECT * FROM Prospecto WHERE id_prospecto = ? AND activo = 1", [$id]);
     if (!$existing) {
         http_response_code(404);
         echo json_encode(['success' => false, 'message' => 'Prospecto no encontrado']);
         return;
     }
     
-    // Check ownership - only owner can delete
     if (!isOwner($existing, $user)) {
         http_response_code(403);
         echo json_encode(['success' => false, 'message' => 'No tiene permisos para eliminar este prospecto']);
         return;
     }
     
-    db()->execute("DELETE FROM Prospecto WHERE id_prospecto = ?", [$id]);
+    db()->execute("UPDATE Prospecto SET activo = 0 WHERE id_prospecto = ?", [$id]);
     
     // Audit log
-    db()->execute(
-        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores) 
-         VALUES (?, 'Prospecto', ?, 'DELETE', ?)",
-        [$user['id'], $id, json_encode($existing)]
-    );
+    $adminId = $user['id'] ?? $user['id_usuario'] ?? null;
+    if ($adminId) {
+        db()->execute(
+            "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores) 
+             VALUES (?, 'Prospecto', ?, 'DELETE', ?)",
+            [$adminId, $id, json_encode($existing)]
+        );
+    }
     
     echo json_encode([
         'success' => true,
