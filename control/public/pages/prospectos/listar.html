@@ -256,36 +256,42 @@
                 container.innerHTML = items.map(p => {
                     const phoneClean = p.telefono ? p.telefono.replace(/\D/g, '') : '';
                     return `
-                    <div class="prospect-card" data-id="${p.id_prospecto}">
-                        <div class="prospect-header" onclick="window.location.href='formulario.html?id=${p.id_prospecto}'">
-                            <div class="prospect-name">${p.nombre_contacto}</div>
-                            <div class="prospect-company">${p.razon_social || 'Sin empresa'}</div>
+                    <div class="prospect-card d-flex flex-column h-100" data-id="${p.id_prospecto}">
+                        <div class="prospect-header mb-auto" onclick="window.location.href='formulario.html?id=${p.id_prospecto}'">
+                            <div class="prospect-name" title="${p.nombre_contacto}">${p.nombre_contacto}</div>
+                            <div class="prospect-company" title="${p.razon_social || 'Sin empresa'}">${p.razon_social || 'Sin empresa'}</div>
+                            <div class="prospect-meta mb-2">
+                                ${p.distrito ? `<span class="info-item"><i class="bi bi-geo-alt"></i> ${p.distrito}</span>` : ''}
+                                ${p.tipo_negocio ? `<span class="info-item"><i class="bi bi-briefcase"></i> ${p.tipo_negocio}</span>` : ''}
+                                <span class="info-item w-100 mt-1 text-primary"><i class="bi bi-person"></i> ${p.vendedor || 'Sin asignar'}</span>
+                            </div>
                         </div>
-                        <div class="prospect-info">
-                            ${p.distrito ? `<span class="info-item"><i class="bi bi-geo-alt"></i> ${p.distrito}</span>` : ''}
-                            ${p.tipo_negocio ? `<span class="info-item"><i class="bi bi-briefcase"></i> ${p.tipo_negocio}</span>` : ''}
-                            <span class="info-item w-100 mt-1 text-primary"><i class="bi bi-person"></i> ${p.vendedor || 'Sin asignar'}</span>
-                        </div>
-                        ${p.telefono ? `
-                        <div class="prospect-actions">
+                        
+                        <div class="prospect-actions d-block mt-2">
+                            ${p.telefono ? `
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="d-flex gap-2">
+                                    ${p.es_propietario ? `
+                                    <a href="tel:${p.telefono}" class="action-btn call" title="Llamar">
+                                        <i class="bi bi-telephone-fill"></i>
+                                    </a>
+                                    <a href="https://wa.me/51${phoneClean}" target="_blank" class="action-btn whatsapp" title="WhatsApp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                    ` : ''}
+                                </div>
+                                <span class="phone-number ms-auto">${p.telefono}</span>
+                            </div>
+                            ` : '<div class="text-center text-muted small mb-2 py-1">Sin teléfono</div>'}
+                            
                             ${p.es_propietario ? `
-                            <a href="tel:${p.telefono}" class="action-btn call" title="Llamar">
-                                <i class="bi bi-telephone-fill"></i>
-                            </a>
-                            <a href="https://wa.me/51${phoneClean}" target="_blank" class="action-btn whatsapp" title="WhatsApp">
-                                <i class="bi bi-whatsapp"></i>
-                            </a>
+                            <div class="mt-2 pt-2 border-top">
+                                <select class="form-select form-select-sm status-quick-change border-0 bg-transparent text-secondary shadow-none" onchange="changeStatus(${p.id_prospecto}, this.value)" style="font-size: 0.8rem; font-weight: 500; cursor: pointer;">
+                                    ${estados.map(e => `<option value="${e}" ${e === estado ? 'selected' : ''}>Cambiar a ${capitalize(e)}</option>`).join('')}
+                                </select>
+                            </div>
                             ` : ''}
-                            <span class="phone-number">${p.telefono}</span>
                         </div>
-                        ` : '<div class="prospect-actions no-phone"><span class="text-muted">Sin teléfono</span></div>'}
-                        ${p.es_propietario ? `
-                        <div class="mt-2 pt-2 border-top">
-                            <select class="form-select form-select-sm status-quick-change" onchange="changeStatus(${p.id_prospecto}, this.value)" style="font-size: 0.8rem; background-color: #f8f9fa;">
-                                ${estados.map(e => `<option value="${e}" ${e === estado ? 'selected' : ''}>Cambiar a ${capitalize(e)}</option>`).join('')}
-                            </select>
-                        </div>
-                        ` : ''}
                     </div>
                 `;
                 }).join('');

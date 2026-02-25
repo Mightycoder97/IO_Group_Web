@@ -1827,12 +1827,15 @@ a:hover {
 /* Prospect Card */
 .control-app .prospect-card {
     background: #fff;
-    border-radius: 8px;
-    padding: 14px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 14px 14px 0 14px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     border: 1px solid #e9ecef;
     transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .control-app .prospect-card:hover {
@@ -1843,14 +1846,20 @@ a:hover {
 .control-app .prospect-name {
     font-weight: 600;
     font-size: 0.95rem;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     color: #212529;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .control-app .prospect-company {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #6c757d;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .control-app .prospect-meta {
@@ -2196,13 +2205,16 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 14px;
+    padding: 12px 14px;
     background: #f8f9fa;
+    margin: 12px -14px 0 -14px;
     border-top: 1px solid #e9ecef;
+    flex-wrap: wrap;
 }
 
 .control-app .prospect-actions.no-phone {
     justify-content: center;
+    padding: 10px 14px;
 }
 
 .control-app .action-btn {
