@@ -300,10 +300,30 @@ function create() {
         $estadoDb = 'nuevo';
     }
 
+    $user = getAuthUser(false);
+    $isAdmin = $user && isset($user['rol']) && $user['rol'] === 'admin';
+    
     $idUsuario = null;
-    if ($vendedor) {
-        $u = db()->queryOne("SELECT id_usuario FROM Usuario WHERE nombre_completo = ? OR username = ?", [$vendedor, $vendedor]);
-        if ($u) $idUsuario = $u['id_usuario'];
+    $vendedorFinal = $vendedor;
+    
+    if ($user) {
+        if ($isAdmin && $vendedor) {
+            $u = db()->queryOne("SELECT id_usuario FROM Usuario WHERE nombre_completo = ? OR username = ?", [$vendedor, $vendedor]);
+            if ($u) {
+                $idUsuario = $u['id_usuario'];
+            } else {
+                $idUsuario = $user['id'] ?? $user['id_usuario'];
+                $vendedorFinal = $user['nombre'] ?? $user['nombre_completo'] ?? $vendedor;
+            }
+        } else {
+            $idUsuario = $user['id'] ?? $user['id_usuario'];
+            $vendedorFinal = $user['nombre'] ?? $user['nombre_completo'] ?? $vendedor;
+        }
+    } else {
+        if ($vendedor) {
+            $u = db()->queryOne("SELECT id_usuario FROM Usuario WHERE nombre_completo = ? OR username = ?", [$vendedor, $vendedor]);
+            if ($u) $idUsuario = $u['id_usuario'];
+        }
     }
 
     $notasArr = [
@@ -313,7 +333,7 @@ function create() {
         'tipo_negocio' => $tipoNegocio,
         'observaciones' => $observaciones,
         'notas_seguimiento' => $notasSeguimiento,
-        'vendedor' => $vendedor
+        'vendedor' => $vendedorFinal
     ];
     $notasJson = json_encode(array_filter($notasArr, fn($v) => $v !== null && $v !== ''));
 
@@ -387,10 +407,16 @@ function update($id) {
     
     $estadoDb = $estado === 'negociando' ? 'negociacion' : $estado;
 
+    $isAdmin = isset($user['rol']) && $user['rol'] === 'admin';
     $idUsuario = $existing['id_usuario_asignado'];
-    if (isset($data['vendedor']) && $data['vendedor'] !== $mapped['vendedor']) {
-        $u = db()->queryOne("SELECT id_usuario FROM Usuario WHERE nombre_completo = ? OR username = ?", [$vendedor, $vendedor]);
-        if ($u) $idUsuario = $u['id_usuario'];
+    $vendedorFinal = $mapped['vendedor'];
+
+    if ($isAdmin && isset($data['vendedor']) && $data['vendedor'] !== $mapped['vendedor']) {
+        $vendedorFinal = $data['vendedor'];
+        $u = db()->queryOne("SELECT id_usuario FROM Usuario WHERE nombre_completo = ? OR username = ?", [$vendedorFinal, $vendedorFinal]);
+        if ($u) {
+            $idUsuario = $u['id_usuario'];
+        }
     }
 
     $notasArr = [
@@ -400,7 +426,7 @@ function update($id) {
         'tipo_negocio' => $tipoNegocio,
         'observaciones' => $observaciones,
         'notas_seguimiento' => $notasSeguimiento,
-        'vendedor' => $vendedor
+        'vendedor' => $vendedorFinal
     ];
     $notasJson = json_encode(array_filter($notasArr, fn($v) => $v !== null && $v !== ''));
 

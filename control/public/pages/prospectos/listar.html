@@ -337,8 +337,12 @@
                         <a href="formulario.html?id=${p.id_prospecto}" class="text-decoration-none">
                             <strong>${p.nombre_contacto}</strong>
                         </a>
+                        <div class="small text-muted mt-1" style="font-size: 0.75rem;"><i class="bi bi-clock-history"></i> Mod. ${p.fecha_modificacion ? new Date(p.fecha_modificacion).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'}</div>
                     </td>
-                    <td>${p.razon_social || '<span class="text-muted">-</span>'}</td>
+                    <td>
+                        ${p.razon_social || '<span class="text-muted">-</span>'}
+                        <div class="small text-muted mt-1" style="font-size: 0.75rem;" title="Vendedor asignado"><i class="bi bi-person"></i> ${p.vendedor || 'Sin asignar'}</div>
+                    </td>
                     <td class="d-none d-md-table-cell">
                         ${p.telefono ? (p.es_propietario ? `<a href="tel:${p.telefono}" class="text-decoration-none">${p.telefono}</a>` : `<span class="text-muted">${p.telefono}</span>`) : '<span class="text-muted">-</span>'}
                     </td>

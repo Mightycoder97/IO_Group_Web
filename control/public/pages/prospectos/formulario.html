@@ -98,7 +98,7 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-12 mb-3">
+                                        <div class="col-md-6 mb-3">
                                             <label class="form-label">Tipo de Negocio</label>
                                             <select class="form-select" id="tipo_negocio">
                                                 <option value="Odontólogo">Odontólogo / Clínica Dental</option>
@@ -111,6 +111,12 @@
                                                 <option value="Tatuajes">Estudio de Tatuajes</option>
                                                 <option value="Industrial">Empresa Industrial</option>
                                                 <option value="Otro">Otro</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3" id="vendedorContainer" style="display: none;">
+                                            <label class="form-label">Vendedor Asignado</label>
+                                            <select class="form-select" id="vendedor">
+                                                <option value="">Seleccione vendedor asignado...</option>
                                             </select>
                                         </div>
                                     </div>
@@ -306,6 +312,25 @@
         }
         // Load data if editing
         async function loadData() {
+            const user = getUser();
+            if (user && user.rol === 'admin') {
+                try {
+                    const uRes = await api.get('/usuarios');
+                    if (uRes.success) {
+                        const vSelect = document.getElementById('vendedor');
+                        uRes.data.forEach(u => {
+                            if (u.activo) {
+                                const option = document.createElement('option');
+                                option.value = u.nombre_completo || u.username;
+                                option.textContent = u.nombre_completo || u.username;
+                                vSelect.appendChild(option);
+                            }
+                        });
+                        document.getElementById('vendedorContainer').style.display = 'block';
+                    }
+                } catch (e) { console.error("Error loading users", e); }
+            }
+
             if (!id) {
                 initMap();
                 return;
@@ -360,7 +385,10 @@
             document.getElementById('direccion').value = data.direccion || '';
             document.getElementById('distrito').value = data.distrito || '';
             document.getElementById('tipo_negocio').value = data.tipo_negocio || 'Otro';
-            // vendedor is auto-assigned, no field needed
+            if (document.getElementById('vendedor')) {
+                // To safely target options that might take a moment to inject 
+                setTimeout(() => { document.getElementById('vendedor').value = data.vendedor || ''; }, 100);
+            }
             document.getElementById('observaciones').value = data.observaciones || '';
             document.getElementById('fecha_siguiente_contacto').value = data.fecha_siguiente_contacto || '';
             document.getElementById('notas_seguimiento').value = data.notas_seguimiento || '';
@@ -404,7 +432,10 @@
                 latitud: document.getElementById('latitud').value,
                 longitud: document.getElementById('longitud').value,
                 tipo_negocio: document.getElementById('tipo_negocio').value,
-                vendedor: (function () { const u = getUser(); return id && currentData?.vendedor ? currentData.vendedor : (u?.nombre_completo || u?.nombre || u?.username || 'Usuario'); })(),
+                vendedor: (() => {
+                    const adminSel = document.getElementById('vendedor');
+                    return (adminSel && adminSel.offsetParent !== null && adminSel.value) ? adminSel.value : '';
+                })(),
                 observaciones: document.getElementById('observaciones').value,
                 fecha_siguiente_contacto: document.getElementById('fecha_siguiente_contacto').value,
                 notas_seguimiento: document.getElementById('notas_seguimiento').value
