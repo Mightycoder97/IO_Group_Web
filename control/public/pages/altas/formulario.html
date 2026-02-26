@@ -706,7 +706,9 @@
 
         async function loadGoogleMaps() {
             try {
-                const response = await api.get('/config.php');
+                // If api.js automatically appends .php (as in some setups), we should just call /config
+                // or use fetch directly since it's an external-facing config endpoint.
+                const response = await fetch(API_CONFIG.BASE_URL + '/config.php').then(res => res.json());
                 if (response.success && response.maps_key) {
                     const script = document.createElement('script');
                     script.src = `https://maps.googleapis.com/maps/api/js?key=${response.maps_key}&callback=initMap&libraries=places`;
