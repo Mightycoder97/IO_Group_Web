@@ -279,7 +279,7 @@ function subir_documentos() {
             $id_sede = $pdo->lastInsertId();
             
             // 4. ContratoServicio
-            $pdo->prepare("INSERT INTO ContratoServicio (id_sede, fecha_inicio, fecha_fin, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, doc_escaneado, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)")
+            $pdo->prepare("INSERT INTO ContratoServicio (id_sede, fecha_inicio, fecha_fin, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, tarifa_adicional_kg, doc_escaneado, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)")
                 ->execute([
                     $id_sede,
                     $datos['contrato']['fecha_inicio'],
@@ -288,6 +288,7 @@ function subir_documentos() {
                     $datos['contrato']['peso_limite_kg'] ?? null,
                     $datos['contrato']['tarifa'],
                     $datos['contrato']['tipo_tarifa'] ?? 'por_servicio',
+                    $datos['contrato']['tarifa_adicional_kg'] ?? null,
                     $finalDocFirmado // Associate signed document with contract
                 ]);
             $id_contrato = $pdo->lastInsertId();

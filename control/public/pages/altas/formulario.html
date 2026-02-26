@@ -187,6 +187,13 @@
                                         <label class="form-label">Teléfono de Contacto Sede</label>
                                         <input type="text" class="form-control" id="sede_telefono">
                                     </div>
+                                    <div class="col-12 mt-3">
+                                        <label class="form-label">Ubicación en el Mapa *</label>
+                                        <div id="map"></div>
+                                        <input type="hidden" id="sede_coordenadas" required>
+                                        <div class="form-text text-danger" id="mapError" style="display: none;">Debe
+                                            seleccionar una ubicación en el mapa.</div>
+                                    </div>
                                 </div>
 
                                 <!-- CONTRATO -->
@@ -214,9 +221,28 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label">Tarifa (S/.) *</label>
+                                        <label class="form-label">Modalidad de Cobro *</label>
+                                        <select class="form-select" id="contrato_tipo_tarifa" required
+                                            onchange="toggleTarifaFields()">
+                                            <option value="por_servicio">Por Recojo (Tarifa Plana)</option>
+                                            <option value="por_kg">Por Kilo Recogido</option>
+                                            <option value="mensual_fijo">Mensual Fijo</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Costo Base o Flat (S/.) *</label>
                                         <input type="number" step="0.01" class="form-control" id="contrato_tarifa"
                                             required>
+                                    </div>
+                                    <div class="col-md-4 tarifa-exceso" style="display: none;">
+                                        <label class="form-label">Límite de Peso (Kg) *</label>
+                                        <input type="number" step="0.01" class="form-control"
+                                            id="contrato_peso_limite_kg">
+                                    </div>
+                                    <div class="col-md-4 tarifa-exceso" style="display: none;">
+                                        <label class="form-label">Costo por Kg Excedente (S/.) *</label>
+                                        <input type="number" step="0.01" class="form-control"
+                                            id="contrato_tarifa_adicional_kg">
                                     </div>
                                 </div>
 
@@ -383,10 +409,25 @@
                     document.getElementById('sede_provincia').value = parsed.sede.provincia || '';
                     document.getElementById('sede_telefono').value = parsed.sede.contacto_telefono || '';
 
+                    if (parsed.sede.coordenadas_gps) {
+                        document.getElementById('sede_coordenadas').value = parsed.sede.coordenadas_gps;
+                        if (marker && map) {
+                            const [lat, lng] = parsed.sede.coordenadas_gps.split(',').map(Number);
+                            const pos = { lat, lng };
+                            marker.setPosition(pos);
+                            map.setCenter(pos);
+                        }
+                    }
+
                     document.getElementById('contrato_fecha_inicio').value = parsed.contrato.fecha_inicio || '';
                     document.getElementById('contrato_fecha_fin').value = parsed.contrato.fecha_fin || '';
                     document.getElementById('contrato_frecuencia').value = parsed.contrato.frecuencia || 'diario';
                     document.getElementById('contrato_tarifa').value = parsed.contrato.tarifa || '';
+                    document.getElementById('contrato_tipo_tarifa').value = parsed.contrato.tipo_tarifa || 'por_servicio';
+                    document.getElementById('contrato_peso_limite_kg').value = parsed.contrato.peso_limite_kg || '';
+                    document.getElementById('contrato_tarifa_adicional_kg').value = parsed.contrato.tarifa_adicional_kg || '';
+
+                    toggleTarifaFields();
 
                     // Advance to actual stage
                     avanzarEtapa(parseInt(currentProcesoData.etapa_actual));
@@ -472,15 +513,26 @@
                     direccion: document.getElementById('sede_direccion').value,
                     distrito: document.getElementById('sede_distrito').value,
                     provincia: document.getElementById('sede_provincia').value,
-                    contacto_telefono: document.getElementById('sede_telefono').value
+                    contacto_telefono: document.getElementById('sede_telefono').value,
+                    coordenadas_gps: document.getElementById('sede_coordenadas').value
                 },
                 contrato: {
                     fecha_inicio: document.getElementById('contrato_fecha_inicio').value,
                     fecha_fin: document.getElementById('contrato_fecha_fin').value,
                     frecuencia: document.getElementById('contrato_frecuencia').value,
-                    tarifa: document.getElementById('contrato_tarifa').value
+                    tarifa: document.getElementById('contrato_tarifa').value,
+                    tipo_tarifa: document.getElementById('contrato_tipo_tarifa').value,
+                    peso_limite_kg: document.getElementById('contrato_peso_limite_kg').value || null,
+                    tarifa_adicional_kg: document.getElementById('contrato_tarifa_adicional_kg').value || null
                 }
             };
+
+            const coords = document.getElementById('sede_coordenadas').value;
+            if (!coords) {
+                document.getElementById('mapError').style.display = 'block';
+                return;
+            }
+            document.getElementById('mapError').style.display = 'none';
 
             const btn = this.querySelector('button[type="submit"]');
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
@@ -603,6 +655,73 @@
             submitStage3(false);
         }
 
+        // Pricing Rules Toggle
+        function toggleTarifaFields() {
+            const tipo = document.getElementById('contrato_tipo_tarifa').value;
+            const extras = document.querySelectorAll('.tarifa-exceso');
+            const reqInputs = [document.getElementById('contrato_peso_limite_kg'), document.getElementById('contrato_tarifa_adicional_kg')];
+
+            if (tipo === 'por_kg') {
+                extras.forEach(el => el.style.display = 'block');
+                reqInputs.forEach(el => el.setAttribute('required', 'true'));
+            } else {
+                extras.forEach(el => el.style.display = 'none');
+                reqInputs.forEach(el => {
+                    el.removeAttribute('required');
+                    el.value = '';
+                });
+            }
+        }
+
+        // Map logic
+        let map;
+        let marker;
+        function initMap() {
+            const defaultPos = { lat: -12.046374, lng: -77.042793 }; // Lima, Peru
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: defaultPos,
+            });
+
+            marker = new google.maps.Marker({
+                map: map,
+                draggable: true,
+                animation: google.maps.Animation.DROP,
+                position: defaultPos
+            });
+
+            // Update coords on drag
+            google.maps.event.addListener(marker, 'dragend', function (evt) {
+                document.getElementById('sede_coordenadas').value = evt.latLng.lat().toFixed(6) + ',' + evt.latLng.lng().toFixed(6);
+                document.getElementById('mapError').style.display = 'none';
+            });
+
+            // Place marker on click
+            map.addListener('click', function (e) {
+                marker.setPosition(e.latLng);
+                document.getElementById('sede_coordenadas').value = e.latLng.lat().toFixed(6) + ',' + e.latLng.lng().toFixed(6);
+                document.getElementById('mapError').style.display = 'none';
+            });
+        }
+
+        async function loadGoogleMaps() {
+            try {
+                const response = await api.get('/config.php');
+                if (response.success && response.maps_key) {
+                    const script = document.createElement('script');
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${response.maps_key}&callback=initMap&libraries=places`;
+                    script.async = true;
+                    script.defer = true;
+                    document.head.appendChild(script);
+                } else {
+                    console.error('No Google Maps API Key found.');
+                }
+            } catch (err) {
+                console.error('Error loading config:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadGoogleMaps);
     </script>
 </body>
 

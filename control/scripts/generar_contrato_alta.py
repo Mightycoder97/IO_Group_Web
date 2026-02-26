@@ -77,6 +77,22 @@ def main():
         replacements['<<SEDE_DIRECCION>>'] = str(data['sede'].get('direccion', ''))
         replacements['<<SEDE_DISTRITO>>'] = str(data['sede'].get('distrito', ''))
         
+    # Generate pricing logic dynamically
+    if 'contrato' in data:
+        tipo_tarifa = data['contrato'].get('tipo_tarifa', 'por_servicio')
+        tarifa = data['contrato'].get('tarifa', '0')
+        peso_limite = data['contrato'].get('peso_limite_kg', '')
+        tarifa_adicional = data['contrato'].get('tarifa_adicional_kg', '')
+        
+        if tipo_tarifa == 'por_kg':
+            clausula = f"El servicio se establece bajo la modalidad 'Por Kilo Recogido'. El costo base establecido cubrirá un límite de {peso_limite} Kg. Por cada kilo excedente, se facturará un adicional de S/. {tarifa_adicional}."
+            replacements['[clausula_exceso_peso]'] = clausula
+            replacements['<<CLAUSULA_EXCESO>>'] = clausula
+        else:
+            clausula = f"El servicio se establece bajo la modalidad 'Por Recojo' con una tarifa plana por atención."
+            replacements['[clausula_exceso_peso]'] = clausula
+            replacements['<<CLAUSULA_EXCESO>>'] = clausula
+            
     replace_text_in_doc(doc, replacements)
 
     try:
