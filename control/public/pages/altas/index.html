@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Gestión de Altas - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/global.css" rel="stylesheet">
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Gestión de Altas</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" id="userMenuContent">
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="h4 mb-0"><i class="bi bi-person-plus text-primary"></i> Altas en Proceso</h2>
+                    <a href="formulario.html" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Nueva Alta
+                    </a>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Fecha Inicio</th>
+                                        <th>Cliente</th>
+                                        <th>Empresa</th>
+                                        <th>Sede</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="altasTableBody">
+                                    <tr>
+                                        <td colspan="7" class="text-center">Cargando datos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/config.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        document.getElementById('userMenuContent').innerHTML = getUserMenuHTML();
+        initPage('sedes');
+
+        async function loadAltas() {
+            try {
+                const response = await api.get('/altas.php?action=listar');
+                const tbody = document.getElementById('altasTableBody');
+
+                if (response.success && response.data.length > 0) {
+                    tbody.innerHTML = response.data.map(item => {
+                        let statusBadge = '';
+                        switch (parseInt(item.etapa_actual)) {
+                            case 1: statusBadge = '<span class="badge bg-secondary">Etapa 1: Captura</span>'; break;
+                            case 2: statusBadge = '<span class="badge bg-warning text-dark">Etapa 2: Generado</span>'; break;
+                            case 3: statusBadge = '<span class="badge bg-info">Etapa 3: Docs. Subidos</span>'; break;
+                            case 4: statusBadge = '<span class="badge bg-success">Completado</span>'; break;
+                        }
+
+                        const date = new Date(item.fecha_creacion).toLocaleDateString('es-PE', {
+                            year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+                        });
+
+                        return `
+                            <tr>
+                                <td>#${item.id_proceso}</td>
+                                <td>${date}</td>
+                                <td>${item.cliente_nombre || '-'}</td>
+                                <td>${item.empresa_nombre || '-'}</td>
+                                <td>${item.sede_nombre || '-'}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    <a href="formulario.html?id=${item.id_proceso}" class="btn btn-sm ${item.etapa_actual == 4 ? 'btn-outline-primary' : 'btn-primary'}">
+                                        <i class="bi ${item.etapa_actual == 4 ? 'bi-eye' : 'bi-arrow-right-circle'}"></i> 
+                                        ${item.etapa_actual == 4 ? 'Ver' : 'Continuar'}
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">No hay procesos de alta registrados</td></tr>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('altasTableBody').innerHTML = `
+                    <tr><td colspan="7" class="text-center text-danger">Error al cargar datos o tabla no migrada. Contacte a soporte.</td></tr>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAltas);
+    </script>
+</body>
+
+</html>

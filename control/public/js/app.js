@@ -70,7 +70,8 @@ function getSidebarHTML() {
             
             ${section('Clientes', [
         navItem('sedes/listar.html', 'geo-alt', 'Clientes', 'sedes'),
-        navItem('prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos')
+        navItem('prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos'),
+        navItem('altas/index.html', 'person-plus', 'Nuevas Altas', 'sedes')
     ])}
             
             ${section('Logístico', [

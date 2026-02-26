@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Alta - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/global.css" rel="stylesheet">
+    <style>
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50px;
+            right: 50px;
+            height: 3px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+
+        .step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 33%;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-circle,
+        .step.completed .step-circle {
+            background: #1B5E20;
+            color: white;
+            box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.2);
+        }
+
+        .step.completed .step-circle {
+            background: #2e7d32;
+        }
+
+        .step.active .step-label {
+            font-weight: bold;
+            color: #1B5E20;
+        }
+
+        .btn-check:checked+.btn-outline-primary {
+            background-color: #1B5E20;
+            border-color: #1B5E20;
+        }
+
+        #map {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="index.html">Gestión de Altas</a></li>
+                            <li class="breadcrumb-item active" id="pageTitle">Proceso de Alta</li>
+                        </ol>
+                    </nav>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+
+                        <!-- Stepper -->
+                        <div class="step-indicator" id="stepper">
+                            <div class="step active" id="indicator1">
+                                <div class="step-circle">1</div>
+                                <div class="step-label">Captura de Datos</div>
+                            </div>
+                            <div class="step" id="indicator2">
+                                <div class="step-circle">2</div>
+                                <div class="step-label">Generación de Contrato</div>
+                            </div>
+                            <div class="step" id="indicator3">
+                                <div class="step-circle">3</div>
+                                <div class="step-label">Validación y Activación</div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 1 -->
+                        <div id="stage1" style="display: none;">
+                            <form id="formStage1">
+                                <!-- CLIENTE -->
+                                <h5 class="text-primary border-bottom pb-2"><i class="bi bi-person"></i> Datos del
+                                    Titular / Cliente</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Nombre Completo *</label>
+                                        <input type="text" class="form-control" id="cliente_nombre" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Tipo Documento</label>
+                                        <select class="form-select" id="cliente_tipo_doc">
+                                            <option value="DNI">DNI</option>
+                                            <option value="Carnet de Extranjeria">Carnet Extranjería</option>
+                                            <option value="RUC">RUC</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Número Documento *</label>
+                                        <input type="text" class="form-control" id="cliente_dni" required>
+                                    </div>
+                                </div>
+
+                                <!-- EMPRESA -->
+                                <h5 class="text-primary border-bottom pb-2"><i class="bi bi-building"></i> Datos de la
+                                    Empresa</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Razón Social *</label>
+                                        <input type="text" class="form-control" id="empresa_razon_social" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">RUC *</label>
+                                        <input type="text" class="form-control" id="empresa_ruc" maxlength="11"
+                                            required>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">Dirección Fiscal</label>
+                                        <input type="text" class="form-control" id="empresa_direccion">
+                                    </div>
+                                </div>
+
+                                <!-- SEDE -->
+                                <h5 class="text-primary border-bottom pb-2"><i class="bi bi-geo-alt"></i> Datos de la
+                                    Sede Operativa</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nombre Comercial de Sede *</label>
+                                        <input type="text" class="form-control" id="sede_nombre_comercial" required
+                                            placeholder="Ej. Local Miraflores">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Dirección Operativa *</label>
+                                        <input type="text" class="form-control" id="sede_direccion" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Distrito</label>
+                                        <input type="text" class="form-control" id="sede_distrito">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Provincia</label>
+                                        <input type="text" class="form-control" id="sede_provincia">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Teléfono de Contacto Sede</label>
+                                        <input type="text" class="form-control" id="sede_telefono">
+                                    </div>
+                                </div>
+
+                                <!-- CONTRATO -->
+                                <h5 class="text-primary border-bottom pb-2"><i class="bi bi-file-earmark-text"></i>
+                                    Condiciones del Contrato</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Fecha Inicio *</label>
+                                        <input type="date" class="form-control" id="contrato_fecha_inicio" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Fecha Fin</label>
+                                        <input type="date" class="form-control" id="contrato_fecha_fin">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Frecuencia *</label>
+                                        <select class="form-select" id="contrato_frecuencia" required>
+                                            <option value="diario">Diario</option>
+                                            <option value="semanal">Semanal</option>
+                                            <option value="quincenal">Quincenal</option>
+                                            <option value="mensual">Mensual</option>
+                                            <option value="bimestral">Bimestral</option>
+                                            <option value="trimestral">Trimestral</option>
+                                            <option value="eventual">Eventual</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Tarifa (S/.) *</label>
+                                        <input type="number" step="0.01" class="form-control" id="contrato_tarifa"
+                                            required>
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary px-4 py-2">Guardar y Continuar a Etapa
+                                        2 <i class="bi bi-arrow-right"></i></button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Stage 2 -->
+                        <div id="stage2" style="display: none;" class="text-center py-5">
+                            <i class="bi bi-file-earmark-word text-primary mb-3" style="font-size: 4rem;"></i>
+                            <h3 class="mb-3">Generación de Contrato</h3>
+                            <p class="text-muted mb-4">Los datos han sido guardados correctamente. Ahora generaremos el
+                                documento Word del contrato basándonos en la plantilla.</p>
+
+                            <div id="stage2Buttons">
+                                <button type="button" class="btn btn-success btn-lg px-4" id="btnGenerarContrato"
+                                    onclick="generarContrato()">
+                                    <i class="bi bi-gear"></i> Generar Contrato
+                                </button>
+                            </div>
+
+                            <div id="stage2Download" style="display: none;" class="mt-4">
+                                <div class="alert alert-success d-inline-block px-4 py-3">
+                                    <i class="bi bi-check-circle-fill"></i> ¡Contrato generado exitosamente!
+                                </div>
+                                <br>
+                                <a href="#" id="linkDescargaContrato" class="btn btn-primary px-4 mb-4" target="_blank"
+                                    download>
+                                    <i class="bi bi-download"></i> Descargar Archivo para Firma
+                                </a>
+                                <br>
+                                <button type="button" class="btn btn-outline-secondary" onclick="avanzarEtapa(3)">
+                                    Continuar a Etapa 3 <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3 -->
+                        <div id="stage3" style="display: none;" class="py-3">
+                            <form id="formStage3">
+                                <h4 class="mb-4"><i class="bi bi-cloud-arrow-up text-primary"></i> Validación y Subida
+                                    de Documentos</h4>
+
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-6">
+                                        <div class="card bg-light border-0 h-100">
+                                            <div class="card-body">
+                                                <h5><i class="bi bi-file-earmark-pdf text-danger"></i> Contrato Firmado
+                                                </h5>
+                                                <p class="text-muted small">Sube el documento Word o PDF previamente
+                                                    descargado y firmado por ambas partes.</p>
+                                                <input type="file" class="form-control" id="fileContrato"
+                                                    accept=".pdf,.doc,.docx" required>
+                                                <div id="docFirmadoPreview" class="mt-2 text-success small d-none">
+                                                    <a href="#" target="_blank" id="linkDocFirmadoPreview">Ver archivo
+                                                        actual subido</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-light border-0 h-100">
+                                            <div class="card-body">
+                                                <h5><i class="bi bi-receipt text-success"></i> Comprobante de Pago
+                                                    Adelantado</h5>
+                                                <p class="text-muted small">Evidencia del pago por el servicio. Puedes
+                                                    subir imagen o PDF.</p>
+                                                <input type="file" class="form-control" id="fileComprobante"
+                                                    accept="image/*,.pdf" required>
+                                                <div id="comprobantePreview" class="mt-2 text-success small d-none">
+                                                    <a href="#" target="_blank" id="linkComprobantePreview">Ver archivo
+                                                        actual subido</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Warning info -->
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Al finalizar este proceso, la Sede y
+                                    el Cliente serán inyectados oficialmente a la vista general operativa del sistema de
+                                    Sedes.
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="button" class="btn btn-secondary me-2"
+                                        onclick="guardarTemporalStage3()">Guardar Archivos sin Finalizar</button>
+                                    <button type="submit" class="btn btn-success px-4" id="btnFinalizarAlta">
+                                        <i class="bi bi-check2-all"></i> Finalizar y Activar Sede
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Completed Mode -->
+                        <div id="stageCompleted" style="display: none;" class="text-center py-5">
+                            <i class="bi bi-check-circle text-success mb-3" style="font-size: 5rem;"></i>
+                            <h2 class="mb-3">¡Alta Completada!</h2>
+                            <p class="text-muted mb-4">Esta sede ha sido inyectada al sistema general y ya se encuentra
+                                activa.</p>
+                            <a href="../sedes/listar.html" class="btn btn-primary px-4"><i class="bi bi-list-task"></i>
+                                Ver Sedes Activas</a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals and Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/config.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('sedes');
+
+        let currentIdProceso = getUrlParam('id');
+        let currentProcesoData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (currentIdProceso) {
+                cargarProceso(currentIdProceso);
+            } else {
+                avanzarEtapa(1);
+            }
+        });
+
+        // Stage 1 Auto-fill Date mapping
+        document.getElementById('contrato_fecha_inicio').addEventListener('change', function () {
+            const startDate = this.value;
+            if (startDate) {
+                const date = new Date(startDate);
+                date.setFullYear(date.getFullYear() + 1);
+                document.getElementById('contrato_fecha_fin').value = date.toISOString().split('T')[0];
+            }
+        });
+
+        async function cargarProceso(id) {
+            try {
+                const res = await api.get(`/altas.php?action=obtener&id=${id}`);
+                if (res.success) {
+                    currentProcesoData = res.data;
+                    const parsed = currentProcesoData.datos_parsed;
+
+                    // Fill form 1
+                    document.getElementById('cliente_nombre').value = parsed.cliente.nombre || '';
+                    document.getElementById('cliente_tipo_doc').value = parsed.cliente.tipo_documento || 'DNI';
+                    document.getElementById('cliente_dni').value = parsed.cliente.dni || '';
+
+                    document.getElementById('empresa_razon_social').value = parsed.empresa.razon_social || '';
+                    document.getElementById('empresa_ruc').value = parsed.empresa.ruc || '';
+                    document.getElementById('empresa_direccion').value = parsed.empresa.direccion_fiscal || '';
+
+                    document.getElementById('sede_nombre_comercial').value = parsed.sede.nombre_comercial || '';
+                    document.getElementById('sede_direccion').value = parsed.sede.direccion || '';
+                    document.getElementById('sede_distrito').value = parsed.sede.distrito || '';
+                    document.getElementById('sede_provincia').value = parsed.sede.provincia || '';
+                    document.getElementById('sede_telefono').value = parsed.sede.contacto_telefono || '';
+
+                    document.getElementById('contrato_fecha_inicio').value = parsed.contrato.fecha_inicio || '';
+                    document.getElementById('contrato_fecha_fin').value = parsed.contrato.fecha_fin || '';
+                    document.getElementById('contrato_frecuencia').value = parsed.contrato.frecuencia || 'diario';
+                    document.getElementById('contrato_tarifa').value = parsed.contrato.tarifa || '';
+
+                    // Advance to actual stage
+                    avanzarEtapa(parseInt(currentProcesoData.etapa_actual));
+
+                    // If doc generated, show it
+                    if (currentProcesoData.doc_generado && currentProcesoData.etapa_actual == 2) {
+                        mostrarDescargaContrato(currentProcesoData.doc_generado);
+                    }
+
+                    // If documents already uploaded occasionally
+                    if (currentProcesoData.doc_firmado) {
+                        const link = document.getElementById('linkDocFirmadoPreview');
+                        link.href = API_CONFIG.BASE_URL.replace('/api', '') + '/' + currentProcesoData.doc_firmado;
+                        document.getElementById('docFirmadoPreview').classList.remove('d-none');
+                        document.getElementById('fileContrato').removeAttribute('required'); // No need if exists
+                    }
+                    if (currentProcesoData.comprobante_pago) {
+                        const link = document.getElementById('linkComprobantePreview');
+                        link.href = API_CONFIG.BASE_URL.replace('/api', '') + '/' + currentProcesoData.comprobante_pago;
+                        document.getElementById('comprobantePreview').classList.remove('d-none');
+                        document.getElementById('fileComprobante').removeAttribute('required'); // No need if exists
+                    }
+
+                } else {
+                    showToast('Proceso no encontrado', 'danger');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function avanzarEtapa(etapa) {
+            document.getElementById('stage1').style.display = 'none';
+            document.getElementById('stage2').style.display = 'none';
+            document.getElementById('stage3').style.display = 'none';
+            document.getElementById('stageCompleted').style.display = 'none';
+
+            // Mark indicators
+            const indicators = [
+                document.getElementById('indicator1'),
+                document.getElementById('indicator2'),
+                document.getElementById('indicator3')
+            ];
+
+            indicators.forEach((ind, index) => {
+                if (ind) {
+                    ind.classList.remove('active', 'completed');
+                    if (index + 1 < etapa) {
+                        ind.classList.add('completed');
+                    } else if (index + 1 === etapa && etapa < 4) {
+                        ind.classList.add('active');
+                    }
+                }
+            });
+
+            if (etapa === 1) document.getElementById('stage1').style.display = 'block';
+            if (etapa === 2) document.getElementById('stage2').style.display = 'block';
+            if (etapa === 3) document.getElementById('stage3').style.display = 'block';
+            if (etapa === 4) {
+                document.getElementById('stageCompleted').style.display = 'block';
+                indicators[2].classList.add('completed');
+                indicators[2].classList.remove('active');
+            }
+        }
+
+        // Submitting Stage 1
+        document.getElementById('formStage1').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const payload = {
+                cliente: {
+                    nombre: document.getElementById('cliente_nombre').value,
+                    tipo_documento: document.getElementById('cliente_tipo_doc').value,
+                    dni: document.getElementById('cliente_dni').value
+                },
+                empresa: {
+                    razon_social: document.getElementById('empresa_razon_social').value,
+                    ruc: document.getElementById('empresa_ruc').value,
+                    direccion_fiscal: document.getElementById('empresa_direccion').value
+                },
+                sede: {
+                    nombre_comercial: document.getElementById('sede_nombre_comercial').value,
+                    direccion: document.getElementById('sede_direccion').value,
+                    distrito: document.getElementById('sede_distrito').value,
+                    provincia: document.getElementById('sede_provincia').value,
+                    contacto_telefono: document.getElementById('sede_telefono').value
+                },
+                contrato: {
+                    fecha_inicio: document.getElementById('contrato_fecha_inicio').value,
+                    fecha_fin: document.getElementById('contrato_fecha_fin').value,
+                    frecuencia: document.getElementById('contrato_frecuencia').value,
+                    tarifa: document.getElementById('contrato_tarifa').value
+                }
+            };
+
+            const btn = this.querySelector('button[type="submit"]');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+            btn.disabled = true;
+
+            try {
+                // If it already has an ID, we might need a put, but let's assume we create a new one for now if no ID
+                const res = await api.post('/altas.php?action=guardar_etapa1', payload);
+                if (res.success) {
+                    showToast('Datos guardados exitosamente', 'success');
+                    if (!currentIdProceso) {
+                        // Update URL with ID without reloading
+                        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?id=' + res.id_proceso;
+                        window.history.pushState({ path: newUrl }, '', newUrl);
+                        currentIdProceso = res.id_proceso;
+                    }
+                    avanzarEtapa(2);
+                } else {
+                    showToast(res.message || 'Error guardando datos', 'danger');
+                }
+            } catch (err) {
+                showToast('Error en el servidor', 'danger');
+            } finally {
+                btn.innerHTML = 'Guardar y Continuar a Etapa 2 <i class="bi bi-arrow-right"></i>';
+                btn.disabled = false;
+            }
+        });
+
+        // Stage 2
+        async function generarContrato() {
+            if (!currentIdProceso) return;
+
+            const btn = document.getElementById('btnGenerarContrato');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+            btn.disabled = true;
+
+            try {
+                const res = await api.post('/altas.php?action=generar_contrato', { id_proceso: currentIdProceso });
+                if (res.success) {
+                    showToast('Documento generado', 'success');
+                    mostrarDescargaContrato(res.file_url);
+                } else {
+                    showToast(res.message || 'Error generando contrato', 'danger');
+                }
+            } catch (err) {
+                showToast('Error en la conexión con el servidor', 'danger');
+            } finally {
+                btn.innerHTML = '<i class="bi bi-gear"></i> Generar Contrato';
+                btn.disabled = false;
+            }
+        }
+
+        function mostrarDescargaContrato(path) {
+            document.getElementById('stage2Buttons').style.display = 'none';
+            document.getElementById('stage2Download').style.display = 'block';
+
+            const baseUrl = API_CONFIG.BASE_URL.replace('/api', '');
+            document.getElementById('linkDescargaContrato').href = baseUrl + '/' + path;
+        }
+
+        // Stage 3 Handling File Uploads
+        async function submitStage3(isFinalizing) {
+            const fileContrato = document.getElementById('fileContrato').files[0];
+            const fileComprobante = document.getElementById('fileComprobante').files[0];
+
+            const formData = new FormData();
+            formData.append('id_proceso', currentIdProceso);
+            if (fileContrato) formData.append('doc_firmado', fileContrato);
+            if (fileComprobante) formData.append('comprobante_pago', fileComprobante);
+
+            if (isFinalizing) {
+                formData.append('finalizar', 'true');
+            }
+
+            const url = API_CONFIG.BASE_URL + '/altas.php?action=subir_documentos';
+            const token = localStorage.getItem('iogroup_token');
+
+            let btnToLock = isFinalizing ? document.getElementById('btnFinalizarAlta') : document.querySelector('.btn-secondary');
+            const originalText = btnToLock.innerHTML;
+            btnToLock.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Subiendo...';
+            btnToLock.disabled = true;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    if (isFinalizing) {
+                        showToast('Proceso Finalizado y Sede Inyectada con Éxito', 'success');
+                        avanzarEtapa(4);
+                    } else {
+                        showToast('Documentos resguardados correctamente.', 'success');
+                        // Reload data to get preview links
+                        cargarProceso(currentIdProceso);
+                    }
+                } else {
+                    showToast(result.message || 'Error subiendo documentos', 'danger');
+                }
+            } catch (err) {
+                showToast('Error subiendo documentos', 'danger');
+            } finally {
+                btnToLock.innerHTML = originalText;
+                btnToLock.disabled = false;
+            }
+        }
+
+        document.getElementById('formStage3').addEventListener('submit', function (e) {
+            e.preventDefault();
+            // Ask for confirmation
+            if (confirm('¿Está seguro de querer finalizar el proceso? Esto inyectará los datos automáticamente a las tablas de Clientes y Sedes Activas.')) {
+                submitStage3(true);
+            }
+        });
+
+        function guardarTemporalStage3() {
+            submitStage3(false);
+        }
+
+    </script>
+</body>
+
+</html>
