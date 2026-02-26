@@ -389,7 +389,7 @@
 
         async function cargarProceso(id) {
             try {
-                const res = await api.get(`/altas.php?action=obtener&id=${id}`);
+                const res = await api.get(`/altas?action=obtener&id=${id}`);
                 if (res.success) {
                     currentProcesoData = res.data;
                     const parsed = currentProcesoData.datos_parsed;
@@ -540,7 +540,7 @@
 
             try {
                 // If it already has an ID, we might need a put, but let's assume we create a new one for now if no ID
-                const res = await api.post('/altas.php?action=guardar_etapa1', payload);
+                const res = await api.post('/altas?action=guardar_etapa1', payload);
                 if (res.success) {
                     showToast('Datos guardados exitosamente', 'success');
                     if (!currentIdProceso) {
@@ -570,7 +570,7 @@
             btn.disabled = true;
 
             try {
-                const res = await api.post('/altas.php?action=generar_contrato', { id_proceso: currentIdProceso });
+                const res = await api.post('/altas?action=generar_contrato', { id_proceso: currentIdProceso });
                 if (res.success) {
                     showToast('Documento generado', 'success');
                     mostrarDescargaContrato(res.file_url);
