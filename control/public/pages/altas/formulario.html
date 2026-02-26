@@ -704,19 +704,16 @@
             });
         }
 
-        async function loadGoogleMaps() {
+        function loadGoogleMaps() {
             try {
-                // If api.js automatically appends .php (as in some setups), we should just call /config
-                // or use fetch directly since it's an external-facing config endpoint.
-                const response = await fetch(API_CONFIG.BASE_URL + '/config.php').then(res => res.json());
-                if (response.success && response.maps_key) {
+                if (typeof API_CONFIG !== 'undefined' && API_CONFIG.GOOGLE_MAPS_API_KEY) {
                     const script = document.createElement('script');
-                    script.src = `https://maps.googleapis.com/maps/api/js?key=${response.maps_key}&callback=initMap&libraries=places`;
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&libraries=places`;
                     script.async = true;
                     script.defer = true;
                     document.head.appendChild(script);
                 } else {
-                    console.error('No Google Maps API Key found.');
+                    console.error('No Google Maps API Key found in API_CONFIG.');
                 }
             } catch (err) {
                 console.error('Error loading config:', err);
