@@ -298,9 +298,19 @@
                                     </div>
                                 </div>
 
-                                <div class="text-end">
-                                    <button type="submit" class="btn btn-primary px-4 py-2">Guardar y Continuar a Etapa
-                                        2 <i class="bi bi-arrow-right"></i></button>
+                                <div class="d-flex justify-content-between">
+                                    <a href="index.html" class="btn btn-outline-secondary py-2">
+                                        <i class="bi bi-arrow-left"></i> Volver a Lista
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-secondary px-3 py-2 me-2"
+                                            onclick="guardarYVolver()">
+                                            <i class="bi bi-save"></i> Guardar y Volver a Lista
+                                        </button>
+                                        <button type="submit" class="btn btn-primary px-4 py-2">Guardar y Continuar a
+                                            Etapa
+                                            2 <i class="bi bi-arrow-right"></i></button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -317,6 +327,11 @@
                                     onclick="generarContrato()">
                                     <i class="bi bi-gear"></i> Generar Contrato
                                 </button>
+                                <div class="mt-3">
+                                    <a href="index.html" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i> Volver a Lista
+                                    </a>
+                                </div>
                             </div>
 
                             <!-- Preview state: shows generated contract -->
@@ -401,12 +416,17 @@
                                     Sedes.
                                 </div>
 
-                                <div class="text-end">
-                                    <button type="button" class="btn btn-secondary me-2"
-                                        onclick="guardarTemporalStage3()">Guardar Archivos sin Finalizar</button>
-                                    <button type="submit" class="btn btn-success px-4" id="btnFinalizarAlta">
-                                        <i class="bi bi-check2-all"></i> Finalizar y Activar Sede
-                                    </button>
+                                <div class="d-flex justify-content-between">
+                                    <a href="index.html" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left"></i> Volver a Lista
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-secondary me-2"
+                                            onclick="guardarTemporalStage3()">Guardar Archivos sin Finalizar</button>
+                                        <button type="submit" class="btn btn-success px-4" id="btnFinalizarAlta">
+                                            <i class="bi bi-check2-all"></i> Finalizar y Activar Sede
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -564,10 +584,9 @@
         }
 
         // Submitting Stage 1
-        document.getElementById('formStage1').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const payload = {
+        function buildPayloadEtapa1() {
+            return {
+                id_proceso: currentIdProceso || undefined,
                 cliente: {
                     nombre: document.getElementById('cliente_nombre').value,
                     tipo_documento: document.getElementById('cliente_tipo_doc').value,
@@ -596,6 +615,12 @@
                     tarifa_adicional_kg: document.getElementById('contrato_tarifa_adicional_kg').value || null
                 }
             };
+        }
+
+        document.getElementById('formStage1').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const payload = buildPayloadEtapa1();
 
             const coords = document.getElementById('sede_coordenadas').value;
             if (!coords) {
@@ -609,7 +634,6 @@
             btn.disabled = true;
 
             try {
-                // If it already has an ID, we might need a put, but let's assume we create a new one for now if no ID
                 const res = await api.post('/altas?action=guardar_etapa1', payload);
                 if (res.success) {
                     showToast('Datos guardados exitosamente', 'success');
@@ -630,6 +654,25 @@
                 btn.disabled = false;
             }
         });
+
+        // Save and go back to the list
+        async function guardarYVolver() {
+            const payload = buildPayloadEtapa1();
+
+            try {
+                const res = await api.post('/altas?action=guardar_etapa1', payload);
+                if (res.success) {
+                    showToast('Datos guardados', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 500);
+                } else {
+                    showToast(res.message || 'Error guardando datos', 'danger');
+                }
+            } catch (err) {
+                showToast('Error en el servidor', 'danger');
+            }
+        }
 
         // Stage 2
         async function generarContrato() {

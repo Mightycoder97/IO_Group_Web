@@ -30,6 +30,9 @@ switch ($method) {
             echo json_encode(['success' => false, 'message' => 'Acción no válida']);
         }
         break;
+    case 'DELETE':
+        eliminar_alta();
+        break;
     default:
         http_response_code(405);
         echo json_encode(['success' => false, 'message' => 'Método no permitido']);
@@ -96,15 +99,69 @@ function guardar_etapa1() {
         return;
     }
     
-    $id = db()->insert(
-        "INSERT INTO ProcesoAlta (datos_json, etapa_actual) VALUES (?, 1)",
-        [$json]
-    );
+    $id_proceso = $data['id_proceso'] ?? null;
+    
+    // Remove id_proceso from the JSON payload before storing
+    $store_data = $data;
+    unset($store_data['id_proceso']);
+    $store_json = json_encode($store_data, JSON_UNESCAPED_UNICODE);
+    
+    if ($id_proceso) {
+        // Update existing process
+        db()->execute(
+            "UPDATE ProcesoAlta SET datos_json = ?, fecha_modificacion = NOW() WHERE id_proceso = ?",
+            [$store_json, $id_proceso]
+        );
+        $id = $id_proceso;
+    } else {
+        // Insert new process
+        $id = db()->insert(
+            "INSERT INTO ProcesoAlta (datos_json, etapa_actual) VALUES (?, 1)",
+            [$store_json]
+        );
+    }
     
     echo json_encode([
         'success' => true,
-        'message' => 'Datos guardados. Avanzando a Etapa 2.',
+        'message' => 'Datos guardados.',
         'id_proceso' => $id
+    ]);
+}
+
+function eliminar_alta() {
+    $user = canEdit();
+    
+    $id = $_GET['id'] ?? null;
+    if (!$id) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'ID requerido']);
+        return;
+    }
+    
+    $proceso = db()->queryOne("SELECT * FROM ProcesoAlta WHERE id_proceso = ?", [$id]);
+    if (!$proceso) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Proceso no encontrado']);
+        return;
+    }
+    
+    // Delete associated files if they exist
+    $upload_base = realpath(__DIR__ . '/../') . '/';
+    $files_to_delete = ['doc_generado', 'doc_firmado', 'comprobante_pago'];
+    foreach ($files_to_delete as $field) {
+        if (!empty($proceso[$field])) {
+            $filepath = $upload_base . $proceso[$field];
+            if (file_exists($filepath)) {
+                @unlink($filepath);
+            }
+        }
+    }
+    
+    db()->execute("DELETE FROM ProcesoAlta WHERE id_proceso = ?", [$id]);
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Proceso de alta eliminado correctamente'
     ]);
 }
 

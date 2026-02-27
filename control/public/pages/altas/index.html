@@ -110,10 +110,15 @@
                                 <td>${item.sede_nombre || '-'}</td>
                                 <td>${statusBadge}</td>
                                 <td>
-                                    <a href="formulario.html?id=${item.id_proceso}" class="btn btn-sm ${item.etapa_actual == 4 ? 'btn-outline-primary' : 'btn-primary'}">
-                                        <i class="bi ${item.etapa_actual == 4 ? 'bi-eye' : 'bi-arrow-right-circle'}"></i> 
-                                        ${item.etapa_actual == 4 ? 'Ver' : 'Continuar'}
-                                    </a>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="formulario.html?id=${item.id_proceso}" class="btn ${item.etapa_actual == 4 ? 'btn-outline-primary' : 'btn-primary'}">
+                                            <i class="bi ${item.etapa_actual == 4 ? 'bi-eye' : 'bi-arrow-right-circle'}"></i> 
+                                            ${item.etapa_actual == 4 ? 'Ver' : 'Continuar'}
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" onclick="deleteAlta(${item.id_proceso}, '${(item.empresa_nombre || '').replace(/'/g, "\\'")}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -126,6 +131,23 @@
                 document.getElementById('altasTableBody').innerHTML = `
                     <tr><td colspan="7" class="text-center text-danger">Error al cargar datos o tabla no migrada. Contacte a soporte.</td></tr>
                 `;
+            }
+        }
+
+        async function deleteAlta(id, nombre) {
+            if (!confirm(`¿Está seguro de eliminar el proceso de alta #${id}${nombre ? ' (' + nombre + ')' : ''}?\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
+            try {
+                const res = await api.delete(`/altas/${id}`);
+                if (res.success) {
+                    showToast('Proceso eliminado correctamente', 'success');
+                    loadAltas();
+                } else {
+                    showToast(res.message || 'Error al eliminar', 'danger');
+                }
+            } catch (err) {
+                showToast('Error en la conexión', 'danger');
             }
         }
 
