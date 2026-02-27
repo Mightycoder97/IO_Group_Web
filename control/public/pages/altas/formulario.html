@@ -530,13 +530,13 @@
                     // If documents already uploaded occasionally
                     if (currentProcesoData.doc_firmado) {
                         const link = document.getElementById('linkDocFirmadoPreview');
-                        link.href = API_CONFIG.BASE_URL.replace('/api', '') + '/' + currentProcesoData.doc_firmado;
+                        link.href = API_BASE.replace('/api', '/') + currentProcesoData.doc_firmado;
                         document.getElementById('docFirmadoPreview').classList.remove('d-none');
                         document.getElementById('fileContrato').removeAttribute('required'); // No need if exists
                     }
                     if (currentProcesoData.comprobante_pago) {
                         const link = document.getElementById('linkComprobantePreview');
-                        link.href = API_CONFIG.BASE_URL.replace('/api', '') + '/' + currentProcesoData.comprobante_pago;
+                        link.href = API_BASE.replace('/api', '/') + currentProcesoData.comprobante_pago;
                         document.getElementById('comprobantePreview').classList.remove('d-none');
                         document.getElementById('fileComprobante').removeAttribute('required'); // No need if exists
                     }
