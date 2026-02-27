@@ -84,7 +84,7 @@
 
         async function loadAltas() {
             try {
-                const response = await api.get('/altas.php?action=listar');
+                const response = await api.get('/altas?action=listar');
                 const tbody = document.getElementById('altasTableBody');
 
                 if (response.success && response.data.length > 0) {
