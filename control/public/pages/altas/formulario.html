@@ -76,6 +76,58 @@
             border-radius: 8px;
             border: 1px solid #dee2e6;
         }
+
+        /* Contract Preview */
+        .contract-preview-container {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+
+        .contract-preview-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #1B5E20, #2e7d32);
+            color: white;
+        }
+
+        .contract-preview-toolbar .toolbar-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .contract-preview-toolbar .toolbar-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .contract-preview-frame {
+            width: 100%;
+            height: 75vh;
+            min-height: 600px;
+            border: none;
+            background: white;
+        }
+
+        /* Print: only show the iframe content */
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+
+            .contract-preview-frame {
+                visibility: visible !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+        }
     </style>
 </head>
 
@@ -254,32 +306,50 @@
                         </div>
 
                         <!-- Stage 2 -->
-                        <div id="stage2" style="display: none;" class="text-center py-5">
-                            <i class="bi bi-file-earmark-word text-primary mb-3" style="font-size: 4rem;"></i>
-                            <h3 class="mb-3">Generación de Contrato</h3>
-                            <p class="text-muted mb-4">Los datos han sido guardados correctamente. Ahora generaremos el
-                                documento Word del contrato basándonos en la plantilla.</p>
-
-                            <div id="stage2Buttons">
+                        <div id="stage2" style="display: none;">
+                            <!-- Initial state: generate button -->
+                            <div id="stage2Buttons" class="text-center py-5">
+                                <i class="bi bi-file-earmark-text text-primary mb-3" style="font-size: 4rem;"></i>
+                                <h3 class="mb-3">Generación de Contrato</h3>
+                                <p class="text-muted mb-4">Los datos han sido guardados correctamente. Generaremos el
+                                    contrato en formato HTML para que puedas revisarlo e imprimirlo.</p>
                                 <button type="button" class="btn btn-success btn-lg px-4" id="btnGenerarContrato"
                                     onclick="generarContrato()">
                                     <i class="bi bi-gear"></i> Generar Contrato
                                 </button>
                             </div>
 
-                            <div id="stage2Download" style="display: none;" class="mt-4">
-                                <div class="alert alert-success d-inline-block px-4 py-3">
-                                    <i class="bi bi-check-circle-fill"></i> ¡Contrato generado exitosamente!
+                            <!-- Preview state: shows generated contract -->
+                            <div id="stage2Preview" style="display: none;">
+                                <div class="contract-preview-container">
+                                    <div class="contract-preview-toolbar">
+                                        <div class="toolbar-title">
+                                            <i class="bi bi-file-earmark-check"></i>
+                                            Vista Previa del Contrato
+                                            <span id="contractNumber" class="ms-2 opacity-75"
+                                                style="font-size: 0.85rem;"></span>
+                                        </div>
+                                        <div class="toolbar-actions">
+                                            <button type="button" class="btn btn-sm btn-outline-light"
+                                                onclick="imprimirContrato()">
+                                                <i class="bi bi-printer"></i> Imprimir
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-warning"
+                                                onclick="generarContrato()">
+                                                <i class="bi bi-arrow-repeat"></i> Regenerar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <iframe id="contractPreviewFrame" class="contract-preview-frame"></iframe>
                                 </div>
-                                <br>
-                                <a href="#" id="linkDescargaContrato" class="btn btn-primary px-4 mb-4" target="_blank"
-                                    download>
-                                    <i class="bi bi-download"></i> Descargar Archivo para Firma
-                                </a>
-                                <br>
-                                <button type="button" class="btn btn-outline-secondary" onclick="avanzarEtapa(3)">
-                                    Continuar a Etapa 3 <i class="bi bi-arrow-right"></i>
-                                </button>
+                                <div class="d-flex justify-content-between mt-3">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="avanzarEtapa(1)">
+                                        <i class="bi bi-arrow-left"></i> Volver a Etapa 1
+                                    </button>
+                                    <button type="button" class="btn btn-primary px-4" onclick="avanzarEtapa(3)">
+                                        Continuar a Etapa 3 <i class="bi bi-arrow-right"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -566,14 +636,14 @@
             if (!currentIdProceso) return;
 
             const btn = document.getElementById('btnGenerarContrato');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando...';
             btn.disabled = true;
 
             try {
                 const res = await api.post('/altas?action=generar_contrato', { id_proceso: currentIdProceso });
-                if (res.success) {
-                    showToast('Documento generado', 'success');
-                    mostrarDescargaContrato(res.file_url);
+                if (res.success && res.contract_html) {
+                    showToast('Contrato generado exitosamente', 'success');
+                    mostrarVistaPrevia(res.contract_html, res.numero_contrato);
                 } else {
                     showToast(res.message || 'Error generando contrato', 'danger');
                 }
@@ -585,12 +655,36 @@
             }
         }
 
+        function mostrarVistaPrevia(html, numContrato) {
+            document.getElementById('stage2Buttons').style.display = 'none';
+            document.getElementById('stage2Preview').style.display = 'block';
+
+            if (numContrato) {
+                document.getElementById('contractNumber').textContent = numContrato;
+            }
+
+            // Write the HTML into the iframe
+            const iframe = document.getElementById('contractPreviewFrame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(html);
+            iframeDoc.close();
+        }
+
+        function imprimirContrato() {
+            const iframe = document.getElementById('contractPreviewFrame');
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        }
+
+        // Backward compatibility: if doc was already generated, load it from URL
         function mostrarDescargaContrato(path) {
             document.getElementById('stage2Buttons').style.display = 'none';
-            document.getElementById('stage2Download').style.display = 'block';
+            document.getElementById('stage2Preview').style.display = 'block';
 
             const baseUrl = API_CONFIG.BASE_URL.replace('/api', '');
-            document.getElementById('linkDescargaContrato').href = baseUrl + '/' + path;
+            const iframe = document.getElementById('contractPreviewFrame');
+            iframe.src = baseUrl + '/' + path;
         }
 
         // Stage 3 Handling File Uploads

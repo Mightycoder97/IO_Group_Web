@@ -127,28 +127,6 @@ function generar_contrato() {
         return;
     }
     
-    $template_path = realpath(__DIR__ . '/../modelo_contrato.docx');
-    if (!$template_path || !file_exists($template_path)) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Plantilla de contrato no encontrada en el servidor.']);
-        return;
-    }
-    
-    // Ensure uploads directory exists
-    $output_dir = __DIR__ . '/../uploads/altas';
-    if (!is_dir($output_dir)) {
-        mkdir($output_dir, 0755, true);
-    }
-    $output_dir = realpath($output_dir);
-    if (!$output_dir) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'No se pudo crear el directorio de salida.']);
-        return;
-    }
-    
-    $output_filename = 'Contrato_' . $id_proceso . '_' . time() . '.docx';
-    $output_path = $output_dir . '/' . $output_filename;
-    
     // Parse the stored JSON data
     $datos = json_decode($proceso['datos_json'], true);
     if (!$datos) {
@@ -157,79 +135,44 @@ function generar_contrato() {
         return;
     }
     
-    // Build replacement map
-    $replacements = [];
+    // Generate contract number: year-padded_id
+    $year = date('Y');
+    $numero_contrato = "N°{$year}-" . str_pad($id_proceso, 6, '0', STR_PAD_LEFT);
     
-    // Generic placeholders: [section_key]
-    foreach ($datos as $section => $values) {
-        if (is_array($values)) {
-            foreach ($values as $k => $v) {
-                $replacements["[{$section}_{$k}]"] = strval($v ?? '');
-            }
-        } else {
-            $replacements["[{$section}]"] = strval($values ?? '');
-        }
+    // Generate HTML from template
+    $template_file = __DIR__ . '/templates/contrato_template.php';
+    if (!file_exists($template_file)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Plantilla HTML del contrato no encontrada.']);
+        return;
     }
     
-    // Common template tags
-    if (isset($datos['empresa'])) {
-        $replacements['<<RAZON_SOCIAL>>'] = strval($datos['empresa']['razon_social'] ?? '');
-        $replacements['<<RUC>>'] = strval($datos['empresa']['ruc'] ?? '');
-        $replacements['<<DIRECCION>>'] = strval($datos['empresa']['direccion_fiscal'] ?? '');
-    }
-    
-    if (isset($datos['cliente'])) {
-        $replacements['<<REPRESENTANTE>>'] = strval($datos['cliente']['nombre'] ?? '');
-        $replacements['<<DNI>>'] = strval($datos['cliente']['dni'] ?? '');
-    }
-    
-    if (isset($datos['sede'])) {
-        $replacements['<<SEDE_DIRECCION>>'] = strval($datos['sede']['direccion'] ?? '');
-        $replacements['<<SEDE_DISTRITO>>'] = strval($datos['sede']['distrito'] ?? '');
-    }
-    
-    // Pricing clause
-    if (isset($datos['contrato'])) {
-        $tipo_tarifa = $datos['contrato']['tipo_tarifa'] ?? 'por_servicio';
-        $tarifa = $datos['contrato']['tarifa'] ?? '0';
-        $peso_limite = $datos['contrato']['peso_limite_kg'] ?? '';
-        $tarifa_adicional = $datos['contrato']['tarifa_adicional_kg'] ?? '';
-        
-        $replacements['<<TARIFA>>'] = strval($tarifa);
-        $replacements['[contrato_tarifa]'] = strval($tarifa);
-        
-        if ($tipo_tarifa === 'por_kg') {
-            $clausula = "El servicio se establece bajo la modalidad 'Por Kilo Recogido'. El costo base establecido cubrirá un límite de {$peso_limite} Kg. Por cada kilo excedente, se facturará un adicional de S/. {$tarifa_adicional}.";
-        } else {
-            $clausula = "El servicio se establece bajo la modalidad 'Por Recojo' con una tarifa plana por atención.";
-        }
-        $replacements['[clausula_exceso_peso]'] = $clausula;
-        $replacements['<<CLAUSULA_EXCESO>>'] = $clausula;
-    }
-    
-    // Generate the contract using pure PHP (ZipArchive to manipulate DOCX XML)
     try {
-        $result = generar_docx_php($template_path, $output_path, $replacements);
-        if (!$result) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Error al generar el documento DOCX.']);
-            return;
-        }
+        $html = include $template_file;
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Error al generar contrato: ' . $e->getMessage()]);
         return;
     }
     
-    if (!file_exists($output_path)) {
+    if (empty($html)) {
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'El archivo de contrato no fue creado.']);
+        echo json_encode(['success' => false, 'message' => 'La plantilla no generó contenido.']);
         return;
     }
     
-    // Update DB
+    // Save a backup HTML copy
+    $output_dir = __DIR__ . '/../uploads/altas';
+    if (!is_dir($output_dir)) {
+        mkdir($output_dir, 0755, true);
+    }
+    $output_filename = 'Contrato_' . $id_proceso . '_' . time() . '.html';
+    $output_path = $output_dir . '/' . $output_filename;
+    file_put_contents($output_path, $html);
+    
     $doc_url = 'uploads/altas/' . $output_filename;
     
+    // Update DB
     db()->execute(
         "UPDATE ProcesoAlta SET doc_generado = ?, etapa_actual = GREATEST(etapa_actual, 2) WHERE id_proceso = ?",
         [$doc_url, $id_proceso]
@@ -238,125 +181,10 @@ function generar_contrato() {
     echo json_encode([
         'success' => true,
         'message' => 'Contrato generado exitosamente',
-        'file_url' => $doc_url
+        'contract_html' => $html,
+        'file_url' => $doc_url,
+        'numero_contrato' => $numero_contrato
     ]);
-}
-
-/**
- * Generate a DOCX file by replacing placeholders in the template using pure PHP.
- * DOCX files are ZIP archives containing XML. We manipulate the XML directly.
- */
-function generar_docx_php($template_path, $output_path, $replacements) {
-    // Copy template to output path first
-    if (!copy($template_path, $output_path)) {
-        throw new Exception('No se pudo copiar la plantilla.');
-    }
-    
-    $zip = new ZipArchive();
-    if ($zip->open($output_path) !== true) {
-        throw new Exception('No se pudo abrir el archivo DOCX.');
-    }
-    
-    // The main document content is in word/document.xml
-    // Headers and footers can also contain placeholders
-    $xml_files = ['word/document.xml'];
-    
-    // Also check for headers and footers
-    for ($i = 0; $i < $zip->numFiles; $i++) {
-        $name = $zip->getNameIndex($i);
-        if (preg_match('/^word\/(header|footer)\d*\.xml$/', $name)) {
-            $xml_files[] = $name;
-        }
-    }
-    
-    foreach ($xml_files as $xml_file) {
-        $xml_content = $zip->getFromName($xml_file);
-        if ($xml_content === false) continue;
-        
-        // DOCX XML splits text into <w:r> runs, which can break placeholders
-        // Strategy: work on the raw XML but handle split runs
-        
-        // First, try direct replacement on the XML (works when placeholder is in a single run)
-        foreach ($replacements as $placeholder => $value) {
-            // Escape the value for XML
-            $xml_value = htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-            // Escape the placeholder for use in the XML
-            $xml_placeholder = htmlspecialchars($placeholder, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-            
-            $xml_content = str_replace($xml_placeholder, $xml_value, $xml_content);
-        }
-        
-        // Handle split runs: reconstruct text from <w:t> tags within <w:p> paragraphs
-        // and replace placeholders that may span multiple runs
-        $xml_content = fix_split_placeholders($xml_content, $replacements);
-        
-        $zip->deleteName($xml_file);
-        $zip->addFromString($xml_file, $xml_content);
-    }
-    
-    $zip->close();
-    return true;
-}
-
-/**
- * Fix placeholders that are split across multiple XML runs within a paragraph.
- * This happens when Word splits text formatting mid-placeholder.
- */
-function fix_split_placeholders($xml_content, $replacements) {
-    // Extract all paragraph blocks
-    $pattern = '/(<w:p\b[^>]*>)(.*?)(<\/w:p>)/s';
-    
-    $xml_content = preg_replace_callback($pattern, function($matches) use ($replacements) {
-        $para_start = $matches[1];
-        $para_content = $matches[2];
-        $para_end = $matches[3];
-        
-        // Extract all text from <w:t> tags in this paragraph
-        $full_text = '';
-        preg_match_all('/<w:t[^>]*>([^<]*)<\/w:t>/s', $para_content, $text_matches);
-        if (!empty($text_matches[1])) {
-            $full_text = implode('', $text_matches[1]);
-        }
-        
-        // Check if any placeholder exists in the combined text
-        $needs_fix = false;
-        foreach ($replacements as $placeholder => $value) {
-            $decoded_placeholder = html_entity_decode($placeholder, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-            if (strpos($full_text, $placeholder) !== false || strpos($full_text, $decoded_placeholder) !== false) {
-                $needs_fix = true;
-                break;
-            }
-        }
-        
-        if (!$needs_fix) {
-            return $matches[0]; // Return unchanged
-        }
-        
-        // Apply replacements to the combined text
-        $new_text = $full_text;
-        foreach ($replacements as $placeholder => $value) {
-            $decoded_placeholder = html_entity_decode($placeholder, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-            $new_text = str_replace($placeholder, $value, $new_text);
-            $new_text = str_replace($decoded_placeholder, $value, $new_text);
-        }
-        
-        // Escape the new text for XML
-        $xml_new_text = htmlspecialchars($new_text, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-        
-        // Replace the content: put all text into the first run's <w:t> and clear the rest
-        $first_run_done = false;
-        $para_content = preg_replace_callback('/<w:t([^>]*)>[^<]*<\/w:t>/s', function($tm) use (&$first_run_done, $xml_new_text) {
-            if (!$first_run_done) {
-                $first_run_done = true;
-                return '<w:t xml:space="preserve">' . $xml_new_text . '</w:t>';
-            }
-            return '<w:t' . $tm[1] . '></w:t>';
-        }, $para_content);
-        
-        return $para_start . $para_content . $para_end;
-    }, $xml_content);
-    
-    return $xml_content;
 }
 
 function subir_documentos() {
