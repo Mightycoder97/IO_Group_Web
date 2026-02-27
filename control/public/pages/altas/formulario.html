@@ -744,8 +744,8 @@
                 formData.append('finalizar', 'true');
             }
 
-            const url = API_CONFIG.BASE_URL + '/altas.php?action=subir_documentos';
-            const token = localStorage.getItem('iogroup_token');
+            const url = API_BASE + '/altas.php?action=subir_documentos';
+            const token = localStorage.getItem('token');
 
             let btnToLock = isFinalizing ? document.getElementById('btnFinalizarAlta') : document.querySelector('.btn-secondary');
             const originalText = btnToLock.innerHTML;
