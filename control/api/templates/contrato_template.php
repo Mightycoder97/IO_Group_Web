@@ -115,8 +115,8 @@ ob_start();
 
         body {
             font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif;
-            font-size: 10.5pt;
-            line-height: 1.6;
+            font-size: 9pt;
+            line-height: 1.5;
             color: var(--dark);
             background: #e8e8e8;
         }
@@ -125,7 +125,7 @@ ob_start();
             width: 210mm;
             min-height: 297mm;
             margin: 20px auto;
-            padding: 20mm 18mm 25mm 18mm;
+            padding: 15mm 15mm 20mm 15mm;
             background: white;
             box-shadow: 0 4px 24px rgba(0,0,0,0.12);
             position: relative;
@@ -185,40 +185,57 @@ ob_start();
         .contract-title {
             text-align: center;
             font-family: 'Merriweather', Georgia, serif;
-            font-size: 12pt;
+            font-size: 10.5pt;
             font-weight: 700;
             color: var(--primary);
-            margin: 15px 0 20px;
+            margin: 10px 0 14px;
             letter-spacing: 0.5px;
             line-height: 1.4;
+        }
+
+        /* Two-column layout */
+        .two-columns {
+            column-count: 2;
+            column-gap: 20px;
+            column-rule: 1px solid #e0e0e0;
+        }
+
+        .two-columns .clause-header,
+        .two-columns .clause-title,
+        .two-columns .clause-body {
+            break-inside: avoid-column;
+        }
+
+        .full-width {
+            column-span: all;
         }
 
         /* Clauses */
         .clause-header {
             font-family: 'Merriweather', Georgia, serif;
             font-weight: 700;
-            font-size: 10pt;
+            font-size: 8.5pt;
             color: var(--primary);
-            margin-top: 14px;
-            margin-bottom: 2px;
+            margin-top: 10px;
+            margin-bottom: 1px;
         }
 
         .clause-title {
             font-weight: 700;
-            font-size: 10pt;
+            font-size: 8.5pt;
             color: var(--dark);
             text-decoration: underline;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .clause-body {
             text-align: justify;
-            margin-bottom: 10px;
-            font-size: 10pt;
+            margin-bottom: 6px;
+            font-size: 8.5pt;
         }
 
         .clause-body p {
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         /* Dynamic data highlight */
@@ -235,9 +252,9 @@ ob_start();
         }
 
         .clause-items li {
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             text-align: justify;
-            font-size: 10pt;
+            font-size: 8.5pt;
         }
 
         .clause-items-roman {
@@ -247,27 +264,29 @@ ob_start();
         }
 
         .clause-items-roman li {
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             text-align: justify;
-            font-size: 10pt;
+            font-size: 8.5pt;
         }
 
         /* Notes area */
         .notes-box {
             background: #f5f7f5;
             border-left: 3px solid var(--primary-light);
-            padding: 8px 12px;
-            margin: 10px 0;
-            font-size: 9pt;
+            padding: 6px 10px;
+            margin: 8px 0;
+            font-size: 7.5pt;
             color: var(--gray);
+            column-span: all;
         }
 
         /* Signature block */
         .signature-block {
             display: flex;
             justify-content: space-around;
-            margin-top: 50px;
+            margin-top: 30px;
             page-break-inside: avoid;
+            column-span: all;
         }
 
         .signature-col {
@@ -277,14 +296,14 @@ ob_start();
 
         .signature-line {
             border-top: 1px solid #333;
-            margin-top: 60px;
-            padding-top: 6px;
-            font-size: 9pt;
+            margin-top: 40px;
+            padding-top: 5px;
+            font-size: 8.5pt;
             font-weight: 700;
         }
 
         .signature-label {
-            font-size: 8.5pt;
+            font-size: 7.5pt;
             color: var(--gray);
             margin-top: 2px;
         }
@@ -306,18 +325,18 @@ ob_start();
         .anexo-title {
             text-align: center;
             font-family: 'Merriweather', Georgia, serif;
-            font-size: 11pt;
+            font-size: 9.5pt;
             font-weight: 700;
             color: var(--primary);
-            margin: 15px 0 12px;
+            margin: 10px 0 10px;
         }
 
         .anexo-section {
             font-weight: 700;
             color: var(--primary);
-            font-size: 10pt;
-            margin-top: 12px;
-            margin-bottom: 4px;
+            font-size: 8.5pt;
+            margin-top: 8px;
+            margin-bottom: 3px;
             border-bottom: 1px solid var(--border);
             padding-bottom: 2px;
         }
@@ -400,6 +419,9 @@ ob_start();
         CONTRATO DE SERVICIO DE RECOJO, TRASLADO, TRATAMIENTO<br>
         Y DISPOSICIÓN FINAL DE RESIDUOS SÓLIDOS BIOCONTAMINADOS
     </div>
+
+    <!-- Two-column content starts here -->
+    <div class="two-columns">
 
     <!-- Introductory paragraph -->
     <div class="clause-body">
@@ -502,11 +524,13 @@ ob_start();
         <p>En lo no previsto por las partes en el presente contrato, ambas se someten a lo establecido por las normas del Código Civil y demás del sistema jurídico que resulten aplicables.</p>
     </div>
 
-    <hr class="section-sep">
+    <hr class="section-sep full-width">
 
-    <div class="clause-body" style="text-align: center; margin-top: 15px;">
+    <div class="clause-body full-width" style="text-align: center; margin-top: 10px;">
         <p>En señal de conformidad, las partes suscriben este documento en la ciudad de Lima el <span class="dato-dinamico"><?= $fecha_inicio_texto ?></span>.</p>
     </div>
+
+    </div><!-- end two-columns -->
 
     <!-- Signatures -->
     <div class="signature-block">
@@ -541,6 +565,8 @@ ob_start();
         ESPECIFICACIONES POR LA PRESTACIÓN DEL SERVICIO DE RECOLECCIÓN Y TRANSPORTE,<br>
         TRATAMIENTO Y DISPOSICIÓN FINAL DE RESIDUOS PELIGROSOS Y BIOCONTAMINADOS
     </div>
+
+    <div class="two-columns">
 
     <div class="clause-body">
         <p>I-O Group E.I.R.L es una empresa jurídica que presta el servicio de gestión de residuos sólidos biocontaminados que se enfoca en el bienestar de nuestros clientes a través de una adecuada gestión de residuos biocontaminados; con la finalidad de velar por la Salud Humana y el Medio Ambiente. Asimismo, formamos una alianza con las empresas Inversiones ONIX E.I.R.L e INCINERAGAS E.I.R.L, empresas autorizadas debidamente por el MINAM como Operadoras de Residuos Sólidos EO-RS.</p>
@@ -593,6 +619,8 @@ ob_start();
             <li>Si EL CLIENTE solicita un contenedor adicional, tendrá un costo de S/10.00 incluido IGV y se incluirá de regalo una bolsa roja.</li>
         </ol>
     </div>
+
+    </div><!-- end two-columns -->
 
     <!-- Signatures -->
     <div class="signature-block">
