@@ -84,7 +84,7 @@
                                     <th class="hide-on-mobile">Frecuencia</th>
                                     <th class="hide-on-mobile">Tarifa</th>
                                     <th>Estado</th>
-                                    <th width="100">Acciones</th>
+                                    <th width="180">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -161,7 +161,16 @@
                 tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No hay registros</td></tr>';
                 return;
             }
-            tbody.innerHTML = data.map(item => `
+            tbody.innerHTML = data.map(item => {
+                const hasDoc = !!item.doc_escaneado;
+                const hasPago = !!item.comprobante_pago;
+                const docBtn = hasDoc
+                    ? `<a href="${item.doc_escaneado}" target="_blank" class="btn btn-sm btn-outline-success btn-action" title="Ver Contrato Firmado"><i class="bi bi-file-earmark-check"></i></a>`
+                    : `<span class="btn btn-sm btn-outline-secondary btn-action disabled" title="Sin documento"><i class="bi bi-file-earmark-x"></i></span>`;
+                const pagoBtn = hasPago
+                    ? `<a href="${item.comprobante_pago}" target="_blank" class="btn btn-sm btn-outline-warning btn-action" title="Ver Comprobante de Pago"><i class="bi bi-receipt-cutoff"></i></a>`
+                    : '';
+                return `
                 <tr>
                     <td><strong>#${item.id_contrato}</strong></td>
                     <td>${item.sede_nombre || '-'}</td>
@@ -171,11 +180,13 @@
                     <td>S/ ${parseFloat(item.tarifa || 0).toFixed(2)}</td>
                     <td>${getContratoStatus(item)}</td>
                     <td>
-                        <a href="formulario.html?id=${item.id_contrato}" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-pencil"></i></a>
-                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_contrato})"><i class="bi bi-trash"></i></button>` : ''}
+                        ${docBtn}
+                        ${pagoBtn}
+                        <a href="formulario.html?id=${item.id_contrato}" class="btn btn-sm btn-outline-primary btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
+                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_contrato})" title="Eliminar"><i class="bi bi-trash"></i></button>` : ''}
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
         document.getElementById('searchInput').addEventListener('input', function (e) {
             const term = e.target.value.toLowerCase();
