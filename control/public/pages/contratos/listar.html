@@ -162,13 +162,14 @@
                 return;
             }
             tbody.innerHTML = data.map(item => {
+                const uploadBase = API_BASE.replace('/api', '/');
                 const hasDoc = !!item.doc_escaneado;
                 const hasPago = !!item.comprobante_pago;
                 const docBtn = hasDoc
-                    ? `<a href="${item.doc_escaneado}" target="_blank" class="btn btn-sm btn-outline-success btn-action" title="Ver Contrato Firmado"><i class="bi bi-file-earmark-check"></i></a>`
+                    ? `<a href="${uploadBase}${item.doc_escaneado}" target="_blank" class="btn btn-sm btn-outline-success btn-action" title="Ver Contrato Firmado"><i class="bi bi-file-earmark-check"></i></a>`
                     : `<span class="btn btn-sm btn-outline-secondary btn-action disabled" title="Sin documento"><i class="bi bi-file-earmark-x"></i></span>`;
                 const pagoBtn = hasPago
-                    ? `<a href="${item.comprobante_pago}" target="_blank" class="btn btn-sm btn-outline-warning btn-action" title="Ver Comprobante de Pago"><i class="bi bi-receipt-cutoff"></i></a>`
+                    ? `<a href="${uploadBase}${item.comprobante_pago}" target="_blank" class="btn btn-sm btn-outline-warning btn-action" title="Ver Comprobante de Pago"><i class="bi bi-receipt-cutoff"></i></a>`
                     : '';
                 return `
                 <tr>
