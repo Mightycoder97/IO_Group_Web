@@ -413,6 +413,21 @@
                                 <h4 class="mb-4"><i class="bi bi-cloud-arrow-up text-primary"></i> Validación y Subida
                                     de Documentos</h4>
 
+                                <!-- Digital signature notice -->
+                                <div id="firmaDigitalStage3" class="alert alert-success d-none mb-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-patch-check-fill fs-4"></i>
+                                        <div>
+                                            <strong>Contrato firmado digitalmente</strong><br>
+                                            <small id="firmaDigitalStage3Fecha"></small>
+                                        </div>
+                                        <a href="#" target="_blank" id="firmaDigitalStage3Link"
+                                            class="btn btn-outline-success btn-sm ms-auto">
+                                            <i class="bi bi-image"></i> Ver Firma
+                                        </a>
+                                    </div>
+                                </div>
+
                                 <div class="row g-4 mb-4">
                                     <div class="col-md-6">
                                         <div class="card bg-light border-0 h-100">
@@ -569,6 +584,21 @@
                     // Show firma digital state
                     if (currentProcesoData.firma_url) {
                         mostrarFirmaDigital(currentProcesoData.firma_url, currentProcesoData.firma_firmado, currentProcesoData.firma_fecha);
+                    }
+
+                    // If digitally signed, show notice in Stage 3 and skip contract upload
+                    if (currentProcesoData.firma_firmado && currentProcesoData.firma_imagen) {
+                        const uploadBase = API_BASE.replace('/api', '/');
+                        document.getElementById('firmaDigitalStage3').classList.remove('d-none');
+                        document.getElementById('firmaDigitalStage3Link').href = uploadBase + currentProcesoData.firma_imagen;
+                        if (currentProcesoData.firma_fecha) {
+                            const d = new Date(currentProcesoData.firma_fecha);
+                            document.getElementById('firmaDigitalStage3Fecha').textContent =
+                                `Firmado el ${d.toLocaleDateString('es-PE')} a las ${d.toLocaleTimeString('es-PE')}`;
+                        }
+                        document.getElementById('fileContrato').removeAttribute('required');
+                        document.getElementById('fileContrato').closest('.card').querySelector('p').innerHTML =
+                            '<span class="text-success"><i class="bi bi-check-circle"></i> Firmado digitalmente.</span> Opcionalmente suba una copia física.';
                     }
 
                     // If documents already uploaded occasionally

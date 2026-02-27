@@ -159,9 +159,9 @@ function guardar_firma() {
         [$firma_url, $ip, $user_agent, $token]
     );
     
-    // Also update ProcesoAlta to store the signature as doc_firmado
+    // Also update ProcesoAlta to store the signature as doc_firmado and advance to stage 3
     db()->execute(
-        "UPDATE ProcesoAlta SET doc_firmado = ?, etapa_actual = GREATEST(etapa_actual, 2) WHERE id_proceso = ?",
+        "UPDATE ProcesoAlta SET doc_firmado = ?, etapa_actual = GREATEST(etapa_actual, 3) WHERE id_proceso = ?",
         [$firma_url, $firma['id_proceso']]
     );
     
