@@ -81,6 +81,18 @@ function obtener($id) {
     
     $proceso['datos_parsed'] = json_decode($proceso['datos_json'], true);
     
+    // Include firma digital info if exists
+    $firma = db()->queryOne("SELECT token, firmado, fecha_firma, firma_imagen FROM FirmaDigital WHERE id_proceso = ?", [$id]);
+    if ($firma) {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'iogroup.pe';
+        $proceso['firma_token'] = $firma['token'];
+        $proceso['firma_url'] = "{$protocol}://{$host}/control/public/firma.html?token={$firma['token']}";
+        $proceso['firma_firmado'] = (bool)$firma['firmado'];
+        $proceso['firma_fecha'] = $firma['fecha_firma'];
+        $proceso['firma_imagen'] = $firma['firma_imagen'];
+    }
+    
     echo json_encode([
         'success' => true,
         'data' => $proceso
@@ -235,12 +247,33 @@ function generar_contrato() {
         [$doc_url, $id_proceso]
     );
     
+    // Generate or update FirmaDigital token
+    $existing_firma = db()->queryOne("SELECT token FROM FirmaDigital WHERE id_proceso = ?", [$id_proceso]);
+    if ($existing_firma) {
+        $firma_token = $existing_firma['token'];
+        // Reset firma status in case contract was regenerated
+        db()->execute("UPDATE FirmaDigital SET firmado = 0, firma_imagen = NULL, fecha_firma = NULL WHERE id_proceso = ?", [$id_proceso]);
+    } else {
+        $firma_token = bin2hex(random_bytes(32));
+        db()->insert(
+            "INSERT INTO FirmaDigital (id_proceso, token) VALUES (?, ?)",
+            [$id_proceso, $firma_token]
+        );
+    }
+    
+    // Build the signature URL
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'iogroup.pe';
+    $firma_url = "{$protocol}://{$host}/control/public/firma.html?token={$firma_token}";
+    
     echo json_encode([
         'success' => true,
         'message' => 'Contrato generado exitosamente',
         'contract_html' => $html,
         'file_url' => $doc_url,
-        'numero_contrato' => $numero_contrato
+        'numero_contrato' => $numero_contrato,
+        'firma_token' => $firma_token,
+        'firma_url' => $firma_url
     ]);
 }
 

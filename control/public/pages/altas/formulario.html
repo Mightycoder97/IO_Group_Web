@@ -357,6 +357,45 @@
                                     </div>
                                     <iframe id="contractPreviewFrame" class="contract-preview-frame"></iframe>
                                 </div>
+
+                                <!-- Firma Digital Link -->
+                                <div id="firmaDigitalCard" class="card mt-3 border-0 shadow-sm" style="display:none;">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3"><i class="bi bi-vector-pen text-primary"></i> Firma
+                                            Digital</h5>
+                                        <div id="firmaEstadoPendiente">
+                                            <p class="text-muted small mb-2">Envíe este enlace al cliente para que firme
+                                                el contrato digitalmente desde su celular:</p>
+                                            <div class="input-group mb-2">
+                                                <input type="text" class="form-control form-control-sm"
+                                                    id="firmaLinkInput" readonly>
+                                                <button class="btn btn-outline-primary btn-sm" type="button"
+                                                    onclick="copiarLinkFirma()" title="Copiar enlace">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-success btn-sm" onclick="enviarWhatsApp()">
+                                                    <i class="bi bi-whatsapp"></i> Enviar por WhatsApp
+                                                </button>
+                                                <span class="badge bg-warning text-dark d-flex align-items-center"
+                                                    id="firmaEstadoBadge">
+                                                    <i class="bi bi-clock me-1"></i> Pendiente de firma
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div id="firmaEstadoFirmado" style="display:none;">
+                                            <div class="alert alert-success mb-0 d-flex align-items-center gap-2">
+                                                <i class="bi bi-check-circle-fill fs-4"></i>
+                                                <div>
+                                                    <strong>Contrato firmado digitalmente</strong><br>
+                                                    <small id="firmaFechaTexto"></small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="d-flex justify-content-between mt-3">
                                     <button type="button" class="btn btn-outline-secondary" onclick="avanzarEtapa(1)">
                                         <i class="bi bi-arrow-left"></i> Volver a Etapa 1
@@ -523,8 +562,13 @@
                     avanzarEtapa(parseInt(currentProcesoData.etapa_actual));
 
                     // If doc generated, show it
-                    if (currentProcesoData.doc_generado && currentProcesoData.etapa_actual == 2) {
+                    if (currentProcesoData.doc_generado && currentProcesoData.etapa_actual >= 2) {
                         mostrarDescargaContrato(currentProcesoData.doc_generado);
+                    }
+
+                    // Show firma digital state
+                    if (currentProcesoData.firma_url) {
+                        mostrarFirmaDigital(currentProcesoData.firma_url, currentProcesoData.firma_firmado, currentProcesoData.firma_fecha);
                     }
 
                     // If documents already uploaded occasionally
@@ -687,6 +731,9 @@
                 if (res.success && res.contract_html) {
                     showToast('Contrato generado exitosamente', 'success');
                     mostrarVistaPrevia(res.contract_html, res.numero_contrato);
+                    if (res.firma_url) {
+                        mostrarFirmaDigital(res.firma_url, false, null);
+                    }
                 } else {
                     showToast(res.message || 'Error generando contrato', 'danger');
                 }
@@ -725,9 +772,52 @@
             document.getElementById('stage2Buttons').style.display = 'none';
             document.getElementById('stage2Preview').style.display = 'block';
 
-            const baseUrl = API_CONFIG.BASE_URL.replace('/api', '');
+            const baseUrl = API_BASE.replace('/api', '/');
             const iframe = document.getElementById('contractPreviewFrame');
-            iframe.src = baseUrl + '/' + path;
+            iframe.src = baseUrl + path;
+        }
+
+        // Show the digital signing link and state
+        function mostrarFirmaDigital(url, firmado, fechaFirma) {
+            document.getElementById('firmaDigitalCard').style.display = 'block';
+            document.getElementById('firmaLinkInput').value = url;
+
+            if (firmado) {
+                document.getElementById('firmaEstadoPendiente').style.display = 'none';
+                document.getElementById('firmaEstadoFirmado').style.display = 'block';
+                if (fechaFirma) {
+                    const d = new Date(fechaFirma);
+                    document.getElementById('firmaFechaTexto').textContent =
+                        `Firmado el ${d.toLocaleDateString('es-PE')} a las ${d.toLocaleTimeString('es-PE')}`;
+                }
+            } else {
+                document.getElementById('firmaEstadoPendiente').style.display = 'block';
+                document.getElementById('firmaEstadoFirmado').style.display = 'none';
+            }
+        }
+
+        function copiarLinkFirma() {
+            const input = document.getElementById('firmaLinkInput');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                showToast('Enlace copiado al portapapeles', 'success');
+            }).catch(() => {
+                document.execCommand('copy');
+                showToast('Enlace copiado', 'success');
+            });
+        }
+
+        function enviarWhatsApp() {
+            const link = document.getElementById('firmaLinkInput').value;
+            const datos = currentProcesoData?.datos_parsed;
+            const telefono = datos?.sede?.contacto_telefono || '';
+            const nombre = datos?.cliente?.nombre || 'Cliente';
+            const msg = `Estimado(a) ${nombre}, le enviamos el enlace para firmar digitalmente su contrato de servicio con IO Group:\n\n${link}\n\nPor favor ábralo y siga las instrucciones. Gracias.`;
+            const phone = telefono.replace(/\D/g, '');
+            const waUrl = phone
+                ? `https://wa.me/51${phone}?text=${encodeURIComponent(msg)}`
+                : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            window.open(waUrl, '_blank');
         }
 
         // Stage 3 Handling File Uploads
