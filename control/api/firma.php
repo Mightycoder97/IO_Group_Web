@@ -159,10 +159,53 @@ function guardar_firma() {
         [$firma_url, $ip, $user_agent, $token]
     );
     
-    // Also update ProcesoAlta to store the signature as doc_firmado and advance to stage 3
+    // Generate signed contract HTML with the signature image stamped in
+    $proceso = db()->queryOne("SELECT datos_json FROM ProcesoAlta WHERE id_proceso = ?", [$firma['id_proceso']]);
+    $datos = json_decode($proceso['datos_json'], true);
+    $year = date('Y');
+    $numero_contrato = "N°{$year}-" . str_pad($firma['id_proceso'], 6, '0', STR_PAD_LEFT);
+    
+    $template_file = __DIR__ . '/templates/contrato_template.php';
+    $contract_html = '';
+    if (file_exists($template_file)) {
+        $contract_html = include $template_file;
+    }
+    
+    if ($contract_html) {
+        // Convert signature PNG to base64 for embedding
+        $firma_base64_img = 'data:image/png;base64,' . base64_encode($image_data);
+        
+        // Create the signature image HTML to inject
+        $firma_img_html = '<img src="' . $firma_base64_img . '" style="width: 150px; height: auto; display: block; margin: 0 auto 5px auto;" alt="Firma Digital">';
+        
+        // Add a digital signature badge
+        $firma_badge = '<div style="text-align:center; font-size:6pt; color:#388e3c; margin-bottom:2px;"><i>Firmado digitalmente - ' . date('d/m/Y H:i') . '</i></div>';
+        
+        // Replace all "EL CLIENTE" signature lines with the signature image above them
+        $contract_html = str_replace(
+            '<div class="signature-line">EL CLIENTE</div>',
+            $firma_img_html . $firma_badge . '<div class="signature-line">EL CLIENTE</div>',
+            $contract_html
+        );
+        
+        // Save the signed contract HTML
+        $signed_dir = realpath(__DIR__ . '/../uploads/altas');
+        if (!$signed_dir) {
+            $signed_dir = __DIR__ . '/../uploads/altas';
+            mkdir($signed_dir, 0755, true);
+        }
+        $signed_filename = 'ContratoFirmado_' . $firma['id_proceso'] . '_' . time() . '.html';
+        file_put_contents($signed_dir . '/' . $signed_filename, $contract_html);
+        
+        $doc_firmado_url = 'uploads/altas/' . $signed_filename;
+    } else {
+        $doc_firmado_url = $firma_url; // Fallback to just the signature image
+    }
+    
+    // Update ProcesoAlta with the signed contract and advance to stage 3
     db()->execute(
         "UPDATE ProcesoAlta SET doc_firmado = ?, etapa_actual = GREATEST(etapa_actual, 3) WHERE id_proceso = ?",
-        [$firma_url, $firma['id_proceso']]
+        [$doc_firmado_url, $firma['id_proceso']]
     );
     
     echo json_encode([

@@ -423,7 +423,7 @@
                                         </div>
                                         <a href="#" target="_blank" id="firmaDigitalStage3Link"
                                             class="btn btn-outline-success btn-sm ms-auto">
-                                            <i class="bi bi-image"></i> Ver Firma
+                                            <i class="bi bi-file-earmark-check"></i> Ver Contrato Firmado
                                         </a>
                                     </div>
                                 </div>
@@ -587,10 +587,10 @@
                     }
 
                     // If digitally signed, show notice in Stage 3 and skip contract upload
-                    if (currentProcesoData.firma_firmado && currentProcesoData.firma_imagen) {
+                    if (currentProcesoData.firma_firmado && currentProcesoData.doc_firmado) {
                         const uploadBase = API_BASE.replace('/api', '/');
                         document.getElementById('firmaDigitalStage3').classList.remove('d-none');
-                        document.getElementById('firmaDigitalStage3Link').href = uploadBase + currentProcesoData.firma_imagen;
+                        document.getElementById('firmaDigitalStage3Link').href = uploadBase + currentProcesoData.doc_firmado;
                         if (currentProcesoData.firma_fecha) {
                             const d = new Date(currentProcesoData.firma_fecha);
                             document.getElementById('firmaDigitalStage3Fecha').textContent =
