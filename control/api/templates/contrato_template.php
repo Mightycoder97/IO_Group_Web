@@ -110,7 +110,7 @@ ob_start();
 
         @page {
             size: A4;
-            margin: 20mm 18mm 25mm 18mm;
+            margin: 10mm;
         }
 
         body {
@@ -312,7 +312,6 @@ ob_start();
         .page-break {
             page-break-before: always;
             margin-top: 0;
-            padding-top: 10mm;
         }
 
         /* Section separator */
@@ -377,6 +376,12 @@ ob_start();
                 padding: 0;
                 box-shadow: none;
                 min-height: auto;
+                overflow: visible;
+            }
+
+            .page-break {
+                padding-top: 0;
+                margin-top: 0;
             }
 
             .no-print {
