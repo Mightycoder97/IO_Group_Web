@@ -43,13 +43,20 @@ function listar() {
     
     // Check if table exists, if not return empty to prevent errors before migration
     try {
-        $sql = "SELECT p.id_proceso, p.etapa_actual, p.doc_generado, p.doc_firmado, p.comprobante_pago, p.fecha_creacion, p.fecha_modificacion, p.datos_json,
-                       uc.nombre AS usuario_creador, um.nombre AS usuario_modificador
-                FROM ProcesoAlta p
-                LEFT JOIN Usuario uc ON p.id_usuario_creador = uc.id_usuario
-                LEFT JOIN Usuario um ON p.id_usuario_modificador = um.id_usuario
-                ORDER BY p.fecha_creacion DESC";
-        $data = db()->query($sql);
+        // Try query with user columns (requires migration)
+        try {
+            $sql = "SELECT p.id_proceso, p.etapa_actual, p.doc_generado, p.doc_firmado, p.comprobante_pago, p.fecha_creacion, p.fecha_modificacion, p.datos_json,
+                           uc.nombre AS usuario_creador, um.nombre AS usuario_modificador
+                    FROM ProcesoAlta p
+                    LEFT JOIN Usuario uc ON p.id_usuario_creador = uc.id_usuario
+                    LEFT JOIN Usuario um ON p.id_usuario_modificador = um.id_usuario
+                    ORDER BY p.fecha_creacion DESC";
+            $data = db()->query($sql);
+        } catch (Exception $e) {
+            // Fallback: migration not applied yet
+            $sql = "SELECT id_proceso, etapa_actual, doc_generado, doc_firmado, comprobante_pago, fecha_creacion, fecha_modificacion, datos_json FROM ProcesoAlta ORDER BY fecha_creacion DESC";
+            $data = db()->query($sql);
+        }
         
         // Parse JSON for preview details
         foreach ($data as &$row) {
@@ -76,12 +83,18 @@ function obtener($id) {
         return;
     }
     
-    $proceso = db()->queryOne(
-        "SELECT p.*, uc.nombre AS usuario_creador, um.nombre AS usuario_modificador
-         FROM ProcesoAlta p
-         LEFT JOIN Usuario uc ON p.id_usuario_creador = uc.id_usuario
-         LEFT JOIN Usuario um ON p.id_usuario_modificador = um.id_usuario
-         WHERE p.id_proceso = ?", [$id]);
+    // Try query with user columns (requires migration)
+    try {
+        $proceso = db()->queryOne(
+            "SELECT p.*, uc.nombre AS usuario_creador, um.nombre AS usuario_modificador
+             FROM ProcesoAlta p
+             LEFT JOIN Usuario uc ON p.id_usuario_creador = uc.id_usuario
+             LEFT JOIN Usuario um ON p.id_usuario_modificador = um.id_usuario
+             WHERE p.id_proceso = ?", [$id]);
+    } catch (Exception $e) {
+        // Fallback: migration not applied yet
+        $proceso = db()->queryOne("SELECT * FROM ProcesoAlta WHERE id_proceso = ?", [$id]);
+    }
     
     if (!$proceso) {
         http_response_code(404);
