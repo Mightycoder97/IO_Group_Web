@@ -169,6 +169,13 @@
                             </div>
                         </div>
 
+                        <!-- Audit Info Banner (visible only for existing processes) -->
+                        <div id="auditInfoBanner" class="alert alert-light border d-none mb-3"
+                            style="font-size: 0.85rem;">
+                            <i class="bi bi-clock-history text-muted"></i>
+                            <span id="auditInfoText"></span>
+                        </div>
+
                         <!-- Stage 1 -->
                         <div id="stage1" style="display: none;">
                             <form id="formStage1">
@@ -222,6 +229,11 @@
                                         <label class="form-label">Nombre Comercial de Sede *</label>
                                         <input type="text" class="form-control" id="sede_nombre_comercial" required
                                             placeholder="Ej. Local Miraflores">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="bi bi-search"></i> Buscar Dirección</label>
+                                        <input type="text" class="form-control" id="sede_buscar_direccion"
+                                            placeholder="Escriba para buscar una dirección en el mapa...">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Dirección Operativa *</label>
@@ -575,6 +587,9 @@
 
                     // Advance to actual stage
                     avanzarEtapa(parseInt(currentProcesoData.etapa_actual));
+
+                    // Show audit info
+                    showAuditInfo(currentProcesoData);
 
                     // If doc generated, show it
                     if (currentProcesoData.doc_generado && currentProcesoData.etapa_actual >= 2) {
@@ -933,6 +948,7 @@
         // Map logic
         let map;
         let marker;
+        let autocomplete;
         function initMap() {
             const defaultPos = { lat: -12.046374, lng: -77.042793 }; // Lima, Peru
             map = new google.maps.Map(document.getElementById("map"), {
@@ -959,6 +975,74 @@
                 document.getElementById('sede_coordenadas').value = e.latLng.lat().toFixed(6) + ',' + e.latLng.lng().toFixed(6);
                 document.getElementById('mapError').style.display = 'none';
             });
+
+            // Google Places Autocomplete
+            const searchInput = document.getElementById('sede_buscar_direccion');
+            autocomplete = new google.maps.places.Autocomplete(searchInput, {
+                componentRestrictions: { country: 'pe' },
+                fields: ['address_components', 'formatted_address', 'geometry']
+            });
+
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) {
+                    return;
+                }
+
+                // Move map and marker
+                map.setCenter(place.geometry.location);
+                map.setZoom(16);
+                marker.setPosition(place.geometry.location);
+
+                // Update coordinates
+                const lat = place.geometry.location.lat().toFixed(6);
+                const lng = place.geometry.location.lng().toFixed(6);
+                document.getElementById('sede_coordenadas').value = lat + ',' + lng;
+                document.getElementById('mapError').style.display = 'none';
+
+                // Fill address field
+                document.getElementById('sede_direccion').value = place.formatted_address || '';
+
+                // Extract address components
+                if (place.address_components) {
+                    let distrito = '';
+                    let provincia = '';
+                    for (const comp of place.address_components) {
+                        if (comp.types.includes('locality')) {
+                            distrito = comp.long_name;
+                        }
+                        if (comp.types.includes('administrative_area_level_2')) {
+                            provincia = comp.long_name;
+                        }
+                        // Fallback: sublocality for distrito
+                        if (!distrito && comp.types.includes('sublocality_level_1')) {
+                            distrito = comp.long_name;
+                        }
+                    }
+                    if (distrito) document.getElementById('sede_distrito').value = distrito;
+                    if (provincia) document.getElementById('sede_provincia').value = provincia;
+                }
+            });
+        }
+
+        function showAuditInfo(data) {
+            const banner = document.getElementById('auditInfoBanner');
+            if (!banner) return;
+
+            let parts = [];
+            if (data.usuario_creador && data.fecha_creacion) {
+                const fc = new Date(data.fecha_creacion);
+                parts.push(`Creado por <strong>${data.usuario_creador}</strong> el ${fc.toLocaleDateString('es-PE')} ${fc.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`);
+            }
+            if (data.usuario_modificador && data.fecha_modificacion) {
+                const fm = new Date(data.fecha_modificacion);
+                parts.push(`Últ. modificación por <strong>${data.usuario_modificador}</strong> el ${fm.toLocaleDateString('es-PE')} ${fm.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`);
+            }
+
+            if (parts.length > 0) {
+                document.getElementById('auditInfoText').innerHTML = parts.join(' — ');
+                banner.classList.remove('d-none');
+            }
         }
 
         function loadGoogleMaps() {

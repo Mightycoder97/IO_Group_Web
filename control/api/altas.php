@@ -43,7 +43,12 @@ function listar() {
     
     // Check if table exists, if not return empty to prevent errors before migration
     try {
-        $sql = "SELECT id_proceso, etapa_actual, doc_generado, doc_firmado, comprobante_pago, fecha_creacion, fecha_modificacion, datos_json FROM ProcesoAlta ORDER BY fecha_creacion DESC";
+        $sql = "SELECT p.id_proceso, p.etapa_actual, p.doc_generado, p.doc_firmado, p.comprobante_pago, p.fecha_creacion, p.fecha_modificacion, p.datos_json,
+                       uc.nombre AS usuario_creador, um.nombre AS usuario_modificador
+                FROM ProcesoAlta p
+                LEFT JOIN Usuario uc ON p.id_usuario_creador = uc.id_usuario
+                LEFT JOIN Usuario um ON p.id_usuario_modificador = um.id_usuario
+                ORDER BY p.fecha_creacion DESC";
         $data = db()->query($sql);
         
         // Parse JSON for preview details
@@ -71,7 +76,12 @@ function obtener($id) {
         return;
     }
     
-    $proceso = db()->queryOne("SELECT * FROM ProcesoAlta WHERE id_proceso = ?", [$id]);
+    $proceso = db()->queryOne(
+        "SELECT p.*, uc.nombre AS usuario_creador, um.nombre AS usuario_modificador
+         FROM ProcesoAlta p
+         LEFT JOIN Usuario uc ON p.id_usuario_creador = uc.id_usuario
+         LEFT JOIN Usuario um ON p.id_usuario_modificador = um.id_usuario
+         WHERE p.id_proceso = ?", [$id]);
     
     if (!$proceso) {
         http_response_code(404);
@@ -121,16 +131,32 @@ function guardar_etapa1() {
     if ($id_proceso) {
         // Update existing process
         db()->execute(
-            "UPDATE ProcesoAlta SET datos_json = ?, fecha_modificacion = NOW() WHERE id_proceso = ?",
-            [$store_json, $id_proceso]
+            "UPDATE ProcesoAlta SET datos_json = ?, id_usuario_modificador = ?, fecha_modificacion = NOW() WHERE id_proceso = ?",
+            [$store_json, $user['id'], $id_proceso]
         );
         $id = $id_proceso;
+        
+        // AuditLog
+        try {
+            db()->insert(
+                "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'ProcesoAlta', ?, 'UPDATE', ?)",
+                [$user['id'], $id, json_encode(['etapa' => 1, 'accion' => 'actualizar_datos'])]
+            );
+        } catch (Exception $e) { /* non-critical */ }
     } else {
         // Insert new process
         $id = db()->insert(
-            "INSERT INTO ProcesoAlta (datos_json, etapa_actual) VALUES (?, 1)",
-            [$store_json]
+            "INSERT INTO ProcesoAlta (datos_json, etapa_actual, id_usuario_creador, id_usuario_modificador) VALUES (?, 1, ?, ?)",
+            [$store_json, $user['id'], $user['id']]
         );
+        
+        // AuditLog
+        try {
+            db()->insert(
+                "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'ProcesoAlta', ?, 'INSERT', ?)",
+                [$user['id'], $id, json_encode(['etapa' => 1, 'accion' => 'crear_proceso'])]
+            );
+        } catch (Exception $e) { /* non-critical */ }
     }
     
     echo json_encode([
@@ -168,6 +194,14 @@ function eliminar_alta() {
             }
         }
     }
+    
+    // AuditLog before delete
+    try {
+        db()->insert(
+            "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores) VALUES (?, 'ProcesoAlta', ?, 'DELETE', ?)",
+            [$user['id'], $id, json_encode(['etapa_actual' => $proceso['etapa_actual']])]
+        );
+    } catch (Exception $e) { /* non-critical */ }
     
     db()->execute("DELETE FROM ProcesoAlta WHERE id_proceso = ?", [$id]);
     
@@ -243,9 +277,17 @@ function generar_contrato() {
     
     // Update DB
     db()->execute(
-        "UPDATE ProcesoAlta SET doc_generado = ?, etapa_actual = GREATEST(etapa_actual, 2) WHERE id_proceso = ?",
-        [$doc_url, $id_proceso]
+        "UPDATE ProcesoAlta SET doc_generado = ?, etapa_actual = GREATEST(etapa_actual, 2), id_usuario_modificador = ? WHERE id_proceso = ?",
+        [$doc_url, $user['id'], $id_proceso]
     );
+    
+    // AuditLog
+    try {
+        db()->insert(
+            "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'ProcesoAlta', ?, 'UPDATE', ?)",
+            [$user['id'], $id_proceso, json_encode(['etapa' => 2, 'accion' => 'generar_contrato', 'doc_url' => $doc_url])]
+        );
+    } catch (Exception $e) { /* non-critical */ }
     
     // Generate or update FirmaDigital token
     $existing_firma = db()->queryOne("SELECT token FROM FirmaDigital WHERE id_proceso = ?", [$id_proceso]);
@@ -404,10 +446,18 @@ function subir_documentos() {
             $id_contrato = $pdo->lastInsertId();
             
             // Update process to Completed (stage 4)
-            $pdo->prepare("UPDATE ProcesoAlta SET doc_firmado = ?, comprobante_pago = ?, etapa_actual = 4 WHERE id_proceso = ?")
-                ->execute([$finalDocFirmado, $finalComprobante, $id_proceso]);
+            $pdo->prepare("UPDATE ProcesoAlta SET doc_firmado = ?, comprobante_pago = ?, etapa_actual = 4, id_usuario_modificador = ? WHERE id_proceso = ?")
+                ->execute([$finalDocFirmado, $finalComprobante, $user['id'], $id_proceso]);
                 
             $pdo->commit();
+            
+            // AuditLog (outside transaction, non-critical)
+            try {
+                db()->insert(
+                    "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'ProcesoAlta', ?, 'UPDATE', ?)",
+                    [$user['id'], $id_proceso, json_encode(['etapa' => 4, 'accion' => 'finalizar_proceso', 'id_sede' => $id_sede, 'id_contrato' => $id_contrato])]
+                );
+            } catch (Exception $e) { /* non-critical */ }
             
             echo json_encode([
                 'success' => true,
@@ -423,9 +473,17 @@ function subir_documentos() {
     } else {
         // Just upload files without finalizing
         db()->execute(
-            "UPDATE ProcesoAlta SET doc_firmado = ?, comprobante_pago = ?, etapa_actual = GREATEST(etapa_actual, 3) WHERE id_proceso = ?",
-            [$finalDocFirmado, $finalComprobante, $id_proceso]
+            "UPDATE ProcesoAlta SET doc_firmado = ?, comprobante_pago = ?, etapa_actual = GREATEST(etapa_actual, 3), id_usuario_modificador = ? WHERE id_proceso = ?",
+            [$finalDocFirmado, $finalComprobante, $user['id'], $id_proceso]
         );
+        
+        // AuditLog
+        try {
+            db()->insert(
+                "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'ProcesoAlta', ?, 'UPDATE', ?)",
+                [$user['id'], $id_proceso, json_encode(['etapa' => 3, 'accion' => 'subir_documentos'])]
+            );
+        } catch (Exception $e) { /* non-critical */ }
         
         echo json_encode([
             'success' => true,
