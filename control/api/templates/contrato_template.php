@@ -115,8 +115,8 @@ ob_start();
 
         body {
             font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif;
-            font-size: 9pt;
-            line-height: 1.5;
+            font-size: 7.5pt;
+            line-height: 1.35;
             color: var(--dark);
             background: #e8e8e8;
         }
@@ -125,7 +125,7 @@ ob_start();
             width: 210mm;
             min-height: 297mm;
             margin: 20px auto;
-            padding: 15mm 15mm 20mm 15mm;
+            padding: 10mm 12mm 12mm 12mm;
             background: white;
             box-shadow: 0 4px 24px rgba(0,0,0,0.12);
             position: relative;
@@ -161,23 +161,23 @@ ob_start();
             justify-content: space-between;
             align-items: center;
             border-bottom: 3px solid var(--primary);
-            padding-bottom: 12px;
-            margin-bottom: 20px;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .contract-header .logo {
-            height: 48px;
+            height: 38px;
         }
 
         .contract-header .contract-number {
             text-align: right;
-            font-size: 9pt;
+            font-size: 7.5pt;
             color: var(--gray);
         }
 
         .contract-header .contract-number strong {
             display: block;
-            font-size: 11pt;
+            font-size: 9pt;
             color: var(--primary);
         }
 
@@ -185,18 +185,18 @@ ob_start();
         .contract-title {
             text-align: center;
             font-family: 'Merriweather', Georgia, serif;
-            font-size: 10.5pt;
+            font-size: 8.5pt;
             font-weight: 700;
             color: var(--primary);
-            margin: 10px 0 14px;
-            letter-spacing: 0.5px;
-            line-height: 1.4;
+            margin: 6px 0 8px;
+            letter-spacing: 0.3px;
+            line-height: 1.3;
         }
 
         /* Two-column layout */
         .two-columns {
             column-count: 2;
-            column-gap: 20px;
+            column-gap: 14px;
             column-rule: 1px solid #e0e0e0;
         }
 
@@ -214,28 +214,28 @@ ob_start();
         .clause-header {
             font-family: 'Merriweather', Georgia, serif;
             font-weight: 700;
-            font-size: 8.5pt;
+            font-size: 7pt;
             color: var(--primary);
-            margin-top: 10px;
-            margin-bottom: 1px;
+            margin-top: 5px;
+            margin-bottom: 0px;
         }
 
         .clause-title {
             font-weight: 700;
-            font-size: 8.5pt;
+            font-size: 7pt;
             color: var(--dark);
             text-decoration: underline;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .clause-body {
             text-align: justify;
-            margin-bottom: 6px;
-            font-size: 8.5pt;
+            margin-bottom: 3px;
+            font-size: 7pt;
         }
 
         .clause-body p {
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         /* Dynamic data highlight */
@@ -247,35 +247,35 @@ ob_start();
         /* Sub-items (lettered or numbered) */
         .clause-items {
             list-style: lower-alpha;
-            padding-left: 20px;
-            margin: 6px 0 10px;
+            padding-left: 16px;
+            margin: 3px 0 5px;
         }
 
         .clause-items li {
-            margin-bottom: 3px;
+            margin-bottom: 1px;
             text-align: justify;
-            font-size: 8.5pt;
+            font-size: 7pt;
         }
 
         .clause-items-roman {
             list-style: lower-roman;
-            padding-left: 20px;
-            margin: 6px 0 10px;
+            padding-left: 16px;
+            margin: 3px 0 5px;
         }
 
         .clause-items-roman li {
-            margin-bottom: 3px;
+            margin-bottom: 1px;
             text-align: justify;
-            font-size: 8.5pt;
+            font-size: 7pt;
         }
 
         /* Notes area */
         .notes-box {
             background: #f5f7f5;
             border-left: 3px solid var(--primary-light);
-            padding: 6px 10px;
-            margin: 8px 0;
-            font-size: 7.5pt;
+            padding: 4px 8px;
+            margin: 4px 0;
+            font-size: 6.5pt;
             color: var(--gray);
             column-span: all;
         }
@@ -284,7 +284,7 @@ ob_start();
         .signature-block {
             display: flex;
             justify-content: space-around;
-            margin-top: 30px;
+            margin-top: 15px;
             page-break-inside: avoid;
             column-span: all;
         }
@@ -296,69 +296,71 @@ ob_start();
 
         .signature-line {
             border-top: 1px solid #333;
-            margin-top: 40px;
-            padding-top: 5px;
-            font-size: 8.5pt;
+            margin-top: 25px;
+            padding-top: 4px;
+            font-size: 7pt;
             font-weight: 700;
         }
 
         .signature-label {
-            font-size: 7.5pt;
+            font-size: 6.5pt;
             color: var(--gray);
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         /* Page break */
         .page-break {
             page-break-before: always;
             margin-top: 0;
+            padding-top: 10mm;
         }
 
         /* Section separator */
         .section-sep {
             border: none;
             border-top: 1px solid var(--border);
-            margin: 18px 0;
+            margin: 8px 0;
         }
 
         /* Anexo / Specifications */
         .anexo-title {
             text-align: center;
             font-family: 'Merriweather', Georgia, serif;
-            font-size: 9.5pt;
+            font-size: 7.5pt;
             font-weight: 700;
             color: var(--primary);
-            margin: 10px 0 10px;
+            margin: 5px 0 6px;
+            line-height: 1.3;
         }
 
         .anexo-section {
             font-weight: 700;
             color: var(--primary);
-            font-size: 8.5pt;
-            margin-top: 8px;
-            margin-bottom: 3px;
+            font-size: 7pt;
+            margin-top: 4px;
+            margin-bottom: 1px;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 2px;
+            padding-bottom: 1px;
         }
 
         /* Carta Aval section */
         .aval-title {
             text-align: center;
             font-family: 'Merriweather', Georgia, serif;
-            font-size: 14pt;
+            font-size: 11pt;
             font-weight: 700;
             color: var(--primary);
-            margin: 20px 0;
+            margin: 12px 0;
         }
 
         /* Footer */
         .contract-footer {
             text-align: center;
-            font-size: 7.5pt;
+            font-size: 6.5pt;
             color: #90A4AE;
             border-top: 1px solid var(--border);
-            padding-top: 8px;
-            margin-top: 30px;
+            padding-top: 5px;
+            margin-top: 15px;
         }
 
         /* Print styles */
@@ -653,23 +655,23 @@ ob_start();
 
     <div class="aval-title">CARTA AVAL</div>
 
-    <div class="clause-body" style="margin-top: 30px;">
+    <div class="clause-body" style="margin-top: 15px;">
         <p>El Sr/Sra. <span class="dato-dinamico"><?= $cliente_nombre ?></span>, identificado/a con <?= $cliente_tipo_doc ?>: <span class="dato-dinamico"><?= $cliente_dni ?></span>; representante legal de la empresa, <span class="dato-dinamico"><?= $empresa_razon ?></span>, con RUC N° <span class="dato-dinamico"><?= $empresa_ruc ?></span> con la potestad para asumir las obligaciones de su representada.</p>
     </div>
 
     <div style="text-align: center; margin: 30px 0;">
-        <strong style="font-size: 14pt; color: var(--primary);">AVALA</strong>
+        <strong style="font-size: 11pt; color: var(--primary);">AVALA</strong>
     </div>
 
     <div class="clause-body">
         <p>a: EL CLIENTE <span class="dato-dinamico"><?= $empresa_razon ?></span> con RUC N° <span class="dato-dinamico"><?= $empresa_ruc ?></span> en virtud de lo dispuesto por el CONTRATO en la CLAUSULA CUARTA, para responder ante las siguientes obligaciones: Realizar el pago correspondiente de acuerdo a la frecuencia establecida en el contrato de SERVICIO DE RECOLECCIÓN, TRANSPORTE, TRATAMIENTO Y DISPOSICIÓN FINAL DE RESIDUOS BIOCONTAMINADOS, ante LA EMPRESA I-O Group E.I.R.L, identificada con RUC N° 20604489726.</p>
     </div>
 
-    <div class="clause-body" style="margin-top: 20px;">
+    <div class="clause-body" style="margin-top: 10px;">
         <p>Este aval tendrá validez hasta que la Administración resuelva expresamente su cancelación, habiendo sido inscrito en el día de la fecha en el Registro especial de Avales.</p>
     </div>
 
-    <div class="clause-body" style="text-align: right; margin-top: 40px;">
+    <div class="clause-body" style="text-align: right; margin-top: 20px;">
         <p>Lima, <span class="dato-dinamico"><?= $fecha_inicio_texto ?></span>.</p>
     </div>
 
