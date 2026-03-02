@@ -215,7 +215,7 @@
             log('Obteniendo sedes desde la API...', 'info');
             let sedes;
             try {
-                const data = await api.get('/sedes?limit=1000&activo=true');
+                const data = await api.get('/sedes?limit=1000');
                 if (!data.success) throw new Error(data.message || 'Error fetching sedes');
                 sedes = data.data;
             } catch (e) {

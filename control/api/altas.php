@@ -196,8 +196,17 @@ function eliminar_alta() {
         return;
     }
     
+    // Get firma digital info to delete its files
+    $firma = null;
+    try {
+        $firma = db()->queryOne("SELECT firma_imagen FROM FirmaDigital WHERE id_proceso = ?", [$id]);
+    } catch (Exception $e) { /* table might not exist in old migrations */ }
+    
     // Delete associated files if they exist
     $upload_base = realpath(__DIR__ . '/../') . '/';
+    if (!$upload_base) {
+        $upload_base = __DIR__ . '/../';
+    }
     $files_to_delete = ['doc_generado', 'doc_firmado', 'comprobante_pago'];
     foreach ($files_to_delete as $field) {
         if (!empty($proceso[$field])) {
@@ -205,6 +214,14 @@ function eliminar_alta() {
             if (file_exists($filepath)) {
                 @unlink($filepath);
             }
+        }
+    }
+    
+    // Delete signature image
+    if ($firma && !empty($firma['firma_imagen'])) {
+        $firma_filepath = $upload_base . $firma['firma_imagen'];
+        if (file_exists($firma_filepath)) {
+            @unlink($firma_filepath);
         }
     }
     
@@ -216,12 +233,25 @@ function eliminar_alta() {
         );
     } catch (Exception $e) { /* non-critical */ }
     
-    db()->execute("DELETE FROM ProcesoAlta WHERE id_proceso = ?", [$id]);
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Proceso de alta eliminado correctamente'
-    ]);
+    try {
+        // Delete related FirmaDigital if exists (in case ON DELETE CASCADE is missing)
+        try {
+            db()->execute("DELETE FROM FirmaDigital WHERE id_proceso = ?", [$id]);
+        } catch (Exception $e) { /* table might not exist or error */ }
+        
+        db()->execute("DELETE FROM ProcesoAlta WHERE id_proceso = ?", [$id]);
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Proceso de alta eliminado correctamente'
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al eliminar el proceso: ' . $e->getMessage()
+        ]);
+    }
 }
 
 function generar_contrato() {

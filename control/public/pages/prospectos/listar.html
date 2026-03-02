@@ -11,6 +11,150 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/css/global.css" rel="stylesheet">
+    <style>
+        /* Kanban Styles */
+        .kanban-column {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .kanban-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #e9ecef;
+        }
+
+        .kanban-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .kanban-count {
+            background: #e2e8f0;
+            color: #475569;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .prospect-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            border: 1px solid #edf2f7;
+            transition: all 0.2s ease;
+            cursor: grab;
+        }
+
+        .prospect-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+
+        .prospect-card:active {
+            cursor: grabbing;
+        }
+
+        .prospect-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .kanban-cards {
+            flex-grow: 1;
+            min-height: 50px;
+            border-radius: 8px;
+        }
+
+        .kanban-column.drag-over {
+            background: #f1f5f9;
+            border: 2px dashed #94a3b8;
+        }
+
+        /* Status colors for Kanban Headers */
+        .column-nuevo .kanban-header {
+            border-bottom-color: #6c757d;
+        }
+
+        .column-contactado .kanban-header {
+            border-bottom-color: #0dcaf0;
+        }
+
+        .column-interesado .kanban-header {
+            border-bottom-color: #ffc107;
+        }
+
+        .column-negociando .kanban-header {
+            border-bottom-color: #0d6efd;
+        }
+
+        .column-ganado .kanban-header {
+            border-bottom-color: #198754;
+        }
+
+        .column-perdido .kanban-header {
+            border-bottom-color: #dc3545;
+        }
+
+        /* Table Styles */
+        .table-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .kanban-wrapper {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        /* Context menu or alternative for mobile actions could replace select */
+        .status-quick-change {
+            display: none;
+            /* Hidden since we use drag and drop */
+        }
+    </style>
 </head>
 
 <body class="control-app">
@@ -115,42 +259,51 @@
                 <div id="kanbanView" class="kanban-wrapper" style="width: 100%; max-width: 100%; overflow-x: hidden;">
                     <div class="kanban-container"
                         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; width: 100%;">
-                        <div class="kanban-column" data-estado="nuevo">
+                        <div class="kanban-column column-nuevo" data-estado="nuevo" ondragover="dragOver(event)"
+                            ondragleave="dragLeave(event)" ondrop="drop(event, 'nuevo')">
                             <div class="kanban-header">
                                 <span class="kanban-title"><span class="status-dot nuevo"></span> Nuevo</span>
                                 <span class="kanban-count" id="countNuevo">0</span>
                             </div>
                             <div class="kanban-cards" id="cardsNuevo"></div>
                         </div>
-                        <div class="kanban-column" data-estado="contactado">
+                        <div class="kanban-column column-contactado" data-estado="contactado"
+                            ondragover="dragOver(event)" ondragleave="dragLeave(event)"
+                            ondrop="drop(event, 'contactado')">
                             <div class="kanban-header">
                                 <span class="kanban-title"><span class="status-dot contactado"></span> Contactado</span>
                                 <span class="kanban-count" id="countContactado">0</span>
                             </div>
                             <div class="kanban-cards" id="cardsContactado"></div>
                         </div>
-                        <div class="kanban-column" data-estado="interesado">
+                        <div class="kanban-column column-interesado" data-estado="interesado"
+                            ondragover="dragOver(event)" ondragleave="dragLeave(event)"
+                            ondrop="drop(event, 'interesado')">
                             <div class="kanban-header">
                                 <span class="kanban-title"><span class="status-dot interesado"></span> Interesado</span>
                                 <span class="kanban-count" id="countInteresado">0</span>
                             </div>
                             <div class="kanban-cards" id="cardsInteresado"></div>
                         </div>
-                        <div class="kanban-column" data-estado="negociando">
+                        <div class="kanban-column column-negociando" data-estado="negociando"
+                            ondragover="dragOver(event)" ondragleave="dragLeave(event)"
+                            ondrop="drop(event, 'negociando')">
                             <div class="kanban-header">
                                 <span class="kanban-title"><span class="status-dot negociando"></span> Negociando</span>
                                 <span class="kanban-count" id="countNegociando">0</span>
                             </div>
                             <div class="kanban-cards" id="cardsNegociando"></div>
                         </div>
-                        <div class="kanban-column" data-estado="ganado">
+                        <div class="kanban-column column-ganado" data-estado="ganado" ondragover="dragOver(event)"
+                            ondragleave="dragLeave(event)" ondrop="drop(event, 'ganado')">
                             <div class="kanban-header">
                                 <span class="kanban-title"><span class="status-dot ganado"></span> Ganado</span>
                                 <span class="kanban-count" id="countGanado">0</span>
                             </div>
                             <div class="kanban-cards" id="cardsGanado"></div>
                         </div>
-                        <div class="kanban-column" data-estado="perdido">
+                        <div class="kanban-column column-perdido" data-estado="perdido" ondragover="dragOver(event)"
+                            ondragleave="dragLeave(event)" ondrop="drop(event, 'perdido')">
                             <div class="kanban-header">
                                 <span class="kanban-title"><span class="status-dot perdido"></span> Perdido</span>
                                 <span class="kanban-count" id="countPerdido">0</span>
@@ -256,7 +409,7 @@
                 container.innerHTML = items.map(p => {
                     const phoneClean = p.telefono ? p.telefono.replace(/\D/g, '') : '';
                     return `
-                    <div class="prospect-card d-flex flex-column h-100" data-id="${p.id_prospecto}">
+                    <div class="prospect-card d-flex flex-column h-100" data-id="${p.id_prospecto}" ${p.es_propietario ? 'draggable="true" ondragstart="dragStart(event)" ondragend="dragEnd(event)"' : ''}>
                         <div class="prospect-header mb-auto" onclick="window.location.href='formulario.html?id=${p.id_prospecto}'">
                             <div class="prospect-name" title="${p.nombre_contacto}">${p.nombre_contacto}</div>
                             <div class="prospect-company" title="${p.razon_social || 'Sin empresa'}">${p.razon_social || 'Sin empresa'}</div>
@@ -285,10 +438,8 @@
                             ` : '<div class="text-center text-muted small mb-2 py-1">Sin teléfono</div>'}
                             
                             ${p.es_propietario ? `
-                            <div class="mt-2 pt-2 border-top">
-                                <select class="form-select form-select-sm status-quick-change border-0 bg-transparent text-secondary shadow-none" onchange="changeStatus(${p.id_prospecto}, this.value)" style="font-size: 0.8rem; font-weight: 500; cursor: pointer;">
-                                    ${estados.map(e => `<option value="${e}" ${e === estado ? 'selected' : ''}>Cambiar a ${capitalize(e)}</option>`).join('')}
-                                </select>
+                            <div class="mt-2 text-center text-muted small d-md-none border-top pt-2">
+                                <i class="bi bi-arrows-move"></i> Arrastrar para cambiar estado
                             </div>
                             ` : ''}
                         </div>
@@ -316,6 +467,51 @@
                 console.error(err);
                 showToast('Error de conexión', 'danger');
                 renderView();
+            }
+        }
+
+        // Drag and Drop implementation
+        let draggedCardId = null;
+
+        function dragStart(e) {
+            draggedCardId = e.currentTarget.dataset.id;
+            e.currentTarget.classList.add('dragging');
+            // Required for Firefox
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', draggedCardId);
+            }
+        }
+
+        function dragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            draggedCardId = null;
+            document.querySelectorAll('.kanban-column').forEach(col => col.classList.remove('drag-over'));
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+            const column = e.currentTarget;
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+            if (!column.classList.contains('drag-over')) {
+                column.classList.add('drag-over');
+            }
+        }
+
+        function dragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        async function drop(e, newState) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const id = draggedCardId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+
+            if (id && newState) {
+                const prospect = allData.find(p => p.id_prospecto == id);
+                if (prospect && prospect.estado !== newState) {
+                    await changeStatus(parseInt(id), newState);
+                }
             }
         }
 

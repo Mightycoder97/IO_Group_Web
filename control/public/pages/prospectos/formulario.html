@@ -60,120 +60,176 @@
                             </div>
                             <div class="card-body">
                                 <form id="form">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Nombre del Contacto <span
-                                                    class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="nombre_contacto" required>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Razón Social / Empresa</label>
-                                            <input type="text" class="form-control" id="razon_social">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label">RUC</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="ruc" maxlength="11"
-                                                    placeholder="Ingrese RUC">
-                                                <button class="btn btn-outline-secondary" type="button"
-                                                    onclick="searchRuc()" id="btnSearchRuc" title="Buscar en SUNAT">
-                                                    <i class="bi bi-search"></i>
-                                                </button>
+                                    <h6 class="section-title text-primary mb-3 mt-2"><i
+                                            class="bi bi-person-lines-fill"></i> Datos Principales</h6>
+                                    <div class="bg-light p-3 rounded mb-4 border">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="form-floating">
+                                                    <input type="text" class="form-control" id="nombre_contacto"
+                                                        placeholder="Nombre del Contacto" required>
+                                                    <label for="nombre_contacto">Nombre del Contacto <span
+                                                            class="text-danger">*</span></label>
+                                                </div>
                                             </div>
-                                            <div class="form-text text-warning" id="rucWarning" style="display: none;">
-                                                <i class="bi bi-exclamation-triangle"></i>
-                                                <span id="rucWarningText"></span>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="form-floating">
+                                                    <input type="text" class="form-control" id="razon_social"
+                                                        placeholder="Razón Social / Empresa">
+                                                    <label for="razon_social">Razón Social / Empresa</label>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label">Teléfono <span
-                                                    class="text-danger">*</span></label>
-                                            <input type="tel" class="form-control" id="telefono" required>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="email">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Tipo de Negocio</label>
-                                            <select class="form-select" id="tipo_negocio">
-                                                <option value="Odontólogo">Odontólogo / Clínica Dental</option>
-                                                <option value="Veterinario">Veterinario / Clínica Veterinaria</option>
-                                                <option value="Laboratorio">Laboratorio Clínico</option>
-                                                <option value="Centro Médico">Centro Médico / Policlínico</option>
-                                                <option value="Hospital">Hospital / Clínica</option>
-                                                <option value="Farmacia">Farmacia / Botica</option>
-                                                <option value="Spa/Estética">Spa / Centro Estético</option>
-                                                <option value="Tatuajes">Estudio de Tatuajes</option>
-                                                <option value="Industrial">Empresa Industrial</option>
-                                                <option value="Otro">Otro</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6 mb-3" id="vendedorContainer" style="display: none;">
-                                            <label class="form-label">Vendedor Asignado</label>
-                                            <select class="form-select" id="vendedor">
-                                                <option value="">Seleccione vendedor asignado...</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <h6 class="section-title mt-4"><i class="bi bi-geo-alt"></i> Ubicación</h6>
-                                    <div class="row">
-                                        <div class="col-md-8 mb-3">
-                                            <label class="form-label">Dirección</label>
-                                            <div class="address-container">
+                                        <div class="row">
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label">RUC <small
+                                                        class="text-muted">(Opcional)</small></label>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control" id="direccion"
-                                                        placeholder="Buscar dirección..." autocomplete="off">
-                                                    <button type="button" class="btn btn-outline-primary btn-location"
-                                                        id="btnMyLocation" title="Usar mi ubicación actual">
-                                                        <i class="bi bi-geo-alt-fill"></i>
-                                                        <span class="d-none d-sm-inline">Mi ubicación</span>
+                                                    <input type="text" class="form-control" id="ruc" maxlength="11"
+                                                        placeholder="Ingrese RUC">
+                                                    <button class="btn btn-primary" type="button" onclick="searchRuc()"
+                                                        id="btnSearchRuc" title="Buscar en SUNAT">
+                                                        <i class="bi bi-search"></i>
                                                     </button>
                                                 </div>
-                                                <div class="address-suggestions" id="addressSuggestions"></div>
+                                                <div class="form-text text-warning" id="rucWarning"
+                                                    style="display: none;">
+                                                    <i class="bi bi-exclamation-triangle"></i>
+                                                    <span id="rucWarningText"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="form-floating mt-md-4 mt-0 pt-md-1">
+                                                    <input type="tel" class="form-control" id="telefono"
+                                                        placeholder="Teléfono" required>
+                                                    <label for="telefono">Teléfono <span
+                                                            class="text-danger">*</span></label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="form-floating mt-md-4 mt-0 pt-md-1">
+                                                    <input type="email" class="form-control" id="email"
+                                                        placeholder="Email">
+                                                    <label for="email">Email</label>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label">Distrito</label>
-                                            <input type="text" class="form-control" id="distrito">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="form-floating">
+                                                    <select class="form-select" id="tipo_negocio"
+                                                        aria-label="Tipo de Negocio">
+                                                        <option value="Odontólogo">Odontólogo / Clínica Dental</option>
+                                                        <option value="Veterinario">Veterinario / Clínica Veterinaria
+                                                        </option>
+                                                        <option value="Laboratorio">Laboratorio Clínico</option>
+                                                        <option value="Centro Médico">Centro Médico / Policlínico
+                                                        </option>
+                                                        <option value="Hospital">Hospital / Clínica</option>
+                                                        <option value="Farmacia">Farmacia / Botica</option>
+                                                        <option value="Spa/Estética">Spa / Centro Estético</option>
+                                                        <option value="Tatuajes">Estudio de Tatuajes</option>
+                                                        <option value="Industrial">Empresa Industrial</option>
+                                                        <option value="Otro">Otro</option>
+                                                    </select>
+                                                    <label for="tipo_negocio">Tipo de Negocio</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3" id="vendedorContainer" style="display: none;">
+                                                <div class="form-floating">
+                                                    <select class="form-select" id="vendedor"
+                                                        aria-label="Vendedor Asignado">
+                                                        <option value="">Seleccione vendedor asignado...</option>
+                                                    </select>
+                                                    <label for="vendedor">Vendedor Asignado</label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div id="map" style="height: 400px; border-radius: 8px;"></div>
-                                    <div class="row coords-row">
-                                        <div class="col-6 mb-3">
-                                            <label class="form-label">Latitud</label>
-                                            <input type="text" class="form-control" id="latitud" readonly>
+
+                                    <h6 class="section-title text-primary mt-4 mb-3"><i class="bi bi-geo-alt"></i>
+                                        Ubicación</h6>
+                                    <div class="bg-light p-3 rounded mb-4 border">
+                                        <div class="row">
+                                            <div class="col-md-8 mb-3">
+                                                <label class="form-label">Dirección</label>
+                                                <div class="address-container">
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control" id="direccion"
+                                                            placeholder="Buscar dirección..." autocomplete="off">
+                                                        <button type="button" class="btn btn-primary btn-location"
+                                                            id="btnMyLocation" title="Usar mi ubicación actual">
+                                                            <i class="bi bi-geo-alt-fill"></i>
+                                                            <span class="d-none d-sm-inline">Mi ubicación</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="address-suggestions" id="addressSuggestions"></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <div class="form-floating mt-md-4 mt-0 pt-md-1">
+                                                    <input type="text" class="form-control" id="distrito"
+                                                        placeholder="Distrito">
+                                                    <label for="distrito">Distrito</label>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-6 mb-3">
-                                            <label class="form-label">Longitud</label>
-                                            <input type="text" class="form-control" id="longitud" readonly>
+                                        <div id="map" class="shadow-sm border"
+                                            style="height: 400px; border-radius: 8px;"></div>
+                                        <div class="row coords-row mt-3">
+                                            <div class="col-6 mb-3">
+                                                <div class="form-floating">
+                                                    <input type="text" class="form-control" id="latitud"
+                                                        placeholder="Latitud" readonly>
+                                                    <label for="latitud">Latitud</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="form-floating">
+                                                    <input type="text" class="form-control" id="longitud"
+                                                        placeholder="Longitud" readonly>
+                                                    <label for="longitud">Longitud</label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <h6 class="section-title mt-4"><i class="bi bi-chat-left-text"></i> Notas</h6>
-                                    <div class="mb-3">
-                                        <label class="form-label">Observaciones</label>
-                                        <textarea class="form-control" id="observaciones" rows="2"></textarea>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Fecha Próximo Contacto</label>
-                                            <input type="date" class="form-control" id="fecha_siguiente_contacto">
+
+                                    <h6 class="section-title text-primary mt-4 mb-3"><i
+                                            class="bi bi-chat-left-text"></i> Notas y Seguimiento</h6>
+                                    <div class="bg-light p-3 rounded mb-4 border">
+                                        <div class="mb-3">
+                                            <div class="form-floating">
+                                                <textarea class="form-control" id="observaciones"
+                                                    placeholder="Observaciones" style="height: 80px;"></textarea>
+                                                <label for="observaciones">Observaciones</label>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="form-floating">
+                                                    <input type="date" class="form-control"
+                                                        id="fecha_siguiente_contacto"
+                                                        placeholder="Fecha Próximo Contacto">
+                                                    <label for="fecha_siguiente_contacto">Fecha Próximo Contacto</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-floating">
+                                                <textarea class="form-control" id="notas_seguimiento"
+                                                    placeholder="Notas de Seguimiento"
+                                                    style="height: 100px;"></textarea>
+                                                <label for="notas_seguimiento">Notas de Seguimiento (Ej: 15/01 -
+                                                    Llamado...)</label>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Notas de Seguimiento</label>
-                                        <textarea class="form-control" id="notas_seguimiento" rows="3"
-                                            placeholder="Ej: 15/01 - Llamado, pidió cotización. 18/01 - Enviada cotización..."></textarea>
-                                    </div>
-                                    <div class="d-flex gap-2 mt-4 form-action-buttons">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-check-lg"></i> Guardar
+
+                                    <div class="d-flex gap-2 mt-4 form-action-buttons border-top pt-4">
+                                        <button type="submit" class="btn btn-primary px-4 py-2">
+                                            <i class="bi bi-check-lg"></i> Guardar Prospecto
                                         </button>
-                                        <a href="listar.html" class="btn btn-outline-secondary">Cancelar</a>
+                                        <a href="listar.html" class="btn btn-light border px-4 py-2">Cancelar</a>
                                     </div>
                                 </form>
                             </div>
@@ -181,12 +237,14 @@
                     </div>
                     <!-- Right Column: Estado & Actions -->
                     <div class="col-lg-4">
-                        <div class="card mb-4" id="estadoCard" style="display: none;">
-                            <div class="card-header">
-                                <i class="bi bi-bar-chart-steps"></i> Estado del Prospecto
+                        <div class="card mb-4 shadow-sm border-0" id="estadoCard"
+                            style="display: none; border-radius: 12px; overflow: hidden;">
+                            <div class="card-header bg-primary text-white border-0 py-3">
+                                <h6 class="mb-0"><i class="bi bi-bar-chart-steps"></i> Estado del Prospecto</h6>
                             </div>
-                            <div class="card-body">
-                                <select class="form-select mb-3" id="estadoSelect">
+                            <div class="card-body bg-light">
+                                <select class="form-select form-select-lg mb-3 shadow-sm border-0" id="estadoSelect"
+                                    style="border-radius: 8px;">
                                     <option value="nuevo">🔵 Nuevo</option>
                                     <option value="contactado">📞 Contactado</option>
                                     <option value="interesado">⭐ Interesado</option>
@@ -194,35 +252,42 @@
                                     <option value="ganado">🏆 Ganado</option>
                                     <option value="perdido">❌ Perdido</option>
                                 </select>
-                                <button class="btn btn-outline-primary w-100" onclick="updateEstado()">
-                                    <i class="bi bi-arrow-repeat"></i> Cambiar Estado
+                                <button class="btn btn-primary w-100 py-2 shadow-sm" style="border-radius: 8px;"
+                                    onclick="updateEstado()">
+                                    <i class="bi bi-arrow-repeat"></i> Actualizar Estado
                                 </button>
                             </div>
                         </div>
-                        <div class="card mb-4" id="infoCard" style="display: none;">
-                            <div class="card-header">
-                                <i class="bi bi-info-circle"></i> Información
+                        <div class="card mb-4 shadow-sm border-0" id="infoCard"
+                            style="display: none; border-radius: 12px; overflow: hidden;">
+                            <div class="card-header bg-white border-bottom py-3">
+                                <h6 class="mb-0 text-muted"><i class="bi bi-info-circle"></i> Información Detallada</h6>
                             </div>
                             <div class="card-body">
-                                <div class="info-row">
-                                    <span class="info-label">Creado:</span>
-                                    <span class="info-value" id="infoCreado">-</span>
+                                <div class="info-row d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                    <span class="info-label text-muted small">Fecha Creación:</span>
+                                    <span class="info-value text-dark fw-medium small" id="infoCreado">-</span>
                                 </div>
-                                <div class="info-row">
-                                    <span class="info-label">Modificado:</span>
-                                    <span class="info-value" id="infoModificado">-</span>
+                                <div class="info-row d-flex justify-content-between">
+                                    <span class="info-label text-muted small">Última Modificación:</span>
+                                    <span class="info-value text-dark fw-medium small" id="infoModificado">-</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="card" id="actionsCard" style="display: none;">
-                            <div class="card-header">
-                                <i class="bi bi-lightning"></i> Acciones Rápidas
+                        <div class="card shadow-sm border-0" id="actionsCard"
+                            style="display: none; border-radius: 12px; overflow: hidden;">
+                            <div class="card-header bg-white border-bottom py-3">
+                                <h6 class="mb-0 text-muted"><i class="bi bi-lightning"></i> Acciones Rápidas</h6>
                             </div>
-                            <div class="card-body d-grid gap-2">
-                                <a href="#" class="btn btn-outline-success" id="btnWhatsApp" target="_blank">
-                                    <i class="bi bi-whatsapp"></i> Enviar WhatsApp
+                            <div class="card-body d-grid gap-3">
+                                <a href="#"
+                                    class="btn btn-outline-success py-2 d-flex align-items-center justify-content-center gap-2"
+                                    id="btnWhatsApp" target="_blank" style="border-radius: 8px;">
+                                    <i class="bi bi-whatsapp"></i> Chat WhatsApp
                                 </a>
-                                <button class="btn btn-outline-danger" onclick="deleteProspecto()">
+                                <button
+                                    class="btn btn-outline-danger py-2 d-flex align-items-center justify-content-center gap-2"
+                                    style="border-radius: 8px;" onclick="deleteProspecto()">
                                     <i class="bi bi-trash"></i> Eliminar Prospecto
                                 </button>
                             </div>
