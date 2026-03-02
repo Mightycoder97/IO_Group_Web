@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geocodificar Sedes - IO Group</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f5f5f5;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .log-area {
+            height: 500px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .log-ok {
+            color: #4ec9b0;
+        }
+
+        .log-err {
+            color: #f44747;
+        }
+
+        .log-info {
+            color: #569cd6;
+        }
+
+        .sql-area {
+            height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 11px;
+            white-space: pre;
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .progress-info {
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container py-4">
+        <h2 class="mb-1"><i class="bi bi-geo-alt-fill text-success"></i> Geocodificador de Sedes</h2>
+        <p class="text-muted mb-4">Genera coordenadas GPS para todas las sedes sin coordenadas usando Google Maps.</p>
+
+        <div class="row mb-3">
+            <div class="col-auto">
+                <button class="btn btn-success btn-lg" id="btnStart" onclick="startGeocoding()">
+                    ▶ Iniciar Geocodificación
+                </button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-secondary btn-lg" id="btnStop" onclick="stopGeocoding()" disabled>
+                    ⏹ Detener
+                </button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-primary btn-lg" id="btnCopySQL" onclick="copySQL()" disabled>
+                    📋 Copiar SQL
+                </button>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="fs-3 fw-bold text-primary" id="statTotal">-</div>
+                        <small class="text-muted">Total sin coordenadas</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="fs-3 fw-bold text-success" id="statOk">0</div>
+                        <small class="text-muted">Geocodificadas</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="fs-3 fw-bold text-danger" id="statErr">0</div>
+                        <small class="text-muted">Errores</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="fs-3 fw-bold text-info" id="statProgress">0%</div>
+                        <small class="text-muted">Progreso</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress mb-3" style="height: 8px;">
+            <div class="progress-bar bg-success" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#tabLog">Log</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tabSQL">SQL Output</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="tabLog">
+                <div class="log-area" id="logArea"></div>
+            </div>
+            <div class="tab-pane fade" id="tabSQL">
+                <div class="sql-area" id="sqlArea">-- Ejecuta la geocodificación para generar el SQL aquí</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+
+    <script>
+        let geocoder;
+        let shouldStop = false;
+        let sqlStatements = [];
+        let successCount = 0;
+        let errorCount = 0;
+
+        function log(msg, type = '') {
+            const el = document.getElementById('logArea');
+            const cls = type === 'ok' ? 'log-ok' : type === 'err' ? 'log-err' : type === 'info' ? 'log-info' : '';
+            el.innerHTML += `<div class="${cls}">${msg}</div>`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function updateStats(total, current) {
+            document.getElementById('statOk').textContent = successCount;
+            document.getElementById('statErr').textContent = errorCount;
+            const pct = Math.round((current / total) * 100);
+            document.getElementById('statProgress').textContent = pct + '%';
+            document.getElementById('progressBar').style.width = pct + '%';
+        }
+
+        function sleep(ms) {
+            return new Promise(r => setTimeout(r, ms));
+        }
+
+        function geocodeAddress(address) {
+            return new Promise((resolve) => {
+                geocoder.geocode({ address: address, region: 'pe' }, (results, status) => {
+                    if (status === 'OK' && results.length > 0) {
+                        const loc = results[0].geometry.location;
+                        resolve({
+                            success: true,
+                            lat: loc.lat().toFixed(6),
+                            lng: loc.lng().toFixed(6),
+                            formatted: results[0].formatted_address
+                        });
+                    } else {
+                        resolve({ success: false, error: status });
+                    }
+                });
+            });
+        }
+
+        async function startGeocoding() {
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = false;
+            shouldStop = false;
+            sqlStatements = [];
+            successCount = 0;
+            errorCount = 0;
+            document.getElementById('logArea').innerHTML = '';
+            document.getElementById('sqlArea').textContent = '';
+
+            log('Cargando Google Maps API...', 'info');
+
+            // Load Google Maps
+            await new Promise((resolve, reject) => {
+                if (window.google && window.google.maps) {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&libraries=geocoding&language=es&region=PE`;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+
+            geocoder = new google.maps.Geocoder();
+            log('Google Maps API cargado ✓', 'ok');
+
+            // Fetch sedes from API
+            log('Obteniendo sedes desde la API...', 'info');
+            let sedes;
+            try {
+                const token = localStorage.getItem('jwt_token');
+                const resp = await fetch(API_BASE + '/sedes?limit=1000&activo=true', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await resp.json();
+                if (!data.success) throw new Error(data.message || 'Error fetching sedes');
+                sedes = data.data;
+            } catch (e) {
+                log('ERROR al obtener sedes: ' + e.message, 'err');
+                document.getElementById('btnStart').disabled = false;
+                document.getElementById('btnStop').disabled = true;
+                return;
+            }
+
+            // Filter sedes without coordinates
+            const sinCoords = sedes.filter(s =>
+                s.direccion && s.direccion.trim() !== '' &&
+                (!s.coordenadas_gps || s.coordenadas_gps.trim() === '')
+            );
+
+            log(`Total sedes obtenidas: ${sedes.length}`, 'info');
+            log(`Con coordenadas: ${sedes.length - sinCoords.length}`, 'info');
+            log(`SIN coordenadas (a geocodificar): ${sinCoords.length}`, 'info');
+            log('', '');
+
+            document.getElementById('statTotal').textContent = sinCoords.length;
+
+            if (sinCoords.length === 0) {
+                log('¡Todas las sedes ya tienen coordenadas!', 'ok');
+                document.getElementById('btnStart').disabled = false;
+                document.getElementById('btnStop').disabled = true;
+                return;
+            }
+
+            // Process each sede
+            for (let i = 0; i < sinCoords.length; i++) {
+                if (shouldStop) {
+                    log('\n⏹ Detenido por el usuario.', 'err');
+                    break;
+                }
+
+                const sede = sinCoords[i];
+                const id = sede.id_sede;
+                const dir = sede.direccion.trim();
+                const distrito = (sede.distrito || '').trim();
+                const nombre = sede.nombre_comercial || '';
+
+                // Build full address
+                let fullAddress = dir;
+                if (distrito && !dir.toLowerCase().includes(distrito.toLowerCase())) {
+                    fullAddress += ', ' + distrito;
+                }
+                fullAddress += ', Lima, Peru';
+
+                log(`[${i + 1}/${sinCoords.length}] #${id} ${nombre}`);
+                log(`  → ${fullAddress}`);
+
+                const result = await geocodeAddress(fullAddress);
+
+                if (result.success) {
+                    const coords = `${result.lat},${result.lng}`;
+                    log(`  ✓ ${coords} (${result.formatted})`, 'ok');
+                    sqlStatements.push(`UPDATE Sede SET coordenadas_gps = '${coords}' WHERE id_sede = ${id};`);
+                    successCount++;
+                } else {
+                    log(`  ✗ Error: ${result.error}`, 'err');
+                    errorCount++;
+
+                    // If OVER_QUERY_LIMIT, wait longer
+                    if (result.error === 'OVER_QUERY_LIMIT') {
+                        log('  ⏳ Rate limit alcanzado, esperando 2s...', 'info');
+                        await sleep(2000);
+                    }
+                }
+
+                updateStats(sinCoords.length, i + 1);
+
+                // Delay between requests (respect rate limits)
+                await sleep(250);
+            }
+
+            // Generate SQL output
+            log('\n========================================', 'info');
+            log(`Geocodificadas: ${successCount}`, 'ok');
+            log(`Errores: ${errorCount}`, 'err');
+            log('========================================', 'info');
+
+            if (sqlStatements.length > 0) {
+                const sqlOutput = `-- Geocoding GPS Updates - Generado ${new Date().toISOString()}\n`
+                    + `-- Total actualizaciones: ${sqlStatements.length}\n\n`
+                    + sqlStatements.join('\n') + '\n';
+
+                document.getElementById('sqlArea').textContent = sqlOutput;
+                document.getElementById('btnCopySQL').disabled = false;
+                log(`\nSQL generado con ${sqlStatements.length} UPDATE statements. Ve a la pestaña "SQL Output".`, 'ok');
+            }
+
+            document.getElementById('btnStart').disabled = false;
+            document.getElementById('btnStop').disabled = true;
+        }
+
+        function stopGeocoding() {
+            shouldStop = true;
+        }
+
+        function copySQL() {
+            const sql = document.getElementById('sqlArea').textContent;
+            navigator.clipboard.writeText(sql).then(() => {
+                alert('SQL copiado al portapapeles (' + sqlStatements.length + ' statements)');
+            });
+        }
+    </script>
+</body>
+
+</html>
