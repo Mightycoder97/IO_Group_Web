@@ -42,10 +42,13 @@ function getAll() {
             WHERE 1=1";
     $params = [];
     
+    // Detect if search looks like a RUC (all digits, 8+ chars) for exact-match priority
+    $isRucSearch = false;
     if ($search) {
         $sql .= " AND (e.razon_social LIKE ? OR e.ruc LIKE ?)";
         $searchTerm = "%$search%";
         $params = array_merge($params, [$searchTerm, $searchTerm]);
+        $isRucSearch = (preg_match('/^\d{8,}$/', $search));
     }
     
     if ($cliente) {
@@ -58,7 +61,13 @@ function getAll() {
         $params[] = $activo === 'true' ? 1 : 0;
     }
     
-    $sql .= " ORDER BY e.razon_social";
+    // Prioritize exact RUC match when searching by RUC
+    if ($isRucSearch) {
+        $sql .= " ORDER BY CASE WHEN e.ruc = ? THEN 0 ELSE 1 END, e.razon_social";
+        $params[] = $search;
+    } else {
+        $sql .= " ORDER BY e.razon_social";
+    }
     
     $data = db()->query($sql, $params);
     

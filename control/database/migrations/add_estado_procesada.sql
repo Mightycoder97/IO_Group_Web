@@ -1,0 +1,13 @@
+-- Migration: add_estado_procesada.sql
+-- Date: 2026-03-06
+-- Description: Documents the new 'procesada' state for Ruta.estado
+-- 
+-- Ruta.estado is VARCHAR, so no DDL change is needed.
+-- Valid states are now: programada, en_curso, procesada, completada
+--
+-- 'procesada' = All services have estado set (completado/cancelado)
+--               but some still have estado_pago = 'pendiente'
+--               This enables "dar de alta" without blocking on payment data.
+--
+-- No-op migration for documentation purposes.
+SELECT 1;

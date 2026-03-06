@@ -136,6 +136,13 @@ function getRouteServices($id_ruta) {
 
         $ruta['servicios'] = $servicios;
 
+        // Count services with pending payment for badge rendering
+        $pendientesPago = db()->queryOne(
+            "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND (estado_pago IS NULL OR estado_pago = 'pendiente')",
+            [$id_ruta]
+        );
+        $ruta['pendientes_pago'] = intval($pendientesPago['cnt'] ?? 0);
+
         echo json_encode(['success' => true, 'data' => $ruta]);
 
     } catch (Exception $e) {
@@ -148,6 +155,11 @@ function getRouteServices($id_ruta) {
  * PUT ?action=batch_update
  * Body: { id_ruta: X, servicios: [ { id_servicio, estado, estado_pago, forma_pago, fecha_pago } ] }
  * Updates each service and writes AuditLog entries as digital signatures.
+ * 
+ * Route state logic:
+ *  - ALL services estado != 'programado' AND ALL estado_pago = 'pagado' → 'completada'
+ *  - ALL services estado != 'programado' BUT some estado_pago = 'pendiente' → 'procesada'
+ *  - Otherwise → unchanged
  */
 function batchUpdate() {
     $user = canEdit();
@@ -240,7 +252,6 @@ function batchUpdate() {
             );
 
             // Write AuditLog signature — full nuevos datos for traceability
-            // Include all changed fields so we can identify service vs payment confirmations later
             $auditData = array_merge($nuevosDatos, [
                 'id_servicio' => $id_servicio,
                 'id_ruta'     => $id_ruta,
@@ -262,25 +273,41 @@ function batchUpdate() {
             $updated++;
         }
 
-        // Check if all services in the route are now verified (not 'programado')
-        $pendientes = db()->queryOne(
+        // Check service states for route status determination
+        $pendientesEstado = db()->queryOne(
             "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND estado = 'programado'",
             [$id_ruta]
         );
-        $todosVerificados = ($pendientes['cnt'] == 0);
+        $todosEstadoOk = ($pendientesEstado['cnt'] == 0);
 
-        // If all verified, mark route as completada
-        if ($todosVerificados) {
+        $pendientesPago = db()->queryOne(
+            "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND (estado_pago IS NULL OR estado_pago = 'pendiente')",
+            [$id_ruta]
+        );
+        $todosPagados = ($pendientesPago['cnt'] == 0);
+        $pendienteLiquidacion = ($todosEstadoOk && !$todosPagados);
+
+        // Determine new route state
+        if ($todosEstadoOk && $todosPagados) {
+            // All services verified AND all paid → completada
             db()->execute(
                 "UPDATE Ruta SET estado = 'completada', fecha_modificacion = NOW() WHERE id_ruta = ?",
+                [$id_ruta]
+            );
+        } elseif ($todosEstadoOk && !$todosPagados) {
+            // All services verified BUT some pending payment → procesada
+            db()->execute(
+                "UPDATE Ruta SET estado = 'procesada', fecha_modificacion = NOW() WHERE id_ruta = ?",
                 [$id_ruta]
             );
         }
 
         echo json_encode([
-            'success'          => true,
-            'message'          => "$updated servicio(s) actualizado(s) correctamente",
-            'todos_verificados' => $todosVerificados
+            'success'               => true,
+            'message'               => "$updated servicio(s) actualizado(s) correctamente",
+            'todos_verificados'     => $todosEstadoOk,
+            'pendiente_liquidacion' => $pendienteLiquidacion,
+            'pendientes_pago'       => intval($pendientesPago['cnt'] ?? 0)
         ]);
 
     } catch (Exception $e) {

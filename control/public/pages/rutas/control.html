@@ -268,6 +268,109 @@
             border-radius: 4px;
         }
 
+        /* Pendiente de Liquidación badge */
+        .badge-liquidacion {
+            font-size: 0.7rem;
+            animation: pulse-warn 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-warn {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        /* Procesada state pill */
+        .prog-pill.procesada {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        /* RUC Search */
+        .ruc-search-wrap {
+            position: relative;
+        }
+
+        .ruc-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            display: none;
+        }
+
+        .ruc-results.show {
+            display: block;
+        }
+
+        .ruc-result-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.15s;
+        }
+
+        .ruc-result-item:hover {
+            background: #e8f5e9;
+        }
+
+        .ruc-result-item.exact-match {
+            background: #f1f8e9;
+            font-weight: 600;
+        }
+
+        .ruc-result-item .ruc-num {
+            color: #1B5E20;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        /* Document form */
+        .doc-form-section {
+            margin-top: 0.5rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 6px;
+            background: #f0f4ff;
+            border: 1px solid #c5cae9;
+        }
+
+        .doc-form-section .form-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .doc-form-section .form-control-sm {
+            font-size: 0.78rem;
+        }
+
+        .doc-saved-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
         /* Print */
         @media print {
 
@@ -431,9 +534,12 @@
         function getEstadoBadge(estado) {
             const map = {
                 'programado': ['secondary', 'clock'],
+                'programada': ['secondary', 'clock'],
                 'en_curso': ['primary', 'truck'],
                 'completado': ['success', 'check-circle-fill'],
+                'completada': ['success', 'check-circle-fill'],
                 'cancelado': ['danger', 'x-circle-fill'],
+                'procesada': ['warning text-dark', 'exclamation-triangle-fill'],
             };
             const [bg, icon] = map[estado] || map['programado'];
             const label = estado ? (estado.charAt(0).toUpperCase() + estado.slice(1)) : '-';
@@ -501,11 +607,18 @@
             el.innerHTML = data.map(r => {
                 const count = parseInt(r.sedes_count || 0);
                 const isSelected = r.id_ruta == currentRutaId;
+                const pendientesPago = parseInt(r.pendientes_pago || 0);
 
                 // Determine progress pill color based on route state
                 let pillClass = 'none', pillIcon = 'list';
                 if (r.estado === 'completada') { pillClass = 'done'; pillIcon = 'check-all'; }
+                else if (r.estado === 'procesada') { pillClass = 'procesada'; pillIcon = 'exclamation-triangle'; }
                 else if (r.estado === 'en_curso') { pillClass = 'warn'; pillIcon = 'clock'; }
+
+                // Pendiente de Liquidación badge
+                const liquidacionBadge = (r.estado === 'procesada' || (pendientesPago > 0 && r.estado !== 'programada'))
+                    ? `<span class="badge bg-warning text-dark badge-liquidacion mt-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Pendiente de Liquidación (${pendientesPago})</span>`
+                    : '';
 
                 return `
             <div class="ruta-item${isSelected ? ' active' : ''}" onclick="selectRuta(${r.id_ruta})" id="ritem-${r.id_ruta}">
@@ -520,6 +633,7 @@
                     </span>
                 </div>
                 ${r.chofer_nombre ? `<div class="ruta-meta" style="margin-top:2px;"><i class="bi bi-person me-1"></i>${r.chofer_nombre}</div>` : ''}
+                ${liquidacionBadge}
             </div>`;
             }).join('');
         }
@@ -662,7 +776,7 @@
                         </div>
                     </div>
 
-                    <!-- ② Payment confirmation -->
+                    <!-- ② Payment confirmation (optional for save) -->
                     <div class="action-strip">
                         <i class="bi bi-currency-dollar text-primary"></i>
                         <label>
@@ -687,6 +801,46 @@
                         <div id="firma-pago-${s.id_servicio}">
                             ${edit.firmaPago ? renderFirma(edit.firmaPago, true) : ''}
                         </div>
+                        ${edit.estado_pago !== 'pagado' ? '<small class="text-muted w-100 mt-1" style="font-size:0.7rem;"><i class="bi bi-info-circle me-1"></i>Opcional — puede guardarse sin datos de pago</small>' : ''}
+                    </div>
+
+                    <!-- ③ RUC Search & Document Entry -->
+                    <div class="action-strip mt-1">
+                        <i class="bi bi-search text-dark"></i>
+                        <label>Buscar por RUC:</label>
+                        <div class="ruc-search-wrap" style="min-width:200px; flex:1;">
+                            <input type="text" class="form-control form-control-sm"
+                                   id="rucSearch-${s.id_servicio}"
+                                   placeholder="Ingrese RUC..."
+                                   oninput="searchByRUC(${s.id_servicio})"
+                                   autocomplete="off">
+                            <div class="ruc-results" id="rucResults-${s.id_servicio}"></div>
+                        </div>
+                        <div id="rucSelected-${s.id_servicio}" class="d-none">
+                            <small class="fw-semibold text-success" id="rucSelectedName-${s.id_servicio}"></small>
+                        </div>
+                    </div>
+
+                    <!-- Document form (hidden until empresa selected) -->
+                    <div class="doc-form-section d-none" id="docForm-${s.id_servicio}">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-sm-4">
+                                <label class="form-label">Nº Manifiesto</label>
+                                <input type="text" class="form-control form-control-sm"
+                                       id="numManifiesto-${s.id_servicio}" placeholder="Ej: MAN-001">
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label">Nº Guía</label>
+                                <input type="text" class="form-control form-control-sm"
+                                       id="numGuia-${s.id_servicio}" placeholder="Ej: GR-001">
+                            </div>
+                            <div class="col-sm-4">
+                                <button class="btn btn-sm btn-primary w-100" onclick="saveDocumentos(${s.id_servicio})">
+                                    <i class="bi bi-save me-1"></i>Guardar Docs
+                                </button>
+                            </div>
+                        </div>
+                        <div id="docSavedInfo-${s.id_servicio}" class="mt-2"></div>
                     </div>
                 </div>
             </div>`;
@@ -817,39 +971,51 @@
         function updateProgressAndSave() {
             if (currentServicios.length === 0) return;
 
-            let verified = 0;
+            let estadoOk = 0;
+            let pagoOk = 0;
             currentServicios.forEach(s => {
                 const edit = localEdits[s.id_servicio];
                 if (!edit) return;
-                // Verified = servicio confirmado (not programado) & pago definido (whether paid or confirmed as pending)
-                const srvOk = edit.estado !== 'programado' && !!edit.firmaServicio;
-                const pagoOk = !!edit.firmaPago;
-                if (srvOk && pagoOk) verified++;
+                // Service verified = estado set to completado or cancelado (not programado)
+                if (edit.estado !== 'programado') estadoOk++;
+                // Payment confirmed (optional for save)
+                if (edit.estado_pago === 'pagado') pagoOk++;
             });
 
             const total = currentServicios.length;
-            const pct = total > 0 ? Math.round((verified / total) * 100) : 0;
+            const pct = total > 0 ? Math.round((estadoOk / total) * 100) : 0;
 
             document.getElementById('progressBar').style.width = pct + '%';
-            document.getElementById('progressLabel').textContent = `${verified} / ${total}`;
+            document.getElementById('progressLabel').textContent = `${estadoOk} / ${total}`;
 
-            const allDone = (verified === total);
-            document.getElementById('btnGuardar').disabled = !allDone;
-            document.getElementById('saveHint').textContent = allDone
-                ? '✅ Todas las sedes verificadas — listo para guardar'
-                : `${total - verified} sede(s) pendiente(s) de verificar`;
+            // Save enabled when ALL services have estado set (payment is optional)
+            const canSave = (estadoOk === total);
+            const pendingPago = total - pagoOk;
+            document.getElementById('btnGuardar').disabled = !canSave;
+
+            if (canSave && pendingPago > 0) {
+                document.getElementById('saveHint').innerHTML =
+                    `<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>${pendingPago} sede(s) sin datos de pago — se guardará con alerta</span>`;
+            } else if (canSave) {
+                document.getElementById('saveHint').textContent = '✅ Todas las sedes verificadas — listo para guardar';
+            } else {
+                document.getElementById('saveHint').textContent = `${total - estadoOk} sede(s) pendiente(s) de verificar estado del servicio`;
+            }
 
             // Also refresh ruta list item progress pill
             const ruta = allRutas.find(r => r.id_ruta == currentRutaId);
             if (ruta) {
                 const pill = document.querySelector(`#ritem-${currentRutaId} .prog-pill`);
                 if (pill) {
-                    if (allDone) {
+                    if (canSave && pendingPago === 0) {
                         pill.className = 'prog-pill done';
                         pill.innerHTML = `<i class="bi bi-check-all"></i>${total} sedes ✓`;
+                    } else if (canSave) {
+                        pill.className = 'prog-pill procesada';
+                        pill.innerHTML = `<i class="bi bi-exclamation-triangle"></i>${estadoOk}/${total} ⚠`;
                     } else {
                         pill.className = 'prog-pill warn';
-                        pill.innerHTML = `<i class="bi bi-clock"></i>${verified}/${total}`;
+                        pill.innerHTML = `<i class="bi bi-clock"></i>${estadoOk}/${total}`;
                     }
                 }
             }
@@ -885,17 +1051,27 @@
                 if (result.success) {
                     showToast(result.message || 'Cambios guardados correctamente', 'success');
 
-                    if (result.todos_verificados) {
-                        showToast('✅ Ruta marcada como completada', 'success');
-                        // Update route state in allRutas
-                        const ruta = allRutas.find(r => r.id_ruta == currentRutaId);
-                        if (ruta) ruta.estado = 'completada';
-                        renderRutasList(allRutas);
+                    const ruta = allRutas.find(r => r.id_ruta == currentRutaId);
 
-                        // Re-highlight selected
-                        const selected = document.getElementById(`ritem-${currentRutaId}`);
-                        if (selected) selected.classList.add('active');
+                    if (result.pendiente_liquidacion) {
+                        showToast('⚠ Ruta procesada — pendiente de liquidación', 'warning');
+                        if (ruta) {
+                            ruta.estado = 'procesada';
+                            ruta.pendientes_pago = result.pendientes_pago || 0;
+                        }
+                    } else if (result.todos_verificados) {
+                        showToast('✅ Ruta marcada como completada', 'success');
+                        if (ruta) {
+                            ruta.estado = 'completada';
+                            ruta.pendientes_pago = 0;
+                        }
                     }
+
+                    // Re-render route list with updated state/badges
+                    applyFiltro();
+                    // Re-highlight selected
+                    const selected = document.getElementById(`ritem-${currentRutaId}`);
+                    if (selected) selected.classList.add('active');
 
                     // Reload current route data from server to get persisted signatures
                     await selectRutaReload(currentRutaId);
@@ -945,6 +1121,143 @@
                 console.error('Error reloading route:', err);
             }
         }
+
+        // ========================
+        // RUC Search & Document Functions
+        // ========================
+        let rucSearchTimers = {};
+
+        function searchByRUC(idServicio) {
+            const input = document.getElementById(`rucSearch-${idServicio}`);
+            const query = input.value.trim();
+            const resultsEl = document.getElementById(`rucResults-${idServicio}`);
+
+            // Clear previous timer for debounce
+            if (rucSearchTimers[idServicio]) clearTimeout(rucSearchTimers[idServicio]);
+
+            if (query.length < 3) {
+                resultsEl.classList.remove('show');
+                resultsEl.innerHTML = '';
+                return;
+            }
+
+            rucSearchTimers[idServicio] = setTimeout(async () => {
+                try {
+                    const result = await api.get(`/empresas?search=${encodeURIComponent(query)}`);
+                    if (!result.success || !result.data.length) {
+                        resultsEl.innerHTML = '<div class="ruc-result-item text-muted">Sin resultados</div>';
+                        resultsEl.classList.add('show');
+                        return;
+                    }
+
+                    let items = result.data;
+
+                    // Client-side re-sort: exact RUC match first
+                    items.sort((a, b) => {
+                        const aExact = a.ruc === query ? -1 : 0;
+                        const bExact = b.ruc === query ? -1 : 0;
+                        return aExact - bExact;
+                    });
+
+                    resultsEl.innerHTML = items.slice(0, 10).map(emp => {
+                        const isExact = emp.ruc === query;
+                        return `<div class="ruc-result-item${isExact ? ' exact-match' : ''}" 
+                                     onclick="selectEmpresa(${idServicio}, ${emp.id_empresa}, '${(emp.razon_social || '').replace(/'/g, '\\\'')}', '${emp.ruc || ''}')">
+                            <span class="ruc-num">${emp.ruc || '-'}</span> — ${emp.razon_social || '-'}
+                            ${isExact ? '<i class="bi bi-check-circle-fill text-success ms-1"></i>' : ''}
+                        </div>`;
+                    }).join('');
+                    resultsEl.classList.add('show');
+
+                } catch (err) {
+                    resultsEl.innerHTML = '<div class="ruc-result-item text-danger">Error de búsqueda</div>';
+                    resultsEl.classList.add('show');
+                }
+            }, 300);
+        }
+
+        function selectEmpresa(idServicio, idEmpresa, nombre, ruc) {
+            // Hide results
+            document.getElementById(`rucResults-${idServicio}`).classList.remove('show');
+            document.getElementById(`rucSearch-${idServicio}`).value = ruc;
+
+            // Show selected empresa
+            const selectedEl = document.getElementById(`rucSelected-${idServicio}`);
+            selectedEl.classList.remove('d-none');
+            document.getElementById(`rucSelectedName-${idServicio}`).textContent = `✓ ${nombre} (${ruc})`;
+
+            // Show document form
+            const docForm = document.getElementById(`docForm-${idServicio}`);
+            docForm.classList.remove('d-none');
+            docForm.dataset.idEmpresa = idEmpresa;
+
+            // Auto-focus Manifiesto field
+            setTimeout(() => {
+                const manifiestoInput = document.getElementById(`numManifiesto-${idServicio}`);
+                if (manifiestoInput) manifiestoInput.focus();
+            }, 100);
+        }
+
+        async function saveDocumentos(idServicio) {
+            const docForm = document.getElementById(`docForm-${idServicio}`);
+            const numManifiesto = document.getElementById(`numManifiesto-${idServicio}`).value.trim();
+            const numGuia = document.getElementById(`numGuia-${idServicio}`).value.trim();
+
+            if (!numManifiesto && !numGuia) {
+                showToast('Ingrese al menos un número de documento', 'warning');
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            let saved = [];
+
+            try {
+                // Save Manifiesto
+                if (numManifiesto) {
+                    const mResult = await api.post('/manifiestos', {
+                        id_servicio: idServicio,
+                        numero_manifiesto: numManifiesto,
+                        tipo_residuo: 'Residuos Sólidos',
+                        peso_kg: 0
+                    });
+                    if (mResult.success) {
+                        saved.push(`Manifiesto: ${numManifiesto}`);
+                    } else {
+                        showToast(mResult.message || 'Error al guardar manifiesto', 'danger');
+                    }
+                }
+
+                // Save Guía
+                if (numGuia) {
+                    const gResult = await api.post('/guias', {
+                        id_servicio: idServicio,
+                        numero_guia: numGuia,
+                        fecha_emision: today
+                    });
+                    if (gResult.success) {
+                        saved.push(`Guía: ${numGuia}`);
+                    } else {
+                        showToast(gResult.message || 'Error al guardar guía', 'danger');
+                    }
+                }
+
+                if (saved.length > 0) {
+                    showToast(`Documentos guardados: ${saved.join(', ')}`, 'success');
+                    // Show saved info below the form
+                    document.getElementById(`docSavedInfo-${idServicio}`).innerHTML =
+                        saved.map(d => `<span class="doc-saved-badge me-1"><i class="bi bi-file-earmark-check"></i> ${d}</span>`).join('');
+                }
+            } catch (err) {
+                showToast('Error de conexión al guardar documentos', 'danger');
+            }
+        }
+
+        // Close RUC dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.ruc-search-wrap')) {
+                document.querySelectorAll('.ruc-results.show').forEach(el => el.classList.remove('show'));
+            }
+        });
 
         // ========================
         // Event listeners
