@@ -19,12 +19,18 @@ ALTER TABLE Manifiesto AUTO_INCREMENT = 1;
 DELETE FROM ServicioEmpleado;
 ALTER TABLE ServicioEmpleado AUTO_INCREMENT = 1;
 
--- 2. Eliminar Servicios y Contratos (padres de Facturas, pero hijos de Sede)
+DELETE FROM FirmaDigital;
+ALTER TABLE FirmaDigital AUTO_INCREMENT = 1;
+
+-- 2. Eliminar Servicios, Contratos, Procesos Altas (padres de Facturas, pero hijos de Sede)
 DELETE FROM Servicio;
 ALTER TABLE Servicio AUTO_INCREMENT = 1;
 
 DELETE FROM ContratoServicio;
 ALTER TABLE ContratoServicio AUTO_INCREMENT = 1;
+
+DELETE FROM ProcesoAlta;
+ALTER TABLE ProcesoAlta AUTO_INCREMENT = 1;
 
 DELETE FROM CalendarioRecojo;
 ALTER TABLE CalendarioRecojo AUTO_INCREMENT = 1;
