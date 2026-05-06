@@ -154,6 +154,9 @@ function initPage(moduleName) {
 
     // Load alert count
     loadAlertCount();
+
+    // Keep list/detail/map pages fresh without a manual browser refresh.
+    startRealtimeSync(moduleName);
 }
 
 async function loadAlertCount() {
@@ -167,6 +170,119 @@ async function loadAlertCount() {
         }
     } catch (err) { }
 }
+
+// Lightweight realtime sync via polling. Shared hosting usually cannot keep
+// WebSocket/SSE workers alive reliably, so this asks for a cheap DB version hash.
+const REALTIME_SYNC_INTERVAL_MS = 10000;
+const REALTIME_SCOPE_BY_MODULE = {
+    dashboard: 'dashboard',
+    mapa: 'mapa',
+    clientes: 'clientes',
+    empresas: 'empresas',
+    sedes: 'sedes',
+    contratos: 'contratos',
+    rutas: 'rutas',
+    calendario: 'calendario',
+    servicios: 'servicios',
+    facturas: 'facturas',
+    guias: 'guias',
+    manifiestos: 'manifiestos',
+    cobranza: 'cobranza',
+    ingresos: 'ingresos',
+    egresos: 'egresos',
+    prospectos: 'prospectos',
+    altas: 'altas',
+    alertas: 'alertas',
+    reportes: 'reportes',
+    empleados: 'empleados',
+    vehiculos: 'vehiculos',
+    plantas: 'plantas',
+    usuarios: 'usuarios'
+};
+
+let _realtimeSync = {
+    timer: null,
+    lastVersion: null,
+    inFlight: false,
+    scope: null
+};
+
+function startRealtimeSync(moduleName, options = {}) {
+    stopRealtimeSync();
+
+    if (typeof api === 'undefined' || !api.getToken || !api.getToken()) return;
+
+    const path = window.location.pathname.toLowerCase();
+    const isFormPage = path.includes('/formulario.html');
+    if (options.enabled === false || (isFormPage && options.allowForms !== true)) {
+        return;
+    }
+
+    _realtimeSync.scope = options.scope || REALTIME_SCOPE_BY_MODULE[moduleName] || 'all';
+    _realtimeSync.lastVersion = null;
+    const interval = options.interval || REALTIME_SYNC_INTERVAL_MS;
+
+    const tick = async () => {
+        if (_realtimeSync.inFlight || document.hidden) return;
+        _realtimeSync.inFlight = true;
+
+        try {
+            const result = await api.get(`/realtime?scope=${encodeURIComponent(_realtimeSync.scope)}`, { cache: false });
+            const payload = result?.data;
+            if (!result?.success || !payload?.version) return;
+
+            if (_realtimeSync.lastVersion === null) {
+                _realtimeSync.lastVersion = payload.version;
+                return;
+            }
+
+            if (_realtimeSync.lastVersion !== payload.version) {
+                _realtimeSync.lastVersion = payload.version;
+                await handleRealtimeUpdate(payload, moduleName);
+            }
+        } catch (err) {
+            console.warn('Realtime sync failed:', err);
+        } finally {
+            _realtimeSync.inFlight = false;
+        }
+    };
+
+    tick();
+    _realtimeSync.timer = setInterval(tick, interval);
+}
+
+function stopRealtimeSync() {
+    if (_realtimeSync.timer) {
+        clearInterval(_realtimeSync.timer);
+    }
+    _realtimeSync.timer = null;
+    _realtimeSync.inFlight = false;
+}
+
+async function handleRealtimeUpdate(payload, moduleName) {
+    if (typeof api !== 'undefined' && typeof api.clearCache === 'function') {
+        api.clearCache();
+    }
+
+    window.dispatchEvent(new CustomEvent('io:db-change', { detail: payload }));
+
+    if (typeof window.onRealtimeDataChange === 'function') {
+        await window.onRealtimeDataChange(payload);
+        return;
+    }
+
+    if (moduleName === 'mapa' && window.mapController && typeof window.mapController.loadSedes === 'function') {
+        await window.mapController.loadSedes();
+        return;
+    }
+
+    if (typeof window.loadData === 'function') {
+        await window.loadData();
+    }
+}
+
+window.startRealtimeSync = startRealtimeSync;
+window.stopRealtimeSync = stopRealtimeSync;
 
 // Toggle sidebar
 function toggleSidebar() {
