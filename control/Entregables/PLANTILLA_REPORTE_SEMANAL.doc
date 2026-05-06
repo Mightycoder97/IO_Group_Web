@@ -1,0 +1,90 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Plantilla Reporte Semanal De Avance</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #1f2933; line-height: 1.45; }
+    h1 { font-size: 20pt; color: #12355b; margin-bottom: 8px; }
+    h2 { font-size: 14pt; color: #1c4f7a; margin-top: 22px; border-bottom: 1px solid #cfd8e3; padding-bottom: 4px; }
+    h3 { font-size: 12pt; color: #1f2933; margin-top: 18px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0 18px; }
+    th, td { border: 1px solid #cbd5e1; padding: 7px; vertical-align: top; }
+    th { background: #e8f1f8; color: #12355b; text-align: left; }
+    .meta { color: #52606d; margin-bottom: 18px; }
+    .screenshot-box { border: 2px dashed #94a3b8; height: 200px; margin: 12px 0; display: table; width: 100%; background: #f8fafc; }
+    .screenshot-box div { display: table-cell; text-align: center; vertical-align: middle; color: #64748b; font-weight: bold; }
+    .notes { border: 1px solid #cbd5e1; height: 70px; margin: 8px 0 18px; padding: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Reporte Semanal De Avance</h1>
+  <p class="meta">
+    Proyecto: IO Group Web - Control<br>
+    Semana: [NUMERO DE SEMANA]<br>
+    Periodo: [FECHA INICIO] al [FECHA FIN]<br>
+    Objetivo semanal: [OBJETIVO EN UNA SOLA FRASE]<br>
+    Estado: [En progreso / Completado / Bloqueado]
+  </p>
+
+  <h2>Resumen Para Jefatura</h2>
+  <p>[Escribir en 3 a 5 lineas que se logro esta semana y que puede ver jefatura.]</p>
+
+  <h2>Entregables De La Semana</h2>
+  <table>
+    <tr><th>Entregable</th><th>Estado</th><th>Evidencia</th></tr>
+    <tr><td>[Entregable 1]</td><td>[Listo/Pendiente/Bloqueado]</td><td>[Captura/Demo/Checklist]</td></tr>
+    <tr><td>[Entregable 2]</td><td>[Listo/Pendiente/Bloqueado]</td><td>[Captura/Demo/Checklist]</td></tr>
+    <tr><td>[Entregable 3]</td><td>[Listo/Pendiente/Bloqueado]</td><td>[Captura/Demo/Checklist]</td></tr>
+  </table>
+
+  <h2>Hecho</h2>
+  <ul>
+    <li>[Tarea completada]</li>
+    <li>[Tarea completada]</li>
+    <li>[Tarea completada]</li>
+  </ul>
+
+  <h2>Pendiente</h2>
+  <ul>
+    <li>[Pendiente identificado]</li>
+    <li>[Pendiente identificado]</li>
+  </ul>
+
+  <h2>Bloqueado</h2>
+  <table>
+    <tr><th>Bloqueo</th><th>Responsable</th><th>Alternativa</th><th>Fecha Esperada</th></tr>
+    <tr><td>[Bloqueo]</td><td>[Responsable]</td><td>[Alternativa]</td><td>[Fecha]</td></tr>
+  </table>
+
+  <h2>Screenshots</h2>
+  <h3>Screenshot 1 - [Nombre De Pantalla]</h3>
+  <div class="screenshot-box"><div>PEGAR SCREENSHOT AQUI</div></div>
+  <div class="notes">Notas:</div>
+
+  <h3>Screenshot 2 - [Nombre De Pantalla]</h3>
+  <div class="screenshot-box"><div>PEGAR SCREENSHOT AQUI</div></div>
+  <div class="notes">Notas:</div>
+
+  <h3>Screenshot 3 - [Nombre De Pantalla]</h3>
+  <div class="screenshot-box"><div>PEGAR SCREENSHOT AQUI</div></div>
+  <div class="notes">Notas:</div>
+
+  <h2>Validacion</h2>
+  <ul>
+    <li>La funcionalidad principal abre en navegador.</li>
+    <li>El checklist de la semana fue actualizado.</li>
+    <li>Las capturas fueron agregadas.</li>
+    <li>Los errores encontrados fueron registrados.</li>
+    <li>Jefatura puede revisar el resultado sin ver codigo.</li>
+  </ul>
+
+  <h2>Proxima Semana</h2>
+  <p>Objetivo propuesto: [OBJETIVO DE LA SIGUIENTE SEMANA]</p>
+  <p>Pendientes que pasan a la siguiente semana:</p>
+  <ul>
+    <li>[Pendiente]</li>
+    <li>[Pendiente]</li>
+  </ul>
+</body>
+</html>
+

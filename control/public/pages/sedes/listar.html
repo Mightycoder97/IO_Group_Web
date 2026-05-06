@@ -7,11 +7,11 @@
     <meta name="theme-color" content="#1B5E20">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Clientes - IO Control</title>
+    <title>Sedes - IO Control</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="/css/global.css" rel="stylesheet">
+    <link href="../../css/global.css" rel="stylesheet">
 </head>
 
 <body class="control-app">
@@ -24,7 +24,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Clientes</li>
+                            <li class="breadcrumb-item active">Sedes</li>
                         </ol>
                     </nav>
                 </div>
@@ -53,7 +53,7 @@
                 <div class="table-container">
                     <div class="table-header">
                         <div>
-                            <h5 class="table-title mb-0"><i class="bi bi-people"></i> Clientes</h5>
+                            <h5 class="table-title mb-0"><i class="bi bi-geo-alt"></i> Sedes</h5>
                             <small class="text-muted" id="empresaFilter"></small>
                         </div>
                         <div class="d-flex gap-2 desktop-filters">
@@ -107,6 +107,7 @@
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('sedes');
+        const canEditCurrentModule = canEditModule('sedes');
         const empresaId = getUrlParam('empresa');
         let allData = [];
         let tableSorter = null;
@@ -151,7 +152,7 @@
 
         async function loadData() {
             try {
-                let url = '/sedes?limit=1000';
+                let url = '/sedes?limit=5000';
                 if (empresaId) url += `&empresa=${empresaId}`;
                 const result = await api.get(url);
                 if (result.success) {
@@ -200,7 +201,7 @@
                     <td>${item.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-secondary">Inactivo</span>'}</td>
                     <td>
                         <a href="cartilla.html?id=${item.id_sede}" class="btn btn-sm btn-primary btn-action" title="Ver Cartilla"><i class="bi bi-folder2-open"></i></a>
-                        <a href="formulario.html?id=${item.id_sede}" class="btn btn-sm btn-outline-secondary btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
+                        ${canEditCurrentModule ? `<a href="formulario.html?id=${item.id_sede}" class="btn btn-sm btn-outline-secondary btn-action" title="Editar"><i class="bi bi-pencil"></i></a>` : ''}
                         ${item.contacto_telefono ? `<a href="https://wa.me/51${item.contacto_telefono.replace(/\\D/g, '')}" target="_blank" class="btn btn-sm btn-outline-success btn-action" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>` : ''}
                     </td>
                 </tr>

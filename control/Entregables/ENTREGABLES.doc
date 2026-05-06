@@ -1,0 +1,99 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Entregables Del Proyecto IO Group Web</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #1f2933; line-height: 1.45; }
+    h1 { font-size: 20pt; color: #12355b; margin-bottom: 8px; }
+    h2 { font-size: 15pt; color: #1c4f7a; margin-top: 24px; border-bottom: 1px solid #cfd8e3; padding-bottom: 4px; }
+    h3 { font-size: 12pt; color: #1f2933; margin-top: 18px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0 18px; }
+    th, td { border: 1px solid #cbd5e1; padding: 7px; vertical-align: top; }
+    th { background: #e8f1f8; color: #12355b; text-align: left; }
+    .meta { color: #52606d; margin-bottom: 18px; }
+    .badge { font-weight: bold; }
+    ul, ol { margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Entregables Del Proyecto IO Group Web</h1>
+  <p class="meta">
+    Fecha de analisis: 2026-05-05<br>
+    Proyecto: IO Group Web - modulo de control operativo<br>
+    Ubicacion: C:\Users\Admin\Documents\GitHub\IO_Group_Web\control
+  </p>
+
+  <h2>Alcance</h2>
+  <p>Este documento resume el estado actual de las herramientas encontradas en la app, clasifica cuales estan listas, cuales estan casi listas y cuales aun requieren desarrollo. Tambien propone un calendario de entregables como si el proyecto se iniciara desde cero, marcando el avance real segun el primer analisis.</p>
+
+  <h2>Criterios De Estado</h2>
+  <ul>
+    <li><span class="badge">Lista:</span> puede usarse como modulo base, pendiente solo de QA normal, datos reales o ajustes menores.</li>
+    <li><span class="badge">Casi lista:</span> el flujo principal existe, pero requiere correcciones puntuales antes de produccion.</li>
+    <li><span class="badge">Parcial:</span> existe una base funcional, pero faltan partes importantes del flujo.</li>
+    <li><span class="badge">Necesita desarrollo:</span> hay una brecha directa entre frontend, API, base de datos o comportamiento esperado.</li>
+    <li><span class="badge">No produccion:</span> herramienta util para desarrollo o mantenimiento, pero no debe quedar expuesta al usuario final.</li>
+  </ul>
+
+  <h2>Resumen Ejecutivo</h2>
+  <p>La aplicacion ya cuenta con una base solida para operacion diaria: catalogos, sedes, rutas, calendario, servicios, ingresos, egresos y cobranza. Los mayores riesgos antes de produccion estan en reportes, alertas, facturas, contratos, carga documental, permisos por modulo, limpieza de despliegue y seguridad.</p>
+  <p>Tambien se detectaron problemas transversales que deben resolverse antes de considerar el sistema listo para entrega: rutas CSS absolutas, archivo control.css faltante, textos con problemas de encoding, API key de Google Maps expuesta, scripts de debug o migracion dentro del arbol publico y documentacion de despliegue desalineada con los archivos reales de base de datos.</p>
+
+  <h2>Inventario De Herramientas</h2>
+  <table>
+    <tr><th>Herramienta</th><th>Estado</th><th>Observaciones</th></tr>
+    <tr><td>Dashboard</td><td>Casi lista</td><td>KPIs y graficos existen. Falta corregir CSS y conteo de alertas.</td></tr>
+    <tr><td>Login / Auth</td><td>Casi lista</td><td>Login y JWT implementados. Falta alinear documentacion de instalacion y permisos.</td></tr>
+    <tr><td>Usuarios</td><td>Casi lista</td><td>CRUD y roles existen. Faltan permisos para altas, calendario, ingresos, egresos y cobranza.</td></tr>
+    <tr><td>Clientes / Sedes</td><td>Lista</td><td>CRUD y cartilla de sede implementados. Requiere QA visual y limpieza de encoding.</td></tr>
+    <tr><td>Empresas</td><td>Lista parcial</td><td>API y pantallas existen, pero no esta tan visible en la navegacion principal.</td></tr>
+    <tr><td>Prospectos</td><td>Casi lista</td><td>CRM funcional. Revisar logs de depuracion y dependencia de busqueda RUC/SUNAT.</td></tr>
+    <tr><td>Nuevas Altas</td><td>Casi lista</td><td>Flujo avanzado con documentos, contrato y firma. Falta QA end-to-end y seguridad documental.</td></tr>
+    <tr><td>Firma digital</td><td>Casi lista</td><td>Token publico y guardado de firma existen. Falta hardening, expiracion y auditoria completa.</td></tr>
+    <tr><td>Calendario</td><td>Lista</td><td>Asignacion por distritos y copia mensual implementadas. Permisos dependen de rutas.</td></tr>
+    <tr><td>Asignar Rutas</td><td>Casi lista</td><td>Flujo principal armado. Falta corregir CSS faltante y detalles de fechas/frecuencia.</td></tr>
+    <tr><td>Historial Rutas</td><td>Casi lista</td><td>Listado y consulta existen. Requiere QA con datos reales.</td></tr>
+    <tr><td>Control de Ruta</td><td>Casi lista</td><td>Actualiza servicios, pagos y estado. Falta QA fuerte sobre firmas/evidencias.</td></tr>
+    <tr><td>Servicios</td><td>Casi lista</td><td>CRUD listo. Hay mezcla de campos de fecha entre API, reportes y frontend.</td></tr>
+    <tr><td>Ingresos</td><td>Casi lista</td><td>Pantallas, API y graficos existen. Falta permisos y conciliacion contable final.</td></tr>
+    <tr><td>Egresos</td><td>Casi lista</td><td>CRUD, categorias y graficos existen. Validar seeds/subcategorias en base limpia.</td></tr>
+    <tr><td>Cobranza</td><td>Casi lista</td><td>Gestion, WhatsApp y pagos existen. Validar facturas, duplicados y cierres.</td></tr>
+    <tr><td>Facturas</td><td>Necesita desarrollo</td><td>Crear parece viable, pero edicion/subida por /facturas/{id} no coincide con la API actual.</td></tr>
+    <tr><td>Contratos</td><td>Necesita desarrollo</td><td>Hay campos de UI no soportados por API/schema y subida PDF pendiente.</td></tr>
+    <tr><td>Guias</td><td>Parcial</td><td>CRUD base existe. Falta carga de PDF/documento escaneado completa.</td></tr>
+    <tr><td>Manifiestos</td><td>Parcial</td><td>CRUD base existe. Falta carga documental y hay detalle de fecha en selector de servicios.</td></tr>
+    <tr><td>Vehiculos</td><td>Lista</td><td>Catalogo base funcional.</td></tr>
+    <tr><td>Plantas</td><td>Lista</td><td>Catalogo base funcional.</td></tr>
+    <tr><td>Empleados</td><td>Lista</td><td>Catalogo funcional usado por rutas.</td></tr>
+    <tr><td>Mapa de Sedes</td><td>Necesita desarrollo</td><td>Mapa y marcadores base existen. Varios controles no estan conectados y la API key esta expuesta.</td></tr>
+    <tr><td>Reportes</td><td>Necesita desarrollo</td><td>El frontend pide /reportes/resumen, pero la API no lo implementa. Exportacion pendiente.</td></tr>
+    <tr><td>Alertas</td><td>Necesita desarrollo</td><td>El frontend espera endpoints, conteos y tipos que la API no entrega con ese formato.</td></tr>
+    <tr><td>Geocodificador</td><td>No produccion</td><td>Genera SQL manual. Debe protegerse o convertirse en herramienta admin segura.</td></tr>
+    <tr><td>Scripts debug/migracion</td><td>No produccion</td><td>Deben retirarse, protegerse o separarse del despliegue publico.</td></tr>
+  </table>
+
+  <h2>Calendario De Entregables Desde Cero</h2>
+  <table>
+    <tr><th>Etapa</th><th>Periodo sugerido</th><th>Entregable</th><th>Estado actual</th></tr>
+    <tr><td>1</td><td>Semana 1</td><td>Base tecnica: DB, auth, layout, navegacion, deploy inicial</td><td>Parcial</td></tr>
+    <tr><td>2</td><td>Semana 2</td><td>Catalogos: clientes, sedes, empresas, vehiculos, plantas, empleados, usuarios</td><td>Mayormente listo</td></tr>
+    <tr><td>3</td><td>Semana 3</td><td>Operacion: servicios, calendario, rutas, historial y control de ruta</td><td>Casi listo</td></tr>
+    <tr><td>4</td><td>Semana 4</td><td>Documentos: contratos, facturas, guias, manifiestos, altas y firma digital</td><td>Parcial</td></tr>
+    <tr><td>5</td><td>Semana 5</td><td>Finanzas: ingresos, egresos y cobranza</td><td>Casi listo</td></tr>
+    <tr><td>6</td><td>Semana 6</td><td>Inteligencia operativa: dashboard, reportes, alertas y mapa</td><td>Parcial</td></tr>
+    <tr><td>7</td><td>Semana 7</td><td>Seguridad, permisos, limpieza de debug, API keys, CSS, encoding y deploy</td><td>Falta</td></tr>
+    <tr><td>8</td><td>Semana 8</td><td>QA integral, pruebas con datos reales, UAT y salida a produccion</td><td>Falta</td></tr>
+  </table>
+
+  <h2>Prioridad Recomendada</h2>
+  <ol>
+    <li>Corregir bloqueadores globales: CSS, encoding, deploy, schema y seguridad.</li>
+    <li>Completar Alertas y Reportes porque afectan el control gerencial.</li>
+    <li>Corregir Facturas, Contratos y carga documental de Guias/Manifiestos.</li>
+    <li>Implementar permisos por modulo de forma consistente en frontend y backend.</li>
+    <li>Completar controles pendientes del Mapa de Sedes y proteger API key.</li>
+    <li>Ejecutar QA integral con datos reales y checklist de salida a produccion.</li>
+  </ol>
+</body>
+</html>
+

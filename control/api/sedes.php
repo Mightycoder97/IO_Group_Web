@@ -38,7 +38,7 @@ function getAll() {
     
     // Paginación
     $page = max(1, intval($_GET['page'] ?? 1));
-    $limit = min(1000, max(10, intval($_GET['limit'] ?? 100)));
+    $limit = min(5000, max(10, intval($_GET['limit'] ?? 100)));
     $offset = ($page - 1) * $limit;
     
     // Si es para el mapa, devolvemos solo campos esenciales + frecuencia del contrato activo más reciente

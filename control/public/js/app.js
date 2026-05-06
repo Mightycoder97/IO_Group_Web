@@ -69,7 +69,9 @@ function getSidebarHTML() {
             ${navItem('dashboard.html', 'speedometer2', 'Dashboard', 'dashboard')}
             
             ${section('Clientes', [
-        navItem('sedes/listar.html', 'geo-alt', 'Clientes', 'sedes'),
+        navItem('clientes/listar.html', 'people', 'Clientes', 'clientes'),
+        navItem('empresas/listar.html', 'building', 'Empresas', 'empresas'),
+        navItem('sedes/listar.html', 'geo-alt', 'Sedes', 'sedes'),
         navItem('prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos'),
         navItem('altas/index.html', 'person-plus', 'Nuevas Altas', 'sedes')
     ])}

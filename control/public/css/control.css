@@ -1,0 +1,334 @@
+/*
+ * IO Control - page-specific styles.
+ * Shared layout and base components live in global.css.
+ */
+
+.dashboard-header {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+}
+
+.header-greeting {
+    color: #166534;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.header-title {
+    color: #0F172A;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0.15rem 0;
+}
+
+.header-date,
+.header-stat-label,
+.kpi-sublabel,
+.quick-stat-label {
+    color: #64748B;
+}
+
+.header-stat {
+    min-width: 112px;
+    border-left: 1px solid #E2E8F0;
+    padding-left: 1rem;
+}
+
+.header-stat-value {
+    color: #0F172A;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.header-stat-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.dashboard-filter .form-select {
+    min-width: 108px;
+}
+
+.kpi-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    margin-bottom: 1.5rem;
+}
+
+.kpi-card-premium,
+.chart-card,
+.quick-stats-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.kpi-card-premium {
+    min-height: 168px;
+    padding: 1.15rem;
+}
+
+.kpi-header,
+.chart-header,
+.quick-stat-item {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+.kpi-icon-wrapper {
+    align-items: center;
+    border-radius: 12px;
+    display: inline-flex;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+}
+
+.kpi-icon-wrapper.primary { background: #DCFCE7; color: #166534; }
+.kpi-icon-wrapper.success { background: #D1FAE5; color: #047857; }
+.kpi-icon-wrapper.info { background: #DBEAFE; color: #1D4ED8; }
+.kpi-icon-wrapper.warning { background: #FEF3C7; color: #B45309; }
+.kpi-icon-wrapper.danger { background: #FEE2E2; color: #B91C1C; }
+.kpi-icon-wrapper.secondary { background: #E0E7FF; color: #4338CA; }
+
+.kpi-value {
+    color: #0F172A;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-top: 1rem;
+}
+
+.kpi-label {
+    color: #334155;
+    font-weight: 700;
+}
+
+.kpi-sublabel {
+    font-size: 0.82rem;
+    margin-top: 0.15rem;
+}
+
+.kpi-trend {
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+}
+
+.kpi-trend.up {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.charts-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 0.9fr);
+}
+
+.chart-card,
+.quick-stats-card {
+    min-height: 360px;
+    padding: 1.15rem;
+}
+
+.chart-header {
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.chart-title,
+.quick-stats-title {
+    color: #0F172A;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.chart-title i,
+.quick-stats-title i {
+    color: #166534;
+    margin-right: 0.35rem;
+}
+
+.chart-badge {
+    background: #F1F5F9;
+    border-radius: 999px;
+    color: #334155;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.35rem 0.65rem;
+}
+
+.chart-container {
+    height: 290px;
+    position: relative;
+}
+
+.stats-ring-container {
+    display: flex;
+    justify-content: center;
+    margin: 1.25rem 0;
+}
+
+.stats-ring {
+    height: 190px;
+    position: relative;
+    width: 190px;
+}
+
+.stats-ring-center {
+    left: 50%;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.stats-ring-value {
+    color: #0F172A;
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.stats-ring-label {
+    color: #64748B;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.quick-stats-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.quick-stat-item {
+    border-top: 1px solid #E2E8F0;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+}
+
+.quick-stat-info {
+    flex: 1;
+}
+
+.quick-stat-value {
+    color: #0F172A;
+    font-weight: 800;
+}
+
+.quick-stat-dot {
+    border-radius: 999px;
+    height: 10px;
+    width: 10px;
+}
+
+.quick-stat-dot.completados { background: #22C55E; }
+.quick-stat-dot.programados { background: #3B82F6; }
+.quick-stat-dot.en-curso { background: #F59E0B; }
+
+.distritos-hoy,
+.search-panel,
+.vehiculo-tabs {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+.vehiculo-tabs {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.vehiculo-tabs .btn,
+.vehiculo-tab {
+    border-radius: 999px;
+}
+
+.cliente-result {
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.cliente-result:hover {
+    background: #F8FAFC;
+    border-color: #94A3B8;
+}
+
+.cliente-result.in-route {
+    background: #F1F5F9;
+    color: #64748B;
+    cursor: not-allowed;
+}
+
+.hoja-ruta-table {
+    background: #FFFFFF;
+    font-size: 0.9rem;
+}
+
+.hoja-ruta-table thead th {
+    background: #F1F5F9;
+    color: #334155;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.hoja-ruta-table td {
+    vertical-align: middle;
+}
+
+@media (max-width: 992px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .header-stats {
+        justify-content: flex-start !important;
+        margin-top: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-header {
+        padding: 1rem;
+    }
+
+    .header-title {
+        font-size: 1.35rem;
+    }
+
+    .header-stats {
+        align-items: stretch !important;
+        flex-direction: column;
+    }
+
+    .header-stat {
+        border-left: 0;
+        border-top: 1px solid #E2E8F0;
+        padding-left: 0;
+        padding-top: 0.75rem;
+    }
+
+    .chart-container {
+        height: 240px;
+    }
+}

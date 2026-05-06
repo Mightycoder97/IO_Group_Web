@@ -1,0 +1,119 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Avance Del Proyecto - Entregable 1</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #1f2933; line-height: 1.45; }
+    h1 { font-size: 20pt; color: #12355b; margin-bottom: 8px; }
+    h2 { font-size: 14pt; color: #1c4f7a; margin-top: 24px; border-bottom: 1px solid #cfd8e3; padding-bottom: 4px; }
+    h3 { font-size: 12pt; color: #1f2933; margin-top: 18px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0 18px; }
+    th, td { border: 1px solid #cbd5e1; padding: 7px; vertical-align: top; }
+    th { background: #e8f1f8; color: #12355b; text-align: left; }
+    .meta { color: #52606d; margin-bottom: 18px; }
+    .status { font-weight: bold; color: #166534; }
+    .screenshot-box {
+      border: 2px dashed #94a3b8;
+      height: 220px;
+      margin: 12px 0;
+      display: table;
+      width: 100%;
+      background: #f8fafc;
+    }
+    .screenshot-box div {
+      display: table-cell;
+      text-align: center;
+      vertical-align: middle;
+      color: #64748b;
+      font-weight: bold;
+    }
+    .notes {
+      border: 1px solid #cbd5e1;
+      height: 80px;
+      margin: 8px 0 18px;
+      padding: 8px;
+    }
+    code { background: #f1f5f9; padding: 2px 4px; }
+  </style>
+</head>
+<body>
+  <h1>Avance Del Proyecto - Entregable 1</h1>
+  <p class="meta">
+    Fecha: 2026-05-05<br>
+    Proyecto: IO Group Web - Control<br>
+    Entregable: Etapa 1 - Base Tecnica y Despliegue<br>
+    Estado: <span class="status">Completado</span>
+  </p>
+
+  <h2>Resumen</h2>
+  <p>Se completo el primer entregable del plan de trabajo. La base tecnica queda preparada para continuar con los siguientes modulos: catalogos, operacion, documentos, finanzas e inteligencia operativa.</p>
+
+  <h2>Trabajo Realizado</h2>
+  <table>
+    <tr><th>Item</th><th>Estado</th><th>Evidencia</th></tr>
+    <tr><td>Confirmar schema oficial</td><td>Completado</td><td><code>database/squema.sql</code></td></tr>
+    <tr><td>Alinear documentacion de deploy</td><td>Completado</td><td><code>DEPLOY_HOSTINGER.md</code> actualizado</td></tr>
+    <tr><td>Corregir rutas CSS absolutas</td><td>Completado</td><td>No quedan referencias <code>href="/css...</code> en HTML</td></tr>
+    <tr><td>Crear control.css</td><td>Completado</td><td><code>public/css/control.css</code></td></tr>
+    <tr><td>Revisar encoding</td><td>Completado</td><td>Archivos validados como UTF-8</td></tr>
+    <tr><td>Instalar PHP local</td><td>Completado</td><td>PHP 8.4.20 instalado via winget</td></tr>
+    <tr><td>Ejecutar lint PHP</td><td>Completado</td><td><code>scripts/lint-php.ps1</code>: 48 archivos OK</td></tr>
+    <tr><td>Revisar .htaccess</td><td>Completado</td><td>Rutas agregadas para altas, egresos, firma y check_frecuencias</td></tr>
+    <tr><td>Proteger config frontend</td><td>Completado</td><td><code>public/js/config.js</code> sanitizado y agregado a <code>.gitignore</code></td></tr>
+  </table>
+
+  <h2>Resultado De Validacion</h2>
+  <p><code>PHP 8.4.20</code></p>
+  <p><code>PHP lint OK: 48 files</code></p>
+
+  <h2>Espacios Para Screenshots</h2>
+
+  <h3>Screenshot 1 - Pantalla Inicial / Login</h3>
+  <p>Descripcion esperada: captura de <code>https://iogroup.pe/control/</code> redirigiendo correctamente a login o dashboard.</p>
+  <div class="screenshot-box"><div>PEGAR SCREENSHOT AQUI</div></div>
+  <div class="notes">Notas:</div>
+
+  <h3>Screenshot 2 - Dashboard Con CSS Cargando</h3>
+  <p>Descripcion esperada: dashboard con sidebar, tarjetas KPI y graficos renderizados.</p>
+  <div class="screenshot-box"><div>PEGAR SCREENSHOT AQUI</div></div>
+  <div class="notes">Notas:</div>
+
+  <h3>Screenshot 3 - CSS Directo En Deploy</h3>
+  <p>Descripcion esperada: navegador abriendo <code>https://iogroup.pe/control/css/global.css</code> o <code>https://iogroup.pe/control/css/control.css</code>.</p>
+  <div class="screenshot-box"><div>PEGAR SCREENSHOT AQUI</div></div>
+  <div class="notes">Notas:</div>
+
+  <h3>Screenshot 4 - Validacion PHP Lint</h3>
+  <p>Descripcion esperada: terminal mostrando <code>PHP lint OK: 48 files</code>.</p>
+  <div class="screenshot-box"><div>PEGAR SCREENSHOT AQUI</div></div>
+  <div class="notes">Notas:</div>
+
+  <h3>Screenshot 5 - Prueba De Endpoint API</h3>
+  <p>Descripcion esperada: respuesta JSON de un endpoint como <code>/control/api/auth.php?action=me</code>.</p>
+  <div class="screenshot-box"><div>PEGAR SCREENSHOT AQUI</div></div>
+  <div class="notes">Notas:</div>
+
+  <h2>Avance Del Proyecto</h2>
+  <table>
+    <tr><th>Etapa</th><th>Nombre</th><th>Estado</th></tr>
+    <tr><td>1</td><td>Base tecnica y despliegue</td><td>Completado</td></tr>
+    <tr><td>2</td><td>Catalogos base</td><td>Siguiente</td></tr>
+    <tr><td>3</td><td>Operacion</td><td>Pendiente</td></tr>
+    <tr><td>4</td><td>Documentos y altas</td><td>Pendiente</td></tr>
+    <tr><td>5</td><td>Finanzas</td><td>Pendiente</td></tr>
+    <tr><td>6</td><td>Inteligencia operativa</td><td>Pendiente</td></tr>
+    <tr><td>7</td><td>Seguridad y permisos</td><td>Pendiente</td></tr>
+    <tr><td>8</td><td>QA, UAT y lanzamiento</td><td>Pendiente</td></tr>
+  </table>
+
+  <h2>Pendientes Para El Siguiente Entregable</h2>
+  <ul>
+    <li>Confirmar exposicion de Empresas en navegacion.</li>
+    <li>Validar formularios de catalogos con datos reales.</li>
+    <li>Validar permisos de cada catalogo.</li>
+    <li>Revisar consistencia visual despues de <code>control.css</code>.</li>
+    <li>Probar flujo login/dashboard en navegador con servidor local o ambiente Hostinger.</li>
+  </ul>
+</body>
+</html>
+

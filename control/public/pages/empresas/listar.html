@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="/css/global.css" rel="stylesheet">
+    <link href="../../css/global.css" rel="stylesheet">
 </head>
 <body class="control-app">
     <div class="app-container">
@@ -101,7 +101,11 @@
     <script>
         document.getElementById('sidebar').innerHTML = getSidebarHTML();
         initPage('empresas');
-        if (!canEdit()) document.getElementById('btnNew').style.display = 'none';
+        const canEditCurrentModule = canEditModule('empresas');
+        if (!canEditCurrentModule) {
+            document.getElementById('btnNew').style.display = 'none';
+            document.getElementById('fabNew').style.display = 'none';
+        }
         const clienteId = getUrlParam('cliente');
         let allData = [];
         let tableSorter = null;
@@ -147,7 +151,7 @@
                     <td>
                         <a href="formulario.html?id=${item.id_empresa}" class="btn btn-sm btn-outline-primary btn-action"><i class="bi bi-pencil"></i></a>
                         <a href="../sedes/listar.html?empresa=${item.id_empresa}" class="btn btn-sm btn-outline-info btn-action"><i class="bi bi-geo-alt"></i></a>
-                        ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_empresa})"><i class="bi bi-trash"></i></button>` : ''}
+                        ${canEditCurrentModule ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_empresa})"><i class="bi bi-trash"></i></button>` : ''}
                     </td>
                 </tr>
             `).join('');

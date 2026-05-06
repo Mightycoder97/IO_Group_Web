@@ -1,0 +1,89 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Estrategia De Trabajo Remoto Por Objetivos</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #1f2933; line-height: 1.45; }
+    h1 { font-size: 20pt; color: #12355b; margin-bottom: 8px; }
+    h2 { font-size: 14pt; color: #1c4f7a; margin-top: 22px; border-bottom: 1px solid #cfd8e3; padding-bottom: 4px; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0 18px; }
+    th, td { border: 1px solid #cbd5e1; padding: 7px; vertical-align: top; }
+    th { background: #e8f1f8; color: #12355b; text-align: left; }
+    .meta { color: #52606d; margin-bottom: 18px; }
+    .status { font-weight: bold; color: #166534; }
+  </style>
+</head>
+<body>
+  <h1>Estrategia De Trabajo Remoto Por Objetivos</h1>
+  <p class="meta">
+    Proyecto: IO Group Web - Control<br>
+    Fecha base: 2026-05-05<br>
+    Estado actual: <span class="status">Semana 1 completada</span><br>
+    Semana de inicio remoto: Semana 2 - Catalogos base
+  </p>
+
+  <h2>Objetivo</h2>
+  <p>Organizar el trabajo remoto por entregables semanales claros, medibles y verificables por jefatura sin necesidad de revisar codigo ni conocer programacion.</p>
+  <p>El avance se medira por resultados funcionales, capturas, documentos de avance y checklist actualizado.</p>
+
+  <h2>Modelo De Trabajo</h2>
+  <table>
+    <tr><th>Elemento</th><th>Definicion</th></tr>
+    <tr><td>Modalidad</td><td>Trabajo remoto de lunes a viernes</td></tr>
+    <tr><td>Medicion</td><td>Entregables semanales cerrados</td></tr>
+    <tr><td>Evidencia</td><td>Demo, capturas, checklist y documento de avance</td></tr>
+    <tr><td>Seguimiento</td><td>task.md actualizado al cierre de cada semana</td></tr>
+    <tr><td>Reporte</td><td>Documento semanal con hecho, pendiente y bloqueado</td></tr>
+    <tr><td>Validacion</td><td>Jefatura revisa resultados visibles, no codigo</td></tr>
+  </table>
+
+  <h2>Reuniones Minimas</h2>
+  <table>
+    <tr><th>Dia</th><th>Duracion</th><th>Objetivo</th></tr>
+    <tr><td>Lunes</td><td>15 minutos</td><td>Confirmar objetivo semanal y dependencias</td></tr>
+    <tr><td>Miercoles</td><td>10 minutos</td><td>Informar avance, bloqueos y riesgos</td></tr>
+    <tr><td>Viernes</td><td>30 minutos</td><td>Mostrar demo, capturas y cierre de semana</td></tr>
+  </table>
+
+  <h2>Calendario De Entregables</h2>
+  <table>
+    <tr><th>Semana</th><th>Objetivo Para Jefatura</th><th>Resultado Esperado</th><th>Estado</th></tr>
+    <tr><td>Semana 1</td><td>Base tecnica y despliegue</td><td>Sistema preparado tecnicamente, PHP validado, rutas y guia de deploy corregidas</td><td>Completado</td></tr>
+    <tr><td>Semana 2</td><td>Catalogos base</td><td>Clientes, sedes, empresas, vehiculos, plantas, empleados y usuarios revisados con datos reales</td><td>Siguiente</td></tr>
+    <tr><td>Semana 3</td><td>Operacion diaria</td><td>Servicios, calendario, asignacion de rutas, historial y control de ruta funcionando como flujo operativo</td><td>Pendiente</td></tr>
+    <tr><td>Semana 4</td><td>Documentos y altas</td><td>Altas, firma digital, contratos, facturas, guias y manifiestos revisados y corregidos</td><td>Pendiente</td></tr>
+    <tr><td>Semana 5</td><td>Finanzas</td><td>Ingresos, egresos y cobranza validados con conciliacion basica</td><td>Pendiente</td></tr>
+    <tr><td>Semana 6</td><td>Control gerencial</td><td>Dashboard, reportes, alertas y mapa corregidos para seguimiento de gestion</td><td>Pendiente</td></tr>
+    <tr><td>Semana 7</td><td>Seguridad y permisos</td><td>Usuarios, permisos, API keys, archivos sensibles y scripts de debug protegidos</td><td>Pendiente</td></tr>
+    <tr><td>Semana 8</td><td>QA y salida</td><td>Pruebas finales, UAT con usuario final y version candidata para produccion</td><td>Pendiente</td></tr>
+  </table>
+
+  <h2>Reglas De Ejecucion Semanal</h2>
+  <ol>
+    <li>Cada lunes se define un objetivo de negocio en una sola frase.</li>
+    <li>Cada modulo trabajado queda marcado como listo, pendiente o bloqueado.</li>
+    <li>Cada viernes se entrega una version revisable con capturas y demo breve.</li>
+    <li>Todo bloqueo externo se registra el mismo dia con responsable y alternativa.</li>
+    <li>Todo pendiente queda escrito en task.md; no se manejan pendientes invisibles.</li>
+  </ol>
+
+  <h2>Criterios De Aceptacion Semanal</h2>
+  <ul>
+    <li>La funcionalidad principal abre en navegador.</li>
+    <li>El checklist de la semana queda actualizado.</li>
+    <li>Existen capturas del avance.</li>
+    <li>Los errores encontrados quedan registrados.</li>
+    <li>Jefatura puede ver un resultado concreto sin revisar codigo.</li>
+  </ul>
+
+  <h2>Supuestos</h2>
+  <ul>
+    <li>La jornada remota mantiene el mismo compromiso laboral que la jornada presencial.</li>
+    <li>La evaluacion se centra en resultados semanales.</li>
+    <li>Los accesos, credenciales y datos reales se entregan cuando sean necesarios.</li>
+    <li>Si faltan datos reales, se usaran datos de prueba hasta recibirlos.</li>
+    <li>La revision de jefatura sera funcional y visual, no tecnica.</li>
+  </ul>
+</body>
+</html>
+
