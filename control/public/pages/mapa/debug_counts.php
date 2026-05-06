@@ -26,13 +26,13 @@ header('Content-Type: text/html; charset=utf-8');
         try {
             $total = db()->queryOne("SELECT COUNT(*) as c FROM Sede");
             $active = db()->queryOne("SELECT COUNT(*) as c FROM Sede WHERE activo = 1");
-            $coords = db()->queryOne("SELECT COUNT(*) as c FROM Sede WHERE activo = 1 AND coordenadas_gps IS NOT NULL AND coordenadas_gps != ''");
-            $join = db()->queryOne("SELECT COUNT(*) as c FROM Sede s INNER JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE s.activo = 1 AND s.coordenadas_gps IS NOT NULL AND s.coordenadas_gps != ''");
+            $coords = db()->queryOne("SELECT COUNT(*) as c FROM Sede WHERE coordenadas_gps IS NOT NULL AND TRIM(coordenadas_gps) != ''");
+            $join = db()->queryOne("SELECT COUNT(*) as c FROM Sede s INNER JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE s.coordenadas_gps IS NOT NULL AND TRIM(s.coordenadas_gps) != ''");
             
             echo "<tr><td>Total Sedes</td><td>" . $total['c'] . "</td></tr>";
             echo "<tr><td>Active Sedes</td><td>" . $active['c'] . "</td></tr>";
-            echo "<tr><td>Active + Has Coords</td><td>" . $coords['c'] . "</td></tr>";
-            echo "<tr><td><strong>Map Query (Active + Coords + Valid Empresa)</strong></td><td><strong>" . $join['c'] . "</strong></td></tr>";
+            echo "<tr><td>Has Coords</td><td>" . $coords['c'] . "</td></tr>";
+            echo "<tr><td><strong>Map Query (Coords + Valid Empresa)</strong></td><td><strong>" . $join['c'] . "</strong></td></tr>";
         } catch (Exception $e) {
             echo "<tr><td colspan='2'>Error: " . $e->getMessage() . "</td></tr>";
         }
@@ -40,7 +40,7 @@ header('Content-Type: text/html; charset=utf-8');
     </table>
 
     <h2>2. Frequency Distribution (Frontend Filter Check)</h2>
-    <p>The map frontend <strong>hides</strong> any sede with a frequency other than: <em>Diario, Interdiario, Semanal, Quincenal</em>.</p>
+    <p>The map frontend supports: <em>Diario, Interdiario, Semanal, Quincenal, Mensual, Bimestral, Trimestral, Eventual</em>.</p>
     <table>
         <tr>
             <th>Frecuencia (Database Value)</th>
@@ -61,12 +61,12 @@ header('Content-Type: text/html; charset=utf-8');
                 )
                 GROUP BY id_sede
             ) cs ON s.id_sede = cs.id_sede
-            WHERE s.activo = 1 AND s.coordenadas_gps IS NOT NULL AND s.coordenadas_gps != ''
+            WHERE s.coordenadas_gps IS NOT NULL AND TRIM(s.coordenadas_gps) != ''
             GROUP BY cs.frecuencia
             ORDER BY c DESC
         ");
         
-        $allowed = ['diario', 'interdiario', 'semanal', 'quincenal'];
+        $allowed = ['diario', 'interdiario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual'];
         
         foreach($freqs as $row) {
             $f_db = $row['frecuencia'];
@@ -102,7 +102,7 @@ header('Content-Type: text/html; charset=utf-8');
     <table>
         <tr><th>Sede</th><th>Bad Coord Value</th></tr>
         <?php
-        $bad = db()->query("SELECT nombre_comercial, coordenadas_gps FROM Sede WHERE activo = 1 AND coordenadas_gps IS NOT NULL AND coordenadas_gps != '' AND coordenadas_gps NOT LIKE '%,%' LIMIT 20");
+        $bad = db()->query("SELECT nombre_comercial, coordenadas_gps FROM Sede WHERE coordenadas_gps IS NOT NULL AND TRIM(coordenadas_gps) != '' AND coordenadas_gps NOT LIKE '%,%' LIMIT 20");
         if (count($bad) === 0) {
             echo "<tr><td colspan='2'>No invalid formats found (all contain a comma)</td></tr>";
         } else {

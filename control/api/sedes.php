@@ -44,7 +44,7 @@ function getAll() {
     // Si es para el mapa, devolvemos solo campos esenciales + frecuencia del contrato activo más reciente
     if ($mapa) {
         $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.provincia,
-                s.coordenadas_gps, e.razon_social as empresa_razon_social,
+                s.coordenadas_gps, s.activo, e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
                 cs.frecuencia
                 FROM Sede s
                 INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
@@ -57,7 +57,7 @@ function getAll() {
                     )
                     GROUP BY id_sede
                 ) cs ON s.id_sede = cs.id_sede
-                WHERE s.coordenadas_gps IS NOT NULL AND s.coordenadas_gps != '' AND s.activo = 1
+                WHERE s.coordenadas_gps IS NOT NULL AND TRIM(s.coordenadas_gps) != ''
                 ORDER BY s.nombre_comercial";
         $data = db()->query($sql);
         

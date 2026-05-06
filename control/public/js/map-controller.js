@@ -27,7 +27,7 @@ class MapController {
         // Filter State
         this.filters = {
             search: '',
-            frequencies: new Set(['Diario', 'Interdiario', 'Semanal', 'Quincenal', 'Mensual']),
+            frequencies: new Set(['diario', 'interdiario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual']),
             districts: new Set(),
             nearby: false,
             radius: 10, // km
@@ -60,6 +60,12 @@ class MapController {
 
         this.map = new Map(document.getElementById('map'), mapOptions);
         this.infoWindow = new google.maps.InfoWindow();
+        if (window.markerClusterer && window.markerClusterer.MarkerClusterer) {
+            this.markerCluster = new window.markerClusterer.MarkerClusterer({
+                map: this.map,
+                markers: []
+            });
+        }
 
         this.AdvancedMarkerElement = AdvancedMarkerElement;
         this.PinElement = PinElement;
@@ -72,20 +78,21 @@ class MapController {
     setupEventListeners() {
         // 1. Frequency Filters
         document.querySelectorAll('.filter-freq').forEach(btn => {
-            const freq = btn.dataset.freq;
+            const freq = this.normalizeFrequency(btn.dataset.freq);
             // Initial State check
             if (this.filters.frequencies.has(freq)) {
                 this.updateFreqBtnVisuals(btn, true);
             }
 
             btn.addEventListener('click', (e) => {
-                const freq = e.target.dataset.freq;
+                const button = e.currentTarget;
+                const freq = this.normalizeFrequency(button.dataset.freq);
                 if (this.filters.frequencies.has(freq)) {
                     this.filters.frequencies.delete(freq);
-                    this.updateFreqBtnVisuals(e.target, false);
+                    this.updateFreqBtnVisuals(button, false);
                 } else {
                     this.filters.frequencies.add(freq);
-                    this.updateFreqBtnVisuals(e.target, true);
+                    this.updateFreqBtnVisuals(button, true);
                 }
                 this.applyFilters();
             });
@@ -140,6 +147,10 @@ class MapController {
         }
     }
 
+    normalizeFrequency(value) {
+        return (value || '').toString().trim().toLowerCase();
+    }
+
     handleAddressSelect(place) {
         if (!place.geometry || !place.geometry.location) {
             showToast("No se encontraron detalles de ubicación", 'warning');
@@ -170,8 +181,10 @@ class MapController {
         }
 
         const matches = this.sedes.filter(s =>
-            s.nombre_comercial.toLowerCase().includes(query) ||
-            s.direccion.toLowerCase().includes(query)
+            (s.nombre_comercial || '').toLowerCase().includes(query) ||
+            (s.direccion || '').toLowerCase().includes(query) ||
+            (s.empresa_razon_social || '').toLowerCase().includes(query) ||
+            (s.empresa_ruc || '').toLowerCase().includes(query)
         ).slice(0, 10); // Limit to 10 suggestions
 
         if (matches.length === 0) {
@@ -357,15 +370,14 @@ class MapController {
         const filtered = sourceSet.filter(s => {
             // Frequency Filter
             if (s.frecuencia) {
-                const normalizedFreq = s.frecuencia.trim().toLowerCase();
-                const activeFilters = Array.from(this.filters.frequencies).map(f => f.toLowerCase());
-                if (!activeFilters.includes(normalizedFreq)) return false;
+                const normalizedFreq = this.normalizeFrequency(s.frecuencia);
+                if (!this.filters.frequencies.has(normalizedFreq)) return false;
             }
             return true;
         });
 
         // Visible Count Update
-        const countSpan = document.getElementById('visibleSedesCount');
+        const countSpan = document.getElementById('visibleSedesCount') || document.getElementById('totalSedes');
         if (countSpan) countSpan.textContent = filtered.length;
 
         this.renderMarkers(filtered, options.forceFit || false);
@@ -391,19 +403,22 @@ class MapController {
             bounds.extend(position);
             hasValidBounds = true;
 
+            const isInactive = String(sede.activo) === '0';
             const pin = new this.PinElement({
                 scale: 1,
-                background: '#1B5E20',
+                background: isInactive ? '#6c757d' : '#1B5E20',
                 borderColor: '#ffffff',
                 glyphColor: '#ffffff'
             });
 
-            const marker = new this.AdvancedMarkerElement({
+            const markerOptions = {
                 position,
-                map: this.map,
                 title: sede.nombre_comercial,
                 content: pin
-            });
+            };
+            if (!this.markerCluster) markerOptions.map = this.map;
+
+            const marker = new this.AdvancedMarkerElement(markerOptions);
 
             marker.addListener('gmp-click', () => {
                 this.showInfoWindow(marker, sede);
@@ -433,8 +448,10 @@ class MapController {
         const content = `
             <div class="map-info-window">
                 <h6 class="mb-1">${sede.nombre_comercial}</h6>
+                ${sede.empresa_razon_social ? `<p class="mb-1 text-muted small">${sede.empresa_razon_social}</p>` : ''}
                 <p class="mb-1 text-muted small"><i class="bi bi-geo-alt"></i> ${sede.direccion}</p>
                 ${sede.frecuencia ? `<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Frec: ${sede.frecuencia}</span>` : ''}
+                ${String(sede.activo) === '0' ? `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill ms-1">Inactiva</span>` : ''}
                 <div class="mt-2 text-end">
                     <a href="../sedes/cartilla.html?id=${sede.id_sede}" class="btn btn-sm btn-primary rounded-pill px-3">Ver Detalle</a>
                 </div>
