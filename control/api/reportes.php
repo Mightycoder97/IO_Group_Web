@@ -152,6 +152,7 @@ function getDashboard() {
              WHERE MONTH(fecha) = $currentMonth AND YEAR(fecha) = $currentYear"
         );
         $rutasMes = $rutasMesResult ? $rutasMesResult['count'] : 0;
+        $contratosVencidosRenovacion = getContratosVencidosRenovacion();
         
         echo json_encode([
             'success' => true,
@@ -173,7 +174,9 @@ function getDashboard() {
                 'servicios_programados' => intval($serviciosBreakdown['programados']),
                 'servicios_en_curso' => intval($serviciosBreakdown['en_curso']),
                 'servicios_completados' => intval($serviciosBreakdown['completados']),
-                'rutas_mes' => intval($rutasMes)
+                'rutas_mes' => intval($rutasMes),
+                'contratos_vencidos_renovacion' => count($contratosVencidosRenovacion),
+                'contratos_vencidos_renovacion_lista' => $contratosVencidosRenovacion
             ]
         ]);
     } catch (Exception $e) {
@@ -183,6 +186,87 @@ function getDashboard() {
             'message' => 'Error al cargar dashboard: ' . $e->getMessage()
         ]);
     }
+}
+
+function getContratosVencidosRenovacion() {
+    $sql = "SELECT
+                cs.id_contrato,
+                cs.id_sede,
+                cs.fecha_inicio,
+                cs.fecha_fin,
+                cs.frecuencia,
+                cs.tarifa,
+                cs.tipo_tarifa,
+                cs.peso_limite_kg,
+                DATEDIFF(CURDATE(), cs.fecha_fin) AS dias_vencido,
+                s.nombre_comercial AS sede_nombre,
+                s.direccion AS sede_direccion,
+                s.distrito AS sede_distrito,
+                s.provincia AS sede_provincia,
+                e.id_empresa,
+                e.razon_social AS empresa_razon_social,
+                e.ruc AS empresa_ruc,
+                rp.id_proceso AS id_proceso_renovacion
+             FROM ContratoServicio cs
+             INNER JOIN Sede s ON cs.id_sede = s.id_sede
+             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+             LEFT JOIN (
+                SELECT
+                    MAX(id_proceso) AS id_proceso,
+                    CAST(JSON_UNQUOTE(JSON_EXTRACT(datos_json, '$.renovacion.id_contrato_anterior')) AS UNSIGNED) AS id_contrato_anterior
+                FROM ProcesoAlta
+                WHERE etapa_actual < 4
+                  AND JSON_UNQUOTE(JSON_EXTRACT(datos_json, '$.tipo_proceso')) = 'renovacion_contrato'
+                GROUP BY id_contrato_anterior
+             ) rp ON rp.id_contrato_anterior = cs.id_contrato
+             WHERE cs.activo = 1
+               AND cs.fecha_fin IS NOT NULL
+               AND cs.fecha_fin < CURDATE()
+             ORDER BY cs.fecha_fin ASC, s.nombre_comercial ASC";
+
+    try {
+        $rows = db()->query($sql);
+    } catch (Exception $e) {
+        $rows = db()->query(
+            "SELECT
+                cs.id_contrato,
+                cs.id_sede,
+                cs.fecha_inicio,
+                cs.fecha_fin,
+                cs.frecuencia,
+                cs.tarifa,
+                cs.tipo_tarifa,
+                cs.peso_limite_kg,
+                DATEDIFF(CURDATE(), cs.fecha_fin) AS dias_vencido,
+                s.nombre_comercial AS sede_nombre,
+                s.direccion AS sede_direccion,
+                s.distrito AS sede_distrito,
+                s.provincia AS sede_provincia,
+                e.id_empresa,
+                e.razon_social AS empresa_razon_social,
+                e.ruc AS empresa_ruc,
+                NULL AS id_proceso_renovacion
+             FROM ContratoServicio cs
+             INNER JOIN Sede s ON cs.id_sede = s.id_sede
+             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+             WHERE cs.activo = 1
+               AND cs.fecha_fin IS NOT NULL
+               AND cs.fecha_fin < CURDATE()
+             ORDER BY cs.fecha_fin ASC, s.nombre_comercial ASC"
+        );
+    }
+
+    foreach ($rows as &$row) {
+        $row['id_contrato'] = intval($row['id_contrato']);
+        $row['id_sede'] = intval($row['id_sede']);
+        $row['id_empresa'] = intval($row['id_empresa']);
+        $row['dias_vencido'] = intval($row['dias_vencido']);
+        $row['tarifa'] = floatval($row['tarifa']);
+        $row['peso_limite_kg'] = $row['peso_limite_kg'] !== null ? floatval($row['peso_limite_kg']) : null;
+        $row['id_proceso_renovacion'] = $row['id_proceso_renovacion'] !== null ? intval($row['id_proceso_renovacion']) : null;
+    }
+
+    return $rows ?: [];
 }
 
 function getServiciosReport() {

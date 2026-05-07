@@ -219,6 +219,22 @@
                                         <label class="form-label">Dirección Fiscal</label>
                                         <input type="text" class="form-control" id="empresa_direccion">
                                     </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Rubro</label>
+                                        <input type="text" class="form-control" id="empresa_rubro">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Distrito Fiscal</label>
+                                        <input type="text" class="form-control" id="empresa_distrito">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Provincia Fiscal</label>
+                                        <input type="text" class="form-control" id="empresa_provincia">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Departamento Fiscal</label>
+                                        <input type="text" class="form-control" id="empresa_departamento">
+                                    </div>
                                 </div>
 
                                 <!-- SEDE -->
@@ -248,8 +264,28 @@
                                         <input type="text" class="form-control" id="sede_provincia">
                                     </div>
                                     <div class="col-md-4">
+                                        <label class="form-label">Departamento</label>
+                                        <input type="text" class="form-control" id="sede_departamento">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Contacto Sede</label>
+                                        <input type="text" class="form-control" id="sede_contacto_nombre">
+                                    </div>
+                                    <div class="col-md-4">
                                         <label class="form-label">Teléfono de Contacto Sede</label>
                                         <input type="text" class="form-control" id="sede_telefono">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Telefono Alterno</label>
+                                        <input type="text" class="form-control" id="sede_telefono_2">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email Contacto</label>
+                                        <input type="email" class="form-control" id="sede_contacto_email">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Referencia</label>
+                                        <input type="text" class="form-control" id="sede_referencia">
                                     </div>
                                     <div class="col-12 mt-3">
                                         <label class="form-label">Ubicación en el Mapa *</label>
@@ -307,6 +343,10 @@
                                         <label class="form-label">Costo por Kg Excedente (S/.) *</label>
                                         <input type="number" step="0.01" class="form-control"
                                             id="contrato_tarifa_adicional_kg">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Observaciones del Contrato</label>
+                                        <textarea class="form-control" id="contrato_observaciones" rows="2"></textarea>
                                     </div>
                                 </div>
 
@@ -524,6 +564,7 @@
 
         let currentIdProceso = getUrlParam('id');
         let currentProcesoData = null;
+        let isRenovacionProceso = getUrlParam('modo') === 'renovacion';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (currentIdProceso) {
@@ -532,6 +573,81 @@
                 avanzarEtapa(1);
             }
         });
+
+        function setIfExists(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.value = value || '';
+        }
+
+        function getStage1SubmitText() {
+            return isRenovacionProceso
+                ? 'Guardar y Continuar a Generar Renovacion <i class="bi bi-arrow-right"></i>'
+                : 'Guardar y Continuar a Etapa 2 <i class="bi bi-arrow-right"></i>';
+        }
+
+        function applyProcessMode(parsed = null) {
+            if (parsed?.tipo_proceso === 'renovacion_contrato') {
+                isRenovacionProceso = true;
+            }
+
+            if (!isRenovacionProceso) return;
+
+            const idSede = parsed?.sede?.id_sede;
+            const backUrl = idSede ? `../contratos/listar.html?sede=${idSede}` : '../contratos/listar.html';
+
+            document.title = 'Renovacion de Contrato - IO Group';
+            document.getElementById('pageTitle').textContent = 'Renovacion de Contrato';
+            document.querySelectorAll('a[href="index.html"]').forEach(link => {
+                link.href = backUrl;
+            });
+
+            const breadcrumbLink = document.querySelector('.breadcrumb .breadcrumb-item:nth-child(2) a');
+            if (breadcrumbLink) {
+                breadcrumbLink.href = backUrl;
+                breadcrumbLink.textContent = 'Contratos';
+            }
+
+            const stepLabels = document.querySelectorAll('.step-label');
+            if (stepLabels[0]) stepLabels[0].textContent = 'Revision de Datos';
+            if (stepLabels[1]) stepLabels[1].textContent = 'Generacion de Contrato';
+            if (stepLabels[2]) stepLabels[2].textContent = 'Validacion y Renovacion';
+
+            const stage2Title = document.querySelector('#stage2Buttons h3');
+            if (stage2Title) stage2Title.textContent = 'Generacion de Renovacion';
+
+            const stage2Text = document.querySelector('#stage2Buttons p');
+            if (stage2Text) {
+                stage2Text.textContent = 'Los datos actualizados se usaran para generar el nuevo contrato de renovacion.';
+            }
+
+            const submitBtn = document.querySelector('#formStage1 button[type="submit"]');
+            if (submitBtn) submitBtn.innerHTML = getStage1SubmitText();
+
+            const warning = document.querySelector('#stage3 .alert-warning');
+            if (warning) {
+                warning.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Al finalizar esta renovacion, se actualizaran Cliente, Empresa y Sede, se creara un contrato nuevo activo y el contrato vencido anterior quedara inactivo como historico.';
+            }
+
+            const finalBtn = document.getElementById('btnFinalizarAlta');
+            if (finalBtn) finalBtn.innerHTML = '<i class="bi bi-check2-all"></i> Finalizar Renovacion';
+
+            const fileComprobante = document.getElementById('fileComprobante');
+            if (fileComprobante) fileComprobante.removeAttribute('required');
+
+            const completedTitle = document.querySelector('#stageCompleted h2');
+            if (completedTitle) completedTitle.textContent = 'Renovacion Completada';
+
+            const completedText = document.querySelector('#stageCompleted p');
+            if (completedText) {
+                completedText.textContent = 'El nuevo contrato quedo activo y el contrato vencido anterior quedo como historico.';
+            }
+
+            const completedLink = document.querySelector('#stageCompleted a');
+            if (completedLink) {
+                completedLink.href = idSede ? `../sedes/cartilla.html?id=${idSede}` : backUrl;
+                completedLink.innerHTML = '<i class="bi bi-file-earmark-text"></i> Ver Cartilla';
+            }
+        }
 
         // Stage 1 Auto-fill Date mapping
         document.getElementById('contrato_fecha_inicio').addEventListener('change', function () {
@@ -549,6 +665,7 @@
                 if (res.success) {
                     currentProcesoData = res.data;
                     const parsed = currentProcesoData.datos_parsed;
+                    applyProcessMode(parsed);
 
                     // Fill form 1
                     document.getElementById('cliente_nombre').value = parsed.cliente.nombre || '';
@@ -558,12 +675,21 @@
                     document.getElementById('empresa_razon_social').value = parsed.empresa.razon_social || '';
                     document.getElementById('empresa_ruc').value = parsed.empresa.ruc || '';
                     document.getElementById('empresa_direccion').value = parsed.empresa.direccion_fiscal || '';
+                    setIfExists('empresa_rubro', parsed.empresa.rubro);
+                    setIfExists('empresa_distrito', parsed.empresa.distrito);
+                    setIfExists('empresa_provincia', parsed.empresa.provincia);
+                    setIfExists('empresa_departamento', parsed.empresa.departamento);
 
                     document.getElementById('sede_nombre_comercial').value = parsed.sede.nombre_comercial || '';
                     document.getElementById('sede_direccion').value = parsed.sede.direccion || '';
                     document.getElementById('sede_distrito').value = parsed.sede.distrito || '';
                     document.getElementById('sede_provincia').value = parsed.sede.provincia || '';
                     document.getElementById('sede_telefono').value = parsed.sede.contacto_telefono || '';
+                    setIfExists('sede_departamento', parsed.sede.departamento);
+                    setIfExists('sede_referencia', parsed.sede.referencia);
+                    setIfExists('sede_contacto_nombre', parsed.sede.contacto_nombre);
+                    setIfExists('sede_telefono_2', parsed.sede.contacto_telefono_2);
+                    setIfExists('sede_contacto_email', parsed.sede.contacto_email);
 
                     if (parsed.sede.coordenadas_gps) {
                         document.getElementById('sede_coordenadas').value = parsed.sede.coordenadas_gps;
@@ -582,6 +708,7 @@
                     document.getElementById('contrato_tipo_tarifa').value = parsed.contrato.tipo_tarifa || 'por_servicio';
                     document.getElementById('contrato_peso_limite_kg').value = parsed.contrato.peso_limite_kg || '';
                     document.getElementById('contrato_tarifa_adicional_kg').value = parsed.contrato.tarifa_adicional_kg || '';
+                    setIfExists('contrato_observaciones', parsed.contrato.observaciones);
 
                     toggleTarifaFields();
 
@@ -674,24 +801,39 @@
 
         // Submitting Stage 1
         function buildPayloadEtapa1() {
+            const existing = currentProcesoData?.datos_parsed || {};
             return {
                 id_proceso: currentIdProceso || undefined,
+                tipo_proceso: existing.tipo_proceso,
+                renovacion: existing.renovacion,
                 cliente: {
+                    id_cliente: existing.cliente?.id_cliente,
                     nombre: document.getElementById('cliente_nombre').value,
                     tipo_documento: document.getElementById('cliente_tipo_doc').value,
                     dni: document.getElementById('cliente_dni').value
                 },
                 empresa: {
+                    id_empresa: existing.empresa?.id_empresa,
                     razon_social: document.getElementById('empresa_razon_social').value,
                     ruc: document.getElementById('empresa_ruc').value,
-                    direccion_fiscal: document.getElementById('empresa_direccion').value
+                    direccion_fiscal: document.getElementById('empresa_direccion').value,
+                    rubro: document.getElementById('empresa_rubro').value || null,
+                    distrito: document.getElementById('empresa_distrito').value || null,
+                    provincia: document.getElementById('empresa_provincia').value || null,
+                    departamento: document.getElementById('empresa_departamento').value || null
                 },
                 sede: {
+                    id_sede: existing.sede?.id_sede,
                     nombre_comercial: document.getElementById('sede_nombre_comercial').value,
                     direccion: document.getElementById('sede_direccion').value,
                     distrito: document.getElementById('sede_distrito').value,
                     provincia: document.getElementById('sede_provincia').value,
+                    departamento: document.getElementById('sede_departamento').value || null,
+                    referencia: document.getElementById('sede_referencia').value || null,
+                    contacto_nombre: document.getElementById('sede_contacto_nombre').value || null,
                     contacto_telefono: document.getElementById('sede_telefono').value,
+                    contacto_telefono_2: document.getElementById('sede_telefono_2').value || null,
+                    contacto_email: document.getElementById('sede_contacto_email').value || null,
                     coordenadas_gps: document.getElementById('sede_coordenadas').value
                 },
                 contrato: {
@@ -701,7 +843,8 @@
                     tarifa: document.getElementById('contrato_tarifa').value,
                     tipo_tarifa: document.getElementById('contrato_tipo_tarifa').value,
                     peso_limite_kg: document.getElementById('contrato_peso_limite_kg').value || null,
-                    tarifa_adicional_kg: document.getElementById('contrato_tarifa_adicional_kg').value || null
+                    tarifa_adicional_kg: document.getElementById('contrato_tarifa_adicional_kg').value || null,
+                    observaciones: document.getElementById('contrato_observaciones').value || null
                 }
             };
         }
@@ -732,6 +875,12 @@
                         window.history.pushState({ path: newUrl }, '', newUrl);
                         currentIdProceso = res.id_proceso;
                     }
+                    currentProcesoData = {
+                        ...(currentProcesoData || {}),
+                        datos_parsed: payload,
+                        etapa_actual: Math.max(parseInt(currentProcesoData?.etapa_actual || 1), 2)
+                    };
+                    applyProcessMode(payload);
                     avanzarEtapa(2);
                 } else {
                     showToast(res.message || 'Error guardando datos', 'danger');
@@ -739,7 +888,7 @@
             } catch (err) {
                 showToast('Error en el servidor', 'danger');
             } finally {
-                btn.innerHTML = 'Guardar y Continuar a Etapa 2 <i class="bi bi-arrow-right"></i>';
+                btn.innerHTML = getStage1SubmitText();
                 btn.disabled = false;
             }
         });
@@ -753,7 +902,10 @@
                 if (res.success) {
                     showToast('Datos guardados', 'success');
                     setTimeout(() => {
-                        window.location.href = 'index.html';
+                        const backUrl = isRenovacionProceso
+                            ? (payload.sede?.id_sede ? `../contratos/listar.html?sede=${payload.sede.id_sede}` : '../contratos/listar.html')
+                            : 'index.html';
+                        window.location.href = backUrl;
                     }, 500);
                 } else {
                     showToast(res.message || 'Error guardando datos', 'danger');
@@ -855,8 +1007,8 @@
         function enviarWhatsApp() {
             const link = document.getElementById('firmaLinkInput').value;
             const datos = currentProcesoData?.datos_parsed;
-            const telefono = datos?.sede?.contacto_telefono || '';
-            const nombre = datos?.cliente?.nombre || 'Cliente';
+            const telefono = document.getElementById('sede_telefono').value || datos?.sede?.contacto_telefono || '';
+            const nombre = document.getElementById('cliente_nombre').value || datos?.cliente?.nombre || 'Cliente';
             const msg = `Estimado(a) ${nombre}, le enviamos el enlace para firmar digitalmente su contrato de servicio con IO Group:\n\n${link}\n\nPor favor ábralo y siga las instrucciones. Gracias.`;
             const phone = telefono.replace(/\D/g, '');
             const waUrl = phone
@@ -882,7 +1034,7 @@
             const url = API_BASE + '/altas.php?action=subir_documentos';
             const token = localStorage.getItem('token');
 
-            let btnToLock = isFinalizing ? document.getElementById('btnFinalizarAlta') : document.querySelector('.btn-secondary');
+            let btnToLock = isFinalizing ? document.getElementById('btnFinalizarAlta') : document.querySelector('#formStage3 .btn-secondary');
             const originalText = btnToLock.innerHTML;
             btnToLock.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Subiendo...';
             btnToLock.disabled = true;
@@ -897,7 +1049,11 @@
 
                 if (result.success) {
                     if (isFinalizing) {
-                        showToast('Proceso Finalizado y Sede Inyectada con Éxito', 'success');
+                        showToast(isRenovacionProceso ? 'Renovacion completada con exito' : 'Proceso Finalizado y Sede Inyectada con exito', 'success');
+                        if (result.id_sede && currentProcesoData?.datos_parsed?.sede) {
+                            currentProcesoData.datos_parsed.sede.id_sede = result.id_sede;
+                            applyProcessMode(currentProcesoData.datos_parsed);
+                        }
                         avanzarEtapa(4);
                     } else {
                         showToast('Documentos resguardados correctamente.', 'success');
@@ -918,7 +1074,10 @@
         document.getElementById('formStage3').addEventListener('submit', function (e) {
             e.preventDefault();
             // Ask for confirmation
-            if (confirm('¿Está seguro de querer finalizar el proceso? Esto inyectará los datos automáticamente a las tablas de Clientes y Sedes Activas.')) {
+            const message = isRenovacionProceso
+                ? 'Esta seguro de finalizar la renovacion? Se actualizara Cliente, Empresa y Sede, se creara un contrato nuevo y el contrato anterior quedara inactivo.'
+                : 'Esta seguro de querer finalizar el proceso? Esto inyectara los datos automaticamente a las tablas de Clientes y Sedes Activas.';
+            if (confirm(message)) {
                 submitStage3(true);
             }
         });

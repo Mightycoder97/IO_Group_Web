@@ -84,7 +84,7 @@
                                     <th class="hide-on-mobile">Frecuencia</th>
                                     <th class="hide-on-mobile">Tarifa</th>
                                     <th>Estado</th>
-                                    <th width="180">Acciones</th>
+                                    <th width="220">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
@@ -145,11 +145,27 @@
             if (!dateStr) return '-';
             return new Date(dateStr).toLocaleDateString('es-PE');
         }
+        function parseDateOnly(dateStr) {
+            if (!dateStr) return null;
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+        function isActivo(item) {
+            return item.activo === true || item.activo === 1 || item.activo === '1';
+        }
+        function isContratoVencido(item) {
+            if (!isActivo(item) || !item.fecha_fin) return false;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const end = parseDateOnly(item.fecha_fin);
+            return end && end < today;
+        }
         function getContratoStatus(item) {
-            if (!item.activo) return '<span class="badge bg-secondary">Inactivo</span>';
+            if (!isActivo(item)) return '<span class="badge bg-secondary">Inactivo</span>';
             if (!item.fecha_fin) return '<span class="badge bg-success">Activo</span>';
             const today = new Date();
-            const end = new Date(item.fecha_fin);
+            today.setHours(0, 0, 0, 0);
+            const end = parseDateOnly(item.fecha_fin);
             const diffDays = Math.floor((end - today) / (1000 * 60 * 60 * 24));
             if (diffDays < 0) return '<span class="badge bg-danger">Vencido</span>';
             if (diffDays <= 30) return '<span class="badge bg-warning">Por vencer</span>';
@@ -171,6 +187,9 @@
                 const pagoBtn = hasPago
                     ? `<a href="${uploadBase}${item.comprobante_pago}" target="_blank" class="btn btn-sm btn-outline-warning btn-action" title="Ver Comprobante de Pago"><i class="bi bi-receipt-cutoff"></i></a>`
                     : '';
+                const renovarBtn = canEdit() && isContratoVencido(item)
+                    ? `<button class="btn btn-sm btn-outline-success btn-action" onclick="renewContract(${item.id_contrato}, this)" title="Renovar Contrato" aria-label="Renovar Contrato"><i class="bi bi-arrow-repeat"></i></button>`
+                    : '';
                 return `
                 <tr>
                     <td><strong>#${item.id_contrato}</strong></td>
@@ -183,6 +202,7 @@
                     <td>
                         ${docBtn}
                         ${pagoBtn}
+                        ${renovarBtn}
                         <a href="formulario.html?id=${item.id_contrato}" class="btn btn-sm btn-outline-primary btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
                         ${canEdit() ? `<button class="btn btn-sm btn-outline-danger btn-action" onclick="deleteItem(${item.id_contrato})" title="Eliminar"><i class="bi bi-trash"></i></button>` : ''}
                     </td>
@@ -211,6 +231,29 @@
                 }
             } catch (err) {
                 showToast('Error eliminando', 'danger');
+            }
+        }
+        async function renewContract(id, btn) {
+            const originalHtml = btn?.innerHTML;
+            if (btn) {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>';
+                btn.disabled = true;
+            }
+            try {
+                const result = await api.post('/altas?action=iniciar_renovacion', { id_contrato: id });
+                if (result.success) {
+                    const url = `${getBasePath()}/pages/altas/formulario.html?id=${result.id_proceso}&modo=renovacion`;
+                    window.location.href = url;
+                } else {
+                    showToast(result.message || 'No se pudo iniciar la renovacion', 'danger');
+                }
+            } catch (err) {
+                showToast('Error iniciando renovacion', 'danger');
+            } finally {
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
             }
         }
         loadData();

@@ -77,6 +77,27 @@
     padding: 1.15rem;
 }
 
+.kpi-card-button {
+    appearance: none;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    width: 100%;
+}
+
+.kpi-card-button:hover,
+.kpi-card-button:focus-visible {
+    border-color: #FCA5A5;
+    box-shadow: 0 12px 28px rgba(185, 28, 28, 0.12);
+    outline: 0;
+    transform: translateY(-1px);
+}
+
+.kpi-card-premium.renewal-alert {
+    border-left: 4px solid #DC2626;
+}
+
 .kpi-header,
 .chart-header,
 .quick-stat-item {
@@ -128,6 +149,11 @@
 .kpi-trend.up {
     background: #DCFCE7;
     color: #166534;
+}
+
+.kpi-trend.danger {
+    background: #FEE2E2;
+    color: #B91C1C;
 }
 
 .charts-grid {
@@ -236,6 +262,41 @@
 .quick-stat-dot.completados { background: #22C55E; }
 .quick-stat-dot.programados { background: #3B82F6; }
 .quick-stat-dot.en-curso { background: #F59E0B; }
+
+.modal-subtitle {
+    color: #64748B;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-top: 0.15rem;
+}
+
+.renewals-table {
+    min-width: 860px;
+}
+
+.renewals-table thead th {
+    color: #475569;
+    font-size: 0.76rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.empty-renewals-state {
+    color: #64748B;
+    padding: 2.5rem 1rem;
+    text-align: center;
+}
+
+.empty-renewals-state i {
+    color: #16A34A;
+    font-size: 3rem;
+}
+
+.empty-renewals-state h6 {
+    color: #0F172A;
+    font-weight: 800;
+    margin-top: 0.75rem;
+}
 
 .distritos-hoy,
 .search-panel,
