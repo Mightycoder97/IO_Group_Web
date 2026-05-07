@@ -10,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../css/global.css" rel="stylesheet">
-    <link href="../../css/control.css?v=2.2" rel="stylesheet">
+    <link href="../../css/control.css?v=2.3" rel="stylesheet">
     <!-- Rutas styles now loaded from external control.css for better caching -->
     <style>
         /* ===== PRINT BUTTON HIGHLIGHT ===== */
@@ -356,6 +356,16 @@
         function normDistr(str) {
             if (!str) return '';
             return str.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
         }
 
         document.getElementById('fechaRuta').value = new Date().toISOString().split('T')[0];
@@ -739,6 +749,7 @@
             return allClientes.filter(c => {
                 const matchTerm = !term || c.nombre_comercial?.toLowerCase().includes(term) ||
                     c.empresa_ruc?.includes(term) || c.distrito?.toLowerCase().includes(term) ||
+                    c.direccion?.toLowerCase().includes(term) ||
                     c.empresa_razon_social?.toLowerCase().includes(term);
                 const matchDistrito = distritos.length === 0 || distritos.includes(normDistr(c.distrito));
                 return matchTerm && matchDistrito;
@@ -755,15 +766,20 @@
                     const otherPlaca = sedesEnOtrasRutas.get(c.id_sede);
                     const alerta = getAlertaFrecuencia(c);
                     const isBlocked = !!otherPlaca; // assigned to another truck
+                    const empresaInfo = [c.empresa_razon_social, c.empresa_ruc].filter(Boolean).join(' | ');
+                    const ubicacionInfo = [c.direccion, c.distrito].filter(Boolean).join(' | ');
                     return `
                     <div class="cliente-result ${inRoute || isBlocked ? 'in-route' : ''}" onclick="${inRoute || isBlocked ? '' : `agregarCliente(${c.id_sede})`}">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <strong>${c.nombre_comercial}</strong>
+                                <strong>${escapeHtml(c.nombre_comercial)}</strong>
                                 ${inRoute ? '<span class="badge bg-info ms-1">En ruta</span>' : ''}
                                 ${isBlocked ? `<span class="badge bg-secondary ms-1">En ruta &middot; ${otherPlaca}</span>` : ''}
                                 ${alerta ? `<span class="badge bg-warning text-dark alerta-frecuencia ms-1">Faltan ${alerta.diasRestantes}d</span>` : ''}
-                                <br><small class="text-muted">${c.empresa_razon_social ? c.empresa_razon_social + ' | ' : ''}${c.distrito || ''} | ${c.empresa_ruc || ''}</small>
+                                <div class="cliente-result-meta text-muted">
+                                    <div>${escapeHtml(empresaInfo || '-')}</div>
+                                    <div><i class="bi bi-geo-alt"></i> ${escapeHtml(ubicacionInfo || '-')}</div>
+                                </div>
                             </div>
                             ${!inRoute && !isBlocked ? '<i class="bi bi-plus-circle text-success"></i>' : ''}
                         </div>

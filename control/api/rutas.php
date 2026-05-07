@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/jwt.php';
+require_once __DIR__ . '/helpers/ruta_plan.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id = $_GET['id'] ?? null;
@@ -43,7 +44,7 @@ function getAll() {
     $sql = "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca, v.modelo as vehiculo_modelo,
             COUNT(DISTINCT s.id_servicio) as total_servicios,
             COUNT(DISTINCT s.id_sede) as sedes_count,
-            SUM(CASE WHEN s.estado_pago IS NULL OR s.estado_pago = 'pendiente' THEN 1 ELSE 0 END) as pendientes_pago,
+            SUM(CASE WHEN s.id_servicio IS NOT NULL AND (s.estado_pago IS NULL OR s.estado_pago = 'pendiente') THEN 1 ELSE 0 END) as pendientes_pago,
             CONCAT(ch.nombres, ' ', ch.apellidos) as chofer_nombre,
             CONCAT(ay.nombres, ' ', ay.apellidos) as ayudante_nombre
             FROM Ruta r
@@ -80,6 +81,21 @@ function getAll() {
     $params[] = $limit;
     
     $data = db()->query($sql, $params);
+
+    foreach ($data as &$row) {
+        if (intval($row['sedes_count'] ?? 0) === 0) {
+            $planSedes = getRutaPlanSedes($row['id_ruta']);
+            $planCount = count($planSedes);
+            if ($planCount > 0) {
+                $row['total_servicios'] = $planCount;
+                $row['sedes_count'] = $planCount;
+                if (intval($row['pendientes_pago'] ?? 0) === 0 && ($row['estado'] ?? '') !== 'completada') {
+                    $row['pendientes_pago'] = $planCount;
+                }
+            }
+        }
+    }
+    unset($row);
     
     echo json_encode([
         'success' => true,
@@ -132,6 +148,10 @@ function getOne($id) {
             [$id]
         );
         
+        if (empty($servicios)) {
+            $servicios = buildRutaPlanServicios(getRutaPlanSedes($id));
+        }
+
         $ruta['servicios'] = $servicios ?: [];
         
         echo json_encode([
@@ -155,7 +175,8 @@ function create() {
         
         $id_vehiculo = $data['id_vehiculo'] ?? null;
         $fecha = $data['fecha'] ?? null;
-        $sedes = $data['sedes'] ?? [];
+        $sedes = normalizeRutaPlanSedes($data['sedes'] ?? []);
+        $data['sedes'] = $sedes;
         $id_chofer = $data['id_chofer'] ?? null;
         $id_ayudante = $data['id_ayudante'] ?? null;
         
@@ -172,10 +193,10 @@ function create() {
         );
         
         if ($existing) {
-            // Update existing route - delete old services first
+            // Update existing route header. Planned sedes stay in AuditLog until
+            // Control de Ruta materializes them as Servicio rows.
             $id = $existing['id_ruta'];
-            db()->execute("DELETE FROM Servicio WHERE id_ruta = ?", [$id]);
-            
+
             db()->execute(
                 "UPDATE Ruta SET estado = ?, observaciones = ?, id_chofer = ?, id_ayudante = ?, fecha_modificacion = NOW() WHERE id_ruta = ?",
                 [$data['estado'] ?? 'programada', $data['observaciones'] ?? null, $id_chofer, $id_ayudante, $id]
@@ -195,45 +216,6 @@ function create() {
                 "INSERT INTO Ruta (id_vehiculo, codigo_ruta, fecha, estado, id_chofer, id_ayudante) VALUES (?, ?, ?, 'programada', ?, ?)",
                 [$id_vehiculo, $codigo_ruta, $fecha, $id_chofer, $id_ayudante]
             );
-        }
-        
-        // Get default Planta
-        $planta = db()->queryOne("SELECT id_planta FROM Planta LIMIT 1");
-        $id_planta = $planta ? $planta['id_planta'] : null;
-
-        // Calculate mes_servicio from fecha (YYYY-MM)
-        $mes_servicio = substr($fecha, 0, 7);
-
-        // Create services for each sede
-        if (!empty($sedes)) {
-            foreach ($sedes as $orden => $sedeItem) {
-                // Accept both plain ID (legacy) and object {id_sede, forma_pago, obs}
-                if (is_array($sedeItem)) {
-                    $id_sede       = $sedeItem['id_sede'] ?? null;
-                    $forma_pago    = $sedeItem['forma_pago'] ?? null;
-                    $obs           = $sedeItem['obs'] ?? null;
-                    $residuo       = $sedeItem['residuo'] ?? null;
-                } else {
-                    $id_sede      = $sedeItem;
-                    $forma_pago   = null;
-                    $obs          = null;
-                    $residuo      = null;
-                }
-                if (!$id_sede) continue;
-
-                // Get active Contrato for this Sede to link id_contrato
-                $contrato = db()->queryOne(
-                    "SELECT id_contrato FROM ContratoServicio WHERE id_sede = ? AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1",
-                    [$id_sede]
-                );
-                $id_contrato = $contrato ? $contrato['id_contrato'] : null;
-
-                db()->insert(
-                    "INSERT INTO Servicio (id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, forma_pago, residuo, observaciones) 
-                     VALUES (?, ?, ?, ?, ?, ?, 'programado', ?, ?, ?)",
-                    [$id, $id_sede, $id_planta, $id_contrato, $mes_servicio, $fecha, $forma_pago, $residuo, $obs]
-                );
-            }
         }
         
         db()->execute(
@@ -265,6 +247,9 @@ function update($id) {
     }
     
     $data = json_decode(file_get_contents('php://input'), true);
+    if (array_key_exists('sedes', $data)) {
+        $data['sedes'] = normalizeRutaPlanSedes($data['sedes']);
+    }
     
     $existing = db()->queryOne("SELECT * FROM Ruta WHERE id_ruta = ?", [$id]);
     if (!$existing) {
@@ -298,8 +283,8 @@ function update($id) {
             $data['km_final'] ?? $existing['km_final'],
             $data['estado'] ?? $existing['estado'],
             $data['observaciones'] ?? $existing['observaciones'],
-            $data['id_chofer'] ?? $existing['id_chofer'],
-            $data['id_ayudante'] ?? $existing['id_ayudante'],
+            array_key_exists('id_chofer', $data) ? $data['id_chofer'] : $existing['id_chofer'],
+            array_key_exists('id_ayudante', $data) ? $data['id_ayudante'] : $existing['id_ayudante'],
             $id
         ]
     );

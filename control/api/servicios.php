@@ -18,7 +18,8 @@ switch ($method) {
         else getAll();
         break;
     case 'POST':
-        create();
+        if ($action === 'upload_documento') uploadDocumento($id);
+        else create();
         break;
     case 'PUT':
         update($id);
@@ -157,13 +158,18 @@ function getOne($id) {
                 se.nombre_comercial as sede_nombre, se.direccion as sede_direccion,
                 e.razon_social as empresa_razon_social,
                 p.nombre_comercial as planta_nombre,
-                r.codigo_ruta, v.placa as vehiculo_placa
+                r.codigo_ruta, r.id_chofer as ruta_id_chofer, r.id_ayudante as ruta_id_ayudante,
+                CONCAT(ch.nombres, ' ', ch.apellidos) as ruta_chofer_nombre,
+                CONCAT(ay.nombres, ' ', ay.apellidos) as ruta_ayudante_nombre,
+                v.placa as vehiculo_placa
          FROM Servicio s
          INNER JOIN Sede se ON s.id_sede = se.id_sede
          INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
          LEFT JOIN Planta p ON s.id_planta = p.id_planta
          LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
          LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
+         LEFT JOIN Empleado ch ON r.id_chofer = ch.id_empleado
+         LEFT JOIN Empleado ay ON r.id_ayudante = ay.id_empleado
          WHERE s.id_servicio = ?",
         [$id]
     );
@@ -201,6 +207,29 @@ function getOne($id) {
         [$id]
     );
     
+    $hasChofer = false;
+    $hasAyudante = false;
+    foreach ($empleados as $empleado) {
+        if (($empleado['rol'] ?? '') === 'chofer') $hasChofer = true;
+        if (($empleado['rol'] ?? '') === 'ayudante') $hasAyudante = true;
+    }
+
+    if (!$hasChofer && !empty($servicio['ruta_id_chofer'])) {
+        $empleados[] = [
+            'id_empleado' => $servicio['ruta_id_chofer'],
+            'rol' => 'chofer',
+            'nombre_completo' => $servicio['ruta_chofer_nombre'] ?? null,
+            'origen' => 'ruta'
+        ];
+    }
+    if (!$hasAyudante && !empty($servicio['ruta_id_ayudante'])) {
+        $empleados[] = [
+            'id_empleado' => $servicio['ruta_id_ayudante'],
+            'rol' => 'ayudante',
+            'nombre_completo' => $servicio['ruta_ayudante_nombre'] ?? null,
+            'origen' => 'ruta'
+        ];
+    }
     $servicio['empleados'] = $empleados;
     $servicio['manifiesto'] = $manifiesto;
     $servicio['guia'] = $guia;
@@ -420,6 +449,184 @@ function update($id) {
         'success' => true,
         'message' => 'Servicio actualizado exitosamente'
     ]);
+}
+
+function uploadDocumento($id) {
+    $user = canEdit();
+
+    if (!$id) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'ID de servicio requerido']);
+        return;
+    }
+
+    $servicio = db()->queryOne("SELECT * FROM Servicio WHERE id_servicio = ?", [$id]);
+    if (!$servicio) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Servicio no encontrado']);
+        return;
+    }
+
+    $tipo = $_POST['tipo'] ?? '';
+    $tiposPermitidos = ['manifiesto', 'guia', 'factura'];
+    if (!in_array($tipo, $tiposPermitidos, true)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Tipo de documento invÃ¡lido']);
+        return;
+    }
+
+    if (!isset($_FILES['archivo_pdf']) || $_FILES['archivo_pdf']['error'] !== UPLOAD_ERR_OK) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Debe seleccionar un PDF vÃ¡lido']);
+        return;
+    }
+
+    $file = $_FILES['archivo_pdf'];
+    if ($file['size'] > 20 * 1024 * 1024) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'El PDF no debe superar 20 MB']);
+        return;
+    }
+
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if ($ext !== 'pdf') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Solo se permiten archivos PDF']);
+        return;
+    }
+
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : null;
+        if ($finfo) finfo_close($finfo);
+        $mimesPermitidos = ['application/pdf', 'application/x-pdf', 'application/octet-stream'];
+        if ($mime && !in_array($mime, $mimesPermitidos, true)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'El archivo seleccionado no parece ser un PDF']);
+            return;
+        }
+    }
+
+    $uploadDir = __DIR__ . '/../uploads/servicios/' . $tipo . '/';
+    if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'No se pudo preparar la carpeta de carga']);
+        return;
+    }
+
+    $fileName = 'servicio_' . intval($id) . '_' . $tipo . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.pdf';
+    $filePath = $uploadDir . $fileName;
+
+    if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'No se pudo guardar el PDF']);
+        return;
+    }
+
+    $docPath = 'uploads/servicios/' . $tipo . '/' . $fileName;
+    try {
+        $documentId = guardarDocumentoEscaneado($tipo, $id, $servicio, $docPath);
+    } catch (Exception $e) {
+        if (file_exists($filePath)) unlink($filePath);
+        $message = $e->getMessage();
+        $isValidationError = strpos($message, 'Ingrese') === 0;
+        http_response_code($isValidationError ? 400 : 500);
+        echo json_encode([
+            'success' => false,
+            'message' => $isValidationError ? $message : 'No se pudo registrar el PDF'
+        ]);
+        return;
+    }
+
+    db()->execute(
+        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos) VALUES (?, 'Servicio', ?, 'UPLOAD_DOCUMENTO', ?)",
+        [$user['id'], $id, json_encode(['tipo' => $tipo, 'doc_escaneado' => $docPath])]
+    );
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'PDF subido exitosamente',
+        'tipo' => $tipo,
+        'id_documento' => $documentId,
+        'doc_escaneado' => $docPath
+    ]);
+}
+
+function guardarDocumentoEscaneado($tipo, $id_servicio, $servicio, $docPath) {
+    if ($tipo === 'manifiesto') {
+        $numero = nullIfEmpty($_POST['numero_manifiesto'] ?? null);
+        $peso = nullIfEmpty($_POST['peso_kg'] ?? null);
+        $tipoResiduo = nullIfEmpty($_POST['residuo'] ?? $servicio['residuo'] ?? null);
+        $existing = db()->queryOne("SELECT id_manifiesto FROM Manifiesto WHERE id_servicio = ?", [$id_servicio]);
+
+        if ($existing) {
+            db()->execute(
+                "UPDATE Manifiesto SET
+                    numero_manifiesto = COALESCE(?, numero_manifiesto),
+                    peso_kg = COALESCE(?, peso_kg),
+                    tipo_residuo = COALESCE(?, tipo_residuo),
+                    doc_escaneado = ?
+                 WHERE id_servicio = ?",
+                [$numero, $peso, $tipoResiduo, $docPath, $id_servicio]
+            );
+            return $existing['id_manifiesto'];
+        }
+
+        return db()->insert(
+            "INSERT INTO Manifiesto (id_servicio, numero_manifiesto, peso_kg, tipo_residuo, doc_escaneado)
+             VALUES (?, ?, ?, ?, ?)",
+            [$id_servicio, $numero, $peso, $tipoResiduo, $docPath]
+        );
+    }
+
+    if ($tipo === 'guia') {
+        $numero = nullIfEmpty($_POST['numero_guia'] ?? null);
+        $existing = db()->queryOne("SELECT id_guia FROM Guia WHERE id_servicio = ?", [$id_servicio]);
+
+        if (!$existing && !$numero) {
+            throw new Exception('Ingrese el nÃºmero de guÃ­a antes de subir el PDF');
+        }
+
+        if ($existing) {
+            db()->execute(
+                "UPDATE Guia SET numero_guia = COALESCE(?, numero_guia), doc_escaneado = ? WHERE id_servicio = ?",
+                [$numero, $docPath, $id_servicio]
+            );
+            return $existing['id_guia'];
+        }
+
+        return db()->insert(
+            "INSERT INTO Guia (id_servicio, numero_guia, fecha_emision, doc_escaneado)
+             VALUES (?, ?, COALESCE(?, CURDATE()), ?)",
+            [$id_servicio, $numero, $servicio['fecha_ejecucion'] ?? null, $docPath]
+        );
+    }
+
+    $numero = nullIfEmpty($_POST['numero_factura'] ?? null);
+    $existing = db()->queryOne("SELECT id_factura FROM Factura WHERE id_servicio = ?", [$id_servicio]);
+
+    if (!$existing && !$numero) {
+        throw new Exception('Ingrese el nÃºmero de factura antes de subir el PDF');
+    }
+
+    if ($existing) {
+        db()->execute(
+            "UPDATE Factura SET numero_factura = COALESCE(?, numero_factura), doc_escaneado = ? WHERE id_servicio = ?",
+            [$numero, $docPath, $id_servicio]
+        );
+        return $existing['id_factura'];
+    }
+
+    return db()->insert(
+        "INSERT INTO Factura (id_servicio, numero_factura, doc_escaneado) VALUES (?, ?, ?)",
+        [$id_servicio, $numero, $docPath]
+    );
+}
+
+function nullIfEmpty($value) {
+    if ($value === null) return null;
+    $value = trim((string)$value);
+    return $value === '' ? null : $value;
 }
 
 function delete($id) {

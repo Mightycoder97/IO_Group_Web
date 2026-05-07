@@ -49,6 +49,7 @@ function getDashboard() {
         // Build date string for SQL comparisons
         $filterDateStart = "$currentYear-$currentMonth-01";
         $filterDateEnd = date("Y-m-t", strtotime($filterDateStart));
+        $filterDateNext = date("Y-m-d", strtotime("$filterDateEnd +1 day"));
         
         // Sedes activas
         $sedesActivasResult = db()->queryOne("SELECT COUNT(*) as count FROM Sede WHERE activo = 1");
@@ -59,11 +60,14 @@ function getDashboard() {
             "SELECT COUNT(DISTINCT s.id_sede) as count 
              FROM Servicio sv 
              INNER JOIN Sede s ON sv.id_sede = s.id_sede
-             WHERE MONTH(sv.fecha_ejecucion) = $currentMonth 
-             AND YEAR(sv.fecha_ejecucion) = $currentYear
-             AND sv.estado IN ('completado', 'en_curso', 'programado')"
+             WHERE sv.fecha_ejecucion >= ?
+             AND sv.fecha_ejecucion < ?
+             AND s.activo = 1
+             AND sv.estado IN ('completado', 'en_curso', 'programado')",
+            [$filterDateStart, $filterDateNext]
         );
         $sedesConServicio = $sedesConServicioResult ? $sedesConServicioResult['count'] : 0;
+        $sedesSinServicio = getSedesSinServicioMes($filterDateStart, $filterDateNext);
         
         // Porcentaje de sedes con servicio
         $porcentajeServicio = $sedesActivas > 0 ? round(($sedesConServicio / $sedesActivas) * 100, 1) : 0;
@@ -164,6 +168,8 @@ function getDashboard() {
                 ],
                 'sedes_activas' => intval($sedesActivas),
                 'sedes_con_servicio' => intval($sedesConServicio),
+                'sedes_sin_servicio' => count($sedesSinServicio),
+                'sedes_sin_servicio_lista' => $sedesSinServicio,
                 'porcentaje_servicio' => $porcentajeServicio,
                 'facturacion_12_meses' => $facturacion12Meses,
                 'empresas_pendientes' => intval($empresasPendientes),
@@ -186,6 +192,67 @@ function getDashboard() {
             'message' => 'Error al cargar dashboard: ' . $e->getMessage()
         ]);
     }
+}
+
+function getSedesSinServicioMes($fechaInicio, $fechaFinExclusiva) {
+    $sql = "SELECT
+                s.id_sede,
+                s.nombre_comercial AS sede_nombre,
+                s.direccion AS sede_direccion,
+                s.distrito AS sede_distrito,
+                s.provincia AS sede_provincia,
+                s.contacto_nombre,
+                s.contacto_telefono,
+                e.id_empresa,
+                e.razon_social AS empresa_razon_social,
+                e.ruc AS empresa_ruc,
+                cs.id_contrato,
+                cs.frecuencia,
+                cs.tarifa,
+                cs.tipo_tarifa,
+                cs.peso_limite_kg,
+                ult.ultimo_servicio_fecha
+             FROM Sede s
+             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+             LEFT JOIN (
+                SELECT cs1.*
+                FROM ContratoServicio cs1
+                INNER JOIN (
+                    SELECT id_sede, MAX(id_contrato) AS id_contrato
+                    FROM ContratoServicio
+                    WHERE activo = 1
+                    GROUP BY id_sede
+                ) latest ON latest.id_contrato = cs1.id_contrato
+             ) cs ON cs.id_sede = s.id_sede
+             LEFT JOIN (
+                SELECT id_sede, MAX(fecha_ejecucion) AS ultimo_servicio_fecha
+                FROM Servicio
+                WHERE estado IN ('completado', 'en_curso', 'programado')
+                GROUP BY id_sede
+             ) ult ON ult.id_sede = s.id_sede
+             WHERE s.activo = 1
+               AND NOT EXISTS (
+                    SELECT 1
+                    FROM Servicio sv
+                    WHERE sv.id_sede = s.id_sede
+                      AND sv.fecha_ejecucion >= ?
+                      AND sv.fecha_ejecucion < ?
+                      AND sv.estado IN ('completado', 'en_curso', 'programado')
+               )
+             ORDER BY e.razon_social ASC, s.nombre_comercial ASC";
+
+    $rows = db()->query($sql, [$fechaInicio, $fechaFinExclusiva]);
+    if (!$rows) return [];
+
+    foreach ($rows as &$row) {
+        $row['id_sede'] = intval($row['id_sede']);
+        $row['id_empresa'] = intval($row['id_empresa']);
+        $row['id_contrato'] = $row['id_contrato'] !== null ? intval($row['id_contrato']) : null;
+        $row['tarifa'] = $row['tarifa'] !== null ? floatval($row['tarifa']) : null;
+        $row['peso_limite_kg'] = $row['peso_limite_kg'] !== null ? floatval($row['peso_limite_kg']) : null;
+    }
+
+    return $rows;
 }
 
 function getContratosVencidosRenovacion() {

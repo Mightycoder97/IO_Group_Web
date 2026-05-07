@@ -24,7 +24,7 @@
     <link href="../css/global.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-    <link href="../css/control.css" rel="stylesheet">
+    <link href="../css/control.css?v=2.3" rel="stylesheet">
     <!-- Dashboard styles now loaded from external control.css for better caching -->
 </head>
 
@@ -128,7 +128,8 @@
                         <div class="kpi-sublabel">Sedes registradas</div>
                     </div>
 
-                    <div class="kpi-card-premium success">
+                    <button type="button" class="kpi-card-premium kpi-card-button coverage-alert success"
+                        onclick="openCoverageModal()">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper success">
                                 <i class="bi bi-check-circle"></i>
@@ -140,7 +141,7 @@
                         <div class="kpi-value" id="kpiPorcentajeServicio">--%</div>
                         <div class="kpi-label">Cobertura del Mes</div>
                         <div class="kpi-sublabel" id="kpiSedesServicio">-- de -- sedes</div>
-                    </div>
+                    </button>
 
                     <div class="kpi-card-premium info">
                         <div class="kpi-header">
@@ -263,6 +264,42 @@
         </main>
     </div>
 
+    <div class="modal fade" id="coverageModal" tabindex="-1" aria-labelledby="coverageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="coverageModalLabel">Clientes sin servicio del mes</h5>
+                        <div class="modal-subtitle" id="coverageModalSubtitle">Sedes activas pendientes</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="coverageEmpty" class="empty-renewals-state d-none">
+                        <i class="bi bi-check2-circle"></i>
+                        <h6>La cobertura esta completa</h6>
+                        <p>Todas las sedes activas tienen servicio registrado en el mes seleccionado.</p>
+                    </div>
+                    <div id="coverageTableWrap" class="table-responsive">
+                        <table class="table table-hover align-middle renewals-table">
+                            <thead>
+                                <tr>
+                                    <th>Sede</th>
+                                    <th>Empresa</th>
+                                    <th>Distrito</th>
+                                    <th>Contrato</th>
+                                    <th>Ultimo servicio</th>
+                                    <th class="text-end">Accion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coverageTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="renewalsModal" tabindex="-1" aria-labelledby="renewalsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
@@ -309,6 +346,7 @@
 
         let facturaChart = null;
         let serviciosChart = null;
+        let dashboardSedesSinServicio = [];
         let dashboardContratosVencidos = [];
 
         // Set greeting and date
@@ -353,8 +391,10 @@
                     document.getElementById('kpiSedesActivas').textContent = data.sedes_activas.toLocaleString();
                     document.getElementById('kpiPorcentajeServicio').textContent = data.porcentaje_servicio + '%';
                     document.getElementById('kpiTrendServicio').innerHTML = `<i class="bi bi-arrow-up"></i> ${data.porcentaje_servicio}%`;
+                    dashboardSedesSinServicio = data.sedes_sin_servicio_lista || [];
+                    const totalSedesSinServicio = data.sedes_sin_servicio ?? dashboardSedesSinServicio.length;
                     document.getElementById('kpiSedesServicio').textContent =
-                        `${data.sedes_con_servicio} de ${data.sedes_activas} sedes`;
+                        `${data.sedes_con_servicio} de ${data.sedes_activas} sedes - ${totalSedesSinServicio} pendientes`;
                     document.getElementById('kpiIngresosMes').textContent =
                         'S/ ' + (data.ingresos_mes || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
                     document.getElementById('kpiClientesPendientes').textContent = data.empresas_pendientes;
@@ -403,6 +443,69 @@
 
         function formatMoney(value) {
             return 'S/ ' + Number(value || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
+        }
+
+        function openCoverageModal() {
+            renderCoverageTable();
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('coverageModal'));
+            modal.show();
+        }
+
+        function renderCoverageTable() {
+            const tbody = document.getElementById('coverageTableBody');
+            const empty = document.getElementById('coverageEmpty');
+            const tableWrap = document.getElementById('coverageTableWrap');
+            const subtitle = document.getElementById('coverageModalSubtitle');
+            const monthSelect = document.getElementById('dashboardMonth');
+            const monthName = monthSelect.options[monthSelect.selectedIndex]?.text || '';
+            const year = document.getElementById('dashboardYear').value;
+            const total = dashboardSedesSinServicio.length;
+
+            subtitle.textContent = total === 1
+                ? `1 sede activa sin servicio en ${monthName} ${year}`
+                : `${total} sedes activas sin servicio en ${monthName} ${year}`;
+
+            if (total === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('d-none');
+                tableWrap.classList.add('d-none');
+                return;
+            }
+
+            empty.classList.add('d-none');
+            tableWrap.classList.remove('d-none');
+
+            const routeUrl = `rutas/listar.html?month=${encodeURIComponent(monthSelect.value)}&year=${encodeURIComponent(year)}`;
+            tbody.innerHTML = dashboardSedesSinServicio.map(item => {
+                const ubicacion = [item.sede_distrito, item.sede_provincia].filter(Boolean).join(', ');
+                const contrato = item.id_contrato
+                    ? `${escapeHtml(item.frecuencia || '-')} - ${formatMoney(item.tarifa)}`
+                    : 'Sin contrato activo';
+                const tipoTarifa = item.id_contrato ? escapeHtml(item.tipo_tarifa || '-') : '';
+                return `
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">${escapeHtml(item.sede_nombre || '-')}</div>
+                            <div class="text-muted small">${escapeHtml(item.sede_direccion || '')}</div>
+                        </td>
+                        <td>
+                            <div>${escapeHtml(item.empresa_razon_social || '-')}</div>
+                            <div class="text-muted small">RUC ${escapeHtml(item.empresa_ruc || '-')}</div>
+                        </td>
+                        <td>${escapeHtml(ubicacion || '-')}</td>
+                        <td>
+                            <div>${contrato}</div>
+                            <div class="text-muted small">${tipoTarifa}</div>
+                        </td>
+                        <td>${item.ultimo_servicio_fecha ? formatDateDashboard(item.ultimo_servicio_fecha) : 'Sin registros'}</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-success" href="${routeUrl}">
+                                <i class="bi bi-truck"></i> Asignar Ruta
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function openRenewalsModal() {

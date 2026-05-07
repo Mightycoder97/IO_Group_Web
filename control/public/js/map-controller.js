@@ -8,9 +8,15 @@ class MapController {
         this.map = null;
         this.markers = [];
         this.markerById = new Map();
+        this.sedeById = new Map();
+        this.visibleMarkerIds = new Set();
+        this.markerIconCache = new Map();
         this.markerCluster = null;
         this.sedes = [];
         this.filteredSedes = [];
+        this.loadPromise = null;
+        this.pendingFilterFrame = null;
+        this.pendingFilterOptions = null;
         this.infoWindow = null;
         this.userMarker = null;
         this.userCircle = null;
@@ -58,12 +64,15 @@ class MapController {
             return;
         }
 
-        const { Map } = await google.maps.importLibrary('maps');
-        const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary('marker');
-        const { Autocomplete } = await google.maps.importLibrary('places');
+        const [{ Map }, markerLibrary, { Autocomplete }] = await Promise.all([
+            google.maps.importLibrary('maps'),
+            google.maps.importLibrary('marker'),
+            google.maps.importLibrary('places')
+        ]);
 
-        this.AdvancedMarkerElement = AdvancedMarkerElement;
-        this.PinElement = PinElement;
+        this.Marker = markerLibrary.Marker || google.maps.Marker;
+        this.AdvancedMarkerElement = markerLibrary.AdvancedMarkerElement;
+        this.PinElement = markerLibrary.PinElement;
         this.Autocomplete = Autocomplete;
         this.geocoder = new google.maps.Geocoder();
 
@@ -73,6 +82,7 @@ class MapController {
             disableDefaultUI: true,
             clickableIcons: false,
             gestureHandling: 'greedy',
+            keyboardShortcuts: false,
             mapId: 'DEMO_MAP_ID'
         });
         this.infoWindow = new google.maps.InfoWindow();
@@ -85,6 +95,7 @@ class MapController {
         }
 
         this.setupEventListeners();
+        this.setupResizeObserver();
         await this.loadSedes();
     }
 
@@ -104,7 +115,7 @@ class MapController {
                 }
 
                 this.updateFreqBtnVisuals(button, this.filters.frequencies.has(value));
-                this.applyFilters({ forceFit: this.filters.nearby });
+                this.scheduleApplyFilters({ forceFit: this.filters.nearby });
             });
         });
 
@@ -131,9 +142,10 @@ class MapController {
         const sedeInput = document.getElementById('sedeSearch');
         const resultsContainer = document.getElementById('sedeSearchResults');
         if (sedeInput && resultsContainer) {
-            sedeInput.addEventListener('input', (event) => {
+            const searchHandler = this.debounce((event) => {
                 this.handleSedeSearch(event.target.value.toLowerCase(), resultsContainer);
-            });
+            }, 120);
+            sedeInput.addEventListener('input', searchHandler);
 
             document.addEventListener('click', (event) => {
                 if (!sedeInput.contains(event.target) && !resultsContainer.contains(event.target)) {
@@ -160,7 +172,7 @@ class MapController {
                 return;
             }
 
-            this.applyFilters({ forceFit: this.filters.nearby });
+            this.scheduleApplyFilters({ forceFit: this.filters.nearby });
         });
 
         const radiusRange = document.getElementById('radiusRange');
@@ -168,28 +180,70 @@ class MapController {
             this.filters.radius = Number(event.target.value) || 10;
             this.updateRadiusLabel();
             this.updateReferenceCircle();
-            if (this.filters.nearby) this.applyFilters({ forceFit: true });
+            if (this.filters.nearby) this.scheduleApplyFilters({ forceFit: true });
         });
 
         this.map.addListener('click', (event) => {
             if (!this.filters.nearby) return;
             this.setReferenceLocation({ lat: event.latLng.lat(), lng: event.latLng.lng() }, 'Punto de busqueda');
-            this.applyFilters({ forceFit: true });
+            this.scheduleApplyFilters({ forceFit: true });
         });
     }
 
     async loadSedes() {
-        try {
-            const response = await api.get('/sedes?mapa=1', { cache: false });
+        if (this.loadPromise) return this.loadPromise;
+
+        this.loadPromise = (async () => {
+            const response = await api.get('/sedes?mapa=1', { cache: true });
             if (response.success) {
-                this.sedes = response.data || [];
+                this.prepareSedes(response.data || []);
+                this.clearMarkerCache();
                 this.populateDistrictFilter();
                 this.applyFilters({ forceFit: !this.hasFitBounds });
             }
+        })();
+
+        try {
+            await this.loadPromise;
         } catch (error) {
             console.error('Error loading sedes:', error);
             showToast('Error cargando mapa', 'danger');
+        } finally {
+            this.loadPromise = null;
         }
+    }
+
+    prepareSedes(rawSedes) {
+        this.sedeById.clear();
+
+        this.sedes = rawSedes
+            .map(sede => {
+                const position = this.parseSedePosition(sede.coordenadas_gps);
+                if (!position) return null;
+
+                const id = String(sede.id_sede);
+                const frequency = this.normalizeFrequency(sede.frecuencia);
+                const district = (sede.distrito || '').trim();
+                const normalized = {
+                    ...sede,
+                    _id: id,
+                    _position: position,
+                    _frequency: frequency,
+                    _district: district,
+                    _active: String(sede.activo) !== '0',
+                    _distanceKm: null,
+                    _searchText: [
+                        sede.nombre_comercial,
+                        sede.direccion,
+                        sede.empresa_razon_social,
+                        sede.empresa_ruc
+                    ].join(' ').toLowerCase()
+                };
+
+                this.sedeById.set(id, normalized);
+                return normalized;
+            })
+            .filter(Boolean);
     }
 
     handleAddressSelect(place) {
@@ -216,14 +270,13 @@ class MapController {
             return;
         }
 
-        const matches = this.sedes
-            .filter(s => (
-                (s.nombre_comercial || '').toLowerCase().includes(query) ||
-                (s.direccion || '').toLowerCase().includes(query) ||
-                (s.empresa_razon_social || '').toLowerCase().includes(query) ||
-                (s.empresa_ruc || '').toLowerCase().includes(query)
-            ))
-            .slice(0, 12);
+        const matches = [];
+        for (const sede of this.sedes) {
+            if (sede._searchText.includes(query)) {
+                matches.push(sede);
+                if (matches.length === 12) break;
+            }
+        }
 
         if (!matches.length) {
             container.innerHTML = '<div class="list-group-item small text-muted">No se encontraron resultados</div>';
@@ -239,7 +292,7 @@ class MapController {
 
             container.querySelectorAll('[data-sede-id]').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const sede = this.sedes.find(item => String(item.id_sede) === String(btn.dataset.sedeId));
+                    const sede = this.sedeById.get(String(btn.dataset.sedeId));
                     if (!sede) return;
                     this.addSedeToSelection(sede);
                     container.classList.add('d-none');
@@ -253,25 +306,26 @@ class MapController {
     }
 
     addSedeToSelection(sede) {
-        if (this.selectedSedes.has(sede.id_sede)) return;
+        const id = String(sede.id_sede);
+        if (this.selectedSedes.has(id)) return;
 
         this.filters.nearby = false;
         this.updateNearbyControls();
-        this.selectedSedes.add(sede.id_sede);
+        this.selectedSedes.add(id);
         this.renderSelectedSedes();
         this.applyFilters({ forceFit: true });
     }
 
     removeSedeFromSelection(id) {
-        this.selectedSedes.delete(id);
+        this.selectedSedes.delete(String(id));
         this.renderSelectedSedes();
         this.applyFilters({ forceFit: true });
     }
 
     clearMapSelection() {
         this.clearSelectedSedes();
-        this.clearNearbySearch();
-        this.clearDistricts();
+        this.clearNearbySearch({ skipApply: true });
+        this.clearDistricts({ skipApply: true });
         this.filters.frequencies = new Set(this.allFrequencies);
         document.querySelectorAll('.filter-freq').forEach(btn => {
             const freq = this.normalizeFrequency(btn.dataset.freq);
@@ -289,7 +343,9 @@ class MapController {
         const chipContainer = document.getElementById('selectedSedesContainer');
         if (!chipContainer) return;
 
-        const sedes = this.sedes.filter(sede => this.selectedSedes.has(sede.id_sede));
+        const sedes = Array.from(this.selectedSedes)
+            .map(id => this.sedeById.get(String(id)))
+            .filter(Boolean);
         chipContainer.innerHTML = sedes.map(sede => `
             <span class="sede-chip">
                 ${this.escapeHtml(sede.nombre_comercial)}
@@ -308,7 +364,7 @@ class MapController {
 
         const counts = new Map();
         this.sedes.forEach(sede => {
-            const district = (sede.distrito || '').trim();
+            const district = sede._district;
             if (!district) return;
             counts.set(district, (counts.get(district) || 0) + 1);
         });
@@ -342,53 +398,102 @@ class MapController {
                     this.filters.districts.delete(event.target.value);
                 }
                 this.updateDistrictSummary();
-                this.applyFilters({ forceFit: this.filters.nearby });
+                this.scheduleApplyFilters({ forceFit: this.filters.nearby });
             });
         });
 
         this.updateDistrictSummary();
     }
 
-    clearDistricts() {
+    clearDistricts(options = {}) {
         this.filters.districts.clear();
         document.querySelectorAll('.filter-district').forEach(cb => { cb.checked = false; });
         this.updateDistrictSummary();
-        this.applyFilters({ forceFit: this.filters.nearby });
+        if (!options.skipApply) this.applyFilters({ forceFit: this.filters.nearby });
+    }
+
+    scheduleApplyFilters(options = {}) {
+        this.pendingFilterOptions = {
+            forceFit: Boolean(this.pendingFilterOptions?.forceFit || options.forceFit)
+        };
+
+        if (this.pendingFilterFrame) return;
+        this.pendingFilterFrame = requestAnimationFrame(() => {
+            const pendingOptions = this.pendingFilterOptions || {};
+            this.pendingFilterFrame = null;
+            this.pendingFilterOptions = null;
+            this.applyFilters(pendingOptions);
+        });
+    }
+
+    debounce(fn, ms = 150) {
+        let timer = null;
+        return (...args) => {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(() => fn.apply(this, args), ms);
+        };
+    }
+
+    setupResizeObserver() {
+        const mapEl = document.getElementById('map');
+        if (!mapEl || typeof ResizeObserver === 'undefined') return;
+
+        const notifyResize = this.debounce(() => {
+            if (!this.map) return;
+            google.maps.event.trigger(this.map, 'resize');
+        }, 120);
+
+        this.resizeObserver = new ResizeObserver(notifyResize);
+        this.resizeObserver.observe(mapEl);
     }
 
     applyFilters(options = {}) {
         if (!this.sedes) return;
 
-        let sourceSet = this.selectedSedes.size
-            ? this.sedes.filter(s => this.selectedSedes.has(s.id_sede))
-            : [...this.sedes];
-
+        const sourceSet = this.selectedSedes.size
+            ? Array.from(this.selectedSedes).map(id => this.sedeById.get(String(id))).filter(Boolean)
+            : this.sedes;
         const center = this.getReferenceCenter();
         const keepNoFrequency = this.filters.frequencies.size === this.allFrequencies.length;
+        const hasDistrictFilter = this.filters.districts.size > 0;
+        const useNearby = this.filters.nearby && center;
+        const radius = this.filters.radius;
+        const filtered = [];
+        let latLimit = 0;
+        let lngLimit = 0;
 
-        let filtered = sourceSet
-            .map(sede => ({ ...sede, _distanceKm: null }))
-            .filter(sede => {
-                const frequency = this.normalizeFrequency(sede.frecuencia);
-                if (frequency && !this.filters.frequencies.has(frequency)) return false;
-                if (!frequency && !keepNoFrequency) return false;
+        if (useNearby) {
+            latLimit = radius / 111.32;
+            const cosLat = Math.max(Math.cos(this.deg2rad(center.lat)), 0.01);
+            lngLimit = radius / (111.32 * cosLat);
+        }
 
-                if (this.filters.districts.size > 0) {
-                    const district = (sede.distrito || '').trim();
-                    if (!this.filters.districts.has(district)) return false;
+        for (const sede of sourceSet) {
+            if (!sede) continue;
+            sede._distanceKm = null;
+
+            const frequency = sede._frequency;
+            if (frequency && !this.filters.frequencies.has(frequency)) continue;
+            if (!frequency && !keepNoFrequency) continue;
+
+            if (hasDistrictFilter && !this.filters.districts.has(sede._district)) continue;
+
+            if (this.filters.nearby) {
+                if (!useNearby || !this.isActive(sede)) continue;
+
+                const position = sede._position;
+                if (!position) continue;
+                if (Math.abs(position.lat - center.lat) > latLimit || Math.abs(position.lng - center.lng) > lngLimit) {
+                    continue;
                 }
 
-                if (this.filters.nearby) {
-                    if (!center || !this.isActive(sede)) return false;
-                    const position = this.getSedePosition(sede);
-                    if (!position) return false;
-                    const distance = this.calculateDistance(center.lat, center.lng, position.lat, position.lng);
-                    if (distance > this.filters.radius) return false;
-                    sede._distanceKm = distance;
-                }
+                const distance = this.calculateDistance(center.lat, center.lng, position.lat, position.lng);
+                if (distance > radius) continue;
+                sede._distanceKm = distance;
+            }
 
-                return true;
-            });
+            filtered.push(sede);
+        }
 
         if (this.filters.nearby) {
             filtered.sort((a, b) => (a._distanceKm ?? 9999) - (b._distanceKm ?? 9999));
@@ -403,55 +508,187 @@ class MapController {
     }
 
     renderMarkers(sedesToRender, forceFit = false) {
-        if (this.markerCluster) this.markerCluster.clearMarkers();
-        this.markers.forEach(marker => { marker.map = null; });
-        this.markers = [];
-        this.markerById.clear();
+        const nextVisibleIds = new Set();
+        const visibleMarkers = [];
 
-        const bounds = new google.maps.LatLngBounds();
-        let hasValidBounds = false;
+        for (const sede of sedesToRender) {
+            const marker = this.getOrCreateSedeMarker(sede);
+            if (!marker) continue;
+            nextVisibleIds.add(sede._id);
+            visibleMarkers.push(marker);
+        }
 
-        this.markers = sedesToRender.map(sede => {
-            const position = this.getSedePosition(sede);
-            if (!position) return null;
+        if (this.markerCluster) {
+            this.markerCluster.clearMarkers();
+            this.markerCluster.addMarkers(visibleMarkers);
+        } else {
+            for (const id of this.visibleMarkerIds) {
+                if (!nextVisibleIds.has(id)) {
+                    const marker = this.markerById.get(id);
+                    if (marker) this.setMarkerMap(marker, null);
+                }
+            }
 
-            bounds.extend(position);
-            hasValidBounds = true;
+            for (const marker of visibleMarkers) {
+                this.setMarkerMap(marker, this.map);
+            }
+        }
 
-            const frequency = this.normalizeFrequency(sede.frecuencia);
+        this.markers = visibleMarkers;
+        this.visibleMarkerIds = nextVisibleIds;
+
+        if ((forceFit || !this.hasFitBounds) && visibleMarkers.length) {
+            this.fitSedes(sedesToRender);
+        }
+    }
+
+    getOrCreateSedeMarker(sede) {
+        if (!sede?._position) return null;
+
+        const cached = this.markerById.get(sede._id);
+        if (cached) return cached;
+
+        const color = this.isActive(sede) ? (this.frequencyColors[sede._frequency] || '#198754') : '#6c757d';
+        let marker = null;
+
+        if (this.Marker) {
+            marker = new this.Marker({
+                position: sede._position,
+                title: sede.nombre_comercial || '',
+                icon: this.getMarkerIcon(color),
+                optimized: true,
+                clickable: true
+            });
+            marker.addListener('click', () => this.showInfoWindow(marker, sede));
+        } else if (this.AdvancedMarkerElement && this.PinElement) {
             const pin = new this.PinElement({
-                scale: this.filters.nearby ? 1.05 : 0.95,
-                background: this.isActive(sede) ? (this.frequencyColors[frequency] || '#198754') : '#6c757d',
+                scale: 0.85,
+                background: color,
                 borderColor: '#ffffff',
                 glyphColor: '#ffffff'
             });
 
-            const markerOptions = {
-                position,
-                title: sede.nombre_comercial,
+            marker = new this.AdvancedMarkerElement({
+                position: sede._position,
+                title: sede.nombre_comercial || '',
                 content: pin.element
-            };
-            if (!this.markerCluster) markerOptions.map = this.map;
-
-            const marker = new this.AdvancedMarkerElement(markerOptions);
+            });
             marker.addListener('gmp-click', () => this.showInfoWindow(marker, sede));
-            this.markerById.set(String(sede.id_sede), marker);
-            return marker;
-        }).filter(Boolean);
-
-        if (this.markerCluster) {
-            this.markerCluster.addMarkers(this.markers);
         }
 
-        if ((forceFit || !this.hasFitBounds) && hasValidBounds && this.markers.length) {
-            if (this.markers.length === 1) {
-                this.map.setCenter(this.markers[0].position);
-                this.map.setZoom(16);
-            } else {
-                this.map.fitBounds(bounds, 80);
-            }
-            this.hasFitBounds = true;
+        if (marker) this.markerById.set(sede._id, marker);
+        return marker;
+    }
+
+    getMarkerIcon(color) {
+        if (this.markerIconCache.has(color)) return this.markerIconCache.get(color);
+
+        const icon = {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: color,
+            fillOpacity: 0.92,
+            strokeColor: '#ffffff',
+            strokeOpacity: 1,
+            strokeWeight: 1.5,
+            scale: 6
+        };
+
+        this.markerIconCache.set(color, icon);
+        return icon;
+    }
+
+    createUtilityMarker(position, title, color, draggable = false) {
+        if (this.Marker) {
+            return new this.Marker({
+                position,
+                map: this.map,
+                title,
+                icon: this.getMarkerIcon(color),
+                optimized: true,
+                draggable
+            });
         }
+
+        const pin = new this.PinElement({
+            scale: 1,
+            background: color,
+            borderColor: '#ffffff',
+            glyphColor: '#ffffff'
+        });
+
+        return new this.AdvancedMarkerElement({
+            position,
+            map: this.map,
+            title,
+            content: pin.element,
+            gmpDraggable: draggable
+        });
+    }
+
+    setMarkerMap(marker, map) {
+        if (!marker) return;
+        if (typeof marker.setMap === 'function') {
+            marker.setMap(map);
+        } else {
+            marker.map = map;
+        }
+    }
+
+    setMarkerPosition(marker, position) {
+        if (!marker || !position) return;
+        if (typeof marker.setPosition === 'function') {
+            marker.setPosition(position);
+        } else {
+            marker.position = position;
+        }
+    }
+
+    getMarkerPosition(marker) {
+        if (!marker) return null;
+        if (typeof marker.getPosition === 'function') {
+            const position = marker.getPosition();
+            return position ? { lat: position.lat(), lng: position.lng() } : null;
+        }
+
+        const position = marker.position;
+        if (!position) return null;
+        return typeof position.lat === 'function'
+            ? { lat: position.lat(), lng: position.lng() }
+            : position;
+    }
+
+    clearMarkerCache() {
+        if (this.markerCluster) this.markerCluster.clearMarkers();
+        for (const marker of this.markerById.values()) {
+            this.setMarkerMap(marker, null);
+        }
+        this.markers = [];
+        this.markerById.clear();
+        this.visibleMarkerIds.clear();
+        this.infoWindow?.close();
+    }
+
+    fitSedes(sedes) {
+        const bounds = new google.maps.LatLngBounds();
+        let count = 0;
+        let lastPosition = null;
+
+        for (const sede of sedes) {
+            const position = this.getSedePosition(sede);
+            if (!position) continue;
+            bounds.extend(position);
+            lastPosition = position;
+            count += 1;
+        }
+
+        if (!count) return;
+        if (count === 1) {
+            this.map.setCenter(lastPosition);
+            this.map.setZoom(16);
+        } else {
+            this.map.fitBounds(bounds, 80);
+        }
+        this.hasFitBounds = true;
     }
 
     renderNearbyList(sedes) {
@@ -479,7 +716,7 @@ class MapController {
             <button class="nearby-item" data-sede-id="${this.escapeHtml(sede.id_sede)}">
                 <span>
                     <strong>${this.escapeHtml(sede.nombre_comercial)}</strong>
-                    <small>${this.escapeHtml(sede.distrito || '')} · ${this.escapeHtml(this.frequencyLabels[this.normalizeFrequency(sede.frecuencia)] || sede.frecuencia || 'Sin frecuencia')}</small>
+                    <small>${this.escapeHtml(sede.distrito || '')} &middot; ${this.escapeHtml(this.frequencyLabels[sede._frequency] || sede.frecuencia || 'Sin frecuencia')}</small>
                 </span>
                 <b>${this.formatDistance(sede._distanceKm)}</b>
             </button>
@@ -517,7 +754,7 @@ class MapController {
     }
 
     focusSede(sede) {
-        const marker = this.markerById.get(String(sede.id_sede));
+        const marker = this.getOrCreateSedeMarker(sede);
         const position = this.getSedePosition(sede);
         if (!position) return;
 
@@ -527,7 +764,7 @@ class MapController {
     }
 
     fitCurrentResults() {
-        this.renderMarkers(this.filteredSedes, true);
+        this.fitSedes(this.filteredSedes);
     }
 
     setReferenceLocation(pos, title = 'Referencia') {
@@ -535,7 +772,7 @@ class MapController {
 
         if (!pos) {
             if (this.referenceMarker) {
-                this.referenceMarker.map = null;
+                this.setMarkerMap(this.referenceMarker, null);
                 this.referenceMarker = null;
             }
             if (this.referenceCircle) {
@@ -546,29 +783,19 @@ class MapController {
         }
 
         if (!this.referenceMarker) {
-            const pin = new this.PinElement({
-                scale: 1.15,
-                background: '#dc3545',
-                borderColor: '#ffffff',
-                glyphColor: '#ffffff'
-            });
-
-            this.referenceMarker = new this.AdvancedMarkerElement({
-                position: pos,
-                map: this.map,
-                title,
-                content: pin.element,
-                gmpDraggable: true
-            });
-
+            this.referenceMarker = this.createUtilityMarker(pos, title, '#dc3545', true);
             this.referenceMarker.addListener('dragend', (event) => {
                 this.referenceLocation = { lat: event.latLng.lat(), lng: event.latLng.lng() };
                 this.updateReferenceCircle();
-                this.applyFilters({ forceFit: true });
+                this.scheduleApplyFilters({ forceFit: true });
             });
         } else {
-            this.referenceMarker.position = pos;
-            this.referenceMarker.title = title;
+            this.setMarkerPosition(this.referenceMarker, pos);
+            if (typeof this.referenceMarker.setTitle === 'function') {
+                this.referenceMarker.setTitle(title);
+            } else {
+                this.referenceMarker.title = title;
+            }
         }
 
         this.updateReferenceCircle();
@@ -599,14 +826,14 @@ class MapController {
         }
     }
 
-    clearNearbySearch() {
+    clearNearbySearch(options = {}) {
         this.filters.nearby = false;
         this.referenceLocation = null;
         this.setReferenceLocation(null);
         this.updateNearbyControls();
         const input = document.getElementById('addressSearch');
         if (input) input.value = '';
-        this.applyFilters({ forceFit: true });
+        if (!options.skipApply) this.applyFilters({ forceFit: true });
     }
 
     updateNearbyControls() {
@@ -655,7 +882,13 @@ class MapController {
 
         if (total) total.textContent = sedes.length;
         if (visibleCount) visibleCount.textContent = sedes.length;
-        if (active) active.textContent = sedes.filter(sede => this.isActive(sede)).length;
+        if (active) {
+            let activeCount = 0;
+            for (const sede of sedes) {
+                if (this.isActive(sede)) activeCount += 1;
+            }
+            active.textContent = activeCount;
+        }
         if (mode) mode.textContent = this.filters.nearby ? 'Cercanas activas' : 'Sedes filtradas';
     }
 
@@ -664,13 +897,19 @@ class MapController {
     }
 
     getSedePosition(sede) {
-        if (!sede?.coordenadas_gps) return null;
-        const [lat, lng] = sede.coordenadas_gps.split(',').map(Number);
+        if (sede?._position) return sede._position;
+        return this.parseSedePosition(sede?.coordenadas_gps);
+    }
+
+    parseSedePosition(value) {
+        if (!value) return null;
+        const [lat, lng] = String(value).split(',').map(Number);
         if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
         return { lat, lng };
     }
 
     isActive(sede) {
+        if (typeof sede?._active === 'boolean') return sede._active;
         return String(sede.activo) !== '0';
     }
 
@@ -719,7 +958,7 @@ class MapController {
                 if (activateNearby) {
                     this.filters.nearby = true;
                     this.updateNearbyControls();
-                    this.applyFilters({ forceFit: true });
+                    this.scheduleApplyFilters({ forceFit: true });
                 }
 
                 if (!silent) {
@@ -737,19 +976,7 @@ class MapController {
 
     updateUserMarker(pos) {
         if (!this.userMarker) {
-            const pin = new this.PinElement({
-                scale: 1,
-                background: '#0d6efd',
-                borderColor: '#ffffff',
-                glyphColor: '#ffffff'
-            });
-
-            this.userMarker = new this.AdvancedMarkerElement({
-                position: pos,
-                map: this.map,
-                title: 'Mi ubicacion',
-                content: pin.element
-            });
+            this.userMarker = this.createUtilityMarker(pos, 'Mi ubicacion', '#0d6efd');
 
             this.userCircle = new google.maps.Circle({
                 strokeColor: '#0d6efd',
@@ -762,7 +989,7 @@ class MapController {
                 radius: 500
             });
         } else {
-            this.userMarker.position = pos;
+            this.setMarkerPosition(this.userMarker, pos);
             this.userCircle.setCenter(pos);
         }
     }

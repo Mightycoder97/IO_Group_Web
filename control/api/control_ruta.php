@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/jwt.php';
+require_once __DIR__ . '/helpers/ruta_plan.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id_ruta = $_GET['id_ruta'] ?? null;
@@ -84,7 +85,9 @@ function getRouteServices($id_ruta) {
         );
 
         if (empty($servicios)) {
-            $ruta['servicios'] = [];
+            $servicios = buildRutaPlanServicios(getRutaPlanSedes($id_ruta));
+            $ruta['servicios'] = $servicios;
+            $ruta['pendientes_pago'] = count($servicios);
             echo json_encode(['success' => true, 'data' => $ruta]);
             return;
         }
@@ -163,6 +166,7 @@ function getRouteServices($id_ruta) {
  */
 function batchUpdate() {
     $user = canEdit();
+    $txStarted = false;
 
     try {
         $data = json_decode(file_get_contents('php://input'), true);
@@ -176,41 +180,87 @@ function batchUpdate() {
         }
 
         // Verify route exists
-        $ruta = db()->queryOne("SELECT id_ruta FROM Ruta WHERE id_ruta = ?", [$id_ruta]);
+        $ruta = db()->queryOne("SELECT * FROM Ruta WHERE id_ruta = ?", [$id_ruta]);
         if (!$ruta) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Ruta no encontrada']);
             return;
         }
 
+        $estadosValidos = ['en_curso', 'completado', 'cancelado'];
+        $estadosPagoValidos = ['pendiente', 'pagado'];
+
+        foreach ($servicios as $srv) {
+            $estado = $srv['estado'] ?? null;
+            $estado_pago = $srv['estado_pago'] ?? 'pendiente';
+            $forma_pago = trim($srv['forma_pago'] ?? '');
+            $id_servicio = intval($srv['id_servicio'] ?? 0);
+            $id_sede = intval($srv['id_sede'] ?? 0);
+
+            if ($id_servicio <= 0 && !$id_sede) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Cada servicio debe tener una sede asignada']);
+                return;
+            }
+            if (!$estado || !in_array($estado, $estadosValidos)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Todas las sedes deben tener el estado del servicio confirmado']);
+                return;
+            }
+            if (!$estado_pago || !in_array($estado_pago, $estadosPagoValidos)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Estado de pago no valido']);
+                return;
+            }
+            if ($estado_pago === 'pagado' && $forma_pago === '') {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Los pagos marcados como pagados requieren metodo de pago']);
+                return;
+            }
+        }
+
+        db()->beginTransaction();
+        $txStarted = true;
+
+        $ruta = db()->queryOne("SELECT * FROM Ruta WHERE id_ruta = ? FOR UPDATE", [$id_ruta]);
         $updated = 0;
+        $created = 0;
         $today = date('Y-m-d');
 
         foreach ($servicios as $srv) {
             $id_servicio  = intval($srv['id_servicio'] ?? 0);
-            if (!$id_servicio) continue;
+            $id_sede      = intval($srv['id_sede'] ?? 0);
 
             $estado       = $srv['estado'] ?? null;
-            $estado_pago  = $srv['estado_pago'] ?? null;
-            $forma_pago   = $srv['forma_pago'] ?? null;
+            $estado_pago  = $srv['estado_pago'] ?? 'pendiente';
+            $forma_pago   = trim($srv['forma_pago'] ?? '') ?: null;
             $fecha_pago   = ($estado_pago === 'pagado') ? ($srv['fecha_pago'] ?? $today) : null;
+            $residuo      = trim($srv['residuo'] ?? '') ?: null;
+            $observaciones = trim($srv['observaciones'] ?? ($srv['obs'] ?? '')) ?: null;
 
-            // Validate estado
-            $estadosValidos = ['programado', 'en_curso', 'completado', 'cancelado'];
-            if ($estado && !in_array($estado, $estadosValidos)) {
-                continue; // Skip invalid
+            // Fetch existing service
+            $existing = null;
+            if ($id_servicio > 0) {
+                $existing = db()->queryOne(
+                    "SELECT * FROM Servicio WHERE id_servicio = ? AND id_ruta = ?",
+                    [$id_servicio, $id_ruta]
+                );
             }
-            $estadosPagoValidos = ['pendiente', 'pagado'];
-            if ($estado_pago && !in_array($estado_pago, $estadosPagoValidos)) {
+            if (!$existing && $id_sede > 0) {
+                $existing = db()->queryOne(
+                    "SELECT * FROM Servicio WHERE id_ruta = ? AND id_sede = ?",
+                    [$id_ruta, $id_sede]
+                );
+            }
+
+            if (!$existing) {
+                createServicioFromControl($ruta, $srv, $user, $today);
+                $created++;
+                $updated++;
                 continue;
             }
 
-            // Fetch existing service
-            $existing = db()->queryOne(
-                "SELECT * FROM Servicio WHERE id_servicio = ? AND id_ruta = ?",
-                [$id_servicio, $id_ruta]
-            );
-            if (!$existing) continue;
+            $id_servicio = intval($existing['id_servicio']);
 
             // Build update
             $nuevosDatos = [];
@@ -218,7 +268,7 @@ function batchUpdate() {
             if ($estado && $estado !== $existing['estado']) {
                 $nuevosDatos['estado'] = $estado;
             }
-            if ($estado_pago && $estado_pago !== $existing['estado_pago']) {
+            if ($estado_pago && $estado_pago !== ($existing['estado_pago'] ?? 'pendiente')) {
                 $nuevosDatos['estado_pago'] = $estado_pago;
                 if ($forma_pago) $nuevosDatos['forma_pago'] = $forma_pago;
                 if ($fecha_pago) $nuevosDatos['fecha_pago'] = $fecha_pago;
@@ -226,30 +276,36 @@ function batchUpdate() {
                 // Update forma_pago even if estado_pago unchanged
                 $nuevosDatos['forma_pago'] = $forma_pago;
             }
+            if ($residuo !== null && $residuo !== $existing['residuo']) {
+                $nuevosDatos['residuo'] = $residuo;
+            }
+            if ($observaciones !== null && $observaciones !== ($existing['observaciones'] ?? null)) {
+                $nuevosDatos['observaciones'] = $observaciones;
+            }
 
-            if (empty($nuevosDatos)) continue;
+            if (!empty($nuevosDatos)) {
 
-            // Execute UPDATE
-            db()->execute(
-                "UPDATE Servicio SET
-                    estado       = COALESCE(?, estado),
-                    estado_pago  = COALESCE(?, estado_pago),
-                    forma_pago   = COALESCE(?, forma_pago),
-                    fecha_pago   = COALESCE(?, fecha_pago),
-                    residuo      = COALESCE(?, residuo),
-                    observaciones = COALESCE(?, observaciones),
-                    fecha_modificacion = NOW()
-                 WHERE id_servicio = ?",
-                [
-                    $nuevosDatos['estado']        ?? null,
-                    $nuevosDatos['estado_pago']   ?? null,
-                    $nuevosDatos['forma_pago']    ?? null,
-                    $nuevosDatos['fecha_pago']    ?? null,
-                    $nuevosDatos['residuo']       ?? null,
-                    $nuevosDatos['observaciones'] ?? null,
-                    $id_servicio
-                ]
-            );
+                // Execute UPDATE
+                db()->execute(
+                    "UPDATE Servicio SET
+                        estado       = COALESCE(?, estado),
+                        estado_pago  = COALESCE(?, estado_pago),
+                        forma_pago   = COALESCE(?, forma_pago),
+                        fecha_pago   = COALESCE(?, fecha_pago),
+                        residuo      = COALESCE(?, residuo),
+                        observaciones = COALESCE(?, observaciones),
+                        fecha_modificacion = NOW()
+                     WHERE id_servicio = ?",
+                    [
+                        $nuevosDatos['estado']        ?? null,
+                        $nuevosDatos['estado_pago']   ?? null,
+                        $nuevosDatos['forma_pago']    ?? null,
+                        $nuevosDatos['fecha_pago']    ?? null,
+                        $nuevosDatos['residuo']       ?? null,
+                        $nuevosDatos['observaciones'] ?? null,
+                        $id_servicio
+                    ]
+                );
 
             // Write AuditLog signature — full nuevos datos for traceability
             $auditData = array_merge($nuevosDatos, [
@@ -270,21 +326,29 @@ function batchUpdate() {
                 ]
             );
 
-            $updated++;
+                $updated++;
+            }
+
+            saveServicioDocsFromControl($id_servicio, $srv);
         }
+
+        $totalServicios = db()->queryOne(
+            "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ?",
+            [$id_ruta]
+        );
 
         // Check service states for route status determination
         $pendientesEstado = db()->queryOne(
             "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND estado = 'programado'",
             [$id_ruta]
         );
-        $todosEstadoOk = ($pendientesEstado['cnt'] == 0);
+        $todosEstadoOk = (intval($totalServicios['cnt'] ?? 0) > 0 && intval($pendientesEstado['cnt'] ?? 0) === 0);
 
         $pendientesPago = db()->queryOne(
             "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND (estado_pago IS NULL OR estado_pago = 'pendiente')",
             [$id_ruta]
         );
-        $todosPagados = ($pendientesPago['cnt'] == 0);
+        $todosPagados = (intval($pendientesPago['cnt'] ?? 0) === 0);
         $pendienteLiquidacion = ($todosEstadoOk && !$todosPagados);
 
         // Determine new route state
@@ -302,16 +366,147 @@ function batchUpdate() {
             );
         }
 
+        db()->commit();
+        $txStarted = false;
+
+        $message = $created > 0
+            ? "$created servicio(s) creado(s) y $updated cambio(s) guardado(s) correctamente"
+            : "$updated servicio(s) actualizado(s) correctamente";
+
         echo json_encode([
             'success'               => true,
-            'message'               => "$updated servicio(s) actualizado(s) correctamente",
+            'message'               => $message,
             'todos_verificados'     => $todosEstadoOk,
             'pendiente_liquidacion' => $pendienteLiquidacion,
             'pendientes_pago'       => intval($pendientesPago['cnt'] ?? 0)
         ]);
 
     } catch (Exception $e) {
+        if ($txStarted) {
+            db()->rollBack();
+        }
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}
+
+function createServicioFromControl($ruta, $srv, $user, $today) {
+    $id_sede = intval($srv['id_sede'] ?? 0);
+    if ($id_sede <= 0) {
+        throw new Exception('Sede requerida para crear servicio');
+    }
+
+    $planta = db()->queryOne("SELECT id_planta FROM Planta LIMIT 1");
+    $id_planta = $planta ? $planta['id_planta'] : null;
+
+    $contrato = db()->queryOne(
+        "SELECT id_contrato FROM ContratoServicio WHERE id_sede = ? AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1",
+        [$id_sede]
+    );
+    $id_contrato = $contrato ? $contrato['id_contrato'] : null;
+
+    $estado = $srv['estado'];
+    $estado_pago = $srv['estado_pago'] ?? 'pendiente';
+    $forma_pago = trim($srv['forma_pago'] ?? '') ?: null;
+    $fecha_pago = ($estado_pago === 'pagado') ? ($srv['fecha_pago'] ?? $today) : null;
+    $residuo = trim($srv['residuo'] ?? '') ?: null;
+    $observaciones = trim($srv['observaciones'] ?? ($srv['obs'] ?? '')) ?: null;
+    $mes_servicio = substr($ruta['fecha'], 0, 7);
+
+    $id_servicio = db()->insert(
+        "INSERT INTO Servicio
+            (id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, forma_pago, fecha_pago, residuo, observaciones)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+            $ruta['id_ruta'],
+            $id_sede,
+            $id_planta,
+            $id_contrato,
+            $mes_servicio,
+            $ruta['fecha'],
+            $estado,
+            $estado_pago,
+            $forma_pago,
+            $fecha_pago,
+            $residuo,
+            $observaciones
+        ]
+    );
+
+    $serviceData = [
+        'id_servicio' => $id_servicio,
+        'id_ruta' => $ruta['id_ruta'],
+        'id_sede' => $id_sede,
+        'id_planta' => $id_planta,
+        'id_contrato' => $id_contrato,
+        'mes_servicio' => $mes_servicio,
+        'fecha_ejecucion' => $ruta['fecha'],
+        'estado' => $estado,
+        'estado_pago' => $estado_pago,
+        'forma_pago' => $forma_pago,
+        'fecha_pago' => $fecha_pago,
+        'residuo' => $residuo,
+        'observaciones' => $observaciones
+    ];
+
+    db()->execute(
+        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_nuevos, ip_address)
+         VALUES (?, 'Servicio', ?, 'INSERT', ?, ?)",
+        [$user['id'], $id_servicio, json_encode($serviceData), $_SERVER['REMOTE_ADDR'] ?? null]
+    );
+
+    db()->execute(
+        "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores, datos_nuevos, ip_address)
+         VALUES (?, 'Servicio', ?, 'UPDATE', ?, ?, ?)",
+        [
+            $user['id'],
+            $id_servicio,
+            json_encode(['estado' => 'programado', 'estado_pago' => 'pendiente', 'forma_pago' => null]),
+            json_encode(array_merge($serviceData, ['timestamp' => date('Y-m-d H:i:s')])),
+            $_SERVER['REMOTE_ADDR'] ?? null
+        ]
+    );
+
+    saveServicioDocsFromControl($id_servicio, $srv);
+
+    return $id_servicio;
+}
+
+function saveServicioDocsFromControl($id_servicio, $srv) {
+    $numeroManifiesto = trim($srv['numero_manifiesto'] ?? '');
+    $numeroGuia = trim($srv['numero_guia'] ?? '');
+
+    if ($numeroManifiesto !== '') {
+        $pesoKg = isset($srv['peso_kg']) && $srv['peso_kg'] !== '' ? $srv['peso_kg'] : 0;
+        $tipoResiduo = trim($srv['residuo'] ?? '') ?: 'Residuos Solidos';
+        $existing = db()->queryOne("SELECT id_manifiesto FROM Manifiesto WHERE id_servicio = ?", [$id_servicio]);
+
+        if ($existing) {
+            db()->execute(
+                "UPDATE Manifiesto SET numero_manifiesto = ?, peso_kg = COALESCE(?, peso_kg), tipo_residuo = ? WHERE id_servicio = ?",
+                [$numeroManifiesto, $pesoKg, $tipoResiduo, $id_servicio]
+            );
+        } else {
+            db()->execute(
+                "INSERT INTO Manifiesto (id_servicio, numero_manifiesto, peso_kg, tipo_residuo) VALUES (?, ?, ?, ?)",
+                [$id_servicio, $numeroManifiesto, $pesoKg, $tipoResiduo]
+            );
+        }
+    }
+
+    if ($numeroGuia !== '') {
+        $existing = db()->queryOne("SELECT id_guia FROM Guia WHERE id_servicio = ?", [$id_servicio]);
+
+        if ($existing) {
+            db()->execute(
+                "UPDATE Guia SET numero_guia = ? WHERE id_servicio = ?",
+                [$numeroGuia, $id_servicio]
+            );
+        } else {
+            db()->execute(
+                "INSERT INTO Guia (id_servicio, numero_guia, fecha_emision) VALUES (?, ?, CURDATE())",
+                [$id_servicio, $numeroGuia]
+            );
+        }
     }
 }

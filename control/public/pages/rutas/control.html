@@ -1035,12 +1035,19 @@
                 id_ruta: currentRutaId,
                 servicios: currentServicios.map(s => {
                     const edit = localEdits[s.id_servicio];
+                    const manifiestoInput = document.getElementById(`numManifiesto-${s.id_servicio}`);
+                    const guiaInput = document.getElementById(`numGuia-${s.id_servicio}`);
                     return {
                         id_servicio: s.id_servicio,
+                        id_sede: s.id_sede,
                         estado: edit.estado,
                         estado_pago: edit.estado_pago,
                         forma_pago: edit.forma_pago || null,
-                        fecha_pago: edit.estado_pago === 'pagado' ? new Date().toISOString().split('T')[0] : null
+                        fecha_pago: edit.estado_pago === 'pagado' ? new Date().toISOString().split('T')[0] : null,
+                        residuo: s.residuo || null,
+                        observaciones: s.observaciones || null,
+                        numero_manifiesto: manifiestoInput?.value.trim() || edit.numero_manifiesto || null,
+                        numero_guia: guiaInput?.value.trim() || edit.numero_guia || null
                     };
                 })
             };
@@ -1212,6 +1219,21 @@
             let saved = [];
 
             try {
+                if (idServicio < 0) {
+                    const edit = localEdits[idServicio] || {};
+                    edit.numero_manifiesto = numManifiesto || null;
+                    edit.numero_guia = numGuia || null;
+                    localEdits[idServicio] = edit;
+
+                    if (numManifiesto) saved.push(`Manifiesto: ${numManifiesto}`);
+                    if (numGuia) saved.push(`Guia: ${numGuia}`);
+
+                    document.getElementById(`docSavedInfo-${idServicio}`).innerHTML =
+                        saved.map(d => `<span class="doc-saved-badge me-1"><i class="bi bi-file-earmark-check"></i> ${d}</span>`).join('');
+                    showToast('Documentos listos para guardar al finalizar el control', 'success');
+                    return;
+                }
+
                 // Save Manifiesto
                 if (numManifiesto) {
                     const mResult = await api.post('/manifiestos', {

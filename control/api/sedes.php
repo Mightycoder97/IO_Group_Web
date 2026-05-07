@@ -49,13 +49,14 @@ function getAll() {
                 FROM Sede s
                 INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
                 LEFT JOIN (
-                    SELECT id_sede, frecuencia
+                    SELECT cs1.id_sede, cs1.frecuencia
                     FROM ContratoServicio cs1
-                    WHERE activo = 1 AND NOT EXISTS (
-                        SELECT 1 FROM ContratoServicio cs2 
-                        WHERE cs2.id_sede = cs1.id_sede AND cs2.activo = 1 AND cs2.fecha_inicio > cs1.fecha_inicio
-                    )
-                    GROUP BY id_sede
+                    INNER JOIN (
+                        SELECT id_sede, MAX(id_contrato) AS id_contrato
+                        FROM ContratoServicio
+                        WHERE activo = 1
+                        GROUP BY id_sede
+                    ) latest ON latest.id_contrato = cs1.id_contrato
                 ) cs ON s.id_sede = cs.id_sede
                 WHERE s.coordenadas_gps IS NOT NULL AND TRIM(s.coordenadas_gps) != ''
                 ORDER BY s.nombre_comercial";

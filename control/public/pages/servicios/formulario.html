@@ -209,6 +209,9 @@
                                             onclick="goToManifiesto()"><i class="bi bi-eye"></i></button>
                                     </div>
                                     <input type="hidden" id="id_manifiesto">
+                                    <input type="file" class="form-control form-control-sm mt-2" id="pdf_manifiesto"
+                                        accept=".pdf,application/pdf">
+                                    <div class="small mt-1" id="pdfStatus_manifiesto"></div>
                                 </div>
                                 <div class="col-md-4" id="campoGuia" style="display:none;">
                                     <label class="form-label">Guía Remisión</label>
@@ -217,6 +220,10 @@
                                         <button class="btn btn-outline-secondary" type="button" onclick="goToGuia()"><i
                                                 class="bi bi-eye"></i></button>
                                     </div>
+                                    <input type="hidden" id="id_guia">
+                                    <input type="file" class="form-control form-control-sm mt-2" id="pdf_guia"
+                                        accept=".pdf,application/pdf">
+                                    <div class="small mt-1" id="pdfStatus_guia"></div>
                                 </div>
                                 <div class="col-md-4" id="campoFactura" style="display:none;">
                                     <label class="form-label">Factura</label>
@@ -226,6 +233,10 @@
                                         <button class="btn btn-outline-secondary" type="button"
                                             onclick="goToFactura()"><i class="bi bi-eye"></i></button>
                                     </div>
+                                    <input type="hidden" id="id_factura">
+                                    <input type="file" class="form-control form-control-sm mt-2" id="pdf_factura"
+                                        accept=".pdf,application/pdf">
+                                    <div class="small mt-1" id="pdfStatus_factura"></div>
                                 </div>
 
                             </div>
@@ -251,6 +262,52 @@
 
         const id = getUrlParam('id');
         let allSedes = [];
+        const documentTypes = ['manifiesto', 'guia', 'factura'];
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        function setSelectValue(selectId, value, fallbackLabel) {
+            if (!value) return;
+            const select = document.getElementById(selectId);
+            const valueStr = String(value);
+            if (![...select.options].some(opt => String(opt.value) === valueStr)) {
+                const label = fallbackLabel || `Empleado #${valueStr}`;
+                select.innerHTML += `<option value="${escapeHtml(valueStr)}">${escapeHtml(label)}</option>`;
+            }
+            select.value = valueStr;
+        }
+
+        function employeeLabel(emp, fallbackLabel) {
+            return emp?.nombre_completo ||
+                [emp?.nombres, emp?.apellidos].filter(Boolean).join(' ') ||
+                fallbackLabel || '';
+        }
+
+        function pdfUrl(path) {
+            if (!path) return '#';
+            if (/^(https?:)?\/\//i.test(path) || path.startsWith('/')) return path;
+            return `${getBasePath().replace(/\/public$/, '')}/${path.replace(/^\/+/, '')}`;
+        }
+
+        function renderPdfStatus(tipo, path) {
+            const status = document.getElementById(`pdfStatus_${tipo}`);
+            if (!status) return;
+            if (path) {
+                status.innerHTML = `<a href="${escapeHtml(pdfUrl(path))}" target="_blank" class="text-success">
+                    <i class="bi bi-file-earmark-pdf"></i> Ver PDF actual
+                </a>`;
+            } else {
+                status.innerHTML = '<span class="text-muted">Sin PDF</span>';
+            }
+        }
 
         if (id) {
             document.getElementById('pageTitle').textContent = 'Editar Servicio';
@@ -366,7 +423,9 @@
                     ? `✓ ${d.empresa_razon_social}` : '';
 
                 document.getElementById('id_planta').value = d.id_planta || '';
-                document.getElementById('id_ruta').value = d.id_ruta || '';
+                const rutaLabel = [d.codigo_ruta, d.vehiculo_placa].filter(Boolean).join(' — ') ||
+                    (d.id_ruta ? `Ruta #${d.id_ruta}` : '');
+                setSelectValue('id_ruta', d.id_ruta, rutaLabel);
 
                 // mes_servicio: comes as 'YYYY-MM' or 'YYYY-MM-DD'
                 if (d.mes_servicio) {
@@ -387,8 +446,13 @@
                 if (d.empleados) {
                     const chofer = d.empleados.find(e => e.rol === 'chofer');
                     const ayudante = d.empleados.find(e => e.rol === 'ayudante');
-                    if (chofer) document.getElementById('id_chofer').value = chofer.id_empleado;
-                    if (ayudante) document.getElementById('id_ayudante').value = ayudante.id_empleado;
+                    const choferId = chofer?.id_empleado || d.ruta_id_chofer;
+                    const ayudanteId = ayudante?.id_empleado || d.ruta_id_ayudante;
+                    setSelectValue('id_chofer', choferId, employeeLabel(chofer, d.ruta_chofer_nombre));
+                    setSelectValue('id_ayudante', ayudanteId, employeeLabel(ayudante, d.ruta_ayudante_nombre));
+                } else {
+                    setSelectValue('id_chofer', d.ruta_id_chofer, d.ruta_chofer_nombre);
+                    setSelectValue('id_ayudante', d.ruta_id_ayudante, d.ruta_ayudante_nombre);
                 }
 
                 // Documents
@@ -396,12 +460,20 @@
                     document.getElementById('numero_manifiesto').value = d.manifiesto.numero_manifiesto || '';
                     document.getElementById('id_manifiesto').value = d.manifiesto.id_manifiesto;
                     document.getElementById('peso_kg').value = d.manifiesto.peso_kg || '';
+                    renderPdfStatus('manifiesto', d.manifiesto.doc_escaneado);
                 } else {
                     document.getElementById('numero_manifiesto').value = '';
+                    document.getElementById('id_manifiesto').value = '';
+                    renderPdfStatus('manifiesto', null);
                 }
 
                 document.getElementById('numero_guia').value = d.guia ? (d.guia.numero_guia || '') : '';
+                document.getElementById('id_guia').value = d.guia ? (d.guia.id_guia || '') : '';
+                renderPdfStatus('guia', d.guia?.doc_escaneado);
+
                 document.getElementById('numero_factura').value = d.factura ? (d.factura.numero_factura || '') : '';
+                document.getElementById('id_factura').value = d.factura ? (d.factura.id_factura || '') : '';
+                renderPdfStatus('factura', d.factura?.doc_escaneado);
 
             } catch (err) {
                 console.error(err);
@@ -410,6 +482,61 @@
         }
 
         // ── Submit ────────────────────────────────────
+        function validatePdfFile(file) {
+            if (!file) return null;
+            const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+            if (!isPdf) {
+                return 'Solo se permiten archivos PDF';
+            }
+            if (file.size > 20 * 1024 * 1024) {
+                return 'El PDF no debe superar 20 MB';
+            }
+            return null;
+        }
+
+        function appendDocumentoFields(formData) {
+            formData.append('numero_manifiesto', document.getElementById('numero_manifiesto').value || '');
+            formData.append('numero_guia', document.getElementById('numero_guia').value || '');
+            formData.append('numero_factura', document.getElementById('numero_factura').value || '');
+            formData.append('peso_kg', document.getElementById('peso_kg').value || '');
+            formData.append('residuo', document.getElementById('residuo').value || '');
+        }
+
+        async function uploadSelectedDocuments(serviceId) {
+            for (const tipo of documentTypes) {
+                const fileInput = document.getElementById(`pdf_${tipo}`);
+                const file = fileInput?.files?.[0];
+                if (!file) continue;
+                const pdfError = validatePdfFile(file);
+                if (pdfError) throw new Error(pdfError);
+
+                const formData = new FormData();
+                formData.append('tipo', tipo);
+                formData.append('archivo_pdf', file);
+                appendDocumentoFields(formData);
+
+                const headers = {};
+                const token = api.getToken();
+                if (token) headers.Authorization = `Bearer ${token}`;
+
+                const response = await fetch(api.buildUrl(`/servicios?action=upload_documento&id=${serviceId}`), {
+                    method: 'POST',
+                    headers,
+                    body: formData
+                });
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.message || `Error subiendo PDF de ${tipo}`);
+                }
+
+                fileInput.value = '';
+                renderPdfStatus(tipo, result.doc_escaneado);
+                if (tipo === 'manifiesto') document.getElementById('id_manifiesto').value = result.id_documento || '';
+                if (tipo === 'guia') document.getElementById('id_guia').value = result.id_documento || '';
+                if (tipo === 'factura') document.getElementById('id_factura').value = result.id_documento || '';
+            }
+        }
+
         document.getElementById('dataForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -448,6 +575,9 @@
                     : await api.post('/servicios', data);
 
                 if (result.success) {
+                    if (id) {
+                        await uploadSelectedDocuments(id);
+                    }
                     showToast('Servicio guardado exitosamente');
                     setTimeout(() => window.location.href = 'listar.html', 1500);
                 } else {
@@ -455,7 +585,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                showToast('Error guardando servicio', 'danger');
+                showToast(err.message || 'Error guardando servicio', 'danger');
             }
         });
 
@@ -464,8 +594,16 @@
             if (manId) window.open(`../manifiestos/formulario.html?id=${manId}`, '_blank');
             else showToast('No hay manifiesto asociado', 'info');
         }
-        function goToGuia() { showToast('Módulo de Guías en desarrollo', 'info'); }
-        function goToFactura() { showToast('Módulo de Facturas en desarrollo', 'info'); }
+        function goToGuia() {
+            const guiaId = document.getElementById('id_guia').value;
+            if (guiaId) window.open(`../guias/formulario.html?id=${guiaId}`, '_blank');
+            else showToast('No hay guía asociada', 'info');
+        }
+        function goToFactura() {
+            const facturaId = document.getElementById('id_factura').value;
+            if (facturaId) window.open(`../facturas/formulario.html?id=${facturaId}`, '_blank');
+            else showToast('No hay factura asociada', 'info');
+        }
 
         // Init — cargar selects primero, luego rellenar datos en modo edición
         loadSelects().then(() => {
