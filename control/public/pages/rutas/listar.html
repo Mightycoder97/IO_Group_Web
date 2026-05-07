@@ -402,25 +402,40 @@
 
         async function loadClientes() {
             try {
-                const result = await api.get('/sedes?limit=1000');
+                const result = await api.get('/sedes?limit=5000');
                 if (result.success) {
                     allClientes = result.data;
                     allDistritos.clear();
                     distritoDisplayMap = {};
-                    allClientes.forEach(c => {
-                        if (c.distrito?.trim()) {
-                            const norm = normDistr(c.distrito);
-                            allDistritos.add(norm);
-                            // Keep the prettiest version (Title Case wins over ALL CAPS)
-                            if (!distritoDisplayMap[norm] ||
-                                distritoDisplayMap[norm] === distritoDisplayMap[norm].toUpperCase()) {
-                                distritoDisplayMap[norm] = c.distrito.trim();
-                            }
-                        }
-                    });
+                    allClientes.forEach(trackClienteDistrito);
                     renderDistritoFilter();
                 }
             } catch (err) { console.error(err); }
+        }
+
+        function trackClienteDistrito(cliente) {
+            if (!cliente?.distrito?.trim()) return;
+            const norm = normDistr(cliente.distrito);
+            allDistritos.add(norm);
+            // Keep the prettiest version (Title Case wins over ALL CAPS)
+            if (!distritoDisplayMap[norm] ||
+                distritoDisplayMap[norm] === distritoDisplayMap[norm].toUpperCase()) {
+                distritoDisplayMap[norm] = cliente.distrito.trim();
+            }
+        }
+
+        function mergeClientesCache(clientes) {
+            const existingIds = new Set(allClientes.map(c => String(c.id_sede)));
+            let added = false;
+            clientes.forEach(cliente => {
+                if (!existingIds.has(String(cliente.id_sede))) {
+                    allClientes.push(cliente);
+                    existingIds.add(String(cliente.id_sede));
+                    added = true;
+                }
+                trackClienteDistrito(cliente);
+            });
+            if (added) renderDistritoFilter();
         }
 
         async function loadServiciosRecientes() {
@@ -720,22 +735,18 @@
         const searchResults = document.getElementById('searchResults');
         const filterDistrito = document.getElementById('filterDistrito');
 
-        function filterClientes() {
-            const term = searchInput.value.toLowerCase().trim();
-            const distritos = getSelectedDistritos();
-            if (term.length < 2 && distritos.length === 0) {
-                searchResults.style.display = 'none';
-                return;
-            }
-            const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
-            let filtered = allClientes.filter(c => {
+        function getClientesFiltrados(term, distritos) {
+            return allClientes.filter(c => {
                 const matchTerm = !term || c.nombre_comercial?.toLowerCase().includes(term) ||
                     c.empresa_ruc?.includes(term) || c.distrito?.toLowerCase().includes(term) ||
                     c.empresa_razon_social?.toLowerCase().includes(term);
                 const matchDistrito = distritos.length === 0 || distritos.includes(normDistr(c.distrito));
                 return matchTerm && matchDistrito;
             }).slice(0, 50);
+        }
 
+        function renderClientesBusqueda(filtered) {
+            const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
             if (filtered.length === 0) {
                 searchResults.innerHTML = '<div class="p-3 text-muted">No se encontraron clientes</div>';
             } else {
@@ -760,6 +771,38 @@
                 }).join('');
             }
             searchResults.style.display = 'block';
+        }
+
+        async function buscarClientesServidor(term) {
+            if (term.length < 2) return;
+            const result = await api.get(`/sedes?search=${encodeURIComponent(term)}&limit=50`);
+            if (result.success && Array.isArray(result.data)) {
+                mergeClientesCache(result.data);
+            }
+        }
+
+        async function filterClientes() {
+            const term = searchInput.value.toLowerCase().trim();
+            const distritos = getSelectedDistritos();
+            if (term.length < 2 && distritos.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            let filtered = getClientesFiltrados(term, distritos);
+            if (filtered.length === 0 && term.length >= 2) {
+                searchResults.innerHTML = '<div class="p-3 text-muted">Buscando en clientes...</div>';
+                searchResults.style.display = 'block';
+                const requestedTerm = term;
+                try {
+                    await buscarClientesServidor(term);
+                } catch (err) {
+                    console.error(err);
+                }
+                if (requestedTerm !== searchInput.value.toLowerCase().trim()) return;
+                filtered = getClientesFiltrados(term, distritos);
+            }
+            renderClientesBusqueda(filtered);
         }
 
         searchInput.addEventListener('input', debounce(filterClientes, 300));
