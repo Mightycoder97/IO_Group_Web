@@ -439,7 +439,7 @@
                     <div class="map-panel-header">
                         <div>
                             <h1 class="map-panel-title">Mapa de sedes</h1>
-                            <span class="map-panel-subtitle" id="mapModeLabel">Sedes filtradas</span>
+                            <span class="map-panel-subtitle" id="mapModeLabel">Vista actual</span>
                         </div>
                         <button class="map-icon-btn" id="clearMapBtn" type="button" title="Limpiar mapa">
                             <i class="bi bi-arrow-counterclockwise"></i>
@@ -511,6 +511,10 @@
                 <span class="map-status-pill">
                     <i class="bi bi-pin-map-fill text-primary"></i>
                     <span id="districtSummary">Todos</span>
+                </span>
+                <span class="map-status-pill d-none" id="invalidGpsPill" title="Coordenadas fuera de Lima/Ica excluidas">
+                    <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                    <b id="invalidGpsCount">0</b> GPS fuera
                 </span>
             </div>
 

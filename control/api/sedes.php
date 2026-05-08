@@ -42,31 +42,13 @@ function getAll() {
     $offset = ($page - 1) * $limit;
     
     // Si es para el mapa, devolvemos solo campos esenciales + frecuencia del contrato activo más reciente
+    if ($mapa === 'meta') {
+        getMapMeta();
+        return;
+    }
+
     if ($mapa) {
-        $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.provincia,
-                s.coordenadas_gps, s.activo, e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
-                cs.frecuencia
-                FROM Sede s
-                INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
-                LEFT JOIN (
-                    SELECT cs1.id_sede, cs1.frecuencia
-                    FROM ContratoServicio cs1
-                    INNER JOIN (
-                        SELECT id_sede, MAX(id_contrato) AS id_contrato
-                        FROM ContratoServicio
-                        WHERE activo = 1
-                        GROUP BY id_sede
-                    ) latest ON latest.id_contrato = cs1.id_contrato
-                ) cs ON s.id_sede = cs.id_sede
-                WHERE s.coordenadas_gps IS NOT NULL AND TRIM(s.coordenadas_gps) != ''
-                ORDER BY s.nombre_comercial";
-        $data = db()->query($sql);
-        
-        echo json_encode([
-            'success' => true,
-            'data' => $data,
-            'total' => count($data)
-        ]);
+        getMapSedes();
         return;
     }
     
@@ -131,6 +113,184 @@ function getAll() {
         'limit' => $limit,
         'pages' => ceil($total / $limit)
     ]);
+}
+
+function getMapSedes() {
+    $latExpr = mapLatExpression();
+    $lngExpr = mapLngExpression();
+    $validWhere = mapValidCoordinateWhere($latExpr, $lngExpr);
+    $params = [];
+    $search = trim($_GET['search'] ?? '');
+    $limit = min(900, max(50, intval($_GET['limit'] ?? 550)));
+
+    if ($search !== '') {
+        $limit = min($limit, 30);
+    }
+
+    $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito,
+            s.coordenadas_gps, s.activo,
+            e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
+            cs.frecuencia
+            FROM Sede s
+            INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+            " . mapContractJoinSql() . "
+            WHERE $validWhere";
+
+    if ($search !== '') {
+        $sql .= " AND (s.nombre_comercial LIKE ? OR s.direccion LIKE ? OR e.razon_social LIKE ? OR e.ruc LIKE ?)";
+        $searchTerm = "%$search%";
+        $params = array_merge($params, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
+    } else {
+        $bounds = readMapBounds();
+        if ($bounds) {
+            $sql .= " AND $latExpr BETWEEN ? AND ? AND $lngExpr BETWEEN ? AND ?";
+            $params = array_merge($params, [$bounds['south'], $bounds['north'], $bounds['west'], $bounds['east']]);
+        }
+    }
+
+    $sql .= " ORDER BY s.activo DESC, s.nombre_comercial LIMIT ?";
+    $params[] = $limit;
+
+    $data = db()->query($sql, $params);
+
+    echo json_encode([
+        'success' => true,
+        'data' => $data,
+        'total' => count($data),
+        'limit' => $limit,
+        'limit_hit' => count($data) >= $limit,
+    ]);
+}
+
+function getMapMeta() {
+    $latExpr = mapLatExpression();
+    $lngExpr = mapLngExpression();
+    $validWhere = mapValidCoordinateWhere($latExpr, $lngExpr);
+
+    $summary = db()->queryOne(
+        "SELECT COUNT(*) as total,
+                SUM(CASE WHEN s.activo <> 0 THEN 1 ELSE 0 END) as active
+         FROM Sede s
+         WHERE $validWhere"
+    );
+
+    $districtRows = db()->query(
+        "SELECT COALESCE(NULLIF(TRIM(s.distrito), ''), 'Sin distrito') as distrito,
+                COUNT(*) as total
+         FROM Sede s
+         WHERE $validWhere
+         GROUP BY COALESCE(NULLIF(TRIM(s.distrito), ''), 'Sin distrito')
+         ORDER BY distrito"
+    );
+
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'total' => intval($summary['total'] ?? 0),
+            'active' => intval($summary['active'] ?? 0),
+            'invalid_coordinates' => getInvalidMapCoordinateCount(),
+            'bounds' => mapAllowedBounds(),
+            'districts' => $districtRows,
+        ],
+    ]);
+}
+
+function mapLatExpression() {
+    return "CAST(TRIM(SUBSTRING_INDEX(s.coordenadas_gps, ',', 1)) AS DECIMAL(10,6))";
+}
+
+function mapLngExpression() {
+    return "CAST(TRIM(SUBSTRING_INDEX(s.coordenadas_gps, ',', -1)) AS DECIMAL(10,6))";
+}
+
+function mapAllowedBounds() {
+    return [
+        'lima' => ['south' => -13.45, 'north' => -10.15, 'west' => -78.15, 'east' => -75.25],
+        'ica' => ['south' => -15.55, 'north' => -12.75, 'west' => -76.55, 'east' => -74.45],
+    ];
+}
+
+function mapValidCoordinateWhere($latExpr, $lngExpr) {
+    $bounds = mapAllowedBounds();
+    $lima = $bounds['lima'];
+    $ica = $bounds['ica'];
+
+    return "s.coordenadas_gps IS NOT NULL
+            AND TRIM(s.coordenadas_gps) != ''
+            AND s.coordenadas_gps LIKE '%,%'
+            AND (
+                ($latExpr BETWEEN {$lima['south']} AND {$lima['north']}
+                    AND $lngExpr BETWEEN {$lima['west']} AND {$lima['east']})
+                OR
+                ($latExpr BETWEEN {$ica['south']} AND {$ica['north']}
+                    AND $lngExpr BETWEEN {$ica['west']} AND {$ica['east']})
+            )";
+}
+
+function mapPresentCoordinateWhere() {
+    return "s.coordenadas_gps IS NOT NULL
+            AND TRIM(s.coordenadas_gps) != ''
+            AND s.coordenadas_gps LIKE '%,%'";
+}
+
+function getInvalidMapCoordinateCount() {
+    $latExpr = mapLatExpression();
+    $lngExpr = mapLngExpression();
+    $presentWhere = mapPresentCoordinateWhere();
+    $validWhere = mapValidCoordinateWhere($latExpr, $lngExpr);
+    $row = db()->queryOne(
+        "SELECT COUNT(*) as total
+         FROM Sede s
+         WHERE $presentWhere AND NOT ($validWhere)"
+    );
+
+    return intval($row['total'] ?? 0);
+}
+
+function readMapBounds() {
+    $north = readFloatParam('north');
+    $south = readFloatParam('south');
+    $east = readFloatParam('east');
+    $west = readFloatParam('west');
+
+    if ($north === null || $south === null || $east === null || $west === null) {
+        return null;
+    }
+
+    if ($north < $south) {
+        [$north, $south] = [$south, $north];
+    }
+    if ($east < $west) {
+        [$east, $west] = [$west, $east];
+    }
+
+    return [
+        'north' => min(0, max(-20, $north)),
+        'south' => min(0, max(-20, $south)),
+        'east' => min(-68, max(-82, $east)),
+        'west' => min(-68, max(-82, $west)),
+    ];
+}
+
+function readFloatParam($key) {
+    if (!isset($_GET[$key]) || $_GET[$key] === '') {
+        return null;
+    }
+
+    return is_numeric($_GET[$key]) ? floatval($_GET[$key]) : null;
+}
+
+function mapContractJoinSql() {
+    return "LEFT JOIN (
+                SELECT cs1.id_sede, cs1.frecuencia
+                FROM ContratoServicio cs1
+                INNER JOIN (
+                    SELECT id_sede, MAX(id_contrato) AS id_contrato
+                    FROM ContratoServicio
+                    WHERE activo = 1
+                    GROUP BY id_sede
+                ) latest ON latest.id_contrato = cs1.id_contrato
+            ) cs ON s.id_sede = cs.id_sede";
 }
 
 function getOne($id) {

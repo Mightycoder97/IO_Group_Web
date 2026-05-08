@@ -15,6 +15,11 @@ class MapController {
         this.sedes = [];
         this.filteredSedes = [];
         this.loadPromise = null;
+        this.metaPromise = null;
+        this.viewportLoadTimer = null;
+        this.lastViewportKey = null;
+        this.needsViewportReload = false;
+        this.searchAbortController = null;
         this.pendingFilterFrame = null;
         this.pendingFilterOptions = null;
         this.infoWindow = null;
@@ -24,8 +29,19 @@ class MapController {
         this.referenceCircle = null;
         this.referenceLocation = null;
         this.hasFitBounds = false;
+        this.loadLimit = 550;
+        this.mapMeta = {
+            total: 0,
+            active: 0,
+            invalid_coordinates: 0,
+            districts: []
+        };
 
         this.defaultLocation = { lat: -12.0464, lng: -77.0428 };
+        this.allowedRegions = {
+            lima: { south: -13.45, north: -10.15, west: -78.15, east: -75.25 },
+            ica: { south: -15.55, north: -12.75, west: -76.55, east: -74.45 }
+        };
         this.allFrequencies = ['diario', 'interdiario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual'];
         this.frequencyLabels = {
             diario: 'Diario',
@@ -83,6 +99,15 @@ class MapController {
             clickableIcons: false,
             gestureHandling: 'greedy',
             keyboardShortcuts: false,
+            restriction: {
+                latLngBounds: {
+                    north: -10.1,
+                    south: -15.6,
+                    west: -78.2,
+                    east: -74.4
+                },
+                strictBounds: false
+            },
             mapId: 'DEMO_MAP_ID'
         });
         this.infoWindow = new google.maps.InfoWindow();
@@ -188,18 +213,71 @@ class MapController {
             this.setReferenceLocation({ lat: event.latLng.lat(), lng: event.latLng.lng() }, 'Punto de busqueda');
             this.scheduleApplyFilters({ forceFit: true });
         });
+
+        this.map.addListener('idle', () => {
+            this.scheduleViewportLoad();
+        });
     }
 
     async loadSedes() {
-        if (this.loadPromise) return this.loadPromise;
+        await this.loadMapMeta();
+        return this.loadViewportSedes({ force: true, replace: true });
+    }
+
+    async loadMapMeta() {
+        if (this.metaPromise) return this.metaPromise;
+
+        this.metaPromise = (async () => {
+            const response = await api.get('/sedes?mapa=meta', { cache: true });
+            if (!response.success) return;
+
+            this.mapMeta = {
+                total: Number(response.data?.total) || 0,
+                active: Number(response.data?.active) || 0,
+                invalid_coordinates: Number(response.data?.invalid_coordinates) || 0,
+                districts: response.data?.districts || []
+            };
+            this.populateDistrictFilter(this.mapMeta.districts);
+            this.updateInvalidGpsPill();
+            this.updateCounters(this.filteredSedes);
+        })();
+
+        try {
+            await this.metaPromise;
+        } catch (error) {
+            console.warn('Error loading map metadata:', error);
+        } finally {
+            this.metaPromise = null;
+        }
+    }
+
+    scheduleViewportLoad(options = {}) {
+        if (this.selectedSedes.size) return;
+        window.clearTimeout(this.viewportLoadTimer);
+        this.viewportLoadTimer = window.setTimeout(() => {
+            this.loadViewportSedes(options);
+        }, options.force ? 0 : 260);
+    }
+
+    async loadViewportSedes(options = {}) {
+        if (this.loadPromise) {
+            this.needsViewportReload = true;
+            return this.loadPromise;
+        }
+
+        const viewportKey = this.getViewportKey();
+        if (!options.force && viewportKey && viewportKey === this.lastViewportKey) return;
+
+        const endpoint = this.buildViewportEndpoint(options);
+        if (!endpoint) return;
 
         this.loadPromise = (async () => {
-            const response = await api.get('/sedes?mapa=1', { cache: true });
+            const response = await api.get(endpoint, { cache: true });
             if (response.success) {
-                this.prepareSedes(response.data || []);
-                this.clearMarkerCache();
-                this.populateDistrictFilter();
-                this.applyFilters({ forceFit: !this.hasFitBounds });
+                this.lastViewportKey = viewportKey;
+                this.prepareSedes(response.data || [], { replace: options.replace !== false });
+                this.updateInvalidGpsPill(response.invalid_coordinates);
+                this.applyFilters({ forceFit: Boolean(options.forceFit) });
             }
         })();
 
@@ -210,40 +288,84 @@ class MapController {
             showToast('Error cargando mapa', 'danger');
         } finally {
             this.loadPromise = null;
+            if (this.needsViewportReload) {
+                this.needsViewportReload = false;
+                this.scheduleViewportLoad({ force: true });
+            }
         }
     }
 
-    prepareSedes(rawSedes) {
-        this.sedeById.clear();
+    buildViewportEndpoint(options = {}) {
+        const params = new URLSearchParams({
+            mapa: '1',
+            limit: String(options.limit || this.loadLimit)
+        });
 
-        this.sedes = rawSedes
-            .map(sede => {
-                const position = this.parseSedePosition(sede.coordenadas_gps);
-                if (!position) return null;
+        const bounds = this.map?.getBounds?.();
+        if (bounds) {
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+            params.set('north', ne.lat().toFixed(6));
+            params.set('south', sw.lat().toFixed(6));
+            params.set('east', ne.lng().toFixed(6));
+            params.set('west', sw.lng().toFixed(6));
+        }
 
-                const id = String(sede.id_sede);
-                const frequency = this.normalizeFrequency(sede.frecuencia);
-                const district = (sede.distrito || '').trim();
-                const normalized = {
-                    ...sede,
-                    _id: id,
-                    _position: position,
-                    _frequency: frequency,
-                    _district: district,
-                    _active: String(sede.activo) !== '0',
-                    _distanceKm: null,
-                    _searchText: [
-                        sede.nombre_comercial,
-                        sede.direccion,
-                        sede.empresa_razon_social,
-                        sede.empresa_ruc
-                    ].join(' ').toLowerCase()
-                };
+        return `/sedes?${params.toString()}`;
+    }
 
-                this.sedeById.set(id, normalized);
-                return normalized;
-            })
-            .filter(Boolean);
+    getViewportKey() {
+        const bounds = this.map?.getBounds?.();
+        if (!bounds) return null;
+
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+        return [
+            ne.lat().toFixed(3),
+            sw.lat().toFixed(3),
+            ne.lng().toFixed(3),
+            sw.lng().toFixed(3)
+        ].join(':');
+    }
+
+    prepareSedes(rawSedes, options = {}) {
+        if (options.replace) {
+            this.sedeById.clear();
+            this.sedes = [];
+            this.clearMarkerCache();
+        }
+
+        rawSedes.forEach(sede => {
+            const normalized = this.normalizeSede(sede);
+            if (!normalized) return;
+            this.sedeById.set(normalized._id, normalized);
+        });
+
+        this.sedes = Array.from(this.sedeById.values());
+    }
+
+    normalizeSede(sede) {
+        const position = this.parseSedePosition(sede.coordenadas_gps);
+        if (!position || !this.isAllowedMapPosition(position)) return null;
+
+        const id = String(sede.id_sede);
+        const frequency = this.normalizeFrequency(sede.frecuencia);
+        const district = (sede.distrito || '').trim();
+        return {
+            ...sede,
+            _id: id,
+            _position: position,
+            _frequency: frequency,
+            _district: district,
+            _active: String(sede.activo) !== '0',
+            _distanceKm: null,
+            _searchText: [
+                sede.nombre_comercial,
+                sede.direccion,
+                sede.empresa_razon_social,
+                sede.empresa_ruc
+            ].join(' ').toLowerCase()
+        };
     }
 
     handleAddressSelect(place) {
@@ -264,19 +386,13 @@ class MapController {
         this.applyFilters({ forceFit: true });
     }
 
-    handleSedeSearch(query, container) {
+    async handleSedeSearch(query, container) {
         if (query.length < 2) {
             container.classList.add('d-none');
             return;
         }
 
-        const matches = [];
-        for (const sede of this.sedes) {
-            if (sede._searchText.includes(query)) {
-                matches.push(sede);
-                if (matches.length === 12) break;
-            }
-        }
+        const matches = await this.searchSedes(query);
 
         if (!matches.length) {
             container.innerHTML = '<div class="list-group-item small text-muted">No se encontraron resultados</div>';
@@ -292,8 +408,10 @@ class MapController {
 
             container.querySelectorAll('[data-sede-id]').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const sede = this.sedeById.get(String(btn.dataset.sedeId));
+                    const sede = this.sedeById.get(String(btn.dataset.sedeId)) ||
+                        matches.find(item => String(item.id_sede) === String(btn.dataset.sedeId));
                     if (!sede) return;
+                    this.prepareSedes([sede], { replace: false });
                     this.addSedeToSelection(sede);
                     container.classList.add('d-none');
                     const input = document.getElementById('sedeSearch');
@@ -303,6 +421,32 @@ class MapController {
         }
 
         container.classList.remove('d-none');
+    }
+
+    async searchSedes(query) {
+        if (this.searchAbortController) {
+            this.searchAbortController.abort();
+        }
+
+        this.searchAbortController = new AbortController();
+        const endpoint = `/sedes?mapa=1&search=${encodeURIComponent(query)}&limit=12`;
+
+        try {
+            const response = await api.get(endpoint, {
+                cache: true,
+                signal: this.searchAbortController.signal
+            });
+            if (!response.success) return [];
+
+            return (response.data || [])
+                .map(sede => this.normalizeSede(sede))
+                .filter(Boolean);
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.warn('Error searching sedes:', error);
+            }
+            return [];
+        }
     }
 
     addSedeToSelection(sede) {
@@ -331,6 +475,7 @@ class MapController {
             const freq = this.normalizeFrequency(btn.dataset.freq);
             this.updateFreqBtnVisuals(btn, this.filters.frequencies.has(freq));
         });
+        this.scheduleViewportLoad({ force: true, replace: true });
         this.applyFilters({ forceFit: true });
     }
 
@@ -358,18 +503,12 @@ class MapController {
         });
     }
 
-    populateDistrictFilter() {
+    populateDistrictFilter(districtRows = []) {
         const container = document.getElementById('districtFilters');
-        if (!container || !this.sedes.length) return;
+        if (!container) return;
 
-        const counts = new Map();
-        this.sedes.forEach(sede => {
-            const district = sede._district;
-            if (!district) return;
-            counts.set(district, (counts.get(district) || 0) + 1);
-        });
-
-        const districts = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b));
+        const counts = new Map(districtRows.map(row => [row.distrito, Number(row.total) || 0]));
+        const districts = Array.from(counts.keys()).filter(Boolean).sort((a, b) => a.localeCompare(b));
         if (!districts.length) {
             container.innerHTML = '<div class="text-muted small">No se encontraron distritos</div>';
             return;
@@ -874,22 +1013,36 @@ class MapController {
         if (districtSummary) districtSummary.textContent = count ? `${count} distritos` : 'Todos';
     }
 
+    updateInvalidGpsPill(value = null) {
+        if (value !== null && value !== undefined) {
+            this.mapMeta.invalid_coordinates = Number(value) || 0;
+        }
+
+        const pill = document.getElementById('invalidGpsPill');
+        const count = document.getElementById('invalidGpsCount');
+        if (!pill || !count) return;
+
+        count.textContent = this.mapMeta.invalid_coordinates;
+        pill.classList.toggle('d-none', this.mapMeta.invalid_coordinates === 0);
+    }
+
     updateCounters(sedes) {
         const total = document.getElementById('totalSedes');
         const active = document.getElementById('activeSedesCount');
         const mode = document.getElementById('mapModeLabel');
         const visibleCount = document.getElementById('visibleSedesCount');
 
-        if (total) total.textContent = sedes.length;
+        const totalLabel = this.mapMeta.total ? `${sedes.length}/${this.mapMeta.total}` : sedes.length;
+        if (total) total.textContent = totalLabel;
         if (visibleCount) visibleCount.textContent = sedes.length;
         if (active) {
             let activeCount = 0;
             for (const sede of sedes) {
                 if (this.isActive(sede)) activeCount += 1;
             }
-            active.textContent = activeCount;
+            active.textContent = this.mapMeta.active ? `${activeCount}/${this.mapMeta.active}` : activeCount;
         }
-        if (mode) mode.textContent = this.filters.nearby ? 'Cercanas activas' : 'Sedes filtradas';
+        if (mode) mode.textContent = this.filters.nearby ? 'Cercanas activas' : 'Vista actual';
     }
 
     getReferenceCenter() {
@@ -906,6 +1059,15 @@ class MapController {
         const [lat, lng] = String(value).split(',').map(Number);
         if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
         return { lat, lng };
+    }
+
+    isAllowedMapPosition(position) {
+        return Object.values(this.allowedRegions).some(bounds => (
+            position.lat >= bounds.south &&
+            position.lat <= bounds.north &&
+            position.lng >= bounds.west &&
+            position.lng <= bounds.east
+        ));
     }
 
     isActive(sede) {
