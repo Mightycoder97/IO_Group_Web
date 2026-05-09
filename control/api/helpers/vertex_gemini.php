@@ -2,7 +2,9 @@
 /**
  * Vertex AI Gemini helper for structured document extraction.
  *
- * Uses a base64-encoded service account JSON from VERTEX_SERVICE_ACCOUNT_JSON_BASE64.
+ * Supports either:
+ * - Service account JSON from VERTEX_SERVICE_ACCOUNT_JSON_BASE64.
+ * - Vertex AI API key from GOOGLE_API_KEY or VERTEX_API_KEY.
  * No Google SDK dependency is required; this is meant for shared PHP hosting.
  */
 
@@ -10,16 +12,18 @@ class VertexGeminiClient {
     private $projectId;
     private $location;
     private $model;
+    private $apiKey;
     private $serviceAccount;
     private $accessToken = null;
     private $accessTokenExp = 0;
 
     public function __construct() {
-        $this->projectId = trim(getenv('VERTEX_PROJECT_ID') ?: '');
-        $this->location = trim(getenv('VERTEX_LOCATION') ?: 'global');
-        $this->model = trim(getenv('VERTEX_MODEL') ?: 'gemini-2.5-flash');
+        $this->projectId = trim(getenv('VERTEX_PROJECT_ID') ?: getenv('GOOGLE_CLOUD_PROJECT') ?: getenv('GOOGLE_PROJECT_ID') ?: '');
+        $this->location = trim(getenv('VERTEX_LOCATION') ?: getenv('GOOGLE_CLOUD_LOCATION') ?: 'global');
+        $this->model = trim(getenv('VERTEX_MODEL') ?: getenv('GEMINI_VERTEX_MODEL') ?: getenv('GEMINI_MODEL') ?: 'gemini-2.5-flash');
+        $this->apiKey = trim(getenv('VERTEX_API_KEY') ?: getenv('GOOGLE_API_KEY') ?: '');
 
-        $encoded = trim(getenv('VERTEX_SERVICE_ACCOUNT_JSON_BASE64') ?: '');
+        $encoded = trim(getenv('VERTEX_SERVICE_ACCOUNT_JSON_BASE64') ?: getenv('GOOGLE_SERVICE_ACCOUNT_JSON_BASE64') ?: getenv('GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64') ?: '');
         if ($encoded !== '') {
             $json = base64_decode($encoded, true);
             $this->serviceAccount = $json ? json_decode($json, true) : null;
@@ -27,6 +31,14 @@ class VertexGeminiClient {
     }
 
     public function isConfigured() {
+        return $this->hasApiKeyAuth() || $this->hasServiceAccountAuth();
+    }
+
+    private function hasApiKeyAuth() {
+        return $this->apiKey !== '';
+    }
+
+    private function hasServiceAccountAuth() {
         return $this->projectId !== ''
             && is_array($this->serviceAccount)
             && !empty($this->serviceAccount['client_email'])
@@ -35,7 +47,7 @@ class VertexGeminiClient {
 
     public function extractStructuredDocument($filePath, $mimeType, $prompt, $schema) {
         if (!$this->isConfigured()) {
-            throw new Exception('Vertex AI no esta configurado. Revise VERTEX_PROJECT_ID y VERTEX_SERVICE_ACCOUNT_JSON_BASE64.');
+            throw new Exception('Vertex AI no esta configurado. Configure GOOGLE_API_KEY o VERTEX_SERVICE_ACCOUNT_JSON_BASE64.');
         }
 
         if (!is_readable($filePath)) {
@@ -46,18 +58,6 @@ class VertexGeminiClient {
         if ($fileBytes === false || $fileBytes === '') {
             throw new Exception('El archivo esta vacio o no se pudo leer.');
         }
-
-        $modelName = sprintf(
-            'projects/%s/locations/%s/publishers/google/models/%s',
-            $this->projectId,
-            $this->location,
-            $this->model
-        );
-
-        $endpointHost = $this->location === 'global'
-            ? 'aiplatform.googleapis.com'
-            : $this->location . '-aiplatform.googleapis.com';
-        $url = sprintf('https://%s/v1/%s:generateContent', $endpointHost, $modelName);
 
         $body = [
             'contents' => [[
@@ -81,9 +81,8 @@ class VertexGeminiClient {
             ]
         ];
 
-        $response = $this->postJson($url, $body, [
-            'Authorization: Bearer ' . $this->getAccessToken()
-        ]);
+        $endpoint = $this->buildGenerateContentEndpoint();
+        $response = $this->postJson($endpoint['url'], $body, $endpoint['headers']);
 
         $text = $response['candidates'][0]['content']['parts'][0]['text'] ?? null;
         if (!$text) {
@@ -97,6 +96,36 @@ class VertexGeminiClient {
         }
 
         return $decoded;
+    }
+
+    private function buildGenerateContentEndpoint() {
+        $endpointHost = $this->location === 'global'
+            ? 'aiplatform.googleapis.com'
+            : $this->location . '-aiplatform.googleapis.com';
+
+        if ($this->hasApiKeyAuth()) {
+            return [
+                'url' => sprintf(
+                    'https://%s/v1/publishers/google/models/%s:generateContent?key=%s',
+                    $endpointHost,
+                    rawurlencode($this->model),
+                    rawurlencode($this->apiKey)
+                ),
+                'headers' => []
+            ];
+        }
+
+        $modelName = sprintf(
+            'projects/%s/locations/%s/publishers/google/models/%s',
+            $this->projectId,
+            $this->location,
+            $this->model
+        );
+
+        return [
+            'url' => sprintf('https://%s/v1/%s:generateContent', $endpointHost, $modelName),
+            'headers' => ['Authorization: Bearer ' . $this->getAccessToken()]
+        ];
     }
 
     private function getAccessToken() {
