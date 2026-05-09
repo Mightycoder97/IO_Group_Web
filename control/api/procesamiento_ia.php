@@ -147,6 +147,17 @@ function uploadArchivos() {
 
     $files = normalizeUploadFiles($_FILES['archivos'] ?? $_FILES['archivo'] ?? null);
     if (empty($files)) {
+        $contentLength = intval($_SERVER['CONTENT_LENGTH'] ?? 0);
+        $postMaxBytes = iniBytes(ini_get('post_max_size'));
+        if ($contentLength > 0 && $postMaxBytes > 0 && $contentLength > $postMaxBytes) {
+            http_response_code(413);
+            echo json_encode([
+                'success' => false,
+                'message' => 'La carga pesa ' . formatBytes($contentLength) . ' y supera el limite del servidor (' . formatBytes($postMaxBytes) . '). Suba menos archivos o aumente post_max_size.'
+            ]);
+            return;
+        }
+
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Seleccione al menos un archivo']);
         return;
@@ -993,8 +1004,8 @@ function validateInputFile($file) {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
         throw new Exception('Archivo invalido o incompleto.');
     }
-    if (($file['size'] ?? 0) > 25 * 1024 * 1024) {
-        throw new Exception('Cada archivo no debe superar 25 MB.');
+    if (($file['size'] ?? 0) > 30 * 1024 * 1024) {
+        throw new Exception('Cada archivo no debe superar 30 MB.');
     }
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $allowed = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
@@ -1129,6 +1140,37 @@ function decimalOrNull($value) {
     if ($value === null || $value === '') return null;
     $value = str_replace(',', '.', preg_replace('/[^0-9,.-]/', '', (string)$value));
     return is_numeric($value) ? $value : null;
+}
+
+function iniBytes($value) {
+    $value = trim((string)$value);
+    if ($value === '') {
+        return 0;
+    }
+
+    $unit = strtolower(substr($value, -1));
+    $number = floatval($value);
+    switch ($unit) {
+        case 'g':
+            return (int)($number * 1024 * 1024 * 1024);
+        case 'm':
+            return (int)($number * 1024 * 1024);
+        case 'k':
+            return (int)($number * 1024);
+        default:
+            return (int)$number;
+    }
+}
+
+function formatBytes($bytes) {
+    $bytes = max(0, (int)$bytes);
+    if ($bytes >= 1024 * 1024) {
+        return round($bytes / (1024 * 1024), 1) . ' MB';
+    }
+    if ($bytes >= 1024) {
+        return round($bytes / 1024, 1) . ' KB';
+    }
+    return $bytes . ' bytes';
 }
 
 function clamp01($value) {
