@@ -18,12 +18,12 @@ class VertexGeminiClient {
     private $accessTokenExp = 0;
 
     public function __construct() {
-        $this->projectId = trim(getenv('VERTEX_PROJECT_ID') ?: getenv('GOOGLE_CLOUD_PROJECT') ?: getenv('GOOGLE_PROJECT_ID') ?: '');
-        $this->location = trim(getenv('VERTEX_LOCATION') ?: getenv('GOOGLE_CLOUD_LOCATION') ?: 'global');
-        $this->model = trim(getenv('VERTEX_MODEL') ?: getenv('GEMINI_VERTEX_MODEL') ?: getenv('GEMINI_MODEL') ?: 'gemini-2.5-flash');
-        $this->apiKey = trim(getenv('VERTEX_API_KEY') ?: getenv('GOOGLE_API_KEY') ?: '');
+        $this->projectId = $this->envValue(['VERTEX_PROJECT_ID', 'GOOGLE_CLOUD_PROJECT', 'GOOGLE_PROJECT_ID']);
+        $this->location = $this->envValue(['VERTEX_LOCATION', 'GOOGLE_CLOUD_LOCATION'], 'global');
+        $this->model = $this->envValue(['VERTEX_MODEL', 'GEMINI_VERTEX_MODEL', 'GEMINI_MODEL'], 'gemini-2.5-flash');
+        $this->apiKey = $this->envValue(['VERTEX_API_KEY', 'GOOGLE_API_KEY']);
 
-        $encoded = trim(getenv('VERTEX_SERVICE_ACCOUNT_JSON_BASE64') ?: getenv('GOOGLE_SERVICE_ACCOUNT_JSON_BASE64') ?: getenv('GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64') ?: '');
+        $encoded = $this->envValue(['VERTEX_SERVICE_ACCOUNT_JSON_BASE64', 'GOOGLE_SERVICE_ACCOUNT_JSON_BASE64', 'GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64']);
         if ($encoded !== '') {
             $json = base64_decode($encoded, true);
             $this->serviceAccount = $json ? json_decode($json, true) : null;
@@ -43,6 +43,19 @@ class VertexGeminiClient {
             && is_array($this->serviceAccount)
             && !empty($this->serviceAccount['client_email'])
             && !empty($this->serviceAccount['private_key']);
+    }
+
+    public function diagnostics() {
+        return [
+            'configured' => $this->isConfigured(),
+            'auth_mode' => $this->hasApiKeyAuth() ? 'api_key' : ($this->hasServiceAccountAuth() ? 'service_account' : 'none'),
+            'project_id_present' => $this->projectId !== '',
+            'location' => $this->location,
+            'model' => $this->model,
+            'api_key' => $this->describeEnv(['VERTEX_API_KEY', 'GOOGLE_API_KEY']),
+            'service_account_json' => $this->describeEnv(['VERTEX_SERVICE_ACCOUNT_JSON_BASE64', 'GOOGLE_SERVICE_ACCOUNT_JSON_BASE64', 'GOOGLE_APPLICATION_CREDENTIALS_JSON_BASE64']),
+            'service_account_valid' => $this->hasServiceAccountAuth()
+        ];
     }
 
     public function extractStructuredDocument($filePath, $mimeType, $prompt, $schema) {
@@ -126,6 +139,49 @@ class VertexGeminiClient {
             'url' => sprintf('https://%s/v1/%s:generateContent', $endpointHost, $modelName),
             'headers' => ['Authorization: Bearer ' . $this->getAccessToken()]
         ];
+    }
+
+    private function envValue($keys, $default = '') {
+        foreach ($keys as $key) {
+            $value = getenv($key);
+            if ($value !== false && trim((string)$value) !== '') {
+                return trim((string)$value);
+            }
+            if (isset($_ENV[$key]) && trim((string)$_ENV[$key]) !== '') {
+                return trim((string)$_ENV[$key]);
+            }
+            if (isset($_SERVER[$key]) && trim((string)$_SERVER[$key]) !== '') {
+                return trim((string)$_SERVER[$key]);
+            }
+        }
+        return $default;
+    }
+
+    private function describeEnv($keys) {
+        $items = [];
+        foreach ($keys as $key) {
+            $sources = [];
+            $value = false;
+            $fromGetenv = getenv($key);
+            if ($fromGetenv !== false && trim((string)$fromGetenv) !== '') {
+                $sources[] = 'getenv';
+                $value = (string)$fromGetenv;
+            }
+            if (isset($_ENV[$key]) && trim((string)$_ENV[$key]) !== '') {
+                $sources[] = '_ENV';
+                if ($value === false) $value = (string)$_ENV[$key];
+            }
+            if (isset($_SERVER[$key]) && trim((string)$_SERVER[$key]) !== '') {
+                $sources[] = '_SERVER';
+                if ($value === false) $value = (string)$_SERVER[$key];
+            }
+            $items[$key] = [
+                'present' => $value !== false && trim($value) !== '',
+                'length' => $value === false ? 0 : strlen(trim($value)),
+                'sources' => $sources
+            ];
+        }
+        return $items;
     }
 
     private function getAccessToken() {

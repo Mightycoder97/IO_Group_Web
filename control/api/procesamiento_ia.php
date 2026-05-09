@@ -13,7 +13,8 @@ $action = $_GET['action'] ?? '';
 
 try {
     if ($method === 'GET') {
-        if ($action === 'lotes') listLotes();
+        if ($action === 'diagnostics') vertexDiagnostics();
+        elseif ($action === 'lotes') listLotes();
         elseif (!empty($_GET['id_documento'])) getDocumento(intval($_GET['id_documento']));
         else listDocumentos();
         exit;
@@ -99,6 +100,20 @@ function getDocumento($id) {
     }
 
     echo json_encode(['success' => true, 'data' => hydrateDocumentoJson($doc)]);
+}
+
+function vertexDiagnostics() {
+    canEdit();
+    $client = new VertexGeminiClient();
+    echo json_encode([
+        'success' => true,
+        'data' => [
+            'env_loaded' => defined('ENV_LOADED') ? ENV_LOADED : null,
+            'env_loaded_path' => defined('ENV_LOADED_PATH') ? ENV_LOADED_PATH : null,
+            'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? null,
+            'vertex' => $client->diagnostics()
+        ]
+    ]);
 }
 
 function createLote() {

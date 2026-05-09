@@ -8,28 +8,48 @@
 $envPaths = [
     __DIR__ . '/../../.env',           // control/.env (from config/ dir)
     __DIR__ . '/../../../control/.env', // fallback absolute
+    __DIR__ . '/../../../.env',         // public_html/.env or repo root .env
     dirname($_SERVER['DOCUMENT_ROOT'] ?? '') . '/control/.env',
+    ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/control/.env',
+    ($_SERVER['DOCUMENT_ROOT'] ?? '') . '/.env',
 ];
 $envLoaded = false;
+$loadedEnvFiles = [];
 foreach ($envPaths as $envFile) {
     if (file_exists($envFile)) {
+        $resolvedEnvFile = realpath($envFile) ?: $envFile;
+        if (in_array($resolvedEnvFile, $loadedEnvFiles, true)) {
+            continue;
+        }
         $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
             $line = trim($line);
             if ($line === '' || str_starts_with($line, '#')) continue;
+            if (str_starts_with($line, 'export ')) {
+                $line = trim(substr($line, 7));
+            }
             if (strpos($line, '=') === false) continue;
             list($key, $value) = explode('=', $line, 2);
             $key = trim($key);
             $value = trim($value);
+            if (
+                strlen($value) >= 2 &&
+                (($value[0] === '"' && substr($value, -1) === '"') || ($value[0] === "'" && substr($value, -1) === "'"))
+            ) {
+                $value = substr($value, 1, -1);
+            }
             if (!getenv($key)) {
                 putenv("$key=$value");
                 $_ENV[$key] = $value;
             }
         }
         $envLoaded = true;
-        break;
+        $loadedEnvFiles[] = $resolvedEnvFile;
     }
 }
+
+if (!defined('ENV_LOADED')) define('ENV_LOADED', $envLoaded);
+if (!defined('ENV_LOADED_PATH')) define('ENV_LOADED_PATH', implode('; ', $loadedEnvFiles));
 
 // Database credentials from environment
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
