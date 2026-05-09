@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Procesamiento IA - IO Group</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../css/global.css" rel="stylesheet">
+    <style>
+        .ia-layout {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 1rem;
+            min-height: calc(100vh - 150px);
+        }
+
+        @media (max-width: 1050px) {
+            .ia-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .ia-panel {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .ia-panel-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: #1B5E20;
+        }
+
+        .ia-panel-body {
+            padding: 1rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed #b7c3b7;
+            border-radius: 8px;
+            min-height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.15s ease;
+            background: #fafafa;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: #1B5E20;
+            background: #f1f8e9;
+        }
+
+        .doc-row {
+            padding: 0.75rem;
+            border: 1px solid #e7e7e7;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        .doc-row.active {
+            border-color: #1B5E20;
+            box-shadow: 0 0 0 2px rgba(27, 94, 32, 0.12);
+        }
+
+        .preview-frame {
+            width: 100%;
+            min-height: 420px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 620px;
+            object-fit: contain;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .json-editor {
+            min-height: 220px;
+            font-family: Consolas, monospace;
+            font-size: 0.82rem;
+        }
+
+        .score-pill {
+            font-weight: 700;
+            font-size: 0.72rem;
+            border-radius: 999px;
+            padding: 0.18rem 0.5rem;
+        }
+
+        .score-high { background: #e8f5e9; color: #1b5e20; }
+        .score-mid { background: #fff3cd; color: #8a5a00; }
+        .score-low { background: #f8d7da; color: #842029; }
+    </style>
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Procesamiento IA</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">Usuario</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0" style="color:#1B5E20; font-weight:700;">
+                        <i class="bi bi-robot me-2"></i>Procesamiento IA de Documentos
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-success btn-sm" onclick="procesarSiguiente()">
+                            <i class="bi bi-cpu"></i> Procesar siguiente
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="loadAll()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ia-layout">
+                    <section class="ia-panel">
+                        <div class="ia-panel-header">
+                            <i class="bi bi-folder2-open"></i> Lotes y archivos
+                        </div>
+                        <div class="ia-panel-body">
+                            <div class="row g-2 mb-3">
+                                <div class="col-8">
+                                    <input type="text" class="form-control form-control-sm" id="loteNombre" placeholder="Nombre de lote">
+                                </div>
+                                <div class="col-4">
+                                    <select class="form-select form-select-sm" id="tipoLote">
+                                        <option value="mixto">Mixto</option>
+                                        <option value="ruta">Rutas</option>
+                                        <option value="manifiestos">Manifiestos</option>
+                                        <option value="guias">Guías</option>
+                                        <option value="facturas">Facturas</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-success btn-sm w-100" onclick="crearLote()">
+                                        <i class="bi bi-plus-circle"></i> Crear lote
+                                    </button>
+                                </div>
+                            </div>
+
+                            <label class="form-label small fw-semibold">Lote activo</label>
+                            <select class="form-select form-select-sm mb-3" id="loteSelect" onchange="onLoteChange()">
+                                <option value="">Cargando...</option>
+                            </select>
+
+                            <div class="upload-zone mb-2" id="uploadZone">
+                                <div>
+                                    <i class="bi bi-cloud-arrow-up fs-2 text-muted"></i>
+                                    <div class="small">PDF, fotos o escaneos</div>
+                                    <div class="text-muted" style="font-size:0.76rem;">PDF, JPG, PNG, WEBP, HEIC</div>
+                                </div>
+                                <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.heic,.heif,application/pdf,image/*" style="display:none;">
+                            </div>
+                            <button class="btn btn-primary btn-sm w-100 mb-3" onclick="subirArchivos()">
+                                <i class="bi bi-upload"></i> Subir al lote
+                            </button>
+
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small fw-semibold">Documentos</span>
+                                <span class="badge bg-light text-dark" id="docCount">0</span>
+                            </div>
+                            <div id="docsList">
+                                <div class="text-muted small">Seleccione o cree un lote.</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="ia-panel">
+                        <div class="ia-panel-header">
+                            <i class="bi bi-clipboard2-check"></i>
+                            <span id="detailTitle">Seleccione un documento</span>
+                            <span class="ms-auto" id="detailStatus"></span>
+                        </div>
+                        <div class="ia-panel-body" id="detailBody">
+                            <div class="text-center text-muted py-5">
+                                <i class="bi bi-files fs-1"></i>
+                                <div class="mt-2">Los campos extraídos, candidatos y conflictos aparecerán aquí.</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js?v=2.1"></script>
+    <script>
+        document.getElementById('sidebar').innerHTML = getSidebarHTML();
+        initPage('rutas');
+
+        let lotes = [];
+        let docs = [];
+        let currentLote = null;
+        let currentDoc = null;
+        let selectedFiles = [];
+
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            selectedFiles = Array.from(e.dataTransfer.files || []);
+            paintSelectedFiles();
+        });
+        fileInput.addEventListener('change', e => {
+            selectedFiles = Array.from(e.target.files || []);
+            paintSelectedFiles();
+        });
+
+        function paintSelectedFiles() {
+            const label = selectedFiles.length
+                ? `${selectedFiles.length} archivo(s) seleccionado(s)`
+                : 'PDF, fotos o escaneos';
+            uploadZone.querySelector('.small').textContent = label;
+        }
+
+        async function loadAll() {
+            await loadLotes();
+            if (currentLote) await loadDocs();
+        }
+
+        async function loadLotes() {
+            const result = await api.get('/procesamiento_ia?action=lotes', { cache: false });
+            if (!result.success) {
+                showToast(result.message || 'Error cargando lotes', 'danger');
+                return;
+            }
+            lotes = result.data || [];
+            if (!currentLote && lotes.length) currentLote = lotes[0].id_lote;
+            renderLotes();
+        }
+
+        function renderLotes() {
+            const select = document.getElementById('loteSelect');
+            if (!lotes.length) {
+                select.innerHTML = '<option value="">Sin lotes</option>';
+                return;
+            }
+            select.innerHTML = lotes.map(l => {
+                const meta = `${l.tipo_lote} · ${l.aprobados || 0}/${l.total_archivos || 0}`;
+                return `<option value="${l.id_lote}" ${String(l.id_lote) === String(currentLote) ? 'selected' : ''}>#${l.id_lote} ${escapeHtml(l.nombre)} (${meta})</option>`;
+            }).join('');
+        }
+
+        async function crearLote() {
+            const nombre = document.getElementById('loteNombre').value.trim();
+            const tipo_lote = document.getElementById('tipoLote').value;
+            const result = await api.post('/procesamiento_ia?action=create_lote', { nombre, tipo_lote });
+            if (result.success) {
+                currentLote = result.id_lote;
+                document.getElementById('loteNombre').value = '';
+                showToast('Lote creado');
+                await loadAll();
+            } else {
+                showToast(result.message || 'Error creando lote', 'danger');
+            }
+        }
+
+        function onLoteChange() {
+            currentLote = document.getElementById('loteSelect').value;
+            currentDoc = null;
+            loadDocs();
+        }
+
+        async function subirArchivos() {
+            if (!currentLote) return showToast('Seleccione un lote', 'warning');
+            if (!selectedFiles.length) return showToast('Seleccione archivos', 'warning');
+            const fd = new FormData();
+            selectedFiles.forEach(file => fd.append('archivos[]', file));
+            const headers = {};
+            const token = api.getToken();
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const response = await fetch(api.buildUrl(`/procesamiento_ia?action=upload&id_lote=${currentLote}`), {
+                method: 'POST',
+                headers,
+                body: fd
+            });
+            const result = await response.json();
+            if (result.success) {
+                showToast(result.message || 'Archivos subidos');
+                selectedFiles = [];
+                fileInput.value = '';
+                paintSelectedFiles();
+                await loadAll();
+            } else {
+                showToast(result.message || 'Error subiendo archivos', 'danger');
+            }
+        }
+
+        async function loadDocs() {
+            if (!currentLote) return;
+            const result = await api.get(`/procesamiento_ia?id_lote=${currentLote}`, { cache: false });
+            if (!result.success) return showToast(result.message || 'Error cargando documentos', 'danger');
+            docs = result.data || [];
+            renderDocs();
+            if (currentDoc) {
+                const refreshed = docs.find(d => String(d.id_documento) === String(currentDoc.id_documento));
+                if (refreshed) selectDoc(refreshed.id_documento);
+            }
+        }
+
+        function renderDocs() {
+            document.getElementById('docCount').textContent = docs.length;
+            const el = document.getElementById('docsList');
+            if (!docs.length) {
+                el.innerHTML = '<div class="text-muted small">No hay documentos en este lote.</div>';
+                return;
+            }
+            el.innerHTML = docs.map(d => `
+                <div class="doc-row ${currentDoc?.id_documento == d.id_documento ? 'active' : ''}" onclick="selectDoc(${d.id_documento})">
+                    <div class="d-flex justify-content-between gap-2">
+                        <strong class="small text-truncate">${escapeHtml(d.nombre_original)}</strong>
+                        ${statusBadge(d.estado)}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="text-muted small">${escapeHtml(d.tipo_detectado || 'desconocido')}</span>
+                        ${scorePill(d.confianza)}
+                    </div>
+                    ${d.error_mensaje ? `<div class="small text-danger mt-1">${escapeHtml(d.error_mensaje)}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function selectDoc(id) {
+            const result = await api.get(`/procesamiento_ia?id_documento=${id}`, { cache: false });
+            if (!result.success) return showToast(result.message || 'No se pudo abrir el documento', 'danger');
+            currentDoc = result.data;
+            renderDocs();
+            renderDetail();
+        }
+
+        async function procesarSiguiente() {
+            if (!currentLote) return showToast('Seleccione un lote', 'warning');
+            const result = await api.post(`/procesamiento_ia?action=process_next&id_lote=${currentLote}`, {});
+            if (result.success) {
+                showToast(result.message || 'Procesado');
+                if (result.data?.id_documento) currentDoc = result.data;
+                await loadDocs();
+                if (result.data?.id_documento) selectDoc(result.data.id_documento);
+            } else {
+                showToast(result.message || 'Error procesando', 'danger');
+                await loadDocs();
+            }
+        }
+
+        async function procesarActual() {
+            if (!currentDoc) return;
+            const result = await api.post(`/procesamiento_ia?action=process_document&id_documento=${currentDoc.id_documento}`, {});
+            if (result.success) {
+                showToast('Documento procesado');
+                await selectDoc(currentDoc.id_documento);
+                await loadDocs();
+            } else {
+                showToast(result.message || 'Error procesando', 'danger');
+                await selectDoc(currentDoc.id_documento);
+            }
+        }
+
+        function renderDetail() {
+            document.getElementById('detailTitle').textContent = currentDoc.nombre_original;
+            document.getElementById('detailStatus').innerHTML = statusBadge(currentDoc.estado);
+            const data = currentDoc.datos_extraidos || {};
+            const candidates = currentDoc.candidatos_servicio || [];
+            const conflicts = currentDoc.conflictos || [];
+            const isRoute = currentDoc.tipo_detectado === 'ruta';
+            const canClose = !['aprobado', 'rechazado'].includes(currentDoc.estado);
+
+            document.getElementById('detailBody').innerHTML = `
+                <div class="row g-3">
+                    <div class="col-lg-5">
+                        ${renderPreview(currentDoc)}
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="d-flex gap-2 flex-wrap mb-3">
+                            <button class="btn btn-outline-success btn-sm" onclick="procesarActual()" ${currentDoc.estado === 'procesando' ? 'disabled' : ''}>
+                                <i class="bi bi-cpu"></i> Procesar
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="${isRoute ? 'aprobarRuta()' : 'aprobarDocumento()'}" ${canClose ? '' : 'disabled'}>
+                                <i class="bi bi-check-circle"></i> Aprobar y aplicar
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="rechazarDocumento()" ${canClose ? '' : 'disabled'}>
+                                <i class="bi bi-x-circle"></i> Rechazar
+                            </button>
+                        </div>
+                        ${currentDoc.error_mensaje ? `<div class="alert alert-danger py-2">${escapeHtml(currentDoc.error_mensaje)}</div>` : ''}
+                        ${currentDoc.explicacion_matching ? `<div class="alert alert-info py-2 small">${escapeHtml(currentDoc.explicacion_matching)}</div>` : ''}
+                        ${renderConflicts(conflicts)}
+                        ${isRoute ? renderRouteRows(data.filas_ruta || []) : renderDocumentCandidatePicker(candidates, currentDoc)}
+                        <label class="form-label small fw-semibold mt-3">JSON extraído editable</label>
+                        <textarea class="form-control json-editor" id="jsonEditor">${escapeHtml(JSON.stringify(data || {}, null, 2))}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPreview(doc) {
+            const url = assetUrl(doc.ruta_archivo);
+            const mime = doc.mime_type || '';
+            if (mime.startsWith('image/')) {
+                return `<img class="preview-image" src="${url}" alt="Vista previa">`;
+            }
+            return `<iframe class="preview-frame" src="${url}" title="Vista previa"></iframe>
+                    <a class="btn btn-outline-secondary btn-sm mt-2" href="${url}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Abrir archivo</a>`;
+        }
+
+        function renderDocumentCandidatePicker(candidates, doc) {
+            const proposal = doc.propuesta_servicio;
+            return `
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Servicio a actualizar</label>
+                    <select class="form-select form-select-sm" id="serviceSelect">
+                        <option value="">Seleccione...</option>
+                        ${(candidates || []).map(c => `
+                            <option value="${c.id_servicio}" ${String(c.id_servicio) === String(doc.id_servicio_sugerido || '') ? 'selected' : ''}>
+                                #${c.id_servicio} · ${escapeHtml(c.sede_nombre || '')} · ${escapeHtml(c.fecha_servicio || '')} · score ${Math.round((c.score || 0) * 100)}%
+                            </option>
+                        `).join('')}
+                    </select>
+                    <input class="form-control form-control-sm mt-2" id="serviceManual" placeholder="O escriba ID de servicio manualmente">
+                </div>
+                ${proposal ? `
+                    <div class="border rounded p-2 small bg-light">
+                        <strong>Propuesta de servicio:</strong>
+                        <div>${escapeHtml(proposal.sede_nombre || '')} · ${escapeHtml(proposal.direccion || '')}</div>
+                        <div>RUC ${escapeHtml(proposal.empresa_ruc || '-')} · ${escapeHtml(proposal.fecha_ejecucion || 'sin fecha')}</div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="crearServicio">
+                            <label class="form-check-label" for="crearServicio">Crear/materializar este servicio al aprobar</label>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderRouteRows(rows) {
+            if (!rows.length) return '<div class="alert alert-warning py-2">No se detectaron filas de ruta.</div>';
+            return `
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Fila</th>
+                                <th>Sede/Dirección</th>
+                                <th>Servicio</th>
+                                <th>Estado</th>
+                                <th>Pago</th>
+                                <th>Docs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows.map((r, idx) => {
+                                const match = r.matching || {};
+                                const candidates = match.candidatos || [];
+                                return `<tr>
+                                    <td>${idx + 1}</td>
+                                    <td>
+                                        <strong>${escapeHtml(r.sede_nombre || r.razon_social || '-')}</strong><br>
+                                        <small class="text-muted">${escapeHtml(r.direccion || '')}</small>
+                                    </td>
+                                    <td style="min-width:160px;">
+                                        <select class="form-select form-select-sm route-service" data-index="${idx}">
+                                            <option value="">Seleccione...</option>
+                                            ${candidates.map(c => `<option value="${c.id_servicio}" ${String(c.id_servicio) === String(match.id_servicio_sugerido || '') ? 'selected' : ''}>#${c.id_servicio} · ${Math.round((c.score || 0) * 100)}%</option>`).join('')}
+                                        </select>
+                                    </td>
+                                    <td>${escapeHtml(r.estado_servicio || 'completado')}</td>
+                                    <td>${escapeHtml(r.estado_pago || '-')} ${escapeHtml(r.forma_pago || '')}</td>
+                                    <td><small>M:${escapeHtml(r.numero_manifiesto || '-')} G:${escapeHtml(r.numero_guia || '-')} F:${escapeHtml(r.numero_factura || '-')}</small></td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderConflicts(conflicts) {
+            if (!conflicts || !conflicts.length) return '';
+            return `<div class="alert alert-warning py-2">
+                <strong>Conflictos detectados</strong>
+                <ul class="mb-0 small">
+                    ${conflicts.map(c => `<li>${escapeHtml(c.mensaje || c.tipo)} ${c.actual ? `(actual: ${escapeHtml(c.actual)}, extraído: ${escapeHtml(c.extraido || '')})` : ''}</li>`).join('')}
+                </ul>
+            </div>`;
+        }
+
+        async function aprobarDocumento() {
+            const datos = parseEditorJson();
+            if (!datos) return;
+            const manual = document.getElementById('serviceManual')?.value.trim();
+            const selected = document.getElementById('serviceSelect')?.value;
+            const payload = {
+                datos_extraidos: datos,
+                tipo_detectado: currentDoc.tipo_detectado,
+                id_servicio: manual || selected || currentDoc.id_servicio_sugerido,
+                crear_servicio: document.getElementById('crearServicio')?.checked || false,
+                propuesta_servicio: currentDoc.propuesta_servicio || null
+            };
+            const result = await api.post(`/procesamiento_ia?action=approve&id_documento=${currentDoc.id_documento}`, payload);
+            if (result.success) {
+                showToast('Aprobado y aplicado');
+                await selectDoc(currentDoc.id_documento);
+                await loadAll();
+            } else {
+                showToast(result.message || 'Error aprobando', 'danger');
+            }
+        }
+
+        async function aprobarRuta() {
+            const datos = parseEditorJson();
+            if (!datos) return;
+            const rows = datos.filas_ruta || [];
+            document.querySelectorAll('.route-service').forEach(select => {
+                const idx = Number(select.dataset.index);
+                rows[idx] = rows[idx] || {};
+                rows[idx].id_servicio = select.value || rows[idx].id_servicio || null;
+            });
+            const result = await api.post(`/procesamiento_ia?action=approve&id_documento=${currentDoc.id_documento}`, {
+                datos_extraidos: datos,
+                tipo_detectado: 'ruta',
+                filas_ruta: rows
+            });
+            if (result.success) {
+                showToast('Hoja de ruta aplicada');
+                await selectDoc(currentDoc.id_documento);
+                await loadAll();
+            } else {
+                showToast(result.message || 'Error aprobando ruta', 'danger');
+            }
+        }
+
+        async function rechazarDocumento() {
+            if (!currentDoc) return;
+            const motivo = prompt('Motivo de rechazo') || 'Rechazado por usuario';
+            const result = await api.post(`/procesamiento_ia?action=reject&id_documento=${currentDoc.id_documento}`, { motivo });
+            if (result.success) {
+                showToast('Documento rechazado');
+                await selectDoc(currentDoc.id_documento);
+                await loadAll();
+            } else {
+                showToast(result.message || 'Error rechazando', 'danger');
+            }
+        }
+
+        function parseEditorJson() {
+            try {
+                return JSON.parse(document.getElementById('jsonEditor').value);
+            } catch (err) {
+                showToast('El JSON extraído no es válido', 'warning');
+                return null;
+            }
+        }
+
+        function statusBadge(status) {
+            const map = {
+                pendiente: 'secondary',
+                procesando: 'primary',
+                extraido: 'success',
+                requiere_revision: 'warning text-dark',
+                aprobado: 'success',
+                rechazado: 'danger',
+                error: 'danger'
+            };
+            return `<span class="badge bg-${map[status] || 'secondary'}">${escapeHtml(status || '-')}</span>`;
+        }
+
+        function scorePill(score) {
+            if (score === null || score === undefined || score === '') return '';
+            const n = Number(score);
+            const cls = n >= 0.85 ? 'score-high' : (n >= 0.60 ? 'score-mid' : 'score-low');
+            return `<span class="score-pill ${cls}">${Math.round(n * 100)}%</span>`;
+        }
+
+        function assetUrl(path) {
+            const root = getBasePath().replace(/\/public$/, '');
+            return `${root}/${String(path || '').replace(/^\/+/, '')}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
+        loadAll();
+    </script>
+</body>
+
+</html>

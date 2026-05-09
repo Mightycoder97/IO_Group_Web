@@ -81,7 +81,8 @@ function getSidebarHTML() {
         navItem('rutas/listar.html', 'truck', 'Asignar Rutas', 'rutas'),
         navItem('rutas/historial.html', 'clock-history', 'Historial Rutas', 'rutas'),
         navItem('rutas/control.html', 'clipboard2-check-fill', 'Control de Ruta', 'rutas'),
-        navItem('servicios/listar.html', 'tools', 'Servicios', 'rutas')
+        navItem('servicios/listar.html', 'tools', 'Servicios', 'rutas'),
+        navItem('procesamiento_ia/index.html', 'robot', 'Procesamiento IA', 'rutas')
     ])}
             
             ${section('Financiero', [
@@ -184,6 +185,7 @@ const REALTIME_SCOPE_BY_MODULE = {
     rutas: 'rutas',
     calendario: 'calendario',
     servicios: 'servicios',
+    procesamiento_ia: 'rutas',
     facturas: 'facturas',
     guias: 'guias',
     manifiestos: 'manifiestos',
