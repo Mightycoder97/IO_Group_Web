@@ -1310,8 +1310,18 @@
                 }
 
                 if (!result.success) {
+                    console.error('Control Ruta IA error', {
+                        status: response.status,
+                        request_id: result.request_id || null,
+                        message: result.message || null,
+                        errores: result.errores || null,
+                        debug_log: result.debug_log || null,
+                        response: result
+                    });
                     showToast(result.message || 'No se pudo analizar la ruta con IA', 'danger');
-                    status.textContent = result.message || 'Error de IA';
+                    status.textContent = result.request_id
+                        ? `${result.message || 'Error de IA'} · ID ${result.request_id}`
+                        : (result.message || 'Error de IA');
                     return;
                 }
 

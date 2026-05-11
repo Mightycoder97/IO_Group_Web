@@ -169,87 +169,149 @@ function getRouteServices($id_ruta) {
 }
 
 function analizarFotosRuta($id_ruta) {
+    $requestId = routeIaRequestId();
     try {
-        analizarFotosRutaImpl($id_ruta);
+        routeIaLog($requestId, 'start', [
+            'id_ruta' => $id_ruta,
+            'method' => $_SERVER['REQUEST_METHOD'] ?? null,
+            'content_length' => $_SERVER['CONTENT_LENGTH'] ?? null
+        ]);
+        analizarFotosRutaImpl($id_ruta, $requestId);
     } catch (Throwable $e) {
+        routeIaLog($requestId, 'fatal', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
         http_response_code(500);
         echo json_encode([
             'success' => false,
-            'message' => 'Error al analizar hoja de ruta IA: ' . $e->getMessage()
+            'request_id' => $requestId,
+            'message' => 'Error al analizar hoja de ruta IA: ' . $e->getMessage(),
+            'debug_log' => routeIaLogPathForResponse()
         ]);
     }
 }
 
-function analizarFotosRutaImpl($id_ruta) {
+function analizarFotosRutaImpl($id_ruta, $requestId) {
     $user = canEdit();
     $id_ruta = intval($id_ruta ?? 0);
 
     if ($id_ruta <= 0) {
+        routeIaLog($requestId, 'invalid_route_id');
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'id_ruta requerido']);
+        echo json_encode(['success' => false, 'request_id' => $requestId, 'message' => 'id_ruta requerido']);
         return;
     }
 
+    routeIaLog($requestId, 'ensure_schema_start');
     ensureRouteIaSchema();
+    routeIaLog($requestId, 'ensure_schema_ok');
 
+    routeIaLog($requestId, 'load_route_context_start', ['id_ruta' => $id_ruta]);
     $routeData = getRouteContextForIa($id_ruta);
     if (!$routeData) {
+        routeIaLog($requestId, 'route_not_found', ['id_ruta' => $id_ruta]);
         http_response_code(404);
-        echo json_encode(['success' => false, 'message' => 'Ruta no encontrada']);
+        echo json_encode(['success' => false, 'request_id' => $requestId, 'message' => 'Ruta no encontrada']);
         return;
     }
+    routeIaLog($requestId, 'load_route_context_ok', [
+        'id_ruta' => $id_ruta,
+        'servicios' => count($routeData['servicios'] ?? [])
+    ]);
 
     $files = normalizeRouteIaFiles($_FILES['archivos'] ?? $_FILES['archivo'] ?? null);
     if (empty($files)) {
+        routeIaLog($requestId, 'no_files', [
+            'files_keys' => array_keys($_FILES ?? [])
+        ]);
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Seleccione al menos una foto o PDF de la ruta']);
+        echo json_encode(['success' => false, 'request_id' => $requestId, 'message' => 'Seleccione al menos una foto o PDF de la ruta']);
         return;
     }
+    routeIaLog($requestId, 'files_received', [
+        'count' => count($files),
+        'files' => array_map(fn($f) => [
+            'name' => $f['name'] ?? null,
+            'type' => $f['type'] ?? null,
+            'size' => $f['size'] ?? null,
+            'error' => $f['error'] ?? null
+        ], $files)
+    ]);
 
     try {
         foreach ($files as $file) {
             validateRouteIaFile($file);
         }
+        routeIaLog($requestId, 'files_validated');
     } catch (Exception $e) {
+        routeIaLog($requestId, 'file_validation_error', ['message' => $e->getMessage()]);
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        echo json_encode(['success' => false, 'request_id' => $requestId, 'message' => $e->getMessage()]);
         return;
     }
 
+    routeIaLog($requestId, 'create_lote_start');
     $loteId = createRouteIaLote($routeData['ruta'], count($files), $user);
+    routeIaLog($requestId, 'create_lote_ok', ['id_lote' => $loteId]);
     $uploadDir = __DIR__ . '/../uploads/control_ruta_ia/ruta_' . $id_ruta . '/lote_' . $loteId . '/';
     if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+        routeIaLog($requestId, 'mkdir_error', ['upload_dir' => $uploadDir]);
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'No se pudo preparar la carpeta de evidencia IA']);
+        echo json_encode(['success' => false, 'request_id' => $requestId, 'message' => 'No se pudo preparar la carpeta de evidencia IA', 'debug_log' => routeIaLogPathForResponse()]);
         return;
     }
+    routeIaLog($requestId, 'upload_dir_ready', ['upload_dir' => $uploadDir]);
 
     $allSuggestions = [];
     $allUnmatched = [];
     $errores = [];
     $processed = 0;
     $client = new VertexGeminiClient();
+    routeIaLog($requestId, 'vertex_diagnostics', $client->diagnostics());
     $prompt = buildRouteIaPrompt($routeData['ruta'], $routeData['servicios']);
     $schema = buildRouteIaSchema();
 
     foreach ($files as $file) {
         $documentId = null;
         try {
+            routeIaLog($requestId, 'save_upload_start', [
+                'name' => $file['name'] ?? null,
+                'size' => $file['size'] ?? null
+            ]);
             $saved = saveRouteIaUpload($file, $uploadDir, $loteId);
             $documentId = $saved['id_documento'];
+            routeIaLog($requestId, 'save_upload_ok', [
+                'id_documento' => $documentId,
+                'relative_path' => $saved['relative_path'] ?? null,
+                'mime_type' => $saved['mime_type'] ?? null
+            ]);
 
+            routeIaLog($requestId, 'vertex_extract_start', ['id_documento' => $documentId]);
             $extracted = $client->extractStructuredDocument(
                 $saved['absolute_path'],
                 $saved['mime_type'],
                 $prompt,
                 $schema
             );
+            routeIaLog($requestId, 'vertex_extract_ok', [
+                'id_documento' => $documentId,
+                'top_keys' => array_keys($extracted)
+            ]);
 
             $normalized = normalizeRouteIaExtraction($extracted, $routeData['servicios']);
+            routeIaLog($requestId, 'normalize_ok', [
+                'id_documento' => $documentId,
+                'suggestions' => count($normalized['servicios'] ?? []),
+                'sin_match' => count($normalized['sin_match'] ?? []),
+                'confianza' => $normalized['confianza'] ?? null
+            ]);
             $allSuggestions = mergeRouteIaSuggestions($allSuggestions, $normalized['servicios']);
             $allUnmatched = array_merge($allUnmatched, $normalized['sin_match']);
             $processed++;
 
+            routeIaLog($requestId, 'document_update_start', ['id_documento' => $documentId]);
             db()->execute(
                 "UPDATE DocumentoIAArchivo SET tipo_detectado = 'ruta', estado = ?, confianza = ?, datos_extraidos = ?, conflictos = ?, fecha_modificacion = NOW() WHERE id_documento = ?",
                 [
@@ -260,8 +322,16 @@ function analizarFotosRutaImpl($id_ruta) {
                     $documentId
                 ]
             );
+            routeIaLog($requestId, 'document_update_ok', ['id_documento' => $documentId]);
         } catch (Exception $e) {
             $errores[] = $file['name'] . ': ' . $e->getMessage();
+            routeIaLog($requestId, 'file_process_error', [
+                'name' => $file['name'] ?? null,
+                'id_documento' => $documentId,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             if ($documentId) {
                 db()->execute(
                     "UPDATE DocumentoIAArchivo SET estado = 'error', error_mensaje = ? WHERE id_documento = ?",
@@ -271,16 +341,27 @@ function analizarFotosRutaImpl($id_ruta) {
         }
     }
 
+    routeIaLog($requestId, 'refresh_lote_start', ['id_lote' => $loteId]);
     refreshRouteIaLoteStats($loteId);
+    routeIaLog($requestId, 'refresh_lote_ok', ['id_lote' => $loteId]);
 
     if ($processed === 0 && !empty($errores)) {
+        routeIaLog($requestId, 'finished_with_no_processed', ['errores' => $errores]);
         http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'No se pudo procesar la hoja de ruta con IA', 'errores' => $errores, 'id_lote' => $loteId]);
+        echo json_encode(['success' => false, 'request_id' => $requestId, 'message' => 'No se pudo procesar la hoja de ruta con IA', 'errores' => $errores, 'id_lote' => $loteId, 'debug_log' => routeIaLogPathForResponse()]);
         return;
     }
 
+    routeIaLog($requestId, 'success_response', [
+        'id_lote' => $loteId,
+        'processed' => $processed,
+        'suggestions' => count($allSuggestions),
+        'sin_match' => count($allUnmatched),
+        'errores' => count($errores)
+    ]);
     echo json_encode([
         'success' => true,
+        'request_id' => $requestId,
         'id_lote' => $loteId,
         'resumen' => [
             'archivos' => count($files),
@@ -724,6 +805,77 @@ function getRouteContextForIa($id_ruta) {
     unset($servicio);
 
     return ['ruta' => $ruta, 'servicios' => $servicios];
+}
+
+function routeIaRequestId() {
+    try {
+        return 'ria_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4));
+    } catch (Exception $e) {
+        return 'ria_' . date('Ymd_His') . '_' . mt_rand(1000, 9999);
+    }
+}
+
+function routeIaLog($requestId, $stage, $context = []) {
+    $entry = [
+        'ts' => date('c'),
+        'request_id' => $requestId,
+        'stage' => $stage,
+        'context' => sanitizeRouteIaLogContext($context)
+    ];
+    $line = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+
+    $paths = routeIaLogCandidatePaths();
+    $written = false;
+    foreach ($paths as $path) {
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        if (is_dir($dir) && @file_put_contents($path, $line, FILE_APPEND | LOCK_EX) !== false) {
+            $written = true;
+            break;
+        }
+    }
+
+    if (!$written) {
+        error_log('[control_ruta_ia] ' . trim($line));
+    }
+}
+
+function routeIaLogCandidatePaths() {
+    return [
+        __DIR__ . '/../uploads/control_ruta_ia/debug.log',
+        __DIR__ . '/../uploads/control_ruta_ia_debug.log',
+        sys_get_temp_dir() . '/control_ruta_ia_debug.log'
+    ];
+}
+
+function routeIaLogPathForResponse() {
+    foreach (routeIaLogCandidatePaths() as $path) {
+        if (is_writable(dirname($path)) || file_exists($path)) {
+            return str_replace('\\', '/', $path);
+        }
+    }
+    return 'PHP error_log';
+}
+
+function sanitizeRouteIaLogContext($value) {
+    if (is_array($value)) {
+        $clean = [];
+        foreach ($value as $key => $item) {
+            $keyText = (string)$key;
+            if (preg_match('/api[_-]?key|token|secret|password|private[_-]?key|authorization/i', $keyText)) {
+                $clean[$key] = '[redacted]';
+                continue;
+            }
+            $clean[$key] = sanitizeRouteIaLogContext($item);
+        }
+        return $clean;
+    }
+    if (is_string($value) && strlen($value) > 1000) {
+        return substr($value, 0, 1000) . '...[truncated]';
+    }
+    return $value;
 }
 
 function ensureRouteIaSchema() {
