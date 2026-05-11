@@ -47,7 +47,8 @@ function getPendientes() {
             s.fecha_pago, s.forma_pago,
             COALESCE(se.nombre_comercial, 'Sin Sede') as sede_nombre, 
             se.contacto_telefono, 
-            COALESCE(cs.tarifa, 0) as tarifa_servicio, 
+            COALESCE(s.monto_cobrado, cs.tarifa, 0) as tarifa_servicio,
+            cs.tarifa as tarifa_contrato, s.monto_cobrado,
             se.distrito, se.direccion,
             COALESCE(e.razon_social, 'Sin Empresa') as empresa_razon_social, 
             e.ruc as empresa_ruc,
@@ -98,14 +99,14 @@ function getPendientes() {
     
     $stats = db()->queryOne("
         SELECT 
-            SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(cs.tarifa, 0) ELSE 0 END) as total_pendiente,
+            SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END) as total_pendiente,
             SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' 
                 AND DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 
-                THEN COALESCE(cs.tarifa, 0) ELSE 0 END) as total_vencido,
+                THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END) as total_vencido,
             SUM(CASE WHEN s.estado_pago = 'pagado' 
                 AND MONTH(s.fecha_pago) = MONTH(CURDATE()) 
                 AND YEAR(s.fecha_pago) = YEAR(CURDATE())
-                THEN COALESCE(cs.tarifa, 0) ELSE 0 END) as cobrado_mes,
+                THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END) as cobrado_mes,
             COUNT(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN 1 END) as count_pendientes
         FROM Servicio s
         LEFT JOIN Sede se ON s.id_sede = se.id_sede
@@ -238,10 +239,10 @@ function getReporteDiario() {
     $pagos = db()->queryOne("
         SELECT 
             COUNT(*) as cantidad,
-            SUM(cs.tarifa) as total,
-            SUM(CASE WHEN s.forma_pago = 'transferencia' THEN cs.tarifa ELSE 0 END) as transferencia,
-            SUM(CASE WHEN s.forma_pago IN ('yape', 'plin') THEN cs.tarifa ELSE 0 END) as yape_plin,
-            SUM(CASE WHEN s.forma_pago = 'efectivo' THEN cs.tarifa ELSE 0 END) as efectivo
+            SUM(COALESCE(s.monto_cobrado, cs.tarifa)) as total,
+            SUM(CASE WHEN LOWER(s.forma_pago) = 'transferencia' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as transferencia,
+            SUM(CASE WHEN LOWER(s.forma_pago) IN ('yape', 'plin') THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as yape_plin,
+            SUM(CASE WHEN LOWER(s.forma_pago) = 'efectivo' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as efectivo
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
@@ -252,13 +253,13 @@ function getReporteDiario() {
     $pendientes = db()->queryOne("
         SELECT 
             COUNT(*) as cantidad,
-            SUM(cs.tarifa) as total,
-            SUM(CASE WHEN DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 THEN cs.tarifa ELSE 0 END) as vencido
+            SUM(COALESCE(s.monto_cobrado, cs.tarifa)) as total,
+            SUM(CASE WHEN DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as vencido
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
         WHERE COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
-        AND cs.tarifa > 0
+        AND COALESCE(s.monto_cobrado, cs.tarifa) > 0
     ");
     
     echo json_encode([

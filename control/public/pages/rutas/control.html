@@ -371,6 +371,44 @@
             border: 1px solid #c8e6c9;
         }
 
+        .ai-route-wrap {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8fbff;
+            flex-shrink: 0;
+        }
+
+        .ai-status {
+            font-size: 0.76rem;
+            color: #455a64;
+        }
+
+        .ai-suggestion {
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.65rem;
+            border: 1px solid #b3e5fc;
+            border-radius: 6px;
+            background: #f1fbff;
+            font-size: 0.76rem;
+            color: #24556a;
+        }
+
+        .ai-suggestion.warn {
+            border-color: #ffcc80;
+            background: #fff8e1;
+            color: #6d4c00;
+        }
+
+        .ai-field-changed {
+            border-color: #00acc1 !important;
+            box-shadow: 0 0 0 0.12rem rgba(0, 172, 193, 0.18);
+        }
+
+        .monto-diff {
+            color: #b26a00;
+            font-weight: 700;
+        }
+
         /* Print */
         @media print {
 
@@ -472,6 +510,20 @@
                             </div>
                         </div>
 
+                        <div class="ai-route-wrap d-none" id="aiRouteWrap">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <input type="file" id="aiRutaFiles" class="d-none" multiple
+                                    accept=".jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,image/*,application/pdf"
+                                    onchange="analizarRutaIa()">
+                                <button class="btn btn-outline-primary btn-sm" id="btnUploadIa"
+                                    onclick="document.getElementById('aiRutaFiles').click()">
+                                    <i class="bi bi-stars me-1"></i>Subir hoja de ruta IA
+                                </button>
+                                <span class="ai-status" id="aiRutaStatus">Fotos o PDF de una o mas hojas.</span>
+                            </div>
+                            <div id="aiUnmatched" class="mt-2"></div>
+                        </div>
+
                         <!-- Sedes list -->
                         <div class="panel-body p-3" id="sedesList">
                             <div class="empty-state">
@@ -514,6 +566,7 @@
 
         // Loaded services for current route
         let currentServicios = [];
+        let currentRutaMeta = null;
 
         const PAYMENT_METHODS = ['Yape', 'Plin', 'Efectivo', 'Transferencia', 'Cheque', 'Depósito', 'Otro'];
 
@@ -560,6 +613,22 @@
 
         function nowDisplay() {
             return new Date().toLocaleDateString('es-PE') + ' ' + new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[c]));
+        }
+
+        function parseNullableNumber(value) {
+            if (value === null || value === undefined || value === '') return null;
+            const num = Number(String(value).replace(',', '.'));
+            return Number.isFinite(num) ? num : null;
         }
 
         // ========================
@@ -656,6 +725,9 @@
             document.getElementById('detailTitle').textContent = 'Cargando...';
             document.getElementById('detailCount').classList.add('d-none');
             document.getElementById('progressWrap').classList.add('d-none');
+            document.getElementById('aiRouteWrap').classList.add('d-none');
+            document.getElementById('aiUnmatched').innerHTML = '';
+            document.getElementById('aiRutaStatus').textContent = 'Fotos o PDF de una o mas hojas.';
             document.getElementById('saveBar').classList.add('d-none');
             document.getElementById('sedesList').innerHTML =
                 '<div class="empty-state"><div class="spinner-border spinner-border-sm text-success"></div><span>Cargando sedes...</span></div>';
@@ -669,6 +741,7 @@
                 }
 
                 const ruta = result.data;
+                currentRutaMeta = ruta;
                 currentServicios = ruta.servicios || [];
 
                 // Header
@@ -691,6 +764,12 @@
                         forma_pago: s.forma_pago || '',
                         firmaServicio: s.firma_servicio,
                         firmaPago: s.firma_pago,
+                        peso_kg: s.peso_kg ?? null,
+                        monto_cobrado: s.monto_cobrado ?? null,
+                        numero_manifiesto: s.numero_manifiesto || null,
+                        numero_guia: s.numero_guia || null,
+                        ai_confianza: null,
+                        ai_anotacion: null,
                         // Track if user touched this in the current session
                         editadoServicio: false,
                         editadoPago: false,
@@ -700,6 +779,7 @@
                 renderSedes();
                 updateProgressAndSave();
                 document.getElementById('progressWrap').classList.remove('d-none');
+                document.getElementById('aiRouteWrap').classList.remove('d-none');
                 document.getElementById('saveBar').classList.remove('d-none');
 
             } catch (err) {
@@ -805,6 +885,10 @@
                     </div>
 
                     <!-- ③ RUC Search & Document Entry -->
+                    <div id="aiInfo-${s.id_servicio}">
+                        ${renderAiInfo(s, edit)}
+                    </div>
+
                     <div class="action-strip mt-1">
                         <i class="bi bi-search text-dark"></i>
                         <label>Buscar por RUC:</label>
@@ -821,20 +905,37 @@
                         </div>
                     </div>
 
-                    <!-- Document form (hidden until empresa selected) -->
-                    <div class="doc-form-section d-none" id="docForm-${s.id_servicio}">
+                    <!-- Document, weight and collected amount review -->
+                    <div class="doc-form-section" id="docForm-${s.id_servicio}">
                         <div class="row g-2 align-items-end">
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
+                                <label class="form-label">Peso kg</label>
+                                <input type="number" step="0.01" min="0" class="form-control form-control-sm"
+                                       id="pesoKg-${s.id_servicio}" value="${edit.peso_kg ?? ''}"
+                                       onchange="onDatoIaChange(${s.id_servicio}, 'peso_kg', this.value)">
+                            </div>
+                            <div class="col-sm-3">
+                                <label class="form-label">Monto cobrado</label>
+                                <input type="number" step="0.01" min="0" class="form-control form-control-sm"
+                                       id="montoCobrado-${s.id_servicio}" value="${edit.monto_cobrado ?? ''}"
+                                       onchange="onDatoIaChange(${s.id_servicio}, 'monto_cobrado', this.value)">
+                            </div>
+                            <div class="col-sm-3">
                                 <label class="form-label">Nº Manifiesto</label>
                                 <input type="text" class="form-control form-control-sm"
-                                       id="numManifiesto-${s.id_servicio}" placeholder="Ej: MAN-001">
+                                       id="numManifiesto-${s.id_servicio}" value="${escapeHtml(edit.numero_manifiesto || '')}"
+                                       placeholder="Ej: MAN-001"
+                                       onchange="onDatoIaChange(${s.id_servicio}, 'numero_manifiesto', this.value)">
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <label class="form-label">Nº Guía</label>
                                 <input type="text" class="form-control form-control-sm"
-                                       id="numGuia-${s.id_servicio}" placeholder="Ej: GR-001">
+                                       id="numGuia-${s.id_servicio}" value="${escapeHtml(edit.numero_guia || '')}"
+                                       placeholder="Ej: GR-001"
+                                       onchange="onDatoIaChange(${s.id_servicio}, 'numero_guia', this.value)">
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-12">
+                                ${renderMontoDiff(s, edit)}
                                 <button class="btn btn-sm btn-primary w-100" onclick="saveDocumentos(${s.id_servicio})">
                                     <i class="bi bi-save me-1"></i>Guardar Docs
                                 </button>
@@ -845,6 +946,25 @@
                 </div>
             </div>`;
             }).join('');
+        }
+
+        function renderAiInfo(s, edit) {
+            if (edit.ai_confianza === null && !edit.ai_anotacion) return '';
+            const confianza = edit.ai_confianza !== null ? Math.round(Number(edit.ai_confianza) * 100) : null;
+            const warn = confianza !== null && confianza < 70;
+            return `<div class="ai-suggestion${warn ? ' warn' : ''}">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span><i class="bi bi-stars me-1"></i>IA${confianza !== null ? ` ${confianza}%` : ''}</span>
+                    ${edit.ai_anotacion ? `<span>${escapeHtml(edit.ai_anotacion)}</span>` : ''}
+                </div>
+            </div>`;
+        }
+
+        function renderMontoDiff(s, edit) {
+            const monto = parseNullableNumber(edit.monto_cobrado);
+            const tarifa = parseNullableNumber(s.tarifa_servicio);
+            if (monto === null || tarifa === null || Math.abs(monto - tarifa) < 0.01) return '';
+            return `<div class="mb-2 monto-diff"><i class="bi bi-exclamation-triangle me-1"></i>Monto cobrado distinto: S/ ${monto.toFixed(2)} vs tarifa S/ ${tarifa.toFixed(2)}</div>`;
         }
 
         function renderFirma(firma, isPago) {
@@ -883,6 +1003,16 @@
             localEdits[id].forma_pago = val;
             localEdits[id].editadoPago = true;
             document.getElementById(`btnConfPago-${id}`).disabled = false;
+        }
+
+        function onDatoIaChange(id, field, value) {
+            const edit = localEdits[id];
+            if (!edit) return;
+            if (field === 'peso_kg' || field === 'monto_cobrado') {
+                edit[field] = parseNullableNumber(value);
+            } else {
+                edit[field] = String(value || '').trim() || null;
+            }
         }
 
         // ========================
@@ -1037,6 +1167,8 @@
                     const edit = localEdits[s.id_servicio];
                     const manifiestoInput = document.getElementById(`numManifiesto-${s.id_servicio}`);
                     const guiaInput = document.getElementById(`numGuia-${s.id_servicio}`);
+                    const pesoInput = document.getElementById(`pesoKg-${s.id_servicio}`);
+                    const montoInput = document.getElementById(`montoCobrado-${s.id_servicio}`);
                     return {
                         id_servicio: s.id_servicio,
                         id_sede: s.id_sede,
@@ -1046,6 +1178,8 @@
                         fecha_pago: edit.estado_pago === 'pagado' ? new Date().toISOString().split('T')[0] : null,
                         residuo: s.residuo || null,
                         observaciones: s.observaciones || null,
+                        peso_kg: parseNullableNumber(pesoInput?.value ?? edit.peso_kg),
+                        monto_cobrado: parseNullableNumber(montoInput?.value ?? edit.monto_cobrado),
                         numero_manifiesto: manifiestoInput?.value.trim() || edit.numero_manifiesto || null,
                         numero_guia: guiaInput?.value.trim() || edit.numero_guia || null
                     };
@@ -1104,6 +1238,7 @@
                 if (!result.success) return;
 
                 const ruta = result.data;
+                currentRutaMeta = ruta;
                 currentServicios = ruta.servicios || [];
 
                 currentServicios.forEach(s => {
@@ -1113,6 +1248,12 @@
                         forma_pago: s.forma_pago || '',
                         firmaServicio: s.firma_servicio,
                         firmaPago: s.firma_pago,
+                        peso_kg: s.peso_kg ?? null,
+                        monto_cobrado: s.monto_cobrado ?? null,
+                        numero_manifiesto: s.numero_manifiesto || null,
+                        numero_guia: s.numero_guia || null,
+                        ai_confianza: null,
+                        ai_anotacion: null,
                         editadoServicio: false,
                         editadoPago: false,
                     };
@@ -1127,6 +1268,108 @@
             } catch (err) {
                 console.error('Error reloading route:', err);
             }
+        }
+
+        async function analizarRutaIa() {
+            const input = document.getElementById('aiRutaFiles');
+            const files = Array.from(input.files || []);
+            if (!currentRutaId || files.length === 0) return;
+
+            const btn = document.getElementById('btnUploadIa');
+            const status = document.getElementById('aiRutaStatus');
+            const unmatchedEl = document.getElementById('aiUnmatched');
+            const originalHtml = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Analizando...';
+            status.textContent = `${files.length} archivo(s) en procesamiento IA`;
+            unmatchedEl.innerHTML = '';
+
+            const formData = new FormData();
+            files.forEach(file => formData.append('archivos[]', file));
+
+            try {
+                const headers = {};
+                const token = api.getToken();
+                if (token) headers.Authorization = `Bearer ${token}`;
+
+                const response = await fetch(api.buildUrl(`/control_ruta?action=analizar_fotos&id_ruta=${currentRutaId}`), {
+                    method: 'POST',
+                    headers,
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (!result.success) {
+                    showToast(result.message || 'No se pudo analizar la ruta con IA', 'danger');
+                    status.textContent = result.message || 'Error de IA';
+                    return;
+                }
+
+                aplicarSugerenciasIa(result.servicios || []);
+                renderSinMatchIa(result.sin_match || [], result.errores || []);
+                const resumen = result.resumen || {};
+                status.textContent = `${resumen.sugerencias || 0} sugerencia(s) aplicadas · ${resumen.sin_match || 0} sin coincidencia`;
+                showToast('Sugerencias IA cargadas para revision', 'success');
+            } catch (err) {
+                showToast('Error de conexion al procesar con IA', 'danger');
+                status.textContent = 'Error de conexion';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                input.value = '';
+            }
+        }
+
+        function aplicarSugerenciasIa(servicios) {
+            if (!Array.isArray(servicios) || servicios.length === 0) return;
+
+            servicios.forEach(sug => {
+                const id = Number(sug.id_servicio);
+                const edit = localEdits[id];
+                if (!edit) return;
+
+                if (sug.estado) {
+                    edit.estado = sug.estado;
+                    edit.editadoServicio = true;
+                }
+                if (sug.estado_pago) {
+                    edit.estado_pago = sug.estado_pago;
+                    edit.editadoPago = true;
+                }
+                if (sug.forma_pago) {
+                    edit.forma_pago = sug.forma_pago;
+                    edit.editadoPago = true;
+                }
+                if (sug.peso_kg !== null && sug.peso_kg !== undefined) edit.peso_kg = Number(sug.peso_kg);
+                if (sug.monto_cobrado !== null && sug.monto_cobrado !== undefined) edit.monto_cobrado = Number(sug.monto_cobrado);
+                if (sug.numero_manifiesto) edit.numero_manifiesto = sug.numero_manifiesto;
+                if (sug.numero_guia) edit.numero_guia = sug.numero_guia;
+                edit.ai_confianza = sug.confianza ?? null;
+                edit.ai_anotacion = sug.anotacion_original || null;
+            });
+
+            renderSedes();
+            updateProgressAndSave();
+        }
+
+        function renderSinMatchIa(items, errores) {
+            const el = document.getElementById('aiUnmatched');
+            const chunks = [];
+
+            if (items.length > 0) {
+                chunks.push(`<div class="alert alert-warning py-2 mb-2">
+                    <strong>Sin coincidencia:</strong>
+                    ${items.map(item => `<div>${escapeHtml(item.texto_fila || item.anotacion_original || 'Fila sin identificar')} ${item.motivo ? `· ${escapeHtml(item.motivo)}` : ''}</div>`).join('')}
+                </div>`);
+            }
+            if (errores.length > 0) {
+                chunks.push(`<div class="alert alert-danger py-2 mb-0">
+                    ${errores.map(error => `<div>${escapeHtml(error)}</div>`).join('')}
+                </div>`);
+            }
+
+            el.innerHTML = chunks.join('');
         }
 
         // ========================
@@ -1209,8 +1452,16 @@
             const docForm = document.getElementById(`docForm-${idServicio}`);
             const numManifiesto = document.getElementById(`numManifiesto-${idServicio}`).value.trim();
             const numGuia = document.getElementById(`numGuia-${idServicio}`).value.trim();
+            const pesoKg = parseNullableNumber(document.getElementById(`pesoKg-${idServicio}`)?.value);
+            const montoCobrado = parseNullableNumber(document.getElementById(`montoCobrado-${idServicio}`)?.value);
+            const edit = localEdits[idServicio] || {};
+            edit.peso_kg = pesoKg;
+            edit.monto_cobrado = montoCobrado;
+            edit.numero_manifiesto = numManifiesto || null;
+            edit.numero_guia = numGuia || null;
+            localEdits[idServicio] = edit;
 
-            if (!numManifiesto && !numGuia) {
+            if (!numManifiesto && !numGuia && pesoKg === null && montoCobrado === null) {
                 showToast('Ingrese al menos un número de documento', 'warning');
                 return;
             }

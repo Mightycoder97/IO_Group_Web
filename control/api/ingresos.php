@@ -45,7 +45,8 @@ function getIngresosServicios() {
     $id_sede = $_GET['id_sede'] ?? null;
     
     $sql = "SELECT s.id_servicio, s.mes_servicio, s.fecha_ejecucion, s.fecha_pago, s.forma_pago,
-            se.nombre_comercial as sede_nombre, cs.tarifa as monto,
+            se.nombre_comercial as sede_nombre, COALESCE(s.monto_cobrado, cs.tarifa) as monto,
+            cs.tarifa as tarifa_servicio, s.monto_cobrado,
             e.razon_social as empresa_razon_social
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
@@ -56,7 +57,7 @@ function getIngresosServicios() {
     $params = [$fecha_desde, $fecha_hasta];
     
     if ($forma_pago) {
-        $sql .= " AND s.forma_pago = ?";
+        $sql .= " AND LOWER(s.forma_pago) = LOWER(?)";
         $params[] = $forma_pago;
     }
     
@@ -72,11 +73,11 @@ function getIngresosServicios() {
     // Totales por método de pago
     $totales = db()->queryOne("
         SELECT 
-            SUM(cs.tarifa) as total,
-            SUM(CASE WHEN s.forma_pago = 'transferencia' THEN cs.tarifa ELSE 0 END) as transferencia,
-            SUM(CASE WHEN s.forma_pago IN ('yape', 'plin') THEN cs.tarifa ELSE 0 END) as yape_plin,
-            SUM(CASE WHEN s.forma_pago = 'efectivo' THEN cs.tarifa ELSE 0 END) as efectivo,
-            SUM(CASE WHEN s.forma_pago IS NULL OR s.forma_pago NOT IN ('transferencia', 'yape', 'plin', 'efectivo') THEN cs.tarifa ELSE 0 END) as otros,
+            SUM(COALESCE(s.monto_cobrado, cs.tarifa)) as total,
+            SUM(CASE WHEN LOWER(s.forma_pago) = 'transferencia' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as transferencia,
+            SUM(CASE WHEN LOWER(s.forma_pago) IN ('yape', 'plin') THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as yape_plin,
+            SUM(CASE WHEN LOWER(s.forma_pago) = 'efectivo' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as efectivo,
+            SUM(CASE WHEN s.forma_pago IS NULL OR LOWER(s.forma_pago) NOT IN ('transferencia', 'yape', 'plin', 'efectivo') THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as otros,
             COUNT(*) as cantidad
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
@@ -226,7 +227,7 @@ function getConsolidacion() {
     $servicios = db()->queryOne("
         SELECT 
             COUNT(*) as cantidad,
-            SUM(cs.tarifa) as total
+            SUM(COALESCE(s.monto_cobrado, cs.tarifa)) as total
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
@@ -248,7 +249,7 @@ function getConsolidacion() {
         SELECT 
             COALESCE(s.forma_pago, 'no_especificado') as metodo,
             COUNT(*) as cantidad,
-            SUM(cs.tarifa) as total
+            SUM(COALESCE(s.monto_cobrado, cs.tarifa)) as total
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
@@ -262,7 +263,7 @@ function getConsolidacion() {
     $porDia = db()->query("
         SELECT 
             s.fecha_pago as fecha,
-            SUM(cs.tarifa) as total
+            SUM(COALESCE(s.monto_cobrado, cs.tarifa)) as total
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
@@ -320,7 +321,8 @@ function getIngresosPorRuta() {
                    s.fecha_pago, s.forma_pago,
                    se.id_sede, se.nombre_comercial as sede_nombre, 
                    se.direccion as sede_direccion, se.distrito,
-                   cs.tarifa as monto,
+                   COALESCE(s.monto_cobrado, cs.tarifa) as monto,
+                   cs.tarifa as tarifa_servicio, s.monto_cobrado,
                    e.razon_social as empresa_razon_social
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede

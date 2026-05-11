@@ -7,6 +7,7 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/jwt.php';
 require_once __DIR__ . '/helpers/ruta_plan.php';
+require_once __DIR__ . '/helpers/vertex_gemini.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id_ruta = $_GET['id_ruta'] ?? null;
@@ -25,6 +26,13 @@ switch ($method) {
         else {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Acción no válida']);
+        }
+        break;
+    case 'POST':
+        if ($action === 'analizar_fotos') analizarFotosRuta($id_ruta);
+        else {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'AcciÃ³n no vÃ¡lida']);
         }
         break;
     default:
@@ -60,9 +68,11 @@ function getRouteServices($id_ruta) {
         }
 
         // Get services for this route with sede/empresa info and tarifa
+        $montoCobradoSelect = tableColumnExists('Servicio', 'monto_cobrado') ? 's.monto_cobrado' : 'NULL';
         $servicios = db()->query(
             "SELECT s.id_servicio, s.id_sede, s.estado, s.estado_pago, s.forma_pago,
-                    s.fecha_pago, s.residuo, s.observaciones,
+                    s.fecha_pago, s.residuo, s.observaciones, $montoCobradoSelect as monto_cobrado,
+                    m.numero_manifiesto, m.peso_kg, g.numero_guia,
                     se.nombre_comercial as sede_nombre, se.direccion, se.distrito,
                     se.contacto_nombre, se.contacto_telefono,
                     e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
@@ -70,6 +80,8 @@ function getRouteServices($id_ruta) {
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+             LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
+             LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
              LEFT JOIN (
                  SELECT cs1.id_sede, cs1.tarifa
                  FROM ContratoServicio cs1
@@ -134,6 +146,8 @@ function getRouteServices($id_ruta) {
             $sid = intval($s['id_servicio']);
             $s['firma_servicio'] = $firmaServicio[$sid] ?? null;
             $s['firma_pago']     = $firmaPago[$sid] ?? null;
+            $s['monto_cobrado'] = $s['monto_cobrado'] !== null ? floatval($s['monto_cobrado']) : null;
+            $s['peso_kg'] = $s['peso_kg'] !== null ? floatval($s['peso_kg']) : null;
         }
         unset($s);
 
@@ -152,6 +166,124 @@ function getRouteServices($id_ruta) {
         http_response_code(500);
         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
+}
+
+function analizarFotosRuta($id_ruta) {
+    $user = canEdit();
+    $id_ruta = intval($id_ruta ?? 0);
+
+    if ($id_ruta <= 0) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'id_ruta requerido']);
+        return;
+    }
+
+    $client = new VertexGeminiClient();
+    if (!$client->isConfigured()) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Vertex AI no esta configurado. Configure GOOGLE_API_KEY o VERTEX_SERVICE_ACCOUNT_JSON_BASE64.']);
+        return;
+    }
+
+    $routeData = getRouteContextForIa($id_ruta);
+    if (!$routeData) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'message' => 'Ruta no encontrada']);
+        return;
+    }
+
+    $files = normalizeRouteIaFiles($_FILES['archivos'] ?? $_FILES['archivo'] ?? null);
+    if (empty($files)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Seleccione al menos una foto o PDF de la ruta']);
+        return;
+    }
+
+    try {
+        foreach ($files as $file) {
+            validateRouteIaFile($file);
+        }
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        return;
+    }
+
+    $loteId = createRouteIaLote($routeData['ruta'], count($files), $user);
+    $uploadDir = __DIR__ . '/../uploads/control_ruta_ia/ruta_' . $id_ruta . '/lote_' . $loteId . '/';
+    if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'No se pudo preparar la carpeta de evidencia IA']);
+        return;
+    }
+
+    $allSuggestions = [];
+    $allUnmatched = [];
+    $errores = [];
+    $processed = 0;
+    $prompt = buildRouteIaPrompt($routeData['ruta'], $routeData['servicios']);
+    $schema = buildRouteIaSchema();
+
+    foreach ($files as $file) {
+        $documentId = null;
+        try {
+            $saved = saveRouteIaUpload($file, $uploadDir, $loteId);
+            $documentId = $saved['id_documento'];
+
+            $extracted = $client->extractStructuredDocument(
+                $saved['absolute_path'],
+                $saved['mime_type'],
+                $prompt,
+                $schema
+            );
+
+            $normalized = normalizeRouteIaExtraction($extracted, $routeData['servicios']);
+            $allSuggestions = mergeRouteIaSuggestions($allSuggestions, $normalized['servicios']);
+            $allUnmatched = array_merge($allUnmatched, $normalized['sin_match']);
+            $processed++;
+
+            db()->execute(
+                "UPDATE DocumentoIAArchivo SET tipo_detectado = 'ruta', estado = ?, confianza = ?, datos_extraidos = ?, conflictos = ?, fecha_modificacion = NOW() WHERE id_documento = ?",
+                [
+                    empty($normalized['sin_match']) ? 'extraido' : 'requiere_revision',
+                    $normalized['confianza'],
+                    json_encode($normalized['raw'], JSON_UNESCAPED_UNICODE),
+                    json_encode($normalized['sin_match'], JSON_UNESCAPED_UNICODE),
+                    $documentId
+                ]
+            );
+        } catch (Exception $e) {
+            $errores[] = $file['name'] . ': ' . $e->getMessage();
+            if ($documentId) {
+                db()->execute(
+                    "UPDATE DocumentoIAArchivo SET estado = 'error', error_mensaje = ? WHERE id_documento = ?",
+                    [$e->getMessage(), $documentId]
+                );
+            }
+        }
+    }
+
+    refreshRouteIaLoteStats($loteId);
+
+    if ($processed === 0 && !empty($errores)) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'No se pudo procesar la hoja de ruta con IA', 'errores' => $errores, 'id_lote' => $loteId]);
+        return;
+    }
+
+    echo json_encode([
+        'success' => true,
+        'id_lote' => $loteId,
+        'resumen' => [
+            'archivos' => count($files),
+            'procesados' => $processed,
+            'sugerencias' => count($allSuggestions),
+            'sin_match' => count($allUnmatched)
+        ],
+        'servicios' => array_values($allSuggestions),
+        'sin_match' => $allUnmatched,
+        'errores' => $errores
+    ]);
 }
 
 /**
@@ -226,6 +358,7 @@ function batchUpdate() {
         $updated = 0;
         $created = 0;
         $today = date('Y-m-d');
+        $supportsMontoCobrado = tableColumnExists('Servicio', 'monto_cobrado');
 
         foreach ($servicios as $srv) {
             $id_servicio  = intval($srv['id_servicio'] ?? 0);
@@ -237,6 +370,7 @@ function batchUpdate() {
             $fecha_pago   = ($estado_pago === 'pagado') ? ($srv['fecha_pago'] ?? $today) : null;
             $residuo      = trim($srv['residuo'] ?? '') ?: null;
             $observaciones = trim($srv['observaciones'] ?? ($srv['obs'] ?? '')) ?: null;
+            $monto_cobrado = decimalOrNull($srv['monto_cobrado'] ?? null);
 
             // Fetch existing service
             $existing = null;
@@ -282,6 +416,9 @@ function batchUpdate() {
             if ($observaciones !== null && $observaciones !== ($existing['observaciones'] ?? null)) {
                 $nuevosDatos['observaciones'] = $observaciones;
             }
+            if ($supportsMontoCobrado && $monto_cobrado !== null && floatsDifferent($monto_cobrado, $existing['monto_cobrado'] ?? null)) {
+                $nuevosDatos['monto_cobrado'] = $monto_cobrado;
+            }
 
             if (!empty($nuevosDatos)) {
 
@@ -307,6 +444,13 @@ function batchUpdate() {
                     ]
                 );
 
+                if (array_key_exists('monto_cobrado', $nuevosDatos)) {
+                    db()->execute(
+                        "UPDATE Servicio SET monto_cobrado = ?, fecha_modificacion = NOW() WHERE id_servicio = ?",
+                        [$nuevosDatos['monto_cobrado'], $id_servicio]
+                    );
+                }
+
             // Write AuditLog signature — full nuevos datos for traceability
             $auditData = array_merge($nuevosDatos, [
                 'id_servicio' => $id_servicio,
@@ -320,7 +464,7 @@ function batchUpdate() {
                 [
                     $user['id'],
                     $id_servicio,
-                    json_encode(['estado' => $existing['estado'], 'estado_pago' => $existing['estado_pago'], 'forma_pago' => $existing['forma_pago']]),
+                    json_encode(['estado' => $existing['estado'], 'estado_pago' => $existing['estado_pago'], 'forma_pago' => $existing['forma_pago'], 'monto_cobrado' => $existing['monto_cobrado'] ?? null]),
                     json_encode($auditData),
                     $_SERVER['REMOTE_ADDR'] ?? null
                 ]
@@ -411,26 +555,34 @@ function createServicioFromControl($ruta, $srv, $user, $today) {
     $fecha_pago = ($estado_pago === 'pagado') ? ($srv['fecha_pago'] ?? $today) : null;
     $residuo = trim($srv['residuo'] ?? '') ?: null;
     $observaciones = trim($srv['observaciones'] ?? ($srv['obs'] ?? '')) ?: null;
+    $monto_cobrado = decimalOrNull($srv['monto_cobrado'] ?? null);
     $mes_servicio = substr($ruta['fecha'], 0, 7);
 
+    $insertColumns = "id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, forma_pago, fecha_pago, residuo, observaciones";
+    $insertPlaceholders = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?";
+    $insertParams = [
+        $ruta['id_ruta'],
+        $id_sede,
+        $id_planta,
+        $id_contrato,
+        $mes_servicio,
+        $ruta['fecha'],
+        $estado,
+        $estado_pago,
+        $forma_pago,
+        $fecha_pago,
+        $residuo,
+        $observaciones
+    ];
+    if (tableColumnExists('Servicio', 'monto_cobrado')) {
+        $insertColumns .= ", monto_cobrado";
+        $insertPlaceholders .= ", ?";
+        $insertParams[] = $monto_cobrado;
+    }
+
     $id_servicio = db()->insert(
-        "INSERT INTO Servicio
-            (id_ruta, id_sede, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, forma_pago, fecha_pago, residuo, observaciones)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        [
-            $ruta['id_ruta'],
-            $id_sede,
-            $id_planta,
-            $id_contrato,
-            $mes_servicio,
-            $ruta['fecha'],
-            $estado,
-            $estado_pago,
-            $forma_pago,
-            $fecha_pago,
-            $residuo,
-            $observaciones
-        ]
+        "INSERT INTO Servicio ($insertColumns) VALUES ($insertPlaceholders)",
+        $insertParams
     );
 
     $serviceData = [
@@ -446,7 +598,8 @@ function createServicioFromControl($ruta, $srv, $user, $today) {
         'forma_pago' => $forma_pago,
         'fecha_pago' => $fecha_pago,
         'residuo' => $residuo,
-        'observaciones' => $observaciones
+        'observaciones' => $observaciones,
+        'monto_cobrado' => $monto_cobrado
     ];
 
     db()->execute(
@@ -475,21 +628,21 @@ function createServicioFromControl($ruta, $srv, $user, $today) {
 function saveServicioDocsFromControl($id_servicio, $srv) {
     $numeroManifiesto = trim($srv['numero_manifiesto'] ?? '');
     $numeroGuia = trim($srv['numero_guia'] ?? '');
+    $pesoKg = decimalOrNull($srv['peso_kg'] ?? null);
 
-    if ($numeroManifiesto !== '') {
-        $pesoKg = isset($srv['peso_kg']) && $srv['peso_kg'] !== '' ? $srv['peso_kg'] : 0;
+    if ($numeroManifiesto !== '' || $pesoKg !== null) {
         $tipoResiduo = trim($srv['residuo'] ?? '') ?: 'Residuos Solidos';
         $existing = db()->queryOne("SELECT id_manifiesto FROM Manifiesto WHERE id_servicio = ?", [$id_servicio]);
 
         if ($existing) {
             db()->execute(
-                "UPDATE Manifiesto SET numero_manifiesto = ?, peso_kg = COALESCE(?, peso_kg), tipo_residuo = ? WHERE id_servicio = ?",
+                "UPDATE Manifiesto SET numero_manifiesto = COALESCE(NULLIF(?, ''), numero_manifiesto), peso_kg = COALESCE(?, peso_kg), tipo_residuo = ? WHERE id_servicio = ?",
                 [$numeroManifiesto, $pesoKg, $tipoResiduo, $id_servicio]
             );
         } else {
             db()->execute(
                 "INSERT INTO Manifiesto (id_servicio, numero_manifiesto, peso_kg, tipo_residuo) VALUES (?, ?, ?, ?)",
-                [$id_servicio, $numeroManifiesto, $pesoKg, $tipoResiduo]
+                [$id_servicio, $numeroManifiesto !== '' ? $numeroManifiesto : null, $pesoKg, $tipoResiduo]
             );
         }
     }
@@ -509,4 +662,474 @@ function saveServicioDocsFromControl($id_servicio, $srv) {
             );
         }
     }
+}
+
+function getRouteContextForIa($id_ruta) {
+    $ruta = db()->queryOne(
+        "SELECT r.*, v.placa as vehiculo_placa,
+                CONCAT(ch.nombres, ' ', ch.apellidos) as chofer_nombre
+         FROM Ruta r
+         INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
+         LEFT JOIN Empleado ch ON r.id_chofer = ch.id_empleado
+         WHERE r.id_ruta = ?",
+        [$id_ruta]
+    );
+    if (!$ruta) return null;
+
+    $montoCobradoSelect = tableColumnExists('Servicio', 'monto_cobrado') ? 's.monto_cobrado' : 'NULL';
+    $servicios = db()->query(
+        "SELECT s.id_servicio, s.id_sede, s.estado, s.estado_pago, s.forma_pago,
+                s.fecha_pago, s.residuo, s.observaciones, $montoCobradoSelect as monto_cobrado,
+                m.numero_manifiesto, m.peso_kg, g.numero_guia,
+                se.nombre_comercial as sede_nombre, se.direccion, se.distrito,
+                e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
+                cs.tarifa as tarifa_servicio
+         FROM Servicio s
+         INNER JOIN Sede se ON s.id_sede = se.id_sede
+         INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+         LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
+         LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
+         LEFT JOIN (
+             SELECT cs1.id_sede, cs1.tarifa
+             FROM ContratoServicio cs1
+             WHERE cs1.activo = 1
+             AND cs1.fecha_inicio = (
+                 SELECT MAX(cs2.fecha_inicio) FROM ContratoServicio cs2
+                 WHERE cs2.id_sede = cs1.id_sede AND cs2.activo = 1
+             )
+         ) cs ON s.id_sede = cs.id_sede
+         WHERE s.id_ruta = ?
+         ORDER BY s.id_servicio ASC",
+        [$id_ruta]
+    );
+
+    if (empty($servicios)) {
+        $servicios = buildRutaPlanServicios(getRutaPlanSedes($id_ruta));
+    }
+
+    foreach ($servicios as $idx => &$servicio) {
+        $servicio['orden'] = $idx + 1;
+        $servicio['monto_cobrado'] = isset($servicio['monto_cobrado']) && $servicio['monto_cobrado'] !== null ? floatval($servicio['monto_cobrado']) : null;
+        $servicio['peso_kg'] = isset($servicio['peso_kg']) && $servicio['peso_kg'] !== null ? floatval($servicio['peso_kg']) : null;
+        $servicio['tarifa_servicio'] = isset($servicio['tarifa_servicio']) && $servicio['tarifa_servicio'] !== null ? floatval($servicio['tarifa_servicio']) : null;
+    }
+    unset($servicio);
+
+    return ['ruta' => $ruta, 'servicios' => $servicios];
+}
+
+function buildRouteIaPrompt($ruta, $servicios) {
+    $context = array_map(function ($s) {
+        return [
+            'orden' => intval($s['orden'] ?? 0),
+            'id_servicio' => intval($s['id_servicio'] ?? 0),
+            'id_sede' => intval($s['id_sede'] ?? 0),
+            'ruc' => $s['empresa_ruc'] ?? null,
+            'empresa' => $s['empresa_razon_social'] ?? null,
+            'sede' => $s['sede_nombre'] ?? null,
+            'direccion' => $s['direccion'] ?? null,
+            'distrito' => $s['distrito'] ?? null,
+            'tarifa' => $s['tarifa_servicio'] ?? null
+        ];
+    }, $servicios);
+
+    $contextJson = json_encode([
+        'ruta' => [
+            'id_ruta' => intval($ruta['id_ruta']),
+            'codigo_ruta' => $ruta['codigo_ruta'] ?? null,
+            'fecha' => $ruta['fecha'] ?? null,
+            'vehiculo' => $ruta['vehiculo_placa'] ?? null,
+            'chofer' => $ruta['chofer_nombre'] ?? null
+        ],
+        'puntos_sistema' => $context
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    return <<<PROMPT
+Eres el extractor de control de ruta de IO Group Peru. Lee la foto o PDF de una hoja de ruta con anotaciones manuscritas de transportistas.
+
+Devuelve solo JSON valido segun el esquema. No inventes datos. Si un campo no esta visible, usa null.
+
+Objetivo:
+- Empatar cada fila visible con un punto del sistema usando orden, RUC, razon social, sede, direccion o distrito.
+- Extraer principalmente peso, metodo de pago y monto realmente cobrado.
+- La hoja puede estar girada, doblada, resaltada o tener varias paginas.
+- Las anotaciones suelen estar en la columna OBS o al lado derecho de la hoja.
+
+Reglas de lectura de pagos:
+- Y, YAPE o YAP = Yape.
+- E, EFECT o EFECTIVO = Efectivo.
+- T, TR, TRF, TRANS o TRANSF = Transferencia.
+- P o PLIN = Plin.
+- Si hay monto escrito sin metodo, marca estado_pago como pagado, forma_pago como Otro y baja la confianza.
+- Si hay metodo o monto de pago, estado_pago debe ser pagado.
+- Si una fila no tiene anotacion clara de pago, deja estado_pago y forma_pago en null.
+
+Reglas de lectura de montos y peso:
+- peso_kg es el peso de residuos, normalmente cerca de la columna PESO o anotado como kg.
+- monto_cobrado es dinero cobrado al cliente; puede ser distinto a la tarifa impresa.
+- No confundas RUC, telefono, tarifa impresa o numero de direccion con monto cobrado.
+- Si una anotacion dice algo como "150", "S/150" o "cobro 150" en OBS, eso es monto_cobrado.
+
+Contexto de puntos del sistema:
+$contextJson
+
+Incluye la anotacion manuscrita original que justifica cada sugerencia.
+PROMPT;
+}
+
+function buildRouteIaSchema() {
+    $nullableString = ['type' => 'STRING', 'nullable' => true];
+    $nullableNumber = ['type' => 'NUMBER', 'nullable' => true];
+    $nullableInteger = ['type' => 'INTEGER', 'nullable' => true];
+
+    return [
+        'type' => 'OBJECT',
+        'properties' => [
+            'confianza_extraccion' => ['type' => 'NUMBER'],
+            'explicacion_extraccion' => $nullableString,
+            'servicios' => [
+                'type' => 'ARRAY',
+                'items' => [
+                    'type' => 'OBJECT',
+                    'properties' => [
+                        'orden' => $nullableInteger,
+                        'id_servicio' => $nullableInteger,
+                        'id_sede' => $nullableInteger,
+                        'ruc' => $nullableString,
+                        'razon_social' => $nullableString,
+                        'sede_nombre' => $nullableString,
+                        'estado' => $nullableString,
+                        'estado_pago' => $nullableString,
+                        'forma_pago' => $nullableString,
+                        'peso_kg' => $nullableNumber,
+                        'monto_cobrado' => $nullableNumber,
+                        'numero_manifiesto' => $nullableString,
+                        'numero_guia' => $nullableString,
+                        'anotacion_original' => $nullableString,
+                        'confianza' => ['type' => 'NUMBER', 'nullable' => true]
+                    ]
+                ]
+            ],
+            'sin_match' => [
+                'type' => 'ARRAY',
+                'items' => [
+                    'type' => 'OBJECT',
+                    'properties' => [
+                        'orden' => $nullableInteger,
+                        'texto_fila' => $nullableString,
+                        'anotacion_original' => $nullableString,
+                        'confianza' => ['type' => 'NUMBER', 'nullable' => true],
+                        'motivo' => $nullableString
+                    ]
+                ]
+            ]
+        ],
+        'required' => ['confianza_extraccion']
+    ];
+}
+
+function normalizeRouteIaExtraction($data, $servicios) {
+    $byServicio = [];
+    $bySede = [];
+    $byOrden = [];
+    foreach ($servicios as $servicio) {
+        $idServicio = intval($servicio['id_servicio'] ?? 0);
+        $idSede = intval($servicio['id_sede'] ?? 0);
+        $orden = intval($servicio['orden'] ?? 0);
+        if ($idServicio !== 0) $byServicio[$idServicio] = $servicio;
+        if ($idSede > 0) $bySede[$idSede] = $servicio;
+        if ($orden > 0) $byOrden[$orden] = $servicio;
+    }
+
+    $suggestions = [];
+    $unmatched = [];
+    $rows = is_array($data['servicios'] ?? null) ? $data['servicios'] : [];
+    foreach ($rows as $row) {
+        if (!is_array($row)) continue;
+        $matched = null;
+        $idServicio = intval($row['id_servicio'] ?? 0);
+        $idSede = intval($row['id_sede'] ?? 0);
+        $orden = intval($row['orden'] ?? 0);
+
+        if ($idServicio !== 0 && isset($byServicio[$idServicio])) $matched = $byServicio[$idServicio];
+        elseif ($idSede > 0 && isset($bySede[$idSede])) $matched = $bySede[$idSede];
+        elseif ($orden > 0 && isset($byOrden[$orden])) $matched = $byOrden[$orden];
+
+        if (!$matched) {
+            $unmatched[] = [
+                'orden' => $orden ?: null,
+                'texto_fila' => trim((string)($row['razon_social'] ?? $row['sede_nombre'] ?? '')) ?: null,
+                'anotacion_original' => trim((string)($row['anotacion_original'] ?? '')) ?: null,
+                'confianza' => clamp01(floatval($row['confianza'] ?? $data['confianza_extraccion'] ?? 0.35)),
+                'motivo' => 'No se pudo empatar con una sede de la ruta seleccionada'
+            ];
+            continue;
+        }
+
+        $formaPago = normalizeRouteIaFormaPago($row['forma_pago'] ?? null);
+        $montoCobrado = decimalOrNull($row['monto_cobrado'] ?? null);
+        $estadoPago = normalizeRouteIaEstadoPago($row['estado_pago'] ?? null, $formaPago, $montoCobrado);
+        $confianzaFila = clamp01(floatval($row['confianza'] ?? $data['confianza_extraccion'] ?? 0.75));
+        if ($estadoPago === 'pagado' && !$formaPago) {
+            $formaPago = 'Otro';
+            if ($montoCobrado !== null) {
+                $confianzaFila = min($confianzaFila, 0.65);
+            }
+        }
+
+        $suggestion = [
+            'id_servicio' => intval($matched['id_servicio']),
+            'id_sede' => intval($matched['id_sede']),
+            'confianza' => $confianzaFila,
+            'estado' => normalizeRouteIaEstado($row['estado'] ?? null),
+            'estado_pago' => $estadoPago,
+            'forma_pago' => $formaPago,
+            'peso_kg' => decimalOrNull($row['peso_kg'] ?? null),
+            'monto_cobrado' => $montoCobrado,
+            'numero_manifiesto' => trim((string)($row['numero_manifiesto'] ?? '')) ?: null,
+            'numero_guia' => trim((string)($row['numero_guia'] ?? '')) ?: null,
+            'anotacion_original' => trim((string)($row['anotacion_original'] ?? '')) ?: null
+        ];
+
+        $hasData = $suggestion['estado_pago'] || $suggestion['forma_pago'] || $suggestion['peso_kg'] !== null
+            || $suggestion['monto_cobrado'] !== null || $suggestion['numero_manifiesto'] || $suggestion['numero_guia'];
+
+        if ($hasData) {
+            $suggestions[] = $suggestion;
+        }
+    }
+
+    foreach (($data['sin_match'] ?? []) as $row) {
+        if (!is_array($row)) continue;
+        $unmatched[] = [
+            'orden' => isset($row['orden']) ? intval($row['orden']) : null,
+            'texto_fila' => trim((string)($row['texto_fila'] ?? '')) ?: null,
+            'anotacion_original' => trim((string)($row['anotacion_original'] ?? '')) ?: null,
+            'confianza' => clamp01(floatval($row['confianza'] ?? 0.35)),
+            'motivo' => trim((string)($row['motivo'] ?? 'Sin coincidencia')) ?: 'Sin coincidencia'
+        ];
+    }
+
+    return [
+        'confianza' => clamp01(floatval($data['confianza_extraccion'] ?? 0.75)),
+        'servicios' => $suggestions,
+        'sin_match' => $unmatched,
+        'raw' => $data
+    ];
+}
+
+function mergeRouteIaSuggestions($existing, $incoming) {
+    foreach ($incoming as $item) {
+        $key = intval($item['id_servicio']);
+        if (!isset($existing[$key])) {
+            $existing[$key] = $item;
+            continue;
+        }
+
+        $current = $existing[$key];
+        $preferIncoming = floatval($item['confianza'] ?? 0) >= floatval($current['confianza'] ?? 0);
+        foreach (['estado', 'estado_pago', 'forma_pago', 'peso_kg', 'monto_cobrado', 'numero_manifiesto', 'numero_guia'] as $field) {
+            if (($current[$field] ?? null) === null || ($preferIncoming && ($item[$field] ?? null) !== null)) {
+                $current[$field] = $item[$field] ?? $current[$field] ?? null;
+            }
+        }
+        $current['confianza'] = max(floatval($current['confianza'] ?? 0), floatval($item['confianza'] ?? 0));
+        if (!empty($item['anotacion_original'])) {
+            $current['anotacion_original'] = trim(($current['anotacion_original'] ?? '') . (($current['anotacion_original'] ?? '') ? ' | ' : '') . $item['anotacion_original']);
+        }
+        $existing[$key] = $current;
+    }
+    return $existing;
+}
+
+function createRouteIaLote($ruta, $totalArchivos, $user) {
+    $nombre = 'Control Ruta IA ' . ($ruta['codigo_ruta'] ?? ('Ruta ' . $ruta['id_ruta'])) . ' ' . date('Y-m-d H:i');
+    $userId = $user['id'] ?? $user['id_usuario'] ?? null;
+
+    if (tableColumnExists('DocumentoIALote', 'id_ruta')) {
+        return intval(db()->insert(
+            "INSERT INTO DocumentoIALote (nombre, tipo_lote, estado, total_archivos, id_usuario, id_ruta) VALUES (?, 'ruta', 'procesando', ?, ?, ?)",
+            [$nombre, $totalArchivos, $userId, $ruta['id_ruta']]
+        ));
+    }
+
+    return intval(db()->insert(
+        "INSERT INTO DocumentoIALote (nombre, tipo_lote, estado, total_archivos, id_usuario) VALUES (?, 'ruta', 'procesando', ?, ?)",
+        [$nombre, $totalArchivos, $userId]
+    ));
+}
+
+function saveRouteIaUpload($file, $uploadDir, $loteId) {
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $safeBase = preg_replace('/[^a-zA-Z0-9._-]+/', '_', pathinfo($file['name'], PATHINFO_FILENAME));
+    $fileName = date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '_' . substr($safeBase, 0, 80) . '.' . $ext;
+    $absolutePath = $uploadDir . $fileName;
+
+    if (!move_uploaded_file($file['tmp_name'], $absolutePath)) {
+        throw new Exception('No se pudo guardar el archivo ' . $file['name']);
+    }
+
+    $rootPath = realpath(__DIR__ . '/..');
+    $storedPath = realpath($absolutePath) ?: $absolutePath;
+    $relativePath = str_replace('\\', '/', ltrim(substr($storedPath, strlen($rootPath)), '/\\'));
+    $mimeType = detectRouteIaMimeType($absolutePath, $file['type'] ?? null);
+    $id = db()->insert(
+        "INSERT INTO DocumentoIAArchivo
+         (id_lote, nombre_original, ruta_archivo, mime_type, tamano_bytes, tipo_detectado, estado)
+         VALUES (?, ?, ?, ?, ?, 'ruta', 'procesando')",
+        [$loteId, $file['name'], $relativePath, $mimeType, $file['size']]
+    );
+
+    return [
+        'id_documento' => intval($id),
+        'absolute_path' => $absolutePath,
+        'relative_path' => $relativePath,
+        'mime_type' => $mimeType
+    ];
+}
+
+function refreshRouteIaLoteStats($loteId) {
+    $stats = db()->queryOne(
+        "SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN estado IN ('extraido','requiere_revision','aprobado','rechazado','error') THEN 1 ELSE 0 END) as procesados,
+            SUM(CASE WHEN estado = 'aprobado' THEN 1 ELSE 0 END) as aprobados,
+            SUM(CASE WHEN estado = 'rechazado' THEN 1 ELSE 0 END) as rechazados,
+            SUM(CASE WHEN estado = 'error' THEN 1 ELSE 0 END) as errores
+         FROM DocumentoIAArchivo WHERE id_lote = ?",
+        [$loteId]
+    );
+
+    $total = intval($stats['total'] ?? 0);
+    $procesados = intval($stats['procesados'] ?? 0);
+    $estado = ($total > 0 && $procesados >= $total) ? (intval($stats['errores'] ?? 0) === $total ? 'error' : 'completado') : 'procesando';
+
+    db()->execute(
+        "UPDATE DocumentoIALote SET total_archivos = ?, procesados = ?, aprobados = ?, rechazados = ?, estado = ? WHERE id_lote = ?",
+        [$total, $procesados, intval($stats['aprobados'] ?? 0), intval($stats['rechazados'] ?? 0), $estado, $loteId]
+    );
+}
+
+function normalizeRouteIaFiles($files) {
+    if (!$files || empty($files['name'])) return [];
+    if (is_array($files['name'])) {
+        $normalized = [];
+        foreach ($files['name'] as $idx => $name) {
+            if ($name === '') continue;
+            $normalized[] = [
+                'name' => $name,
+                'type' => $files['type'][$idx] ?? null,
+                'tmp_name' => $files['tmp_name'][$idx] ?? null,
+                'error' => $files['error'][$idx] ?? UPLOAD_ERR_NO_FILE,
+                'size' => $files['size'][$idx] ?? 0
+            ];
+        }
+        return $normalized;
+    }
+    return [$files];
+}
+
+function validateRouteIaFile($file) {
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || empty($file['tmp_name'])) {
+        throw new Exception('Archivo invalido o incompleto.');
+    }
+    if (($file['size'] ?? 0) > 30 * 1024 * 1024) {
+        throw new Exception('Cada archivo no debe superar 30 MB.');
+    }
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowed = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+    if (!in_array($ext, $allowed, true)) {
+        throw new Exception('Formato no permitido: ' . $ext);
+    }
+}
+
+function detectRouteIaMimeType($filePath, $fallback) {
+    if (function_exists('finfo_open') && is_readable($filePath)) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = $finfo ? finfo_file($finfo, $filePath) : null;
+        if ($finfo) finfo_close($finfo);
+        if ($mime) return $mime;
+    }
+    return $fallback ?: 'application/octet-stream';
+}
+
+function normalizeRouteIaFormaPago($value) {
+    $text = normalizeRouteIaText($value);
+    if ($text === '') return null;
+    if (preg_match('/\b(y|yap|yape)\b/', $text)) return 'Yape';
+    if (preg_match('/\b(p|plin)\b/', $text)) return 'Plin';
+    if (preg_match('/\b(e|efect|efectivo)\b/', $text)) return 'Efectivo';
+    if (preg_match('/\b(t|tr|trf|trans|transf|transferencia)\b/', $text)) return 'Transferencia';
+    if (strpos($text, 'deposit') !== false) return 'Deposito';
+    if (strpos($text, 'cheque') !== false) return 'Cheque';
+    return ucfirst($text);
+}
+
+function normalizeRouteIaEstadoPago($value, $formaPago, $montoCobrado) {
+    $text = normalizeRouteIaText($value);
+    if ($formaPago || $montoCobrado !== null) return 'pagado';
+    if ($text === '') return null;
+    if (strpos($text, 'pag') !== false || strpos($text, 'cancel') !== false || strpos($text, 'cobrad') !== false) return 'pagado';
+    if (strpos($text, 'pend') !== false || strpos($text, 'debe') !== false) return 'pendiente';
+    return null;
+}
+
+function normalizeRouteIaEstado($value) {
+    $text = normalizeRouteIaText($value);
+    if ($text === '') return 'completado';
+    if (strpos($text, 'cancel') !== false || strpos($text, 'no atend') !== false) return 'cancelado';
+    if (strpos($text, 'curso') !== false) return 'en_curso';
+    if (strpos($text, 'program') !== false) return 'programado';
+    return 'completado';
+}
+
+function normalizeRouteIaText($value) {
+    $value = mb_strtolower(trim((string)$value), 'UTF-8');
+    if (function_exists('iconv')) {
+        $converted = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+        if ($converted !== false) $value = $converted;
+    }
+    $value = preg_replace('/[^a-z0-9]+/', ' ', $value);
+    return trim(preg_replace('/\s+/', ' ', $value));
+}
+
+function decimalOrNull($value) {
+    if ($value === null || $value === '') return null;
+    if (is_numeric($value)) return round(floatval($value), 2);
+    $clean = str_replace(',', '.', preg_replace('/[^0-9,.\-]+/', '', (string)$value));
+    if ($clean === '' || !is_numeric($clean)) return null;
+    return round(floatval($clean), 2);
+}
+
+function floatsDifferent($a, $b) {
+    if ($a === null && $b === null) return false;
+    if ($a === null || $b === null) return true;
+    return abs(floatval($a) - floatval($b)) > 0.009;
+}
+
+function clamp01($value) {
+    if ($value < 0) return 0;
+    if ($value > 1) return 1;
+    return $value;
+}
+
+function tableColumnExists($table, $column) {
+    static $cache = [];
+    $key = $table . '.' . $column;
+    if (array_key_exists($key, $cache)) return $cache[$key];
+
+    try {
+        $row = db()->queryOne(
+            "SELECT COUNT(*) as cnt
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?
+               AND COLUMN_NAME = ?",
+            [$table, $column]
+        );
+        $cache[$key] = intval($row['cnt'] ?? 0) > 0;
+    } catch (Exception $e) {
+        $cache[$key] = false;
+    }
+    return $cache[$key];
 }

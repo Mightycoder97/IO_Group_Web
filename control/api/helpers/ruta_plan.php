@@ -108,6 +108,10 @@ function buildRutaPlanServicios($planSedes) {
             'forma_pago' => $item['forma_pago'] ?? null,
             'residuo' => $item['residuo'] ?? null,
             'observaciones' => $item['obs'] ?? null,
+            'monto_cobrado' => null,
+            'numero_manifiesto' => null,
+            'numero_guia' => null,
+            'peso_kg' => null,
             'firma_servicio' => null,
             'firma_pago' => null,
             'pendiente_creacion' => true
