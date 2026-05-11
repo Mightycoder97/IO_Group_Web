@@ -337,6 +337,7 @@ function analizarFotosRutaImpl($id_ruta, $requestId) {
                 'message' => $e->getMessage(),
                 'class' => get_class($e),
                 'code' => $e->getCode(),
+                'vertex_context' => method_exists($e, 'getContext') ? $e->getContext() : null,
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
@@ -1091,13 +1092,14 @@ function buildRouteIaPrompt($ruta, $servicios) {
     return <<<PROMPT
 Eres el extractor de control de ruta de IO Group Peru. Lee la foto o PDF de una hoja de ruta con anotaciones manuscritas de transportistas.
 
-Devuelve solo JSON valido segun el esquema. No inventes datos. Si un campo no esta visible, usa null.
+Devuelve exclusivamente un objeto JSON valido segun el esquema, sin markdown, sin bloque ```json y sin explicaciones fuera del JSON. La primera letra de la respuesta debe ser { y la ultima debe ser }. No inventes datos. Si un campo no esta visible, usa null.
 
 Objetivo:
 - Empatar cada fila visible con un punto del sistema usando orden, RUC, razon social, sede, direccion o distrito.
 - Extraer principalmente peso, metodo de pago y monto realmente cobrado.
 - La hoja puede estar girada, doblada, resaltada o tener varias paginas.
 - Las anotaciones suelen estar en la columna OBS o al lado derecho de la hoja.
+- En "servicios" devuelve solo filas con anotaciones o datos detectados; omite filas sin cambios.
 
 Reglas de lectura de pagos:
 - Y, YAPE o YAP = Yape.
@@ -1173,6 +1175,14 @@ function buildRouteIaSchema() {
 }
 
 function normalizeRouteIaExtraction($data, $servicios) {
+    if (!isset($data['servicios']) && routeIaArrayIsList($data)) {
+        $data = [
+            'confianza_extraccion' => 0.65,
+            'servicios' => $data,
+            'sin_match' => []
+        ];
+    }
+
     $byServicio = [];
     $bySede = [];
     $byOrden = [];
@@ -1260,6 +1270,16 @@ function normalizeRouteIaExtraction($data, $servicios) {
         'sin_match' => $unmatched,
         'raw' => $data
     ];
+}
+
+function routeIaArrayIsList($value) {
+    if (!is_array($value)) return false;
+    $expected = 0;
+    foreach (array_keys($value) as $key) {
+        if ($key !== $expected) return false;
+        $expected++;
+    }
+    return true;
 }
 
 function mergeRouteIaSuggestions($existing, $incoming) {

@@ -8,6 +8,21 @@
  * No Google SDK dependency is required; this is meant for shared PHP hosting.
  */
 
+if (!class_exists('VertexGeminiResponseException')) {
+    class VertexGeminiResponseException extends Exception {
+        private $context;
+
+        public function __construct($message, $context = [], $code = 0, $previous = null) {
+            parent::__construct($message, $code, $previous);
+            $this->context = $context;
+        }
+
+        public function getContext() {
+            return $this->context;
+        }
+    }
+}
+
 class VertexGeminiClient {
     private $projectId;
     private $location;
@@ -88,7 +103,7 @@ class VertexGeminiClient {
             'generationConfig' => [
                 'temperature' => 0.1,
                 'topP' => 0.8,
-                'maxOutputTokens' => 8192,
+                'maxOutputTokens' => 16384,
                 'responseMimeType' => 'application/json',
                 'responseSchema' => $schema
             ]
@@ -97,15 +112,28 @@ class VertexGeminiClient {
         $endpoint = $this->buildGenerateContentEndpoint();
         $response = $this->postJson($endpoint['url'], $body, $endpoint['headers']);
 
-        $text = $response['candidates'][0]['content']['parts'][0]['text'] ?? null;
+        $text = $this->extractTextFromResponse($response);
         if (!$text) {
             $reason = $response['candidates'][0]['finishReason'] ?? 'sin contenido';
             throw new Exception('Vertex no devolvio JSON util: ' . $reason);
         }
 
-        $decoded = json_decode($this->stripJsonFences($text), true);
+        $parseDebug = [];
+        $decoded = $this->decodeJsonText($text, $parseDebug);
         if (!is_array($decoded)) {
-            throw new Exception('Vertex devolvio una respuesta que no es JSON valido.');
+            $finishReason = $response['candidates'][0]['finishReason'] ?? null;
+            throw new VertexGeminiResponseException(
+                'Vertex devolvio una respuesta que no es JSON valido: ' . ($parseDebug['json_error'] ?? 'error desconocido'),
+                [
+                    'finish_reason' => $finishReason,
+                    'text_length' => strlen($text),
+                    'json_error' => $parseDebug['json_error'] ?? null,
+                    'attempts' => $parseDebug['attempts'] ?? [],
+                    'raw_text_preview' => $this->previewText($text, 1800),
+                    'candidate_preview' => $this->previewText($parseDebug['last_candidate'] ?? '', 1800),
+                    'safety_ratings' => $response['candidates'][0]['safetyRatings'] ?? null
+                ]
+            );
         }
 
         return $decoded;
@@ -265,6 +293,76 @@ class VertexGeminiClient {
         return $data;
     }
 
+    private function extractTextFromResponse($response) {
+        $parts = $response['candidates'][0]['content']['parts'] ?? [];
+        $texts = [];
+        foreach ($parts as $part) {
+            if (isset($part['text']) && trim((string)$part['text']) !== '') {
+                $texts[] = (string)$part['text'];
+            }
+        }
+        return trim(implode("\n", $texts));
+    }
+
+    private function decodeJsonText($text, &$debug = []) {
+        $candidates = [];
+        $candidates[] = ['label' => 'raw', 'text' => trim($text)];
+        $candidates[] = ['label' => 'stripped_fences', 'text' => $this->stripJsonFences($text)];
+
+        $fenced = $this->extractFencedJson($text);
+        if ($fenced !== null) {
+            $candidates[] = ['label' => 'fenced_block', 'text' => $fenced];
+        }
+
+        $likely = $this->extractLikelyJson($text);
+        if ($likely !== null) {
+            $candidates[] = ['label' => 'likely_json', 'text' => $likely];
+        }
+
+        $seen = [];
+        $debug = ['attempts' => []];
+        foreach ($candidates as $candidate) {
+            $candidateText = trim((string)$candidate['text']);
+            if ($candidateText === '') continue;
+
+            $fingerprint = md5($candidateText);
+            if (isset($seen[$fingerprint])) continue;
+            $seen[$fingerprint] = true;
+
+            $decoded = json_decode($candidateText, true, 512, JSON_INVALID_UTF8_SUBSTITUTE);
+            $debug['attempts'][] = [
+                'label' => $candidate['label'],
+                'length' => strlen($candidateText),
+                'json_error' => json_last_error_msg()
+            ];
+            if (is_array($decoded)) {
+                $debug['json_error'] = null;
+                $debug['last_candidate'] = $candidateText;
+                return $decoded;
+            }
+
+            $repaired = preg_replace('/,\s*([}\]])/', '$1', $candidateText);
+            if ($repaired !== $candidateText) {
+                $decoded = json_decode($repaired, true, 512, JSON_INVALID_UTF8_SUBSTITUTE);
+                $debug['attempts'][] = [
+                    'label' => $candidate['label'] . '_without_trailing_commas',
+                    'length' => strlen($repaired),
+                    'json_error' => json_last_error_msg()
+                ];
+                if (is_array($decoded)) {
+                    $debug['json_error'] = null;
+                    $debug['last_candidate'] = $repaired;
+                    return $decoded;
+                }
+            }
+
+            $debug['json_error'] = json_last_error_msg();
+            $debug['last_candidate'] = $candidateText;
+        }
+
+        return null;
+    }
+
     private function stripJsonFences($text) {
         $text = trim($text);
         if (strpos($text, '```') === 0) {
@@ -272,6 +370,38 @@ class VertexGeminiClient {
             $text = preg_replace('/\s*```$/', '', $text);
         }
         return trim($text);
+    }
+
+    private function extractFencedJson($text) {
+        if (preg_match('/```(?:json)?\s*(.*?)\s*```/is', $text, $matches)) {
+            return trim($matches[1]);
+        }
+        return null;
+    }
+
+    private function extractLikelyJson($text) {
+        $text = trim($text);
+        $objectStart = strpos($text, '{');
+        $objectEnd = strrpos($text, '}');
+        if ($objectStart !== false && $objectEnd !== false && $objectEnd > $objectStart) {
+            return trim(substr($text, $objectStart, $objectEnd - $objectStart + 1));
+        }
+
+        $arrayStart = strpos($text, '[');
+        $arrayEnd = strrpos($text, ']');
+        if ($arrayStart !== false && $arrayEnd !== false && $arrayEnd > $arrayStart) {
+            return trim(substr($text, $arrayStart, $arrayEnd - $arrayStart + 1));
+        }
+
+        return null;
+    }
+
+    private function previewText($text, $limit = 1000) {
+        $text = trim((string)$text);
+        if (strlen($text) <= $limit) {
+            return $text;
+        }
+        return substr($text, 0, $limit) . '...[truncated]';
     }
 
     private function base64UrlEncode($data) {
