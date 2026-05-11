@@ -1298,7 +1298,16 @@
                     headers,
                     body: formData
                 });
-                const result = await response.json();
+                const rawText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (parseError) {
+                    result = {
+                        success: false,
+                        message: rawText ? rawText.slice(0, 300) : `Error HTTP ${response.status}`
+                    };
+                }
 
                 if (!result.success) {
                     showToast(result.message || 'No se pudo analizar la ruta con IA', 'danger');

@@ -169,6 +169,18 @@ function getRouteServices($id_ruta) {
 }
 
 function analizarFotosRuta($id_ruta) {
+    try {
+        analizarFotosRutaImpl($id_ruta);
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Error al analizar hoja de ruta IA: ' . $e->getMessage()
+        ]);
+    }
+}
+
+function analizarFotosRutaImpl($id_ruta) {
     $user = canEdit();
     $id_ruta = intval($id_ruta ?? 0);
 
@@ -178,12 +190,7 @@ function analizarFotosRuta($id_ruta) {
         return;
     }
 
-    $client = new VertexGeminiClient();
-    if (!$client->isConfigured()) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'Vertex AI no esta configurado. Configure GOOGLE_API_KEY o VERTEX_SERVICE_ACCOUNT_JSON_BASE64.']);
-        return;
-    }
+    ensureRouteIaSchema();
 
     $routeData = getRouteContextForIa($id_ruta);
     if (!$routeData) {
@@ -221,6 +228,7 @@ function analizarFotosRuta($id_ruta) {
     $allUnmatched = [];
     $errores = [];
     $processed = 0;
+    $client = new VertexGeminiClient();
     $prompt = buildRouteIaPrompt($routeData['ruta'], $routeData['servicios']);
     $schema = buildRouteIaSchema();
 
@@ -718,6 +726,73 @@ function getRouteContextForIa($id_ruta) {
     return ['ruta' => $ruta, 'servicios' => $servicios];
 }
 
+function ensureRouteIaSchema() {
+    db()->execute(
+        "CREATE TABLE IF NOT EXISTS DocumentoIALote (
+            id_lote int(11) NOT NULL AUTO_INCREMENT,
+            nombre varchar(150) NOT NULL,
+            tipo_lote enum('mixto','ruta','manifiestos','guias','facturas') DEFAULT 'mixto',
+            estado enum('pendiente','procesando','completado','error') DEFAULT 'pendiente',
+            total_archivos int(11) DEFAULT 0,
+            procesados int(11) DEFAULT 0,
+            aprobados int(11) DEFAULT 0,
+            rechazados int(11) DEFAULT 0,
+            id_usuario int(11) DEFAULT NULL,
+            id_ruta int(11) DEFAULT NULL,
+            error_mensaje text DEFAULT NULL,
+            fecha_creacion datetime DEFAULT current_timestamp(),
+            fecha_modificacion datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+            PRIMARY KEY (id_lote),
+            KEY idx_doc_ia_lote_estado (estado),
+            KEY idx_doc_ia_lote_usuario (id_usuario),
+            KEY idx_doc_ia_lote_ruta (id_ruta)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+
+    db()->execute(
+        "CREATE TABLE IF NOT EXISTS DocumentoIAArchivo (
+            id_documento int(11) NOT NULL AUTO_INCREMENT,
+            id_lote int(11) NOT NULL,
+            nombre_original varchar(255) NOT NULL,
+            ruta_archivo varchar(500) NOT NULL,
+            mime_type varchar(120) DEFAULT NULL,
+            tamano_bytes int(11) DEFAULT NULL,
+            pagina_inicio int(11) DEFAULT NULL,
+            pagina_fin int(11) DEFAULT NULL,
+            tipo_detectado enum('ruta','manifiesto','guia','factura','desconocido') DEFAULT 'desconocido',
+            estado enum('pendiente','procesando','extraido','requiere_revision','aprobado','rechazado','error') DEFAULT 'pendiente',
+            confianza decimal(5,4) DEFAULT NULL,
+            id_servicio_sugerido int(11) DEFAULT NULL,
+            explicacion_matching text DEFAULT NULL,
+            datos_extraidos longtext DEFAULT NULL,
+            candidatos_servicio longtext DEFAULT NULL,
+            conflictos longtext DEFAULT NULL,
+            propuesta_servicio longtext DEFAULT NULL,
+            resultado_aprobacion longtext DEFAULT NULL,
+            error_mensaje text DEFAULT NULL,
+            id_usuario_aprobador int(11) DEFAULT NULL,
+            fecha_aprobacion datetime DEFAULT NULL,
+            fecha_creacion datetime DEFAULT current_timestamp(),
+            fecha_modificacion datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+            PRIMARY KEY (id_documento),
+            KEY idx_doc_ia_archivo_lote (id_lote),
+            KEY idx_doc_ia_archivo_estado (estado),
+            KEY idx_doc_ia_archivo_tipo (tipo_detectado),
+            KEY idx_doc_ia_archivo_servicio (id_servicio_sugerido)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+
+    if (!tableColumnExists('DocumentoIALote', 'id_ruta')) {
+        db()->execute("ALTER TABLE DocumentoIALote ADD COLUMN id_ruta int(11) DEFAULT NULL AFTER id_usuario");
+    }
+    if (!tableIndexExists('DocumentoIALote', 'idx_doc_ia_lote_ruta')) {
+        db()->execute("ALTER TABLE DocumentoIALote ADD KEY idx_doc_ia_lote_ruta (id_ruta)");
+    }
+    if (!tableColumnExists('Servicio', 'monto_cobrado')) {
+        db()->execute("ALTER TABLE Servicio ADD COLUMN monto_cobrado decimal(10,2) DEFAULT NULL AFTER forma_pago");
+    }
+}
+
 function buildRouteIaPrompt($ruta, $servicios) {
     $context = array_map(function ($s) {
         return [
@@ -1126,6 +1201,27 @@ function tableColumnExists($table, $column) {
                AND TABLE_NAME = ?
                AND COLUMN_NAME = ?",
             [$table, $column]
+        );
+        $cache[$key] = intval($row['cnt'] ?? 0) > 0;
+    } catch (Exception $e) {
+        $cache[$key] = false;
+    }
+    return $cache[$key];
+}
+
+function tableIndexExists($table, $index) {
+    static $cache = [];
+    $key = $table . '.' . $index;
+    if (array_key_exists($key, $cache)) return $cache[$key];
+
+    try {
+        $row = db()->queryOne(
+            "SELECT COUNT(*) as cnt
+             FROM INFORMATION_SCHEMA.STATISTICS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?
+               AND INDEX_NAME = ?",
+            [$table, $index]
         );
         $cache[$key] = intval($row['cnt'] ?? 0) > 0;
     } catch (Exception $e) {
