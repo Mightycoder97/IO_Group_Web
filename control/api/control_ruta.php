@@ -180,6 +180,8 @@ function analizarFotosRuta($id_ruta) {
     } catch (Throwable $e) {
         routeIaLog($requestId, 'fatal', [
             'message' => $e->getMessage(),
+            'class' => get_class($e),
+            'code' => $e->getCode(),
             'file' => $e->getFile(),
             'line' => $e->getLine()
         ]);
@@ -289,6 +291,7 @@ function analizarFotosRutaImpl($id_ruta, $requestId) {
             ]);
 
             routeIaLog($requestId, 'vertex_extract_start', ['id_documento' => $documentId]);
+            $vertexStart = microtime(true);
             $extracted = $client->extractStructuredDocument(
                 $saved['absolute_path'],
                 $saved['mime_type'],
@@ -297,7 +300,8 @@ function analizarFotosRutaImpl($id_ruta, $requestId) {
             );
             routeIaLog($requestId, 'vertex_extract_ok', [
                 'id_documento' => $documentId,
-                'top_keys' => array_keys($extracted)
+                'top_keys' => array_keys($extracted),
+                'duration_ms' => intval(round((microtime(true) - $vertexStart) * 1000))
             ]);
 
             $normalized = normalizeRouteIaExtraction($extracted, $routeData['servicios']);
@@ -312,7 +316,9 @@ function analizarFotosRutaImpl($id_ruta, $requestId) {
             $processed++;
 
             routeIaLog($requestId, 'document_update_start', ['id_documento' => $documentId]);
-            db()->execute(
+            routeIaDbExecute(
+                $requestId,
+                'document_update',
                 "UPDATE DocumentoIAArchivo SET tipo_detectado = 'ruta', estado = ?, confianza = ?, datos_extraidos = ?, conflictos = ?, fecha_modificacion = NOW() WHERE id_documento = ?",
                 [
                     empty($normalized['sin_match']) ? 'extraido' : 'requiere_revision',
@@ -329,20 +335,33 @@ function analizarFotosRutaImpl($id_ruta, $requestId) {
                 'name' => $file['name'] ?? null,
                 'id_documento' => $documentId,
                 'message' => $e->getMessage(),
+                'class' => get_class($e),
+                'code' => $e->getCode(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
             if ($documentId) {
-                db()->execute(
-                    "UPDATE DocumentoIAArchivo SET estado = 'error', error_mensaje = ? WHERE id_documento = ?",
-                    [$e->getMessage(), $documentId]
-                );
+                try {
+                    routeIaDbExecute(
+                        $requestId,
+                        'document_error_update',
+                        "UPDATE DocumentoIAArchivo SET estado = 'error', error_mensaje = ? WHERE id_documento = ?",
+                        [$e->getMessage(), $documentId]
+                    );
+                } catch (Throwable $dbError) {
+                    routeIaLog($requestId, 'document_error_update_failed', [
+                        'id_documento' => $documentId,
+                        'message' => $dbError->getMessage(),
+                        'class' => get_class($dbError),
+                        'code' => $dbError->getCode()
+                    ]);
+                }
             }
         }
     }
 
     routeIaLog($requestId, 'refresh_lote_start', ['id_lote' => $loteId]);
-    refreshRouteIaLoteStats($loteId);
+    refreshRouteIaLoteStats($loteId, $requestId);
     routeIaLog($requestId, 'refresh_lote_ok', ['id_lote' => $loteId]);
 
     if ($processed === 0 && !empty($errores)) {
@@ -859,6 +878,104 @@ function routeIaLogPathForResponse() {
     return 'PHP error_log';
 }
 
+function routeIaDbExecute($requestId, $stage, $sql, $params = []) {
+    try {
+        routeIaLog($requestId, $stage . '_db_execute_start', ['params_count' => count($params)]);
+        $result = db()->execute($sql, $params);
+        routeIaLog($requestId, $stage . '_db_execute_ok');
+        return $result;
+    } catch (Throwable $e) {
+        if (!routeIaDbConnectionLost($e)) {
+            routeIaLog($requestId, $stage . '_db_execute_error', [
+                'message' => $e->getMessage(),
+                'class' => get_class($e),
+                'code' => $e->getCode()
+            ]);
+            throw $e;
+        }
+
+        routeIaLog($requestId, $stage . '_db_connection_lost', [
+            'message' => $e->getMessage(),
+            'class' => get_class($e),
+            'code' => $e->getCode()
+        ]);
+        routeIaDbReconnect($requestId, $stage);
+
+        try {
+            routeIaLog($requestId, $stage . '_db_retry_start', ['params_count' => count($params)]);
+            $result = db()->execute($sql, $params);
+            routeIaLog($requestId, $stage . '_db_retry_ok');
+            return $result;
+        } catch (Throwable $retryError) {
+            routeIaLog($requestId, $stage . '_db_retry_error', [
+                'message' => $retryError->getMessage(),
+                'class' => get_class($retryError),
+                'code' => $retryError->getCode()
+            ]);
+            throw $retryError;
+        }
+    }
+}
+
+function routeIaDbQueryOne($requestId, $stage, $sql, $params = []) {
+    try {
+        routeIaLog($requestId, $stage . '_db_query_start', ['params_count' => count($params)]);
+        $result = db()->queryOne($sql, $params);
+        routeIaLog($requestId, $stage . '_db_query_ok');
+        return $result;
+    } catch (Throwable $e) {
+        if (!routeIaDbConnectionLost($e)) {
+            routeIaLog($requestId, $stage . '_db_query_error', [
+                'message' => $e->getMessage(),
+                'class' => get_class($e),
+                'code' => $e->getCode()
+            ]);
+            throw $e;
+        }
+
+        routeIaLog($requestId, $stage . '_db_connection_lost', [
+            'message' => $e->getMessage(),
+            'class' => get_class($e),
+            'code' => $e->getCode()
+        ]);
+        routeIaDbReconnect($requestId, $stage);
+
+        try {
+            routeIaLog($requestId, $stage . '_db_retry_start', ['params_count' => count($params)]);
+            $result = db()->queryOne($sql, $params);
+            routeIaLog($requestId, $stage . '_db_retry_ok');
+            return $result;
+        } catch (Throwable $retryError) {
+            routeIaLog($requestId, $stage . '_db_retry_error', [
+                'message' => $retryError->getMessage(),
+                'class' => get_class($retryError),
+                'code' => $retryError->getCode()
+            ]);
+            throw $retryError;
+        }
+    }
+}
+
+function routeIaDbReconnect($requestId, $stage) {
+    routeIaLog($requestId, $stage . '_db_reconnect_start');
+    if (!method_exists(db(), 'reconnect')) {
+        routeIaLog($requestId, $stage . '_db_reconnect_unavailable');
+        throw new Exception('No hay metodo de reconexion DB disponible');
+    }
+    db()->reconnect();
+    routeIaLog($requestId, $stage . '_db_reconnect_ok');
+}
+
+function routeIaDbConnectionLost($e) {
+    if (method_exists(db(), 'isConnectionLost')) {
+        return db()->isConnectionLost($e);
+    }
+    $message = strtolower($e->getMessage());
+    return strpos($message, 'server has gone away') !== false
+        || strpos($message, 'lost connection') !== false
+        || strpos($message, 'error while sending query packet') !== false;
+}
+
 function sanitizeRouteIaLogContext($value) {
     if (is_array($value)) {
         $clean = [];
@@ -1215,26 +1332,30 @@ function saveRouteIaUpload($file, $uploadDir, $loteId) {
     ];
 }
 
-function refreshRouteIaLoteStats($loteId) {
-    $stats = db()->queryOne(
+function refreshRouteIaLoteStats($loteId, $requestId = null) {
+    $statsSql =
         "SELECT
             COUNT(*) as total,
             SUM(CASE WHEN estado IN ('extraido','requiere_revision','aprobado','rechazado','error') THEN 1 ELSE 0 END) as procesados,
             SUM(CASE WHEN estado = 'aprobado' THEN 1 ELSE 0 END) as aprobados,
             SUM(CASE WHEN estado = 'rechazado' THEN 1 ELSE 0 END) as rechazados,
             SUM(CASE WHEN estado = 'error' THEN 1 ELSE 0 END) as errores
-         FROM DocumentoIAArchivo WHERE id_lote = ?",
-        [$loteId]
-    );
+         FROM DocumentoIAArchivo WHERE id_lote = ?";
+    $stats = $requestId
+        ? routeIaDbQueryOne($requestId, 'refresh_lote_stats', $statsSql, [$loteId])
+        : db()->queryOne($statsSql, [$loteId]);
 
     $total = intval($stats['total'] ?? 0);
     $procesados = intval($stats['procesados'] ?? 0);
     $estado = ($total > 0 && $procesados >= $total) ? (intval($stats['errores'] ?? 0) === $total ? 'error' : 'completado') : 'procesando';
 
-    db()->execute(
-        "UPDATE DocumentoIALote SET total_archivos = ?, procesados = ?, aprobados = ?, rechazados = ?, estado = ? WHERE id_lote = ?",
-        [$total, $procesados, intval($stats['aprobados'] ?? 0), intval($stats['rechazados'] ?? 0), $estado, $loteId]
-    );
+    $updateSql = "UPDATE DocumentoIALote SET total_archivos = ?, procesados = ?, aprobados = ?, rechazados = ?, estado = ? WHERE id_lote = ?";
+    $updateParams = [$total, $procesados, intval($stats['aprobados'] ?? 0), intval($stats['rechazados'] ?? 0), $estado, $loteId];
+    if ($requestId) {
+        routeIaDbExecute($requestId, 'refresh_lote_update', $updateSql, $updateParams);
+    } else {
+        db()->execute($updateSql, $updateParams);
+    }
 }
 
 function normalizeRouteIaFiles($files) {

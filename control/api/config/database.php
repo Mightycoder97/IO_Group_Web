@@ -12,16 +12,7 @@ class Database {
 
     private function __construct() {
         try {
-            $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::ATTR_PERSISTENT => true, // Enable persistent connections
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
-            ];
-            
-            $this->connection = new PDO($dsn, DB_USER, DB_PASS, $options);
+            $this->connect();
         } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode([
@@ -30,6 +21,20 @@ class Database {
             ]);
             exit();
         }
+    }
+
+    private function connect($forceNonPersistent = false) {
+        $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+        $persistent = $forceNonPersistent ? false : filter_var(getenv('DB_PERSISTENT') ?: 'false', FILTER_VALIDATE_BOOLEAN);
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_PERSISTENT => $persistent,
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+        ];
+
+        $this->connection = new PDO($dsn, DB_USER, DB_PASS, $options);
     }
 
     public static function getInstance() {
@@ -41,6 +46,32 @@ class Database {
 
     public function getConnection() {
         return $this->connection;
+    }
+
+    public function reconnect($forceNonPersistent = true) {
+        $this->connection = null;
+        $this->connect($forceNonPersistent);
+        return $this->connection;
+    }
+
+    public function ping() {
+        try {
+            $this->connection->query('SELECT 1');
+            return true;
+        } catch (PDOException $e) {
+            if ($this->isConnectionLost($e)) {
+                $this->reconnect();
+                return true;
+            }
+            throw $e;
+        }
+    }
+
+    public function isConnectionLost($e) {
+        $message = strtolower($e->getMessage());
+        return strpos($message, 'server has gone away') !== false
+            || strpos($message, 'lost connection') !== false
+            || strpos($message, 'error while sending query packet') !== false;
     }
 
     /**
