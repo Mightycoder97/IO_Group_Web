@@ -142,7 +142,7 @@ function applySidebarCollapsedState() {
         return;
     }
 
-    document.body.classList.toggle('sidebar-collapsed', getStoredSidebarCollapsed());
+    document.body.classList.add('sidebar-collapsed');
 }
 
 function getSidebarMatchPath(pathname = window.location.pathname) {
@@ -303,10 +303,6 @@ function setupSidebarInteractions() {
         if (toggle) {
             const section = toggle.closest('.sidebar-section');
             const isOpen = section?.classList.contains('sidebar-section-open');
-
-            if (document.body.classList.contains('sidebar-collapsed') && isDesktopSidebar()) {
-                setSidebarCollapsed(false);
-            }
 
             if (section) {
                 if (isOpen) {
@@ -512,12 +508,6 @@ function toggleSidebar() {
     if (!isDesktopSidebar()) {
         sidebar.classList.toggle('show');
         return;
-    }
-
-    const collapsed = !document.body.classList.contains('sidebar-collapsed');
-    setSidebarCollapsed(collapsed);
-    if (!collapsed) {
-        updateSidebarActiveState();
     }
 }
 
