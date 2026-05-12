@@ -313,11 +313,11 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <span><i class="bi bi-list-ol"></i> Clientes en Ruta: <strong
                                 id="vehiculoActual">-</strong></span>
-                        <div class="d-flex align-items-center gap-2">
-                            <button class="btn btn-outline-success btn-sm d-none" id="btnGastosRuta"
+                        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                            <button class="btn btn-outline-success btn-sm" id="btnGastosRuta"
                                 onclick="abrirGastosRuta()" title="Registrar gastos operativos de la ruta">
                                 <i class="bi bi-receipt-cutoff me-1"></i> Gastos de ruta
                             </button>
@@ -744,11 +744,15 @@
         function updateGastosRutaButton() {
             const btn = document.getElementById('btnGastosRuta');
             if (!btn) return;
-            btn.classList.toggle('d-none', !selectedVehiculo);
-            btn.disabled = !selectedVehiculo;
-            btn.title = currentRutaId
-                ? 'Registrar gastos operativos de la ruta'
-                : 'Guarda la ruta antes de registrar gastos';
+            btn.classList.remove('d-none');
+            btn.disabled = false;
+            if (!selectedVehiculo) {
+                btn.title = 'Selecciona un vehiculo para registrar gastos';
+            } else if (!currentRutaId) {
+                btn.title = 'Guarda la ruta antes de registrar gastos';
+            } else {
+                btn.title = 'Registrar gastos operativos de la ruta';
+            }
         }
 
         function renderClientesTable() {
