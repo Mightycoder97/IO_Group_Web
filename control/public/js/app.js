@@ -45,6 +45,7 @@ const SIDEBAR_SECTIONS = [
             { href: 'clientes/listar.html', icon: 'people', label: 'Clientes', modulo: 'clientes' },
             { href: 'empresas/listar.html', icon: 'building', label: 'Empresas', modulo: 'empresas' },
             { href: 'sedes/listar.html', icon: 'geo-alt', label: 'Sedes', modulo: 'sedes' },
+            { href: 'contratos/listar.html', icon: 'file-earmark-text', label: 'Contratos', modulo: 'contratos' },
             { href: 'prospectos/listar.html', icon: 'person-hearts', label: 'Prospectos', modulo: 'prospectos' },
             { href: 'altas/index.html', icon: 'person-plus', label: 'Nuevas Altas', modulo: 'sedes' }
         ]
@@ -59,6 +60,8 @@ const SIDEBAR_SECTIONS = [
             { href: 'rutas/historial.html', icon: 'clock-history', label: 'Historial Rutas', modulo: 'rutas' },
             { href: 'rutas/control.html', icon: 'clipboard2-check-fill', label: 'Control de Ruta', modulo: 'rutas' },
             { href: 'servicios/listar.html', icon: 'tools', label: 'Servicios', modulo: 'rutas' },
+            { href: 'manifiestos/listar.html', icon: 'journal-text', label: 'Manifiestos', modulo: 'manifiestos' },
+            { href: 'guias/listar.html', icon: 'file-earmark-arrow-up', label: 'Gu&iacute;as', modulo: 'guias' },
             { href: 'procesamiento_ia/index.html', icon: 'robot', label: 'Procesamiento IA', modulo: 'rutas' }
         ]
     },
@@ -106,95 +109,7 @@ const SIDEBAR_SECTIONS = [
 
 let _sidebarCache = { html: null, userId: null, role: null, permisosKey: null };
 let _sidebarResizeBound = false;
-
-function getLegacySidebarHTML() {
-    const user = getUser();
-    const userId = user?.id_usuario || null;
-
-    // Return cached version if user hasn't changed
-    if (_sidebarCache.html && _sidebarCache.userId === userId) {
-        return _sidebarCache.html;
-    }
-
-    const isAdmin = user?.rol === 'admin';
-
-    // Base path for pages
-    const base = getBasePath() + '/pages/';
-
-    // Helper to check if module is allowed
-    const canView = (modulo) => {
-        if (isAdmin) return true;
-        return user?.permisos?.[modulo]?.ver === true;
-    };
-
-    // Helper to generate nav item
-    const navItem = (href, icon, label, modulo) => {
-        if (!canView(modulo)) return '';
-        return `<a href="${base}${href}" class="nav-item"><i class="bi bi-${icon}"></i> ${label}</a>`;
-    };
-
-    // Helper to generate section (only if has visible items)
-    const section = (title, items) => {
-        const visibleItems = items.filter(i => i);
-        if (visibleItems.length === 0) return '';
-        return `<div class="nav-section"><div class="nav-section-title">${title}</div></div>${visibleItems.join('')}`;
-    };
-
-    const html = `
-        <div class="sidebar-brand">
-            <i class="bi bi-recycle" style="font-size: 2rem; color: #81C784;"></i>
-            <h2 style="color: white; font-size: 1.1rem; margin: 0.5rem 0 0 0;">IO Control</h2>
-        </div>
-        <nav class="sidebar-nav">
-            ${navItem('dashboard.html', 'speedometer2', 'Dashboard', 'dashboard')}
-            
-            ${section('Clientes', [
-        navItem('clientes/listar.html', 'people', 'Clientes', 'clientes'),
-        navItem('empresas/listar.html', 'building', 'Empresas', 'empresas'),
-        navItem('sedes/listar.html', 'geo-alt', 'Sedes', 'sedes'),
-        navItem('prospectos/listar.html', 'person-hearts', 'Prospectos', 'prospectos'),
-        navItem('altas/index.html', 'person-plus', 'Nuevas Altas', 'sedes')
-    ])}
-            
-            ${section('Logístico', [
-        navItem('calendario/index.html', 'calendar3', 'Calendario', 'rutas'),
-        navItem('rutas/listar.html', 'truck', 'Asignar Rutas', 'rutas'),
-        navItem('rutas/historial.html', 'clock-history', 'Historial Rutas', 'rutas'),
-        navItem('rutas/control.html', 'clipboard2-check-fill', 'Control de Ruta', 'rutas'),
-        navItem('servicios/listar.html', 'tools', 'Servicios', 'rutas'),
-        navItem('procesamiento_ia/index.html', 'robot', 'Procesamiento IA', 'rutas')
-    ])}
-            
-            ${section('Financiero', [
-        navItem('ingresos/index.html', 'cash-stack', 'Ingresos', 'ingresos'),
-        navItem('egresos/index.html', 'wallet2', 'Egresos', 'egresos'),
-        navItem('facturas/listar.html', 'receipt', 'Facturas', 'facturas'),
-        navItem('cobranza/index.html', 'cash-coin', 'Cobranza', 'cobranza')
-    ])}
-            
-            ${section('Configuración', [
-        navItem('vehiculos/listar.html', 'truck', 'Vehículos', 'vehiculos'),
-        navItem('plantas/listar.html', 'factory', 'Plantas', 'plantas'),
-        navItem('empleados/listar.html', 'person-badge', 'Empleados', 'empleados')
-    ])}
-            
-            ${section('Herramientas', [
-        navItem('mapa/index.html', 'map', 'Mapa de Sedes', 'mapa'),
-        navItem('reportes/index.html', 'graph-up', 'Reportes', 'reportes'),
-        navItem('alertas/index.html', 'bell', 'Alertas', 'alertas')
-    ])}
-            
-            ${isAdmin ? `
-            <div class="nav-section"><div class="nav-section-title">Administración</div></div>
-            <a href="${base}usuarios/listar.html" class="nav-item"><i class="bi bi-people-fill"></i> Usuarios</a>
-            ` : ''}
-        </nav>
-    `;
-
-    // Cache the result
-    _sidebarCache = { html: html, userId };
-    return html;
-}
+let _controlPageInitialized = false;
 
 function isDesktopSidebar() {
     return window.matchMedia(SIDEBAR_DESKTOP_QUERY).matches;
@@ -244,6 +159,18 @@ function getSidebarMatchPath(pathname = window.location.pathname) {
 
 function getSidebarItemRoot(matchPath) {
     return matchPath.split('/')[0] || matchPath;
+}
+
+function inferControlModuleFromPath(pathname = window.location.pathname) {
+    const root = getSidebarItemRoot(getSidebarMatchPath(pathname));
+    const moduleByRoot = {
+        altas: 'sedes',
+        calendario: 'rutas',
+        procesamiento_ia: 'rutas',
+        servicios: 'rutas'
+    };
+
+    return moduleByRoot[root] || root || 'dashboard';
 }
 
 function getSidebarHTML() {
@@ -404,9 +331,30 @@ function setupSidebarInteractions() {
     }
 }
 
+function ensureSidebarRendered() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return null;
+
+    if (!sidebar.querySelector('.sidebar-section')) {
+        sidebar.innerHTML = getSidebarHTML();
+    }
+
+    return sidebar;
+}
+
+function bootControlPage(moduleName = inferControlModuleFromPath()) {
+    ensureSidebarRendered();
+    initPage(moduleName);
+}
+
 // Initialize page
-function initPage(moduleName) {
+function initPage(moduleName = inferControlModuleFromPath()) {
+    if (_controlPageInitialized) return;
+    _controlPageInitialized = true;
+
     checkAuth();
+
+    ensureSidebarRendered();
 
     // Set user name
     const user = getUser();
@@ -554,6 +502,7 @@ async function handleRealtimeUpdate(payload, moduleName) {
 
 window.startRealtimeSync = startRealtimeSync;
 window.stopRealtimeSync = stopRealtimeSync;
+window.bootControlPage = bootControlPage;
 
 // Toggle sidebar
 function toggleSidebar() {
