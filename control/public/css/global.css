@@ -1078,6 +1078,7 @@ a:hover {
 .control-app.sidebar-collapsed .sidebar-brand-title,
 .control-app.sidebar-collapsed .sidebar-section-label,
 .control-app.sidebar-collapsed .sidebar-section-chevron {
+    display: none;
     height: 0;
     opacity: 0;
     pointer-events: none;
@@ -1090,6 +1091,7 @@ a:hover {
 }
 
 .control-app.sidebar-collapsed .sidebar-section-toggle {
+    gap: 0;
     justify-content: center;
     height: 48px;
     margin: 0 auto;
@@ -1446,6 +1448,7 @@ a:hover {
     .control-app.sidebar-collapsed .sidebar-brand-title,
     .control-app.sidebar-collapsed .sidebar-section-label,
     .control-app.sidebar-collapsed .sidebar-section-chevron {
+        display: inline-flex;
         height: auto;
         opacity: 1;
         pointer-events: auto;
@@ -1457,6 +1460,7 @@ a:hover {
     }
 
     .control-app.sidebar-collapsed .sidebar-section-toggle {
+        gap: 10px;
         justify-content: flex-start;
         min-height: 42px;
         padding: 10px 12px;
