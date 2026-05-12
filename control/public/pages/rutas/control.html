@@ -571,6 +571,30 @@
             white-space: nowrap;
         }
 
+        .gasto-ruta-row {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem;
+            background: #f8fafc;
+            margin-bottom: 0.75rem;
+        }
+
+        .gasto-ruta-row .form-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.25rem;
+        }
+
+        .gasto-ruta-total {
+            border-radius: 8px;
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            font-weight: 800;
+            padding: 0.65rem 0.8rem;
+        }
+
         .ai-suggestion {
             margin-top: 0.4rem;
             padding: 0.4rem 0.55rem;
@@ -736,6 +760,10 @@
                                     onclick="document.getElementById('aiRutaFiles').click()">
                                     <i class="bi bi-stars me-1"></i>Subir hoja de ruta IA
                                 </button>
+                                <button class="btn btn-outline-success btn-sm" id="btnGastosRutaControl"
+                                    onclick="abrirGastosRuta()">
+                                    <i class="bi bi-receipt-cutoff me-1"></i>Gastos de ruta
+                                </button>
                                 <span class="ai-status" id="aiRutaStatus">Fotos o PDF de una o mas hojas.</span>
                             </div>
                             <div id="aiUnmatched" class="mt-2"></div>
@@ -765,6 +793,38 @@
         </main>
     </div>
 
+    <!-- Modal: Gastos de ruta -->
+    <div class="modal fade" id="gastosRutaModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-1"><i class="bi bi-receipt-cutoff"></i> Gastos de ruta</h5>
+                        <small class="text-muted" id="gastosRutaMeta">Seleccione una ruta guardada</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="gastosRutaRows"></div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="agregarGastoRuta()">
+                            <i class="bi bi-plus-circle"></i> Agregar gasto
+                        </button>
+                        <div class="gasto-ruta-total">
+                            Total: S/ <span id="gastosRutaTotal">0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="btnGuardarGastosRuta" onclick="guardarGastosRuta()">
+                        <i class="bi bi-save"></i> Guardar gastos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js?v=2.2"></script>
@@ -785,8 +845,19 @@
         let currentServicios = [];
         let currentRutaMeta = null;
         let currentIaLoteId = null;
+        let gastosRuta = [];
+        let gastoRutaCounter = 0;
+        let gastosRutaModal = null;
 
         const PAYMENT_METHODS = ['Yape', 'Plin', 'Efectivo', 'Transferencia', 'Cheque', 'Depósito', 'Otro'];
+        const GASTO_RUTA_TIPOS = [
+            { value: 'combustible', label: 'Combustible' },
+            { value: 'peajes', label: 'Peajes' },
+            { value: 'cochera', label: 'Cochera' },
+            { value: 'menu', label: 'Menu' },
+            { value: 'reparacion', label: 'Reparacion' },
+            { value: 'otros', label: 'Otros' }
+        ];
 
         // ========================
         // Helpers
@@ -1520,6 +1591,203 @@
             api.post('/control_ruta?action=registrar_feedback_ia', payload).catch(err => {
                 console.warn('No se pudo registrar feedback historico IA', err);
             });
+        }
+
+        // ========================
+        // Gastos de ruta
+        // ========================
+        function getRutaActualParaGastos() {
+            return currentRutaMeta || allRutas.find(r => Number(r.id_ruta) === Number(currentRutaId)) || null;
+        }
+
+        function abrirGastosRuta() {
+            const ruta = getRutaActualParaGastos();
+            if (!currentRutaId || !ruta) {
+                showToast('Selecciona una ruta antes de registrar gastos', 'warning');
+                return;
+            }
+            if (!ruta.id_vehiculo) {
+                showToast('La ruta no tiene camion asociado', 'warning');
+                return;
+            }
+
+            if (!gastosRutaModal) {
+                gastosRutaModal = new bootstrap.Modal(document.getElementById('gastosRutaModal'));
+            }
+
+            gastosRuta = [];
+            gastoRutaCounter = 0;
+            agregarGastoRuta();
+
+            const codigo = ruta.codigo_ruta || `Ruta #${currentRutaId}`;
+            const placa = ruta.vehiculo_placa || '-';
+            const fecha = ruta.fecha || '-';
+            document.getElementById('gastosRutaMeta').innerHTML = `
+                <strong>${escapeHtml(codigo)}</strong>
+                <span class="mx-2">|</span>
+                <span>${escapeHtml(placa)}</span>
+                <span class="mx-2">|</span>
+                <span>${escapeHtml(fecha)}</span>
+            `;
+            gastosRutaModal.show();
+        }
+
+        function agregarGastoRuta(data = {}) {
+            gastosRuta.push({
+                uid: ++gastoRutaCounter,
+                tipo: data.tipo || 'combustible',
+                descripcion: data.descripcion || '',
+                monto: data.monto || '',
+                comprobante: data.comprobante || '',
+                observaciones: data.observaciones || ''
+            });
+            renderGastosRuta();
+        }
+
+        function quitarGastoRuta(uid) {
+            if (gastosRuta.length === 1) {
+                showToast('Debe quedar al menos una linea', 'warning');
+                return;
+            }
+            gastosRuta = gastosRuta.filter(g => g.uid !== uid);
+            renderGastosRuta();
+        }
+
+        function actualizarGastoRuta(uid, field, value) {
+            const gasto = gastosRuta.find(g => g.uid === uid);
+            if (!gasto) return;
+            gasto[field] = value;
+            updateGastosRutaTotal();
+        }
+
+        function renderGastosRuta() {
+            const container = document.getElementById('gastosRutaRows');
+            container.innerHTML = gastosRuta.map((g, idx) => `
+                <div class="gasto-ruta-row">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-lg-2 col-md-4">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-select form-select-sm" onchange="actualizarGastoRuta(${g.uid}, 'tipo', this.value)">
+                                ${GASTO_RUTA_TIPOS.map(t => `<option value="${t.value}" ${g.tipo === t.value ? 'selected' : ''}>${t.label}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-8">
+                            <label class="form-label">Descripcion</label>
+                            <input type="text" class="form-control form-control-sm" value="${escapeHtml(g.descripcion)}"
+                                placeholder="Ej. Diesel Panamericana" oninput="actualizarGastoRuta(${g.uid}, 'descripcion', this.value)">
+                        </div>
+                        <div class="col-lg-2 col-md-4">
+                            <label class="form-label">Monto</label>
+                            <input type="number" min="0" step="0.01" class="form-control form-control-sm" value="${escapeHtml(String(g.monto))}"
+                                placeholder="0.00" oninput="actualizarGastoRuta(${g.uid}, 'monto', this.value)">
+                        </div>
+                        <div class="col-lg-2 col-md-4">
+                            <label class="form-label">Comprobante</label>
+                            <input type="text" class="form-control form-control-sm" value="${escapeHtml(g.comprobante)}"
+                                placeholder="Boleta/factura" oninput="actualizarGastoRuta(${g.uid}, 'comprobante', this.value)">
+                        </div>
+                        <div class="col-lg-2 col-md-4">
+                            <label class="form-label">Observaciones</label>
+                            <input type="text" class="form-control form-control-sm" value="${escapeHtml(g.observaciones)}"
+                                placeholder="Opcional" oninput="actualizarGastoRuta(${g.uid}, 'observaciones', this.value)">
+                        </div>
+                        <div class="col-lg-1 col-md-12 text-end">
+                            <button class="btn btn-outline-danger btn-sm" onclick="quitarGastoRuta(${g.uid})" title="Quitar linea">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted">Linea ${idx + 1}</small>
+                </div>
+            `).join('');
+            updateGastosRutaTotal();
+        }
+
+        function updateGastosRutaTotal() {
+            const total = gastosRuta.reduce((sum, g) => sum + (parseFloat(g.monto) || 0), 0);
+            document.getElementById('gastosRutaTotal').textContent = total.toFixed(2);
+        }
+
+        function validarGastosRuta() {
+            const errores = [];
+            gastosRuta.forEach((g, idx) => {
+                const linea = idx + 1;
+                const monto = parseFloat(g.monto);
+                if (!g.tipo) errores.push(`Linea ${linea}: selecciona un tipo`);
+                if (!String(g.descripcion || '').trim()) errores.push(`Linea ${linea}: descripcion requerida`);
+                if (!Number.isFinite(monto) || monto <= 0) errores.push(`Linea ${linea}: monto mayor a cero requerido`);
+            });
+            return errores;
+        }
+
+        async function guardarGastosRuta() {
+            const ruta = getRutaActualParaGastos();
+            if (!currentRutaId || !ruta) {
+                showToast('Selecciona una ruta antes de registrar gastos', 'warning');
+                return;
+            }
+            if (!ruta.id_vehiculo || !ruta.fecha) {
+                showToast('La ruta no tiene camion o fecha asociada', 'warning');
+                return;
+            }
+
+            const errores = validarGastosRuta();
+            if (errores.length) {
+                showToast(errores.slice(0, 3).join(' | '), 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnGuardarGastosRuta');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+
+            let ok = 0;
+            const fallas = [];
+            const fallasUid = [];
+
+            for (const gasto of gastosRuta) {
+                const payload = {
+                    categoria: 'operativo',
+                    subcategoria: gasto.tipo,
+                    descripcion: String(gasto.descripcion || '').trim(),
+                    monto: parseFloat(gasto.monto),
+                    fecha: ruta.fecha,
+                    id_ruta: currentRutaId,
+                    id_vehiculo: ruta.id_vehiculo,
+                    comprobante: String(gasto.comprobante || '').trim() || null,
+                    observaciones: String(gasto.observaciones || '').trim() || null
+                };
+
+                try {
+                    const result = await api.post('/egresos', payload);
+                    if (result.success) {
+                        ok++;
+                    } else {
+                        fallas.push(`${payload.descripcion}: ${result.message || 'error'}`);
+                        fallasUid.push(gasto.uid);
+                    }
+                } catch (err) {
+                    fallas.push(`${payload.descripcion}: ${err.message || 'error de conexion'}`);
+                    fallasUid.push(gasto.uid);
+                }
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+
+            if (fallas.length === 0) {
+                showToast(`${ok} gasto(s) registrado(s)`, 'success');
+                gastosRutaModal.hide();
+                return;
+            }
+
+            if (ok > 0) {
+                gastosRuta = gastosRuta.filter(g => fallasUid.includes(g.uid));
+                renderGastosRuta();
+            }
+            showToast(`${ok} gasto(s) guardado(s), ${fallas.length} con error`, ok ? 'warning' : 'danger');
+            console.warn('Errores al guardar gastos de ruta', fallas);
         }
 
         // ========================

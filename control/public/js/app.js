@@ -25,9 +25,89 @@ function throttle(fn, ms = 100) {
 }
 
 // Sidebar template with permission filtering and memoization
-let _sidebarCache = { html: null, userId: null };
+const SIDEBAR_COLLAPSED_KEY = 'io.sidebarCollapsed';
+const SIDEBAR_DESKTOP_QUERY = '(min-width: 993px)';
 
-function getSidebarHTML() {
+const SIDEBAR_SECTIONS = [
+    {
+        id: 'dashboard',
+        title: 'Dashboard',
+        icon: 'speedometer2',
+        items: [
+            { href: 'dashboard.html', icon: 'speedometer2', label: 'Dashboard', modulo: 'dashboard' }
+        ]
+    },
+    {
+        id: 'clientes',
+        title: 'Clientes',
+        icon: 'people',
+        items: [
+            { href: 'clientes/listar.html', icon: 'people', label: 'Clientes', modulo: 'clientes' },
+            { href: 'empresas/listar.html', icon: 'building', label: 'Empresas', modulo: 'empresas' },
+            { href: 'sedes/listar.html', icon: 'geo-alt', label: 'Sedes', modulo: 'sedes' },
+            { href: 'prospectos/listar.html', icon: 'person-hearts', label: 'Prospectos', modulo: 'prospectos' },
+            { href: 'altas/index.html', icon: 'person-plus', label: 'Nuevas Altas', modulo: 'sedes' }
+        ]
+    },
+    {
+        id: 'logistico',
+        title: 'Log&iacute;stico',
+        icon: 'truck',
+        items: [
+            { href: 'calendario/index.html', icon: 'calendar3', label: 'Calendario', modulo: 'rutas' },
+            { href: 'rutas/listar.html', icon: 'truck', label: 'Asignar Rutas', modulo: 'rutas' },
+            { href: 'rutas/historial.html', icon: 'clock-history', label: 'Historial Rutas', modulo: 'rutas' },
+            { href: 'rutas/control.html', icon: 'clipboard2-check-fill', label: 'Control de Ruta', modulo: 'rutas' },
+            { href: 'servicios/listar.html', icon: 'tools', label: 'Servicios', modulo: 'rutas' },
+            { href: 'procesamiento_ia/index.html', icon: 'robot', label: 'Procesamiento IA', modulo: 'rutas' }
+        ]
+    },
+    {
+        id: 'financiero',
+        title: 'Financiero',
+        icon: 'cash-stack',
+        items: [
+            { href: 'ingresos/index.html', icon: 'cash-stack', label: 'Ingresos', modulo: 'ingresos' },
+            { href: 'egresos/index.html', icon: 'wallet2', label: 'Egresos', modulo: 'egresos' },
+            { href: 'facturas/listar.html', icon: 'receipt', label: 'Facturas', modulo: 'facturas' },
+            { href: 'cobranza/index.html', icon: 'cash-coin', label: 'Cobranza', modulo: 'cobranza' }
+        ]
+    },
+    {
+        id: 'configuracion',
+        title: 'Configuraci&oacute;n',
+        icon: 'sliders',
+        items: [
+            { href: 'vehiculos/listar.html', icon: 'truck', label: 'Veh&iacute;culos', modulo: 'vehiculos' },
+            { href: 'plantas/listar.html', icon: 'factory', label: 'Plantas', modulo: 'plantas' },
+            { href: 'empleados/listar.html', icon: 'person-badge', label: 'Empleados', modulo: 'empleados' }
+        ]
+    },
+    {
+        id: 'herramientas',
+        title: 'Herramientas',
+        icon: 'wrench-adjustable',
+        items: [
+            { href: 'mapa/index.html', icon: 'map', label: 'Mapa de Sedes', modulo: 'mapa' },
+            { href: 'reportes/index.html', icon: 'graph-up', label: 'Reportes', modulo: 'reportes' },
+            { href: 'alertas/index.html', icon: 'bell', label: 'Alertas', modulo: 'alertas' }
+        ]
+    },
+    {
+        id: 'administracion',
+        title: 'Administraci&oacute;n',
+        icon: 'shield-lock',
+        adminOnly: true,
+        items: [
+            { href: 'usuarios/listar.html', icon: 'people-fill', label: 'Usuarios', modulo: 'usuarios' }
+        ]
+    }
+];
+
+let _sidebarCache = { html: null, userId: null, role: null };
+let _sidebarResizeBound = false;
+
+function getLegacySidebarHTML() {
     const user = getUser();
     const userId = user?.id_usuario || null;
 
