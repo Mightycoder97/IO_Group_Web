@@ -15,19 +15,98 @@
            CONTROL DE RUTA – Styles
            ============================ */
 
+        html,
+        body,
+        body.control-app {
+            width: 100%;
+            max-width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        body.control-app .app-container,
+        body.control-app .main-content {
+            height: 100vh;
+            min-height: 0;
+            max-width: 100vw;
+            overflow: hidden;
+        }
+
+        body.control-app .main-content {
+            min-width: 0;
+            max-width: calc(100vw - 260px);
+        }
+
+        body.control-app .top-nav {
+            flex: 0 0 auto;
+            min-width: 0;
+            padding: 0.65rem 1.25rem;
+        }
+
+        body.control-app .breadcrumb-container,
+        body.control-app .user-menu,
+        body.control-app .dropdown,
+        body.control-app .content-area {
+            min-width: 0;
+        }
+
+        body.control-app .content-area {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            max-width: 100%;
+            overflow: hidden;
+            padding: 0.75rem 1rem !important;
+        }
+
+        body.control-app .content-area>.d-flex:first-child {
+            flex: 0 0 auto;
+            min-width: 0;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.65rem !important;
+        }
+
+        body.control-app .content-area>.d-flex:first-child h5 {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         /* Split-panel layout */
         .control-layout {
             display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 1rem;
-            height: calc(100vh - 120px);
+            grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+            gap: 0.75rem;
+            flex: 1 1 auto;
+            min-height: 0;
+            max-width: 100%;
+            height: auto;
             overflow: hidden;
         }
 
         @media (max-width: 900px) {
+            html,
+            body,
+            body.control-app {
+                height: auto;
+                overflow-y: auto;
+            }
+
+            body.control-app .app-container,
+            body.control-app .main-content,
+            body.control-app .content-area {
+                height: auto;
+                max-width: 100vw;
+                overflow-y: visible;
+            }
+
             .control-layout {
                 grid-template-columns: 1fr;
                 height: auto;
+                overflow: visible;
             }
 
             .panel-left {
@@ -44,10 +123,13 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+            max-width: 100%;
         }
 
         .panel-header {
-            padding: 0.75rem 1rem;
+            padding: 0.55rem 0.75rem;
             background: #1B5E20;
             color: #fff;
             font-weight: 600;
@@ -56,19 +138,35 @@
             align-items: center;
             gap: 0.5rem;
             flex-shrink: 0;
+            min-width: 0;
+        }
+
+        .panel-header span:not(.badge) {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .panel-body {
             overflow-y: auto;
+            overflow-x: hidden;
             flex: 1;
+            min-height: 0;
+            min-width: 0;
+        }
+
+        #sedesList {
+            padding: 0.65rem 0.75rem !important;
         }
 
         /* Route list items */
         .ruta-item {
-            padding: 0.75rem 1rem;
+            padding: 0.55rem 0.75rem;
             border-bottom: 1px solid #f0f0f0;
             cursor: pointer;
             transition: background 0.15s;
+            min-width: 0;
         }
 
         .ruta-item:hover {
@@ -90,6 +188,19 @@
             font-size: 0.78rem;
             color: #666;
             margin-top: 2px;
+            min-width: 0;
+        }
+
+        .ruta-item .ruta-meta.d-flex>span:first-child {
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ruta-item .ruta-meta .prog-pill {
+            flex-shrink: 0;
         }
 
         /* Progress pill */
@@ -103,6 +214,8 @@
             background: #e8f5e9;
             color: #2e7d32;
             font-weight: 600;
+            max-width: 100%;
+            white-space: nowrap;
         }
 
         .prog-pill.warn {
@@ -124,9 +237,11 @@
         .sede-card {
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.55rem;
             overflow: hidden;
             transition: box-shadow 0.15s;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .sede-card:hover {
@@ -134,33 +249,68 @@
         }
 
         .sede-card-header {
-            padding: 0.6rem 1rem;
+            padding: 0.45rem 0.75rem;
             background: #f8f9fa;
             border-bottom: 1px solid #e0e0e0;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 0.5rem;
+            min-width: 0;
         }
 
         .sede-card-body {
-            padding: 0.75rem 1rem;
+            padding: 0.55rem 0.75rem;
+            min-width: 0;
+        }
+
+        .sede-card-header>div:first-child,
+        .sede-card-header .d-flex,
+        .sede-card-body .row,
+        .sede-card-body [class^="col-"],
+        .sede-card-body [class*=" col-"] {
+            min-width: 0;
+        }
+
+        .sede-card-header strong,
+        .sede-card-header div[style],
+        .ruta-fecha,
+        .ruta-meta span {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sede-card small,
+        .action-strip small {
+            overflow-wrap: anywhere;
+        }
+
+        .sede-card-body>.row {
+            margin-bottom: 0.4rem !important;
+        }
+
+        .action-strip.mb-1 {
+            margin-bottom: 0.35rem !important;
         }
 
         /* Action strips */
         .action-strip {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
+            gap: 0.35rem;
+            padding: 0.4rem 0.55rem;
             border-radius: 6px;
             background: #f8f9fa;
             border: 1px solid #e9ecef;
             flex-wrap: wrap;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .action-strip+.action-strip {
-            margin-top: 0.5rem;
+            margin-top: 0.4rem;
         }
 
         .action-strip label {
@@ -174,6 +324,12 @@
         .action-strip select,
         .action-strip input[type="checkbox"] {
             flex-shrink: 0;
+        }
+
+        .action-strip .form-select,
+        .action-strip .form-control,
+        .action-strip .btn {
+            max-width: 100%;
         }
 
         /* Digital signature badge */
@@ -197,20 +353,38 @@
 
         /* Progress bar container */
         .progress-bar-wrap {
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.75rem;
             border-bottom: 1px solid #f0f0f0;
             flex-shrink: 0;
         }
 
         /* Save bar */
         .save-bar {
-            padding: 0.75rem 1rem;
+            padding: 0.55rem 0.75rem;
             border-top: 1px solid #dee2e6;
             background: #fff;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 0.75rem;
+            gap: 0.5rem;
+            flex-shrink: 0;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .save-bar>div {
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .save-bar #saveHint {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .save-bar .btn {
             flex-shrink: 0;
         }
 
@@ -245,13 +419,15 @@
         /* Compact form controls */
         .form-select-xs {
             font-size: 0.78rem;
-            padding: 0.2rem 0.5rem;
-            height: auto;
+            padding: 0.18rem 1.75rem 0.18rem 0.45rem;
+            min-height: 32px;
+            height: 32px;
         }
 
         .btn-xs {
-            padding: 0.15rem 0.5rem;
+            padding: 0.12rem 0.45rem;
             font-size: 0.76rem;
+            min-height: 28px;
         }
 
         /* Scrollbar */
@@ -295,6 +471,8 @@
         /* RUC Search */
         .ruc-search-wrap {
             position: relative;
+            min-width: 0 !important;
+            max-width: 100%;
         }
 
         .ruc-results {
@@ -341,11 +519,13 @@
 
         /* Document form */
         .doc-form-section {
-            margin-top: 0.5rem;
-            padding: 0.6rem 0.75rem;
+            margin-top: 0.4rem;
+            padding: 0.45rem 0.55rem;
             border-radius: 6px;
             background: #f0f4ff;
             border: 1px solid #c5cae9;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .doc-form-section .form-label {
@@ -357,6 +537,8 @@
 
         .doc-form-section .form-control-sm {
             font-size: 0.78rem;
+            min-height: 31px;
+            height: 31px;
         }
 
         .doc-saved-badge {
@@ -372,32 +554,41 @@
         }
 
         .ai-route-wrap {
-            padding: 0.6rem 1rem;
+            padding: 0.45rem 0.75rem;
             border-bottom: 1px solid #e9ecef;
             background: #f8fbff;
             flex-shrink: 0;
+            min-width: 0;
+            overflow-x: hidden;
         }
 
         .ai-status {
             font-size: 0.76rem;
             color: #455a64;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .ai-suggestion {
-            margin-top: 0.5rem;
-            padding: 0.5rem 0.65rem;
+            margin-top: 0.4rem;
+            padding: 0.4rem 0.55rem;
             border: 1px solid #b3e5fc;
             border-radius: 6px;
             background: #f1fbff;
             font-size: 0.76rem;
             color: #24556a;
+            min-width: 0;
+            max-width: 100%;
         }
 
         .ai-suggestion-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 0.75rem;
+            gap: 0.5rem;
+            min-width: 0;
         }
 
         .ai-suggestion-text {
@@ -406,6 +597,7 @@
             gap: 0.5rem;
             flex-wrap: wrap;
             min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .ai-accept-btn {
