@@ -104,7 +104,7 @@ const SIDEBAR_SECTIONS = [
     }
 ];
 
-let _sidebarCache = { html: null, userId: null, role: null };
+let _sidebarCache = { html: null, userId: null, role: null, permisosKey: null };
 let _sidebarResizeBound = false;
 
 function getLegacySidebarHTML() {
@@ -196,6 +196,214 @@ function getLegacySidebarHTML() {
     return html;
 }
 
+function isDesktopSidebar() {
+    return window.matchMedia(SIDEBAR_DESKTOP_QUERY).matches;
+}
+
+function getStoredSidebarCollapsed() {
+    try {
+        return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+    } catch (err) {
+        return false;
+    }
+}
+
+function setStoredSidebarCollapsed(collapsed) {
+    try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? 'true' : 'false');
+    } catch (err) { }
+}
+
+function setSidebarCollapsed(collapsed, persist = true) {
+    document.body.classList.toggle('sidebar-collapsed', collapsed && isDesktopSidebar());
+    if (persist) {
+        setStoredSidebarCollapsed(collapsed);
+    }
+}
+
+function applySidebarCollapsedState() {
+    if (!isDesktopSidebar()) {
+        document.body.classList.remove('sidebar-collapsed');
+        return;
+    }
+
+    document.body.classList.toggle('sidebar-collapsed', getStoredSidebarCollapsed());
+}
+
+function getSidebarMatchPath(pathname = window.location.pathname) {
+    let path = pathname.replace(/\\/g, '/').replace(/\/+$/, '');
+    const pagesIndex = path.toLowerCase().lastIndexOf('/pages/');
+    if (pagesIndex >= 0) {
+        path = path.slice(pagesIndex + '/pages/'.length);
+    } else {
+        path = path.split('/').filter(Boolean).slice(-2).join('/');
+    }
+
+    return path.replace(/\.html$/i, '').replace(/^\/+|\/+$/g, '').toLowerCase();
+}
+
+function getSidebarItemRoot(matchPath) {
+    return matchPath.split('/')[0] || matchPath;
+}
+
+function getSidebarHTML() {
+    const user = getUser();
+    const userId = user?.id_usuario || null;
+    const role = user?.rol || null;
+    const permisosKey = JSON.stringify(user?.permisos || {});
+
+    // Return cached version if user hasn't changed
+    if (_sidebarCache.html && _sidebarCache.userId === userId && _sidebarCache.role === role && _sidebarCache.permisosKey === permisosKey) {
+        return _sidebarCache.html;
+    }
+
+    const isAdmin = user?.rol === 'admin';
+    const base = getBasePath() + '/pages/';
+    const canView = (modulo) => isAdmin || user?.permisos?.[modulo]?.ver === true;
+
+    const sectionHTML = SIDEBAR_SECTIONS.map(section => {
+        if (section.adminOnly && !isAdmin) return '';
+
+        const visibleItems = section.items.filter(item => canView(item.modulo));
+        if (visibleItems.length === 0) return '';
+
+        const panelId = `sidebar-panel-${section.id}`;
+        const links = visibleItems.map(item => {
+            const match = getSidebarMatchPath(item.href);
+            const root = getSidebarItemRoot(match);
+            return `
+                <a href="${base}${item.href}" class="sidebar-link" data-section="${section.id}" data-match="${match}" data-root="${root}" title="${item.label}">
+                    <i class="bi bi-${item.icon}" aria-hidden="true"></i>
+                    <span class="sidebar-link-label">${item.label}</span>
+                </a>
+            `;
+        }).join('');
+
+        return `
+            <div class="sidebar-section" data-section-id="${section.id}">
+                <button class="sidebar-section-toggle" type="button" aria-expanded="false" aria-controls="${panelId}" title="${section.title}">
+                    <i class="bi bi-${section.icon} sidebar-section-icon" aria-hidden="true"></i>
+                    <span class="sidebar-section-label">${section.title}</span>
+                    <i class="bi bi-chevron-down sidebar-section-chevron" aria-hidden="true"></i>
+                </button>
+                <div class="sidebar-section-panel" id="${panelId}">
+                    ${links}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const html = `
+        <div class="sidebar-brand">
+            <i class="bi bi-recycle sidebar-brand-icon" aria-hidden="true"></i>
+            <h2 class="sidebar-brand-title">IO Control</h2>
+        </div>
+        <nav class="sidebar-nav" aria-label="Menu principal">
+            ${sectionHTML}
+        </nav>
+    `;
+
+    _sidebarCache = { html, userId, role, permisosKey };
+    return html;
+}
+
+function findActiveSidebarLink() {
+    const currentPath = getSidebarMatchPath();
+    const currentRoot = getSidebarItemRoot(currentPath);
+    let exactMatch = null;
+    let exactLength = 0;
+    let rootMatch = null;
+
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        const matchPath = link.dataset.match || '';
+        if (currentPath === matchPath || currentPath.endsWith(`/${matchPath}`)) {
+            if (matchPath.length > exactLength) {
+                exactMatch = link;
+                exactLength = matchPath.length;
+            }
+        }
+
+        if (!rootMatch && link.dataset.root === currentRoot) {
+            rootMatch = link;
+        }
+    });
+
+    return exactMatch || rootMatch;
+}
+
+function updateSidebarActiveState() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+
+    sidebar.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+    sidebar.querySelectorAll('.sidebar-section').forEach(section => {
+        section.classList.remove('sidebar-section-active', 'sidebar-section-open');
+        const button = section.querySelector('.sidebar-section-toggle');
+        if (button) button.setAttribute('aria-expanded', 'false');
+    });
+
+    const activeLink = findActiveSidebarLink();
+    if (!activeLink) return;
+
+    activeLink.classList.add('active');
+    const activeSection = activeLink.closest('.sidebar-section');
+    if (!activeSection) return;
+
+    activeSection.classList.add('sidebar-section-active', 'sidebar-section-open');
+    const button = activeSection.querySelector('.sidebar-section-toggle');
+    if (button) button.setAttribute('aria-expanded', 'true');
+}
+
+function openSidebarSection(section) {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar || !section) return;
+
+    sidebar.querySelectorAll('.sidebar-section').forEach(item => {
+        const isCurrent = item === section;
+        item.classList.toggle('sidebar-section-open', isCurrent);
+        const button = item.querySelector('.sidebar-section-toggle');
+        if (button) button.setAttribute('aria-expanded', isCurrent ? 'true' : 'false');
+    });
+}
+
+function setupSidebarInteractions() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar || sidebar.dataset.interactionsBound === 'true') return;
+
+    sidebar.dataset.interactionsBound = 'true';
+    sidebar.addEventListener('click', event => {
+        const toggle = event.target.closest('.sidebar-section-toggle');
+        if (toggle) {
+            const section = toggle.closest('.sidebar-section');
+            const isOpen = section?.classList.contains('sidebar-section-open');
+
+            if (document.body.classList.contains('sidebar-collapsed') && isDesktopSidebar()) {
+                setSidebarCollapsed(false);
+            }
+
+            if (section) {
+                if (isOpen) {
+                    section.classList.remove('sidebar-section-open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                } else {
+                    openSidebarSection(section);
+                }
+            }
+            return;
+        }
+
+        const link = event.target.closest('.sidebar-link');
+        if (link && isDesktopSidebar()) {
+            setSidebarCollapsed(true);
+        }
+    });
+
+    if (!_sidebarResizeBound) {
+        _sidebarResizeBound = true;
+        window.addEventListener('resize', throttle(applySidebarCollapsedState, 150));
+    }
+}
+
 // Initialize page
 function initPage(moduleName) {
     checkAuth();
@@ -207,28 +415,9 @@ function initPage(moduleName) {
         userNameEl.textContent = user.nombre || user.username;
     }
 
-    // Highlight exact current nav
-    const currentPath = window.location.pathname;
-    let bestMatch = null;
-    let matchLength = 0;
-
-    document.querySelectorAll('.nav-item').forEach(item => {
-        const href = item.getAttribute('href');
-        item.classList.remove('active');
-        if (href) {
-            const basePath = href.split('?')[0].replace('.html', '');
-            if (currentPath.includes(basePath)) {
-                if (basePath.length > matchLength) {
-                    bestMatch = item;
-                    matchLength = basePath.length;
-                }
-            }
-        }
-    });
-
-    if (bestMatch) {
-        bestMatch.classList.add('active');
-    }
+    setupSidebarInteractions();
+    updateSidebarActiveState();
+    applySidebarCollapsedState();
 
     // Initialize password change modal
     initPasswordModal();
@@ -368,7 +557,19 @@ window.stopRealtimeSync = stopRealtimeSync;
 
 // Toggle sidebar
 function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('show');
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+
+    if (!isDesktopSidebar()) {
+        sidebar.classList.toggle('show');
+        return;
+    }
+
+    const collapsed = !document.body.classList.contains('sidebar-collapsed');
+    setSidebarCollapsed(collapsed);
+    if (!collapsed) {
+        updateSidebarActiveState();
+    }
 }
 
 // Confirm delete
