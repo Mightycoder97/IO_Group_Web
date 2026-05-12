@@ -15,7 +15,8 @@ $action  = $_GET['action'] ?? null;
 
 switch ($method) {
     case 'GET':
-        if ($id_ruta) getRouteServices($id_ruta);
+        if ($action === 'ia_feedback_stats') getRutaIaFeedbackStats($id_ruta);
+        elseif ($id_ruta) getRouteServices($id_ruta);
         else {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'id_ruta requerido']);
@@ -30,6 +31,7 @@ switch ($method) {
         break;
     case 'POST':
         if ($action === 'analizar_fotos') analizarFotosRuta($id_ruta);
+        elseif ($action === 'registrar_feedback_ia') registrarFeedbackRutaIa();
         else {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'AcciÃ³n no vÃ¡lida']);
@@ -393,6 +395,185 @@ function analizarFotosRutaImpl($id_ruta, $requestId) {
         'sin_match' => $allUnmatched,
         'errores' => $errores
     ]);
+}
+
+function registrarFeedbackRutaIa() {
+    $user = canEdit();
+
+    try {
+        ensureRouteIaSchema();
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $idRuta = intval($data['id_ruta'] ?? 0);
+        $idLote = intval($data['id_lote'] ?? 0);
+        $items = is_array($data['items'] ?? null) ? $data['items'] : [];
+
+        if ($idRuta <= 0 || $idLote <= 0 || empty($items)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Datos de feedback IA incompletos']);
+            return;
+        }
+
+        $lote = db()->queryOne(
+            "SELECT id_lote FROM DocumentoIALote WHERE id_lote = ? AND (id_ruta = ? OR id_ruta IS NULL)",
+            [$idLote, $idRuta]
+        );
+        if (!$lote) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Lote IA no encontrado para la ruta']);
+            return;
+        }
+
+        $userId = $user['id'] ?? $user['id_usuario'] ?? null;
+        $guardados = 0;
+        $correctos = 0;
+        $incorrectos = 0;
+
+        foreach ($items as $item) {
+            if (!is_array($item)) continue;
+
+            $idServicio = intval($item['id_servicio'] ?? 0);
+            if ($idServicio <= 0) continue;
+
+            $servicio = db()->queryOne(
+                "SELECT id_servicio, id_sede FROM Servicio WHERE id_servicio = ? AND id_ruta = ?",
+                [$idServicio, $idRuta]
+            );
+            if (!$servicio) continue;
+
+            $resultado = ($item['resultado'] ?? '') === 'correcto' ? 'correcto' : 'incorrecto';
+            if ($resultado === 'correcto') $correctos++;
+            else $incorrectos++;
+
+            $confianza = isset($item['confianza']) && $item['confianza'] !== null
+                ? clamp01(floatval($item['confianza']))
+                : null;
+            $camposSugeridosData = is_array($item['campos_sugeridos'] ?? null) ? $item['campos_sugeridos'] : [];
+            $camposFinalesData = is_array($item['campos_finales'] ?? null) ? $item['campos_finales'] : [];
+            $camposModificadosData = is_array($item['campos_modificados'] ?? null) ? array_values($item['campos_modificados']) : [];
+            $camposSugeridos = json_encode($camposSugeridosData, JSON_UNESCAPED_UNICODE);
+            $camposFinales = json_encode($camposFinalesData, JSON_UNESCAPED_UNICODE);
+            $camposModificados = json_encode($camposModificadosData, JSON_UNESCAPED_UNICODE);
+            $anotacion = trim((string)($item['anotacion_original'] ?? '')) ?: null;
+            $idSede = intval($item['id_sede'] ?? $servicio['id_sede'] ?? 0) ?: null;
+
+            db()->execute(
+                "INSERT INTO RutaIAFeedback
+                 (id_lote, id_ruta, id_servicio, id_sede, resultado, confianza, campos_sugeridos, campos_finales, campos_modificados, anotacion_original, id_usuario)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                    resultado = VALUES(resultado),
+                    confianza = VALUES(confianza),
+                    campos_sugeridos = VALUES(campos_sugeridos),
+                    campos_finales = VALUES(campos_finales),
+                    campos_modificados = VALUES(campos_modificados),
+                    anotacion_original = VALUES(anotacion_original),
+                    id_usuario = VALUES(id_usuario),
+                    fecha_modificacion = NOW()",
+                [$idLote, $idRuta, $idServicio, $idSede, $resultado, $confianza, $camposSugeridos, $camposFinales, $camposModificados, $anotacion, $userId]
+            );
+            $guardados++;
+        }
+
+        $historico = db()->queryOne(
+            "SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN resultado = 'correcto' THEN 1 ELSE 0 END) as correctos,
+                SUM(CASE WHEN resultado = 'incorrecto' THEN 1 ELSE 0 END) as incorrectos
+             FROM RutaIAFeedback"
+        );
+        $totalHistorico = intval($historico['total'] ?? 0);
+        $correctosHistoricos = intval($historico['correctos'] ?? 0);
+
+        echo json_encode([
+            'success' => true,
+            'guardados' => $guardados,
+            'correctos' => $correctos,
+            'incorrectos' => $incorrectos,
+            'historico' => [
+                'total' => $totalHistorico,
+                'correctos' => $correctosHistoricos,
+                'incorrectos' => intval($historico['incorrectos'] ?? 0),
+                'precision' => $totalHistorico > 0 ? round($correctosHistoricos / $totalHistorico, 4) : null
+            ]
+        ]);
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Error al registrar feedback IA: ' . $e->getMessage()]);
+    }
+}
+
+function getRutaIaFeedbackStats($id_ruta = null) {
+    canView();
+
+    try {
+        ensureRouteIaSchema();
+
+        $idRuta = intval($id_ruta ?? ($_GET['id_ruta'] ?? 0));
+        $where = '';
+        $params = [];
+        if ($idRuta > 0) {
+            $where = 'WHERE id_ruta = ?';
+            $params[] = $idRuta;
+        }
+
+        $stats = db()->queryOne(
+            "SELECT
+                COUNT(*) as total,
+                SUM(CASE WHEN resultado = 'correcto' THEN 1 ELSE 0 END) as correctos,
+                SUM(CASE WHEN resultado = 'incorrecto' THEN 1 ELSE 0 END) as incorrectos,
+                AVG(confianza) as confianza_promedio
+             FROM RutaIAFeedback
+             $where",
+            $params
+        );
+
+        $porRutaSql =
+            "SELECT
+                id_ruta,
+                COUNT(*) as total,
+                SUM(CASE WHEN resultado = 'correcto' THEN 1 ELSE 0 END) as correctos,
+                SUM(CASE WHEN resultado = 'incorrecto' THEN 1 ELSE 0 END) as incorrectos,
+                MAX(fecha_modificacion) as ultima_revision
+             FROM RutaIAFeedback
+             $where
+             GROUP BY id_ruta
+             ORDER BY ultima_revision DESC
+             LIMIT 25";
+        $porRuta = db()->query($porRutaSql, $params);
+
+        $total = intval($stats['total'] ?? 0);
+        $correctos = intval($stats['correctos'] ?? 0);
+        $incorrectos = intval($stats['incorrectos'] ?? 0);
+
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'scope' => $idRuta > 0 ? 'ruta' : 'global',
+                'id_ruta' => $idRuta > 0 ? $idRuta : null,
+                'total' => $total,
+                'correctos' => $correctos,
+                'incorrectos' => $incorrectos,
+                'precision' => $total > 0 ? round($correctos / $total, 4) : null,
+                'confianza_promedio' => $stats['confianza_promedio'] !== null ? round(floatval($stats['confianza_promedio']), 4) : null,
+                'por_ruta' => array_map(function ($row) {
+                    $rowTotal = intval($row['total'] ?? 0);
+                    $rowCorrectos = intval($row['correctos'] ?? 0);
+                    return [
+                        'id_ruta' => intval($row['id_ruta']),
+                        'total' => $rowTotal,
+                        'correctos' => $rowCorrectos,
+                        'incorrectos' => intval($row['incorrectos'] ?? 0),
+                        'precision' => $rowTotal > 0 ? round($rowCorrectos / $rowTotal, 4) : null,
+                        'ultima_revision' => $row['ultima_revision'] ?? null
+                    ];
+                }, $porRuta)
+            ]
+        ]);
+    } catch (Throwable $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Error al consultar estadistica IA: ' . $e->getMessage()]);
+    }
 }
 
 /**
@@ -1049,6 +1230,30 @@ function ensureRouteIaSchema() {
             KEY idx_doc_ia_archivo_estado (estado),
             KEY idx_doc_ia_archivo_tipo (tipo_detectado),
             KEY idx_doc_ia_archivo_servicio (id_servicio_sugerido)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+
+    db()->execute(
+        "CREATE TABLE IF NOT EXISTS RutaIAFeedback (
+            id_feedback int(11) NOT NULL AUTO_INCREMENT,
+            id_lote int(11) NOT NULL,
+            id_ruta int(11) NOT NULL,
+            id_servicio int(11) NOT NULL,
+            id_sede int(11) DEFAULT NULL,
+            resultado enum('correcto','incorrecto') NOT NULL,
+            confianza decimal(5,4) DEFAULT NULL,
+            campos_sugeridos longtext DEFAULT NULL,
+            campos_finales longtext DEFAULT NULL,
+            campos_modificados longtext DEFAULT NULL,
+            anotacion_original text DEFAULT NULL,
+            id_usuario int(11) DEFAULT NULL,
+            fecha_creacion datetime DEFAULT current_timestamp(),
+            fecha_modificacion datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+            PRIMARY KEY (id_feedback),
+            UNIQUE KEY uq_ruta_ia_feedback_lote_servicio (id_lote, id_servicio),
+            KEY idx_ruta_ia_feedback_ruta (id_ruta),
+            KEY idx_ruta_ia_feedback_resultado (resultado),
+            KEY idx_ruta_ia_feedback_servicio (id_servicio)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
     );
 

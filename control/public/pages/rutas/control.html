@@ -393,10 +393,35 @@
             color: #24556a;
         }
 
+        .ai-suggestion-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .ai-suggestion-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .ai-accept-btn {
+            flex-shrink: 0;
+        }
+
         .ai-suggestion.warn {
             border-color: #ffcc80;
             background: #fff8e1;
             color: #6d4c00;
+        }
+
+        .ai-suggestion.accepted {
+            border-color: #a5d6a7;
+            background: #f1f8e9;
+            color: #1b5e20;
         }
 
         .ai-field-changed {
@@ -567,6 +592,7 @@
         // Loaded services for current route
         let currentServicios = [];
         let currentRutaMeta = null;
+        let currentIaLoteId = null;
 
         const PAYMENT_METHODS = ['Yape', 'Plin', 'Efectivo', 'Transferencia', 'Cheque', 'Depósito', 'Otro'];
 
@@ -715,6 +741,7 @@
 
             currentRutaId = id;
             localEdits = {};
+            currentIaLoteId = null;
 
             // Highlight selected item
             document.querySelectorAll('.ruta-item').forEach(el => el.classList.remove('active'));
@@ -770,6 +797,10 @@
                         numero_guia: s.numero_guia || null,
                         ai_confianza: null,
                         ai_anotacion: null,
+                        ai_suggestion: null,
+                        ai_accepted: false,
+                        ai_resultado: null,
+                        ai_modified_fields: [],
                         // Track if user touched this in the current session
                         editadoServicio: false,
                         editadoPago: false,
@@ -801,6 +832,8 @@
 
             el.innerHTML = currentServicios.map((s, i) => {
                 const edit = localEdits[s.id_servicio];
+                const idServicio = Number(s.id_servicio || 0);
+                const canReviewDocs = idServicio > 0;
                 const isVerifiedServicio = edit.estado && edit.estado !== 'programado';
                 const isVerifiedPago = edit.estado_pago === 'pagado' || edit.editadoPago;
                 const bothDone = isVerifiedServicio && (edit.estado_pago === 'pagado');
@@ -889,6 +922,7 @@
                         ${renderAiInfo(s, edit)}
                     </div>
 
+                    ${canReviewDocs ? `
                     <div class="action-strip mt-1">
                         <i class="bi bi-search text-dark"></i>
                         <label>Buscar por RUC:</label>
@@ -943,19 +977,27 @@
                         </div>
                         <div id="docSavedInfo-${s.id_servicio}" class="mt-2"></div>
                     </div>
+                    ` : ''}
                 </div>
             </div>`;
             }).join('');
         }
 
         function renderAiInfo(s, edit) {
-            if (edit.ai_confianza === null && !edit.ai_anotacion) return '';
+            if (edit.ai_confianza === null && !edit.ai_anotacion && !edit.ai_suggestion) return '';
             const confianza = edit.ai_confianza !== null ? Math.round(Number(edit.ai_confianza) * 100) : null;
             const warn = confianza !== null && confianza < 70;
-            return `<div class="ai-suggestion${warn ? ' warn' : ''}">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span><i class="bi bi-stars me-1"></i>IA${confianza !== null ? ` ${confianza}%` : ''}</span>
-                    ${edit.ai_anotacion ? `<span>${escapeHtml(edit.ai_anotacion)}</span>` : ''}
+            const accepted = !!edit.ai_accepted;
+            return `<div class="ai-suggestion${warn ? ' warn' : ''}${accepted ? ' accepted' : ''}">
+                <div class="ai-suggestion-row">
+                    <div class="ai-suggestion-text">
+                        <span><i class="bi bi-stars me-1"></i>IA${confianza !== null ? ` ${confianza}%` : ''}</span>
+                        ${edit.ai_anotacion ? `<span>${escapeHtml(edit.ai_anotacion)}</span>` : ''}
+                    </div>
+                    <button type="button"
+                            class="btn btn-sm ${accepted ? 'btn-success' : 'btn-outline-success'} ai-accept-btn"
+                            onclick="aceptarSugerenciaIa(${s.id_servicio})"
+                            ${accepted ? 'disabled' : ''}>Aceptar</button>
                 </div>
             </div>`;
         }
@@ -982,6 +1024,7 @@
             const val = document.getElementById(`est-${id}`).value;
             localEdits[id].estado = val;
             localEdits[id].editadoServicio = true;
+            markIaManualChange(id);
             // Enable confirm button
             document.getElementById(`btnConfSrv-${id}`).disabled = false;
             refreshSedeCard(id);
@@ -992,6 +1035,7 @@
             const checked = document.getElementById(`chkPago-${id}`).checked;
             localEdits[id].estado_pago = checked ? 'pagado' : 'pendiente';
             localEdits[id].editadoPago = true;
+            markIaManualChange(id);
             document.getElementById(`metodo-${id}`).disabled = !checked;
             document.getElementById(`btnConfPago-${id}`).disabled = false;
             refreshSedeCard(id);
@@ -1002,6 +1046,7 @@
             const val = document.getElementById(`metodo-${id}`).value;
             localEdits[id].forma_pago = val;
             localEdits[id].editadoPago = true;
+            markIaManualChange(id);
             document.getElementById(`btnConfPago-${id}`).disabled = false;
         }
 
@@ -1013,6 +1058,86 @@
             } else {
                 edit[field] = String(value || '').trim() || null;
             }
+            markIaManualChange(id);
+        }
+
+        function aceptarSugerenciaIa(id) {
+            const edit = localEdits[id];
+            if (!edit || !edit.ai_suggestion) return;
+
+            const changedFields = getIaChangedFields(id);
+            edit.ai_modified_fields = changedFields;
+            edit.ai_resultado = changedFields.length > 0 ? 'incorrecto' : 'correcto';
+            edit.ai_accepted = true;
+
+            const servicio = currentServicios.find(s => Number(s.id_servicio) === Number(id));
+            const aiInfo = document.getElementById(`aiInfo-${id}`);
+            if (servicio && aiInfo) {
+                aiInfo.innerHTML = renderAiInfo(servicio, edit);
+            }
+        }
+
+        function markIaManualChange(id) {
+            const edit = localEdits[id];
+            if (!edit || !edit.ai_suggestion) return;
+
+            const changedFields = getIaChangedFields(id);
+            edit.ai_modified_fields = changedFields;
+            if (changedFields.length > 0) {
+                edit.ai_resultado = 'incorrecto';
+                edit.ai_accepted = false;
+            } else if (!edit.ai_accepted) {
+                edit.ai_resultado = null;
+            }
+
+            const servicio = currentServicios.find(s => Number(s.id_servicio) === Number(id));
+            const aiInfo = document.getElementById(`aiInfo-${id}`);
+            if (servicio && aiInfo) {
+                aiInfo.innerHTML = renderAiInfo(servicio, edit);
+            }
+        }
+
+        function getIaChangedFields(id) {
+            const edit = localEdits[id];
+            const values = edit?.ai_suggestion?.values || {};
+            return Object.keys(values).filter(field => !iaValuesEqual(getCurrentIaValue(id, field), values[field]));
+        }
+
+        function getCurrentIaValue(id, field) {
+            const edit = localEdits[id] || {};
+            if (field === 'estado') {
+                return document.getElementById(`est-${id}`)?.value ?? edit.estado ?? null;
+            }
+            if (field === 'estado_pago') {
+                const checkbox = document.getElementById(`chkPago-${id}`);
+                return checkbox ? (checkbox.checked ? 'pagado' : 'pendiente') : (edit.estado_pago ?? null);
+            }
+            if (field === 'forma_pago') {
+                return document.getElementById(`metodo-${id}`)?.value || edit.forma_pago || null;
+            }
+            if (field === 'peso_kg') {
+                return parseNullableNumber(document.getElementById(`pesoKg-${id}`)?.value ?? edit.peso_kg);
+            }
+            if (field === 'monto_cobrado') {
+                return parseNullableNumber(document.getElementById(`montoCobrado-${id}`)?.value ?? edit.monto_cobrado);
+            }
+            if (field === 'numero_manifiesto') {
+                return document.getElementById(`numManifiesto-${id}`)?.value.trim() || edit.numero_manifiesto || null;
+            }
+            if (field === 'numero_guia') {
+                return document.getElementById(`numGuia-${id}`)?.value.trim() || edit.numero_guia || null;
+            }
+            return edit[field] ?? null;
+        }
+
+        function iaValuesEqual(a, b) {
+            const aNum = parseNullableNumber(a);
+            const bNum = parseNullableNumber(b);
+            if (aNum !== null || bNum !== null) {
+                return aNum !== null && bNum !== null && Math.abs(aNum - bNum) < 0.01;
+            }
+            const normalize = value => String(value ?? '').trim().toLowerCase();
+            return normalize(a) === normalize(b);
         }
 
         // ========================
@@ -1151,6 +1276,60 @@
             }
         }
 
+        function buildIaFeedbackPayload(serviciosPayload) {
+            if (!currentIaLoteId) return null;
+
+            const byId = {};
+            serviciosPayload.forEach(item => {
+                byId[Number(item.id_servicio)] = item;
+            });
+
+            const items = [];
+            currentServicios.forEach(s => {
+                const id = Number(s.id_servicio);
+                const edit = localEdits[s.id_servicio];
+                if (!id || id <= 0 || !edit?.ai_suggestion) return;
+
+                const changedFields = getIaChangedFields(id);
+                const resultado = edit.ai_accepted
+                    ? (changedFields.length > 0 ? 'incorrecto' : 'correcto')
+                    : (changedFields.length > 0 ? 'incorrecto' : null);
+
+                if (!resultado) return;
+
+                const finalValues = {};
+                const finalSource = byId[id] || {};
+                Object.keys(edit.ai_suggestion.values || {}).forEach(field => {
+                    finalValues[field] = finalSource[field] ?? getCurrentIaValue(id, field);
+                });
+
+                items.push({
+                    id_servicio: id,
+                    id_sede: Number(s.id_sede || 0) || null,
+                    resultado,
+                    confianza: edit.ai_suggestion.confianza,
+                    campos_sugeridos: edit.ai_suggestion.values,
+                    campos_finales: finalValues,
+                    campos_modificados: changedFields,
+                    anotacion_original: edit.ai_suggestion.anotacion_original
+                });
+            });
+
+            if (items.length === 0) return null;
+            return {
+                id_ruta: currentRutaId,
+                id_lote: currentIaLoteId,
+                items
+            };
+        }
+
+        function registrarFeedbackIa(payload) {
+            if (!payload || !payload.items || payload.items.length === 0) return;
+            api.post('/control_ruta?action=registrar_feedback_ia', payload).catch(err => {
+                console.warn('No se pudo registrar feedback historico IA', err);
+            });
+        }
+
         // ========================
         // Save (batch update)
         // ========================
@@ -1185,11 +1364,13 @@
                     };
                 })
             };
+            const iaFeedbackPayload = buildIaFeedbackPayload(payload.servicios);
 
             try {
                 const result = await api.put('/control_ruta?action=batch_update', payload);
 
                 if (result.success) {
+                    registrarFeedbackIa(iaFeedbackPayload);
                     showToast(result.message || 'Cambios guardados correctamente', 'success');
 
                     const ruta = allRutas.find(r => r.id_ruta == currentRutaId);
@@ -1240,6 +1421,7 @@
                 const ruta = result.data;
                 currentRutaMeta = ruta;
                 currentServicios = ruta.servicios || [];
+                currentIaLoteId = null;
 
                 currentServicios.forEach(s => {
                     localEdits[s.id_servicio] = {
@@ -1254,6 +1436,10 @@
                         numero_guia: s.numero_guia || null,
                         ai_confianza: null,
                         ai_anotacion: null,
+                        ai_suggestion: null,
+                        ai_accepted: false,
+                        ai_resultado: null,
+                        ai_modified_fields: [],
                         editadoServicio: false,
                         editadoPago: false,
                     };
@@ -1325,6 +1511,8 @@
                     return;
                 }
 
+                clearRutaIaSuggestions();
+                currentIaLoteId = result.id_lote || currentIaLoteId;
                 aplicarSugerenciasIa(result.servicios || []);
                 renderSinMatchIa(result.sin_match || [], result.errores || []);
                 const resumen = result.resumen || {};
@@ -1341,7 +1529,11 @@
         }
 
         function aplicarSugerenciasIa(servicios) {
-            if (!Array.isArray(servicios) || servicios.length === 0) return;
+            if (!Array.isArray(servicios) || servicios.length === 0) {
+                renderSedes();
+                updateProgressAndSave();
+                return;
+            }
 
             servicios.forEach(sug => {
                 const id = Number(sug.id_servicio);
@@ -1366,10 +1558,43 @@
                 if (sug.numero_guia) edit.numero_guia = sug.numero_guia;
                 edit.ai_confianza = sug.confianza ?? null;
                 edit.ai_anotacion = sug.anotacion_original || null;
+                edit.ai_suggestion = buildIaSuggestionSnapshot(sug);
+                edit.ai_accepted = false;
+                edit.ai_resultado = null;
+                edit.ai_modified_fields = [];
             });
 
             renderSedes();
             updateProgressAndSave();
+        }
+
+        function clearRutaIaSuggestions() {
+            Object.values(localEdits).forEach(edit => {
+                edit.ai_confianza = null;
+                edit.ai_anotacion = null;
+                edit.ai_suggestion = null;
+                edit.ai_accepted = false;
+                edit.ai_resultado = null;
+                edit.ai_modified_fields = [];
+            });
+        }
+
+        function buildIaSuggestionSnapshot(sug) {
+            const values = {};
+            if (sug.estado) values.estado = sug.estado;
+            if (sug.estado_pago) values.estado_pago = sug.estado_pago;
+            if (sug.forma_pago) values.forma_pago = sug.forma_pago;
+            if (sug.peso_kg !== null && sug.peso_kg !== undefined) values.peso_kg = parseNullableNumber(sug.peso_kg);
+            if (sug.monto_cobrado !== null && sug.monto_cobrado !== undefined) values.monto_cobrado = parseNullableNumber(sug.monto_cobrado);
+            if (sug.numero_manifiesto) values.numero_manifiesto = String(sug.numero_manifiesto).trim();
+            if (sug.numero_guia) values.numero_guia = String(sug.numero_guia).trim();
+
+            return {
+                id_lote: currentIaLoteId,
+                confianza: sug.confianza ?? null,
+                anotacion_original: sug.anotacion_original || null,
+                values
+            };
         }
 
         function renderSinMatchIa(items, errores) {
