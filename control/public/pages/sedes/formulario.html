@@ -20,6 +20,52 @@
             min-height: 350px;
             border-radius: 8px;
             border: 1px solid #dee2e6;
+            overflow: hidden;
+        }
+
+        #map.map-fallback .leaflet-tile {
+            filter: saturate(0.85) contrast(1.03);
+        }
+
+        .gps-leaflet-marker {
+            background: #1B5E20;
+            border: 2px solid #fff;
+            border-radius: 999px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+            height: 18px;
+            width: 18px;
+        }
+
+        .map-error-state {
+            align-items: center;
+            background: #f3f4f6;
+            color: #374151;
+            display: flex;
+            font-weight: 600;
+            height: 100%;
+            justify-content: center;
+            min-height: 350px;
+            text-align: center;
+        }
+
+        .place-autocomplete-container {
+            margin-top: 0.5rem;
+        }
+
+        .place-autocomplete-container gmp-place-autocomplete {
+            --gmpx-color-surface: #fff;
+            --gmpx-color-on-surface: #212529;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            display: block;
+            min-height: 38px;
+            width: 100%;
+        }
+
+        .place-autocomplete-container gmp-place-autocomplete::part(input) {
+            font-family: inherit;
+            font-size: 1rem;
+            min-height: 36px;
         }
 
         .map-container {
@@ -464,24 +510,82 @@
         const defaultLng = -77.0428;
 
         let map, marker;
+        let mapProvider = 'google';
         let MapClass, MarkerClass, AutocompleteClass;
+        let pendingMarkerPosition = null;
+        let fallbackMapStarted = false;
+        let placeAutocompleteElement = null;
 
-        // Google Maps Bootstrap Loader
-        (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
-            key: API_CONFIG.GOOGLE_MAPS_API_KEY,
-            v: "weekly",
-            language: "es",
-            region: "PE"
-        });
+        async function resolveGoogleMapsKey() {
+            window.API_CONFIG = window.API_CONFIG || {};
+            const configuredKey = String(window.API_CONFIG.GOOGLE_MAPS_API_KEY || '').trim();
+            if (configuredKey && !configuredKey.includes('YOUR_GOOGLE_MAPS_API_KEY')) {
+                return configuredKey;
+            }
+
+            try {
+                const result = await api.get('/maps-config', { cache: false });
+                const serverKey = String(result?.data?.googleMapsApiKey || '').trim();
+                if (serverKey) {
+                    window.API_CONFIG.GOOGLE_MAPS_API_KEY = serverKey;
+                }
+                return serverKey;
+            } catch (error) {
+                console.warn('No se pudo resolver Google Maps API key', error);
+                return '';
+            }
+        }
+
+        function loadGoogleMapsApi(key) {
+            if (window.google?.maps?.importLibrary) return Promise.resolve();
+            if (window.__sedesGoogleMapsLoading) return window.__sedesGoogleMapsLoading;
+
+            window.gm_authFailure = () => {
+                window.__sedesGoogleMapsAuthFailed = true;
+                if (typeof window.__sedesGoogleMapsReject === 'function') {
+                    window.__sedesGoogleMapsReject(new Error('Google Maps rechazo la API key configurada'));
+                }
+                initFallbackMap('Google Maps rechazo la API key configurada');
+            };
+
+            window.__sedesGoogleMapsLoading = new Promise((resolve, reject) => {
+                window.__sedesGoogleMapsReject = reject;
+                window.__sedesGoogleMapsReady = () => resolve();
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&v=weekly&language=es&region=PE&callback=__sedesGoogleMapsReady`;
+                script.async = true;
+                script.defer = true;
+                script.onerror = () => reject(new Error('No se pudo cargar Google Maps'));
+                document.head.appendChild(script);
+            });
+
+            return window.__sedesGoogleMapsLoading;
+        }
+
+        async function initMap() {
+            try {
+                await initGoogleMap();
+            } catch (error) {
+                console.warn(error);
+                await initFallbackMap(error.message || 'Google Maps no disponible');
+            }
+        }
 
         // Initialize Google Map
         async function initGoogleMap() {
-            // Import libraries
-            MapClass = (await google.maps.importLibrary("maps")).Map;
-            MarkerClass = (await google.maps.importLibrary("marker")).Marker;
-            AutocompleteClass = (await google.maps.importLibrary("places")).Autocomplete;
+            const key = await resolveGoogleMapsKey();
+            if (!key) throw new Error('Google Maps API key no configurada');
 
-            map = new MapClass(document.getElementById('map'), {
+            await loadGoogleMapsApi(key);
+            if (window.__sedesGoogleMapsAuthFailed) throw new Error('Google Maps rechazo la API key configurada');
+            MapClass = (await google.maps.importLibrary("maps")).Map;
+            MarkerClass = (await google.maps.importLibrary("marker")).Marker || google.maps.Marker;
+            if (window.__sedesGoogleMapsAuthFailed) throw new Error('Google Maps rechazo la API key configurada');
+
+            mapProvider = 'google';
+            const mapEl = document.getElementById('map');
+            mapEl.classList.remove('map-fallback');
+            map = new MapClass(mapEl, {
                 center: { lat: defaultLat, lng: defaultLng },
                 zoom: 12,
                 mapTypeControl: true,
@@ -489,17 +593,124 @@
                 fullscreenControl: true
             });
 
-            // Click on map to place marker
             map.addListener('click', function (e) {
                 placeMarker(e.latLng.lat(), e.latLng.lng());
             });
 
-            // Initialize Places Autocomplete
-            initAutocomplete();
+            try {
+                await initAutocomplete();
+            } catch (error) {
+                console.warn('Autocomplete no disponible', error);
+                showToast('Mapa activo. Autocomplete no disponible con la key actual.', 'warning');
+            }
+
+            applyPendingMarker();
+        }
+
+        async function loadLeaflet() {
+            if (window.L?.map) return;
+            if (window.__sedesLeafletLoading) return window.__sedesLeafletLoading;
+
+            window.__sedesLeafletLoading = new Promise((resolve, reject) => {
+                if (!document.getElementById('leafletCss')) {
+                    const link = document.createElement('link');
+                    link.id = 'leafletCss';
+                    link.rel = 'stylesheet';
+                    link.href = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css';
+                    document.head.appendChild(link);
+                }
+
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+                script.async = true;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error('No se pudo cargar el mapa alternativo'));
+                document.head.appendChild(script);
+            });
+
+            return window.__sedesLeafletLoading;
+        }
+
+        async function initFallbackMap(reason) {
+            if (fallbackMapStarted) return;
+            fallbackMapStarted = true;
+            mapProvider = 'leaflet';
+            map = null;
+            marker = null;
+
+            const mapEl = document.getElementById('map');
+            mapEl.innerHTML = '';
+            mapEl.classList.add('map-fallback');
+
+            try {
+                await loadLeaflet();
+                const initial = pendingMarkerPosition || readCoordinateInput() || { lat: defaultLat, lng: defaultLng };
+                map = L.map(mapEl, { zoomControl: true }).setView([initial.lat, initial.lng], pendingMarkerPosition || readCoordinateInput() ? 16 : 12);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+                map.on('click', event => placeMarker(event.latlng.lat, event.latlng.lng));
+                setTimeout(() => map.invalidateSize(), 0);
+                applyPendingMarker();
+                showToast(`${reason}. Se activo mapa alternativo para editar coordenadas.`, 'warning');
+            } catch (error) {
+                mapEl.innerHTML = '<div class="map-error-state">No se pudo cargar el mapa. Ingresa la coordenada GPS manualmente desde BD o configura Google Maps.</div>';
+                document.getElementById('coordenadas_gps').readOnly = false;
+                showToast(error.message || 'No se pudo cargar el mapa', 'danger');
+            }
+        }
+
+        function readCoordinateInput() {
+            const value = document.getElementById('coordenadas_gps').value;
+            if (!value || !value.includes(',')) return null;
+            const [lat, lng] = value.split(',').map(part => parseFloat(part.trim()));
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            return { lat, lng };
+        }
+
+        function applyPendingMarker() {
+            if (!pendingMarkerPosition) return;
+            const position = pendingMarkerPosition;
+            pendingMarkerPosition = null;
+            placeMarker(position.lat, position.lng);
         }
 
         // Place or move marker
         function placeMarker(lat, lng) {
+            if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return;
+            lat = Number(lat);
+            lng = Number(lng);
+
+            if (!map) {
+                pendingMarkerPosition = { lat, lng };
+                updateCoordinates(lat, lng);
+                return;
+            }
+
+            if (mapProvider === 'leaflet') {
+                const latLng = [lat, lng];
+                if (marker) {
+                    marker.setLatLng(latLng);
+                } else {
+                    marker = L.marker(latLng, {
+                        draggable: true,
+                        icon: L.divIcon({
+                            className: 'gps-leaflet-marker',
+                            iconSize: [18, 18],
+                            iconAnchor: [9, 9]
+                        })
+                    }).addTo(map);
+                    marker.on('dragend', function () {
+                        const pos = marker.getLatLng();
+                        updateCoordinates(pos.lat, pos.lng);
+                    });
+                }
+                map.setView(latLng, Math.max(map.getZoom(), 16));
+                updateCoordinates(lat, lng);
+                return;
+            }
+
             if (marker) {
                 marker.setPosition({ lat, lng });
             } else {
@@ -534,7 +745,16 @@
         // ========== ADDRESS SEARCH (Google Places Autocomplete) ==========
         const direccionInput = document.getElementById('direccion');
 
-        function initAutocomplete() {
+        async function initAutocomplete() {
+            const placesLibrary = await google.maps.importLibrary("places");
+            if (placesLibrary.PlaceAutocompleteElement) {
+                initPlaceAutocompleteElement(placesLibrary.PlaceAutocompleteElement);
+                return;
+            }
+
+            AutocompleteClass = placesLibrary.Autocomplete;
+            if (!AutocompleteClass) throw new Error('Places Autocomplete no disponible');
+
             const autocomplete = new AutocompleteClass(direccionInput, {
                 componentRestrictions: { country: 'PE' },
                 fields: ['address_components', 'geometry', 'formatted_address', 'name'],
@@ -555,41 +775,129 @@
                     return;
                 }
 
-                const lat = place.geometry.location.lat();
-                const lng = place.geometry.location.lng();
-
-                // Extract address components
-                let distrito = '', provincia = '', departamento = '';
-
-                if (place.address_components) {
-                    for (const component of place.address_components) {
-                        const types = component.types;
-                        if (types.includes('locality')) {
-                            distrito = component.long_name;
-                        } else if (types.includes('administrative_area_level_2')) {
-                            provincia = component.long_name;
-                        } else if (types.includes('administrative_area_level_1')) {
-                            departamento = component.long_name;
-                        } else if (types.includes('sublocality_level_1') && !distrito) {
-                            distrito = component.long_name;
-                        }
-                    }
-                }
-
-                // Fill form fields
-                document.getElementById('distrito').value = distrito;
-                document.getElementById('provincia').value = provincia;
-                document.getElementById('departamento').value = departamento;
-
-                // Place marker
-                placeMarker(lat, lng);
-
-                showToast('Dirección seleccionada', 'success');
+                handleSelectedGooglePlace({
+                    formattedAddress: place.formatted_address || place.name || direccionInput.value,
+                    location: place.geometry.location,
+                    addressComponents: place.address_components || []
+                });
             });
         }
 
+        function initPlaceAutocompleteElement(PlaceAutocompleteElement) {
+            let container = document.getElementById('googlePlaceAutocompleteContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'googlePlaceAutocompleteContainer';
+                container.className = 'place-autocomplete-container';
+                direccionInput.insertAdjacentElement('afterend', container);
+            }
+            container.innerHTML = '';
+
+            const placeAutocomplete = new PlaceAutocompleteElement({
+                includedRegionCodes: ['pe'],
+                placeholder: direccionInput.value || direccionInput.placeholder || 'Buscar direccion',
+                requestedLanguage: 'es',
+                requestedRegion: 'pe',
+                value: direccionInput.value || ''
+            });
+            placeAutocompleteElement = placeAutocomplete;
+            placeAutocomplete.setAttribute('aria-label', 'Buscar direccion en Google Maps');
+            container.appendChild(placeAutocomplete);
+
+            direccionInput.required = false;
+            direccionInput.classList.add('d-none');
+
+            const syncAddressValue = () => {
+                direccionInput.value = placeAutocomplete.value || '';
+            };
+
+            placeAutocomplete.addEventListener('input', syncAddressValue);
+            placeAutocomplete.addEventListener('change', syncAddressValue);
+            direccionInput.addEventListener('input', () => {
+                placeAutocomplete.value = direccionInput.value;
+            });
+
+            placeAutocomplete.addEventListener('gmp-error', () => {
+                showToast('Google Places rechazo la busqueda de direcciones con la key actual.', 'warning');
+            });
+
+            placeAutocomplete.addEventListener('gmp-select', async ({ placePrediction }) => {
+                const place = placePrediction.toPlace();
+                await place.fetchFields({
+                    fields: ['addressComponents', 'displayName', 'formattedAddress', 'location', 'viewport']
+                });
+
+                if (!place.location) {
+                    showToast('No se encontraron coordenadas para esta direccion', 'warning');
+                    return;
+                }
+
+                handleSelectedGooglePlace({
+                    formattedAddress: place.formattedAddress || place.displayName || placeAutocomplete.value,
+                    location: place.location,
+                    addressComponents: place.addressComponents || []
+                });
+            });
+        }
+
+        function handleSelectedGooglePlace(place) {
+            const location = place.location;
+            const lat = typeof location.lat === 'function' ? location.lat() : Number(location.lat);
+            const lng = typeof location.lng === 'function' ? location.lng() : Number(location.lng);
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                showToast('No se encontraron coordenadas para esta direccion', 'warning');
+                return;
+            }
+
+            const addressParts = extractAddressParts(place.addressComponents || []);
+            direccionInput.value = place.formattedAddress || direccionInput.value;
+            syncPlaceAutocompleteValue(direccionInput.value);
+            document.getElementById('distrito').value = addressParts.distrito;
+            document.getElementById('provincia').value = addressParts.provincia;
+            document.getElementById('departamento').value = addressParts.departamento;
+
+            placeMarker(lat, lng);
+            showToast('Direccion seleccionada', 'success');
+        }
+
+        function extractAddressParts(components) {
+            const parts = { distrito: '', provincia: '', departamento: '' };
+
+            for (const component of components) {
+                const types = component.types || [];
+                const value = component.long_name
+                    || component.longName
+                    || component.longText
+                    || component.short_name
+                    || component.shortName
+                    || component.shortText
+                    || '';
+
+                if (types.includes('locality')) {
+                    parts.distrito = value;
+                } else if (types.includes('administrative_area_level_2')) {
+                    parts.provincia = value;
+                } else if (types.includes('administrative_area_level_1')) {
+                    parts.departamento = value;
+                } else if (types.includes('sublocality_level_1') && !parts.distrito) {
+                    parts.distrito = value;
+                } else if (types.includes('sublocality') && !parts.distrito) {
+                    parts.distrito = value;
+                }
+            }
+
+            return parts;
+        }
+
+        function syncPlaceAutocompleteValue(value) {
+            if (placeAutocompleteElement) {
+                placeAutocompleteElement.value = value || '';
+            }
+        }
+
         // Initialize map when page loads
-        initGoogleMap();
+        initMap();
         // ========== EMPRESA SEARCH (Real-time) ==========
         let allEmpresas = [];
         let empresaSearchTimeout = null;
@@ -737,6 +1045,7 @@
 
                     document.getElementById('nombre_comercial').value = result.data.nombre_comercial || '';
                     document.getElementById('direccion').value = result.data.direccion || '';
+                    syncPlaceAutocompleteValue(result.data.direccion || '');
                     document.getElementById('distrito').value = result.data.distrito || '';
                     document.getElementById('provincia').value = result.data.provincia || '';
                     document.getElementById('departamento').value = result.data.departamento || '';
@@ -785,11 +1094,14 @@
             e.preventDefault();
 
             const isNewMode = document.getElementById('modeNew').checked && !id;
+            if (placeAutocompleteElement) {
+                direccionInput.value = placeAutocompleteElement.value || direccionInput.value;
+            }
 
             // Build sede data
             const sedeData = {
-                nombre_comercial: document.getElementById('nombre_comercial').value,
-                direccion: document.getElementById('direccion').value,
+                nombre_comercial: document.getElementById('nombre_comercial').value.trim(),
+                direccion: document.getElementById('direccion').value.trim(),
                 distrito: document.getElementById('distrito').value || null,
                 provincia: document.getElementById('provincia').value || null,
                 departamento: document.getElementById('departamento').value || null,
@@ -802,6 +1114,14 @@
                 contacto_email: document.getElementById('contacto_email').value || null,
                 activo: document.getElementById('sede_activo').checked
             };
+
+            if (!sedeData.nombre_comercial || !sedeData.direccion) {
+                showToast('Complete nombre comercial y direccion', 'warning');
+                if (!placeAutocompleteElement) {
+                    document.getElementById(!sedeData.nombre_comercial ? 'nombre_comercial' : 'direccion').focus();
+                }
+                return;
+            }
 
             // Build contrato data
             const contratoData = {
