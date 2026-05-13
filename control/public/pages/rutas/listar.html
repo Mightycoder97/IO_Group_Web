@@ -393,17 +393,32 @@
                 overflow: visible !important;
             }
 
-            .modal-dialog {
+            .modal-dialog,
+            .modal-dialog.modal-fullscreen {
                 max-width: 100% !important;
                 width: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
                 margin: 0 !important;
                 transform: none !important;
             }
 
-            .modal-content {
+            .modal-content,
+            .modal-fullscreen .modal-content {
                 border: none !important;
                 box-shadow: none !important;
+                height: auto !important;
+                min-height: 0 !important;
                 overflow: visible !important;
+            }
+
+            .table-responsive {
+                overflow: visible !important;
+            }
+
+            body.modal-open {
+                overflow: visible !important;
+                height: auto !important;
             }
 
             .card-header,
