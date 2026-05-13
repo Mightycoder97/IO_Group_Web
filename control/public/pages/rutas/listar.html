@@ -371,6 +371,13 @@
             .content-area {
                 margin: 0 !important;
                 padding: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                display: block !important;
+            }
+
+            .modal-backdrop {
+                display: none !important;
             }
 
             .card,
@@ -379,18 +386,21 @@
                 box-shadow: none !important;
             }
 
-            .card-body {
+            .card-body,
+            .modal-body {
                 padding: 0 !important;
+                margin: 0 !important;
+                height: auto !important;
                 overflow: visible !important;
             }
 
             .modal {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
+                position: static !important;
+                display: block !important;
+                height: auto !important;
                 overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
             }
 
             .modal-dialog,
@@ -400,6 +410,7 @@
                 height: auto !important;
                 min-height: 0 !important;
                 margin: 0 !important;
+                padding: 0 !important;
                 transform: none !important;
             }
 
@@ -409,11 +420,15 @@
                 box-shadow: none !important;
                 height: auto !important;
                 min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 overflow: visible !important;
             }
 
             .table-responsive {
                 overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
             body.modal-open {
@@ -433,6 +448,13 @@
                 font-size: 7.5pt !important;
                 line-height: 1.15 !important;
                 width: 100% !important;
+            }
+
+            .hoja-ruta-table .btn-link {
+                color: #000 !important;
+                text-decoration: none !important;
+                font-weight: bold !important;
+                padding: 0 !important;
             }
 
             .hoja-ruta-table th,
