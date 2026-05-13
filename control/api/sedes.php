@@ -361,7 +361,8 @@ function create() {
             $data['contacto_nombre'] ?? null,
             $data['contacto_telefono'] ?? null,
             $data['contacto_telefono_2'] ?? null,
-            $data['contacto_email'] ?? null
+            $data['contacto_email'] ?? null,
+            isset($data['activo']) ? ($data['activo'] ? 1 : 0) : 1
         ]
     );
 
@@ -431,9 +432,9 @@ function update($id) {
             fecha_modificacion = NOW()
          WHERE id_sede = ?",
         [
-            $data['id_empresa'] ?? null,
-            $data['nombre_comercial'] ?? null,
-            $data['direccion'] ?? null,
+            !empty($data['id_empresa']) ? $data['id_empresa'] : null,
+            !empty($data['nombre_comercial']) ? $data['nombre_comercial'] : null,
+            !empty($data['direccion']) ? $data['direccion'] : null,
             $data['distrito'] ?? $existing['distrito'],
             $data['provincia'] ?? $existing['provincia'],
             $data['departamento'] ?? $existing['departamento'],
@@ -443,14 +444,14 @@ function update($id) {
             $data['contacto_telefono'] ?? $existing['contacto_telefono'],
             $data['contacto_telefono_2'] ?? $existing['contacto_telefono_2'],
             $data['contacto_email'] ?? $existing['contacto_email'],
-            isset($data['activo']) ? $data['activo'] : null,
+            isset($data['activo']) ? ($data['activo'] ? 1 : 0) : null,
             $id
         ]
     );
     
     db()->execute(
         "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores, datos_nuevos) VALUES (?, 'Sede', ?, 'UPDATE', ?, ?)",
-        [$user['id'], $id, json_encode($existing), json_encode($data)]
+        [$user['id'], $id, json_encode($existing, JSON_INVALID_UTF8_SUBSTITUTE), json_encode($data, JSON_INVALID_UTF8_SUBSTITUTE)]
     );
     
     echo json_encode([
