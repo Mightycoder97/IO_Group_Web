@@ -252,12 +252,18 @@
         }
 
         .vehiculo-tabs {
-            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 240px;
+            overflow-y: auto;
+            margin-bottom: 0;
+            padding-right: 4px;
         }
 
         .vehiculo-tab {
-            flex: 0 0 210px;
-            min-height: 96px;
+            min-height: 72px;
+            width: 100%;
         }
 
         .vehiculo-tab .route-tab-meta {
@@ -531,27 +537,37 @@
                             <div class="route-frequency-grid" id="frequencyFilters"></div>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-3 d-none">
                             <div class="small text-muted text-uppercase fw-bold mb-2">Distritos programados</div>
                             <div id="distritosChips" class="d-flex flex-wrap gap-1 text-muted">Cargando...</div>
                         </div>
 
-                        <div class="route-metric-grid mb-2">
+                        <div class="route-metric-grid mb-2 d-none">
                             <div class="route-metric"><strong id="metricTotal">0</strong><span>Total filtro</span></div>
                             <div class="route-metric"><strong id="metricAssigned">0</strong><span>Asignadas mes</span></div>
                             <div class="route-metric"><strong id="metricPending">0</strong><span>Pendientes</span></div>
                             <div class="route-metric"><strong id="metricCompliance">0%</strong><span>Cumplimiento</span></div>
                         </div>
 
-                        <div class="route-breakdown" id="coverageBreakdown">
+                        <div class="route-breakdown d-none" id="coverageBreakdown">
                             <div class="small text-muted">Sin pendientes para el filtro actual.</div>
                         </div>
 
-                        <div class="mt-3 selected-sede-panel" id="selectedSedePanel">
+                        <div class="mt-3 selected-sede-panel d-none" id="selectedSedePanel">
                             <div class="small text-muted">Selecciona una sede del buscador o mapa.</div>
                         </div>
 
-                        <div class="route-search-results mt-3" id="searchResults"></div>
+                        <div class="route-search-results mt-3" id="searchResults" style="flex: 1; min-height: 0;"></div>
+
+                        <div class="mt-auto pt-3 border-top">
+                            <h6 class="fw-bold mb-2">Seleccion de Camion</h6>
+                            <div class="vehiculo-tabs" id="vehiculoTabs">
+                                <div class="text-muted">Cargando vehiculos...</div>
+                            </div>
+                            <button class="btn btn-primary w-100 mt-3 fw-bold" onclick="abrirResumenRuta()">
+                                Continuar <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
                     </aside>
 
                     <section class="route-map-panel">
@@ -580,76 +596,84 @@
                     </section>
                 </section>
 
-                <div class="vehiculo-tabs" id="vehiculoTabs">
-                    <div class="text-muted">Cargando vehiculos...</div>
-                </div>
-
-                <div class="route-sheet-card card">
-                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <div>
-                            <span><i class="bi bi-list-ol"></i> Hoja de ruta: <strong id="vehiculoActual">-</strong></span>
-                            <div class="route-capacity-note" id="routeSummaryLine">Selecciona un camion</div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
-                            <div class="input-group input-group-sm" style="width: 210px;">
-                                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
-                                <select class="form-select form-select-sm" id="selectChofer">
-                                    <option value="">Chofer...</option>
-                                </select>
+                <div class="modal fade" id="resumenRutaModal" tabindex="-1">
+                    <div class="modal-dialog modal-fullscreen">
+                        <div class="modal-content bg-light">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="bi bi-clipboard-check"></i> Verificacion de Ruta</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
-                            <div class="input-group input-group-sm" style="width: 210px;">
-                                <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                <select class="form-select form-select-sm" id="selectAyudante">
-                                    <option value="">Ayudante...</option>
-                                </select>
+                            <div class="modal-body p-3">
+                                <div class="route-sheet-card card h-100">
+                                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <span><i class="bi bi-list-ol"></i> Hoja de ruta: <strong id="vehiculoActual">-</strong></span>
+                                            <div class="route-capacity-note" id="routeSummaryLine">Selecciona un camion</div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                                            <div class="input-group input-group-sm" style="width: 210px;">
+                                                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                                                <select class="form-select form-select-sm" id="selectChofer">
+                                                    <option value="">Chofer...</option>
+                                                </select>
+                                            </div>
+                                            <div class="input-group input-group-sm" style="width: 210px;">
+                                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                                <select class="form-select form-select-sm" id="selectAyudante">
+                                                    <option value="">Ayudante...</option>
+                                                </select>
+                                            </div>
+                                            <button class="btn btn-outline-success btn-sm" id="btnGastosRuta"
+                                                onclick="abrirGastosRuta()" title="Registrar gastos operativos de la ruta">
+                                                <i class="bi bi-receipt-cutoff"></i> Gastos
+                                            </button>
+                                            <button class="btn btn-outline-primary btn-sm" id="btnImprimir" onclick="window.print()"
+                                                title="Imprimir hoja de ruta">
+                                                <i class="bi bi-printer-fill"></i> Imprimir
+                                            </button>
+                                            <button class="btn btn-success btn-sm" onclick="sendWhatsAppAll()"
+                                                title="Confirmar todos por WhatsApp">
+                                                <i class="bi bi-whatsapp"></i> Confirmar
+                                            </button>
+                                            <button class="btn btn-primary btn-sm" onclick="saveRuta()">
+                                                <i class="bi bi-check"></i> Guardar camion
+                                            </button>
+                                            <span class="badge bg-primary" id="countEnRuta">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-0" style="overflow-y: auto;">
+                                        <div class="table-responsive" id="printableTable">
+                                            <table class="table table-bordered table-hover hoja-ruta-table mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 42px;">N</th>
+                                                        <th style="width: 76px;" class="action-cell">Orden</th>
+                                                        <th>RUC</th>
+                                                        <th>Razon social</th>
+                                                        <th>Nombre comercial</th>
+                                                        <th>Direccion</th>
+                                                        <th>Distrito</th>
+                                                        <th>Frec.</th>
+                                                        <th>Contacto</th>
+                                                        <th>Telefono</th>
+                                                        <th>Tarifa</th>
+                                                        <th style="width: 126px;">Tipo pago</th>
+                                                        <th style="width: 120px;">Obs</th>
+                                                        <th style="width: 142px;">Residuo</th>
+                                                        <th style="width: 150px;" class="action-cell">Mover</th>
+                                                        <th style="width: 92px;" class="action-cell">Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="clientesTableBody">
+                                                    <tr>
+                                                        <td colspan="16" class="text-center py-4 text-muted">Selecciona un vehiculo</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <button class="btn btn-outline-success btn-sm" id="btnGastosRuta"
-                                onclick="abrirGastosRuta()" title="Registrar gastos operativos de la ruta">
-                                <i class="bi bi-receipt-cutoff"></i> Gastos
-                            </button>
-                            <button class="btn btn-outline-primary btn-sm" id="btnImprimir" onclick="window.print()"
-                                title="Imprimir hoja de ruta">
-                                <i class="bi bi-printer-fill"></i> Imprimir
-                            </button>
-                            <button class="btn btn-success btn-sm" onclick="sendWhatsAppAll()"
-                                title="Confirmar todos por WhatsApp">
-                                <i class="bi bi-whatsapp"></i> Confirmar
-                            </button>
-                            <button class="btn btn-primary btn-sm" onclick="saveRuta()">
-                                <i class="bi bi-check"></i> Guardar camion
-                            </button>
-                            <span class="badge bg-primary" id="countEnRuta">0</span>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive" id="printableTable">
-                            <table class="table table-bordered table-hover hoja-ruta-table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 42px;">N</th>
-                                        <th style="width: 76px;" class="action-cell">Orden</th>
-                                        <th>RUC</th>
-                                        <th>Razon social</th>
-                                        <th>Nombre comercial</th>
-                                        <th>Direccion</th>
-                                        <th>Distrito</th>
-                                        <th>Frec.</th>
-                                        <th>Contacto</th>
-                                        <th>Telefono</th>
-                                        <th>Tarifa</th>
-                                        <th style="width: 126px;">Tipo pago</th>
-                                        <th style="width: 120px;">Obs</th>
-                                        <th style="width: 142px;">Residuo</th>
-                                        <th style="width: 150px;" class="action-cell">Mover</th>
-                                        <th style="width: 92px;" class="action-cell">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clientesTableBody">
-                                    <tr>
-                                        <td colspan="16" class="text-center py-4 text-muted">Selecciona un vehiculo</td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
@@ -695,6 +719,15 @@
     <script src="../../js/route-assignment-map.js?v=1.6"></script>
     <script>
         bootControlPage('rutas');
+
+        function abrirResumenRuta() {
+            if (!assignmentState.selectedVehiculoId) {
+                alert('Por favor selecciona un camion primero para ver su resumen de ruta.');
+                return;
+            }
+            const modal = new bootstrap.Modal(document.getElementById('resumenRutaModal'));
+            modal.show();
+        }
 
         const ALL_FREQUENCIES = ['diario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual'];
         const FREQUENCY_LABELS = {
