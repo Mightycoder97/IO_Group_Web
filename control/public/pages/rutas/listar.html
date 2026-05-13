@@ -530,9 +530,11 @@
                 display: table-header-group !important;
             }
 
-            .hoja-ruta-table tr {
+            .hoja-ruta-table tbody tr {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+                height: 28px !important;
+                max-height: 28px !important;
             }
 
             .hoja-ruta-table th {
@@ -554,7 +556,7 @@
             .hoja-ruta-table td {
                 border: 0.5pt solid #444 !important;
                 padding: 2px 3px !important;
-                vertical-align: top !important;
+                vertical-align: middle !important;
                 font-family: Arial, Helvetica, sans-serif !important;
                 font-size: 7pt !important;
                 font-weight: normal !important;
@@ -564,6 +566,8 @@
                 word-wrap: break-word !important;
                 overflow-wrap: break-word !important;
                 overflow: hidden !important;
+                max-height: 28px !important;
+                height: 28px !important;
             }
 
             .hoja-ruta-table td.fw-bold,
