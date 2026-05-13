@@ -19,6 +19,12 @@ class RouteAssignmentMap {
         this.maxMarkers = options.maxMarkers || 420;
         this.defaultCenter = { lat: -12.0464, lng: -77.0428 };
         this.mapStyles = options.mapStyles || RouteAssignmentMap.darkMapStyles();
+        this.tileSize = 256;
+        this.tileZoom = 12;
+        this.tileCenter = this.defaultCenter;
+        this.tilePane = null;
+        this.tileSubdomains = ['a', 'b', 'c', 'd'];
+        this.tileDragging = null;
     }
 
     async init(container) {
@@ -179,35 +185,82 @@ class RouteAssignmentMap {
         this.map = null;
         this.infoWindow = null;
         container.innerHTML = `
-            <div class="route-fallback-map" aria-label="Mapa simplificado de sedes">
-                <div class="route-fallback-water water-ocean"></div>
-                <div class="route-fallback-water water-bay"></div>
-                <div class="route-fallback-park park-north"></div>
-                <div class="route-fallback-park park-south"></div>
-                <svg class="route-fallback-roads" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
-                    <path class="arterial" d="M70 520 C190 430 250 380 360 348 S540 292 670 238 840 170 960 96" />
-                    <path class="arterial" d="M122 120 C250 180 345 246 420 334 S540 448 686 520 848 585 980 610" />
-                    <path class="highway" d="M470 600 C468 520 486 452 506 390 S530 270 526 190 500 82 508 -20" />
-                    <path class="highway" d="M292 594 C342 506 404 438 474 374 S642 256 742 186 848 116 968 50" />
-                    <path class="minor" d="M42 300 H930" />
-                    <path class="minor" d="M130 210 H870" />
-                    <path class="minor" d="M185 404 H980" />
-                    <path class="minor" d="M230 72 V560" />
-                    <path class="minor" d="M382 20 V586" />
-                    <path class="minor" d="M620 10 V570" />
-                    <path class="minor" d="M780 28 V592" />
-                </svg>
-                <div class="route-fallback-label label-lima">Lima</div>
-                <div class="route-fallback-label label-callao">Callao</div>
-                <div class="route-fallback-label label-ica">Ica</div>
+            <div class="route-fallback-map" aria-label="Mapa real de sedes">
+                <div class="route-tile-pane" aria-hidden="true"></div>
                 <div class="route-fallback-layer"></div>
                 <div class="route-fallback-info d-none"></div>
+                <div class="route-tile-controls" aria-label="Controles del mapa">
+                    <button type="button" data-tile-zoom="in" title="Acercar">+</button>
+                    <button type="button" data-tile-zoom="out" title="Alejar">-</button>
+                </div>
+                <div class="route-tile-attribution">
+                    &copy; OpenStreetMap &copy; CARTO
+                </div>
             </div>
         `;
         this.ensureFallbackStyles();
+        this.tilePane = container.querySelector('.route-tile-pane');
         this.fallbackLayer = container.querySelector('.route-fallback-layer');
         this.fallbackInfo = container.querySelector('.route-fallback-info');
-        this.setStatus(reason ? `${reason}. Usando mapa rapido sin tiles.` : 'Mapa rapido sin tiles activo.');
+        this.bindTileMapInteractions(container.querySelector('.route-fallback-map'));
+        this.setStatus(reason ? `${reason}. Usando mapa real liviano.` : 'Mapa real liviano activo.');
+    }
+
+    bindTileMapInteractions(mapEl) {
+        if (!mapEl) return;
+
+        mapEl.querySelector('[data-tile-zoom="in"]')?.addEventListener('click', () => this.zoomTileMap(1));
+        mapEl.querySelector('[data-tile-zoom="out"]')?.addEventListener('click', () => this.zoomTileMap(-1));
+
+        mapEl.addEventListener('wheel', event => {
+            event.preventDefault();
+            this.zoomTileMap(event.deltaY < 0 ? 1 : -1);
+        }, { passive: false });
+
+        mapEl.addEventListener('pointerdown', event => {
+            if (event.target.closest('button, a')) return;
+            const centerPixel = this.latLngToPixel(this.tileCenter, this.tileZoom);
+            this.tileDragging = {
+                pointerId: event.pointerId,
+                startX: event.clientX,
+                startY: event.clientY,
+                centerPixel
+            };
+            mapEl.classList.add('is-dragging');
+            mapEl.setPointerCapture?.(event.pointerId);
+        });
+
+        mapEl.addEventListener('pointermove', event => {
+            if (!this.tileDragging || this.tileDragging.pointerId !== event.pointerId) return;
+            const dx = event.clientX - this.tileDragging.startX;
+            const dy = event.clientY - this.tileDragging.startY;
+            this.tileCenter = this.pixelToLatLng({
+                x: this.tileDragging.centerPixel.x - dx,
+                y: this.tileDragging.centerPixel.y - dy
+            }, this.tileZoom);
+            if (this.lastRender) {
+                this.renderFallback(this.lastRender.sedes, { ...this.lastRender.context, preserveView: true });
+            }
+        });
+
+        const endDrag = event => {
+            if (!this.tileDragging || this.tileDragging.pointerId !== event.pointerId) return;
+            this.tileDragging = null;
+            mapEl.classList.remove('is-dragging');
+            mapEl.releasePointerCapture?.(event.pointerId);
+        };
+        mapEl.addEventListener('pointerup', endDrag);
+        mapEl.addEventListener('pointercancel', endDrag);
+    }
+
+    zoomTileMap(delta) {
+        const nextZoom = Math.max(8, Math.min(18, this.tileZoom + delta));
+        if (nextZoom === this.tileZoom) return;
+        this.tileZoom = nextZoom;
+        this.hasFit = true;
+        if (this.lastRender) {
+            this.renderFallback(this.lastRender.sedes, { ...this.lastRender.context, preserveView: true });
+        }
     }
 
     ensureFallbackStyles() {
@@ -220,10 +273,16 @@ class RouteAssignmentMap {
                 inset: 0;
                 overflow: hidden;
                 isolation: isolate;
+                cursor: grab;
+                touch-action: none;
                 background:
                     radial-gradient(circle at 58% 42%, rgba(48, 74, 125, 0.42), transparent 30%),
                     radial-gradient(circle at 32% 62%, rgba(2, 62, 88, 0.34), transparent 24%),
                     linear-gradient(135deg, #0e1626 0%, #172849 45%, #1d2c4d 100%);
+            }
+
+            .route-fallback-map.is-dragging {
+                cursor: grabbing;
             }
 
             .route-fallback-map::before {
@@ -254,6 +313,68 @@ class RouteAssignmentMap {
                 position: absolute;
                 pointer-events: none;
                 z-index: 0;
+            }
+
+            .route-tile-pane {
+                background: #0e1626;
+                inset: 0;
+                overflow: hidden;
+                position: absolute;
+                z-index: 1;
+            }
+
+            .route-tile-pane::after {
+                content: "";
+                inset: 0;
+                pointer-events: none;
+                position: absolute;
+                background:
+                    radial-gradient(circle at 50% 52%, rgba(56, 189, 248, 0.08), transparent 34%),
+                    linear-gradient(180deg, rgba(14, 22, 38, 0.04), rgba(14, 22, 38, 0.22));
+            }
+
+            .route-tile-pane img {
+                height: 256px;
+                position: absolute;
+                user-select: none;
+                width: 256px;
+            }
+
+            .route-tile-controls {
+                display: grid;
+                gap: 6px;
+                position: absolute;
+                right: 12px;
+                top: 12px;
+                z-index: 6;
+            }
+
+            .route-tile-controls button {
+                align-items: center;
+                background: rgba(248, 250, 252, 0.96);
+                border: 1px solid rgba(148, 163, 184, 0.5);
+                border-radius: 6px;
+                color: #0f172a;
+                display: inline-flex;
+                font-size: 1rem;
+                font-weight: 800;
+                height: 32px;
+                justify-content: center;
+                line-height: 1;
+                width: 32px;
+            }
+
+            .route-tile-attribution {
+                background: rgba(15, 23, 42, 0.72);
+                border-radius: 4px 0 0 0;
+                bottom: 0;
+                color: rgba(226, 232, 240, 0.9);
+                font-size: 0.64rem;
+                line-height: 1;
+                padding: 4px 6px;
+                position: absolute;
+                right: 0;
+                z-index: 6;
             }
 
             .route-fallback-water {
@@ -356,7 +477,7 @@ class RouteAssignmentMap {
 
             .route-fallback-layer {
                 position: absolute;
-                inset: 20px;
+                inset: 0;
                 z-index: 3;
             }
 
@@ -369,9 +490,8 @@ class RouteAssignmentMap {
                 display: inline-flex;
                 height: 14px;
                 justify-content: center;
-                margin-left: -7px;
-                margin-top: -7px;
                 position: absolute;
+                transform: translate(-50%, -50%);
                 transition: transform 0.12s ease, box-shadow 0.12s ease;
                 width: 14px;
             }
@@ -379,7 +499,7 @@ class RouteAssignmentMap {
             .route-fallback-marker:hover,
             .route-fallback-marker.is-selected {
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.46);
-                transform: scale(1.35);
+                transform: translate(-50%, -50%) scale(1.35);
                 z-index: 4;
             }
 
@@ -411,7 +531,7 @@ class RouteAssignmentMap {
     }
 
     renderFallback(sedes = [], context = {}) {
-        if (!this.fallbackLayer) return;
+        if (!this.fallbackLayer || !this.tilePane) return;
 
         const selectedId = context.selectedSedeId ? String(context.selectedSedeId) : null;
         const withPosition = [];
@@ -429,20 +549,24 @@ class RouteAssignmentMap {
             visible.push(selectedItem);
         }
 
-        if (!this.fallbackBounds || context.forceFit || !this.hasFit) {
-            this.fallbackBounds = this.computeFallbackBounds(visible);
+        if (!context.preserveView && (!this.hasFit || context.forceFit)) {
+            this.fitTileViewport(visible, selectedId);
             this.hasFit = true;
         }
 
+        const viewport = this.getTileViewport();
+        this.renderTileImages(viewport);
+
         const hidden = withPosition.length - visible.length;
         this.fallbackLayer.innerHTML = visible.map(item => {
-            const point = this.projectFallbackPoint(item.position, this.fallbackBounds);
+            const point = this.projectTilePoint(item.position, viewport);
+            if (!point.visible) return '';
             const status = this.getStatus(item.sede, context);
             const selected = String(item.sede.id_sede) === selectedId;
             return `
                 <button type="button"
                     class="route-fallback-marker ${status} ${selected ? 'is-selected' : ''}"
-                    style="left:${point.x}%;top:${point.y}%"
+                    style="left:${point.x}px;top:${point.y}px"
                     title="${this.escapeHtml(item.sede.nombre_comercial || '')}"
                     data-sede-id="${this.escapeHtml(item.sede.id_sede)}"></button>
             `;
@@ -461,8 +585,132 @@ class RouteAssignmentMap {
         });
 
         this.setStatus(hidden > 0
-            ? `${visible.length} de ${withPosition.length} sedes en mapa rapido`
-            : `${visible.length} sedes en mapa rapido`);
+            ? `${visible.length} de ${withPosition.length} sedes en mapa real`
+            : `${visible.length} sedes en mapa real`);
+    }
+
+    fitTileViewport(visible, selectedId = null) {
+        const selected = selectedId
+            ? visible.find(item => String(item.sede.id_sede) === String(selectedId))
+            : null;
+        if (selected) {
+            this.tileCenter = selected.position;
+            this.tileZoom = Math.max(this.tileZoom || 12, 14);
+            return;
+        }
+
+        if (!visible.length) {
+            this.tileCenter = this.defaultCenter;
+            this.tileZoom = 11;
+            return;
+        }
+
+        if (visible.length === 1) {
+            this.tileCenter = visible[0].position;
+            this.tileZoom = 14;
+            return;
+        }
+
+        const rect = this.container?.getBoundingClientRect?.() || { width: 900, height: 520 };
+        const width = Math.max(rect.width || 900, 320);
+        const height = Math.max(rect.height || 520, 280);
+        const points = visible.slice(0, this.maxMarkers).map(item => this.latLngToPixel(item.position, 0));
+        const minX = Math.min(...points.map(point => point.x));
+        const maxX = Math.max(...points.map(point => point.x));
+        const minY = Math.min(...points.map(point => point.y));
+        const maxY = Math.max(...points.map(point => point.y));
+        const spanX = Math.max(maxX - minX, 0.00001);
+        const spanY = Math.max(maxY - minY, 0.00001);
+        const usableWidth = Math.max(width - 96, 180);
+        const usableHeight = Math.max(height - 96, 180);
+        const scale = Math.min(usableWidth / spanX, usableHeight / spanY);
+        const zoom = Math.floor(Math.log2(scale));
+        const centerAtZero = {
+            x: (minX + maxX) / 2,
+            y: (minY + maxY) / 2
+        };
+
+        this.tileZoom = Math.max(8, Math.min(16, zoom));
+        this.tileCenter = this.pixelToLatLng({
+            x: centerAtZero.x * (2 ** this.tileZoom),
+            y: centerAtZero.y * (2 ** this.tileZoom)
+        }, this.tileZoom);
+    }
+
+    getTileViewport() {
+        const rect = this.container?.getBoundingClientRect?.() || { width: 900, height: 520 };
+        const width = Math.max(Math.round(rect.width || 900), 320);
+        const height = Math.max(Math.round(rect.height || 520), 280);
+        const centerPixel = this.latLngToPixel(this.tileCenter, this.tileZoom);
+        return {
+            width,
+            height,
+            zoom: this.tileZoom,
+            topLeft: {
+                x: centerPixel.x - (width / 2),
+                y: centerPixel.y - (height / 2)
+            }
+        };
+    }
+
+    renderTileImages(viewport) {
+        const tileSize = this.tileSize;
+        const tileCount = 2 ** viewport.zoom;
+        const startX = Math.floor(viewport.topLeft.x / tileSize);
+        const endX = Math.floor((viewport.topLeft.x + viewport.width) / tileSize);
+        const startY = Math.max(0, Math.floor(viewport.topLeft.y / tileSize));
+        const endY = Math.min(tileCount - 1, Math.floor((viewport.topLeft.y + viewport.height) / tileSize));
+        const tiles = [];
+
+        for (let x = startX; x <= endX; x += 1) {
+            for (let y = startY; y <= endY; y += 1) {
+                const wrappedX = ((x % tileCount) + tileCount) % tileCount;
+                const subdomain = this.tileSubdomains[Math.abs(wrappedX + y) % this.tileSubdomains.length];
+                tiles.push(`
+                    <img
+                        src="https://${subdomain}.basemaps.cartocdn.com/dark_all/${viewport.zoom}/${wrappedX}/${y}.png"
+                        alt=""
+                        draggable="false"
+                        loading="lazy"
+                        decoding="async"
+                        style="left:${Math.round((x * tileSize) - viewport.topLeft.x)}px;top:${Math.round((y * tileSize) - viewport.topLeft.y)}px">
+                `);
+            }
+        }
+
+        this.tilePane.innerHTML = tiles.join('');
+    }
+
+    projectTilePoint(position, viewport) {
+        const point = this.latLngToPixel(position, viewport.zoom);
+        const x = point.x - viewport.topLeft.x;
+        const y = point.y - viewport.topLeft.y;
+        return {
+            x: Math.round(x),
+            y: Math.round(y),
+            visible: x >= -24 && x <= viewport.width + 24 && y >= -24 && y <= viewport.height + 24
+        };
+    }
+
+    latLngToPixel(position, zoom) {
+        const sin = Math.sin(position.lat * Math.PI / 180);
+        const normalizedSin = Math.max(-0.9999, Math.min(0.9999, sin));
+        const scale = this.tileSize * (2 ** zoom);
+        return {
+            x: ((position.lng + 180) / 360) * scale,
+            y: (0.5 - (Math.log((1 + normalizedSin) / (1 - normalizedSin)) / (4 * Math.PI))) * scale
+        };
+    }
+
+    pixelToLatLng(point, zoom) {
+        const scale = this.tileSize * (2 ** zoom);
+        const lng = (point.x / scale) * 360 - 180;
+        const n = Math.PI - (2 * Math.PI * point.y / scale);
+        const lat = (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+        return {
+            lat: Math.max(-85, Math.min(85, lat)),
+            lng
+        };
     }
 
     computeFallbackBounds(items) {
