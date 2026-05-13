@@ -626,7 +626,7 @@ class RouteAssignmentMap {
                 z-index: 4;
             }
 
-            .route-fallback-marker.assignedActive { background: #22c55e; transform: translate(-50%, -50%) scale(1.15); }
+            .route-fallback-marker.assignedActive { background: #ef4444; transform: translate(-50%, -50%) scale(1.15); }
             .route-fallback-marker.assignedOther { background: #94a3b8; transform: translate(-50%, -50%) scale(0.85); opacity: 0.8; }
             .route-fallback-marker.pending { background: #3b82f6; }
             .route-fallback-marker.selected,
@@ -797,14 +797,14 @@ class RouteAssignmentMap {
         const colors = {
             pending: '#3b82f6',
             selected: '#f59e0b',
-            assignedActive: '#22c55e',
+            assignedActive: '#ef4444',
             assignedOther: '#94a3b8'
         };
         const fillColor = selected ? colors.selected : (colors[status] || colors.pending);
         let radius = 7;
         let opacity = 0.95;
         if (selected) { radius = 10; opacity = 1; }
-        else if (status === 'assignedActive') { radius = 8; opacity = 1; }
+        else if (status === 'assignedActive') { radius = 9; opacity = 1; }
         else if (status === 'assignedOther') { radius = 5; opacity = 0.75; }
 
         return {
@@ -1064,7 +1064,7 @@ class RouteAssignmentMap {
         const colors = {
             pending: '#3b82f6',
             selected: '#f59e0b',
-            assignedActive: '#22c55e',
+            assignedActive: '#ef4444',
             assignedOther: '#94a3b8'
         };
         const color = colors[status] || colors.pending;
