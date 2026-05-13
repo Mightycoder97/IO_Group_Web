@@ -8,6 +8,8 @@ class RouteAssignmentMap {
         this.map = null;
         this.infoWindow = null;
         this.markersById = new Map();
+        this.leafletMap = null;
+        this.leafletMarkersById = new Map();
         this.iconCache = new Map();
         this.lastVisibleIds = new Set();
         this.pendingFrame = null;
@@ -33,7 +35,7 @@ class RouteAssignmentMap {
         try {
             await RouteAssignmentMap.loadGoogleMaps();
         } catch (error) {
-            this.initFallback(container, error.message || 'Mapa simplificado activo');
+            await this.initFallback(container, error.message || 'Mapa alternativo activo');
             return;
         }
 
@@ -91,11 +93,11 @@ class RouteAssignmentMap {
         ];
     }
 
-    static loadGoogleMaps() {
+    static async loadGoogleMaps() {
         if (window.google?.maps) return Promise.resolve();
         if (window.__routeAssignmentMapsLoading) return window.__routeAssignmentMapsLoading;
 
-        const key = window.API_CONFIG?.GOOGLE_MAPS_API_KEY;
+        const key = await RouteAssignmentMap.resolveGoogleMapsKey();
         if (!key || key.includes('YOUR_GOOGLE_MAPS_API_KEY')) {
             return Promise.reject(new Error('Configura Google Maps para activar el mapa'));
         }
@@ -111,6 +113,57 @@ class RouteAssignmentMap {
         });
 
         return window.__routeAssignmentMapsLoading;
+    }
+
+    static async resolveGoogleMapsKey() {
+        const configuredKey = String(window.API_CONFIG?.GOOGLE_MAPS_API_KEY || '').trim();
+        if (configuredKey && !configuredKey.includes('YOUR_GOOGLE_MAPS_API_KEY')) {
+            return configuredKey;
+        }
+
+        if (window.__routeAssignmentGoogleMapsKey !== undefined) {
+            return window.__routeAssignmentGoogleMapsKey;
+        }
+
+        try {
+            const response = typeof api !== 'undefined'
+                ? await api.get('/maps-config')
+                : await fetch('/api/maps-config.php').then(res => res.json());
+            const key = String(response?.data?.googleMapsApiKey || '').trim();
+            window.__routeAssignmentGoogleMapsKey = key;
+            if (key) {
+                window.API_CONFIG = window.API_CONFIG || {};
+                window.API_CONFIG.GOOGLE_MAPS_API_KEY = key;
+            }
+            return key;
+        } catch (_error) {
+            window.__routeAssignmentGoogleMapsKey = '';
+            return '';
+        }
+    }
+
+    static loadLeaflet() {
+        if (window.L?.map) return Promise.resolve();
+        if (window.__routeAssignmentLeafletLoading) return window.__routeAssignmentLeafletLoading;
+
+        window.__routeAssignmentLeafletLoading = new Promise((resolve, reject) => {
+            if (!document.getElementById('routeLeafletCss')) {
+                const link = document.createElement('link');
+                link.id = 'routeLeafletCss';
+                link.rel = 'stylesheet';
+                link.href = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css';
+                document.head.appendChild(link);
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('No se pudo cargar Leaflet'));
+            document.head.appendChild(script);
+        });
+
+        return window.__routeAssignmentLeafletLoading;
     }
 
     render(sedes = [], context = {}) {
@@ -179,30 +232,38 @@ class RouteAssignmentMap {
         }
     }
 
-    initFallback(container, reason) {
+    async initFallback(container, reason) {
         this.isFallback = true;
         this.map = null;
         this.infoWindow = null;
         container.innerHTML = `
             <div class="route-fallback-map" aria-label="Mapa real de sedes">
-                <div class="route-tile-pane" aria-hidden="true"></div>
-                <div class="route-fallback-layer"></div>
+                <div class="route-leaflet-map"></div>
                 <div class="route-fallback-info d-none"></div>
-                <div class="route-tile-controls" aria-label="Controles del mapa">
-                    <button type="button" data-tile-zoom="in" title="Acercar">+</button>
-                    <button type="button" data-tile-zoom="out" title="Alejar">-</button>
-                </div>
-                <div class="route-tile-attribution">
-                    &copy; OpenStreetMap contributors
-                </div>
             </div>
         `;
         this.ensureFallbackStyles();
-        this.tilePane = container.querySelector('.route-tile-pane');
-        this.fallbackLayer = container.querySelector('.route-fallback-layer');
         this.fallbackInfo = container.querySelector('.route-fallback-info');
-        this.bindTileMapInteractions(container.querySelector('.route-fallback-map'));
-        this.setStatus(reason ? `${reason}. Usando mapa real liviano.` : 'Mapa real liviano activo.');
+        const mapEl = container.querySelector('.route-leaflet-map');
+
+        try {
+            await RouteAssignmentMap.loadLeaflet();
+            this.leafletMap = L.map(mapEl, {
+                attributionControl: true,
+                preferCanvas: true,
+                zoomControl: true,
+                worldCopyJump: true
+            }).setView([this.defaultCenter.lat, this.defaultCenter.lng], 12);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(this.leafletMap);
+            setTimeout(() => this.leafletMap?.invalidateSize(), 0);
+            setTimeout(() => this.leafletMap?.invalidateSize(), 250);
+            this.setStatus(reason ? `${reason}. Usando mapa OSM interactivo.` : 'Mapa OSM interactivo activo.');
+        } catch (error) {
+            this.setStatus(`${error.message || 'No se pudo cargar el mapa alternativo'}. Configura Google Maps para activar el mapa operativo.`);
+        }
     }
 
     bindTileMapInteractions(mapEl) {
@@ -282,6 +343,53 @@ class RouteAssignmentMap {
 
             .route-fallback-map.is-dragging {
                 cursor: grabbing;
+            }
+
+            .route-leaflet-map {
+                background: #0e1626;
+                height: 100%;
+                inset: 0;
+                position: absolute;
+                width: 100%;
+                z-index: 1;
+            }
+
+            .route-leaflet-map .leaflet-tile {
+                filter: invert(1) hue-rotate(180deg) saturate(0.72) brightness(0.82) contrast(1.06);
+            }
+
+            .route-leaflet-map .leaflet-container,
+            .route-leaflet-map .leaflet-pane,
+            .route-leaflet-map .leaflet-top,
+            .route-leaflet-map .leaflet-bottom {
+                font-family: inherit;
+            }
+
+            .route-leaflet-map .leaflet-control-zoom a {
+                color: #0f172a;
+                font-weight: 800;
+            }
+
+            .route-leaflet-map .leaflet-control-attribution {
+                background: rgba(15, 23, 42, 0.72);
+                color: rgba(226, 232, 240, 0.9);
+                font-size: 0.64rem;
+            }
+
+            .route-leaflet-map .leaflet-control-attribution a {
+                color: #bfdbfe;
+            }
+
+            .route-leaflet-map .leaflet-tooltip {
+                background: rgba(15, 23, 42, 0.92);
+                border: 1px solid rgba(148, 163, 184, 0.42);
+                color: #e2e8f0;
+                font-size: 0.72rem;
+                font-weight: 700;
+            }
+
+            .route-leaflet-map .leaflet-tooltip::before {
+                border-top-color: rgba(15, 23, 42, 0.92);
             }
 
             .route-fallback-map::before {
@@ -532,6 +640,11 @@ class RouteAssignmentMap {
     }
 
     renderFallback(sedes = [], context = {}) {
+        if (this.leafletMap) {
+            this.renderLeaflet(sedes, context);
+            return;
+        }
+
         if (!this.fallbackLayer || !this.tilePane) return;
 
         const selectedId = context.selectedSedeId ? String(context.selectedSedeId) : null;
@@ -588,6 +701,126 @@ class RouteAssignmentMap {
         this.setStatus(hidden > 0
             ? `${visible.length} de ${withPosition.length} sedes en mapa real`
             : `${visible.length} sedes en mapa real`);
+    }
+
+    renderLeaflet(sedes = [], context = {}) {
+        const selectedId = context.selectedSedeId ? String(context.selectedSedeId) : null;
+        const withPosition = [];
+        for (const sede of sedes) {
+            const position = this.parsePosition(sede.coordenadas_gps);
+            if (!position) continue;
+            withPosition.push({ sede, position });
+        }
+
+        const selectedItem = selectedId
+            ? withPosition.find(item => String(item.sede.id_sede) === selectedId)
+            : null;
+        const visible = withPosition.slice(0, this.maxMarkers);
+        if (selectedItem && !visible.some(item => String(item.sede.id_sede) === selectedId)) {
+            visible.push(selectedItem);
+        }
+
+        const nextIds = new Set();
+        for (const item of visible) {
+            const id = String(item.sede.id_sede);
+            nextIds.add(id);
+            const marker = this.getOrCreateLeafletMarker(item.sede, item.position);
+            marker.setStyle(this.getLeafletStyle(this.getStatus(item.sede, context), id === selectedId));
+        }
+
+        for (const id of this.lastVisibleIds) {
+            if (!nextIds.has(id)) {
+                const marker = this.leafletMarkersById.get(id);
+                if (marker) marker.removeFrom(this.leafletMap);
+            }
+        }
+        this.lastVisibleIds = nextIds;
+
+        const hidden = withPosition.length - visible.length;
+        this.setStatus(hidden > 0
+            ? `${visible.length} de ${withPosition.length} sedes en mapa OSM`
+            : `${visible.length} sedes en mapa OSM`);
+
+        if (!this.hasFit || context.forceFit || selectedId) {
+            this.fitLeaflet(visible, selectedId);
+        }
+    }
+
+    getOrCreateLeafletMarker(sede, position) {
+        const id = String(sede.id_sede);
+        const latLng = [position.lat, position.lng];
+        if (this.leafletMarkersById.has(id)) {
+            const marker = this.leafletMarkersById.get(id);
+            marker.setLatLng(latLng);
+            if (!this.leafletMap.hasLayer(marker)) marker.addTo(this.leafletMap);
+            return marker;
+        }
+
+        const marker = L.circleMarker(latLng, {
+            radius: 7,
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.95
+        });
+        marker.on('click', () => {
+            if (this.options.onSelect) this.options.onSelect(sede);
+            this.openFallbackInfo(sede);
+        });
+        marker.on('dblclick', () => {
+            if (this.options.onQuickAdd) this.options.onQuickAdd(sede);
+        });
+        marker.bindTooltip(this.escapeHtml(sede.nombre_comercial || ''), {
+            direction: 'top',
+            offset: [0, -8],
+            opacity: 0.94
+        });
+        marker.addTo(this.leafletMap);
+        this.leafletMarkersById.set(id, marker);
+        return marker;
+    }
+
+    getLeafletStyle(status, selected = false) {
+        const colors = {
+            pending: '#38bdf8',
+            selected: '#f59e0b',
+            assignedActive: '#22c55e',
+            assignedOther: '#98a5be'
+        };
+        const fillColor = selected ? colors.selected : (colors[status] || colors.pending);
+        return {
+            color: '#ffffff',
+            fillColor,
+            fillOpacity: 0.95,
+            opacity: 1,
+            radius: selected ? 9 : 7,
+            weight: selected ? 3 : 2
+        };
+    }
+
+    fitLeaflet(visible, selectedId = null) {
+        if (!visible.length) return;
+        if (selectedId) {
+            const selected = visible.find(item => String(item.sede.id_sede) === String(selectedId));
+            if (selected) {
+                this.leafletMap.flyTo([selected.position.lat, selected.position.lng], Math.max(this.leafletMap.getZoom(), 15), {
+                    animate: true,
+                    duration: 0.25
+                });
+                this.hasFit = true;
+                return;
+            }
+        }
+
+        if (visible.length === 1) {
+            this.leafletMap.setView([visible[0].position.lat, visible[0].position.lng], 15);
+        } else {
+            const bounds = L.latLngBounds(visible.slice(0, 120).map(item => [item.position.lat, item.position.lng]));
+            this.leafletMap.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 15
+            });
+        }
+        this.hasFit = true;
     }
 
     fitTileViewport(visible, selectedId = null) {

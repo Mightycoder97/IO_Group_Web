@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-05-13T18:10:16.489Z",
+  "source_audit": "database/migrations/update_sedes_gps_2026_audit.json",
+  "rule": "confidence high/medium + district match + no locality mismatch",
+  "total_source_rows": 1477,
+  "safe_updates": 1100,
+  "review_required": 377,
+  "review_by_confidence": {
+    "medium": 57,
+    "high": 254,
+    "low": 66
+  },
+  "review_reason_groups": {
+    "province_only": 301,
+    "district_low_confidence": 42,
+    "locality_mismatch": 34
+  }
+}

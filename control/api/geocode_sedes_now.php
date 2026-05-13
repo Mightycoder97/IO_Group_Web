@@ -12,8 +12,13 @@ header('Content-Type: text/plain; charset=utf-8');
 
 require_once __DIR__ . '/config/database.php';
 
-// API Key (from config.js)
-$GOOGLE_API_KEY = 'AIzaSyA5BSUAso_yWVNijpWB1NbHhhX5n4HIwsU';
+// API Key from environment/config. Do not hardcode browser or server keys here.
+$mapsConfig = require __DIR__ . '/config/maps.php';
+$GOOGLE_API_KEY = trim($mapsConfig['api_key'] ?? '');
+if ($GOOGLE_API_KEY === '' || stripos($GOOGLE_API_KEY, 'YOUR_') !== false) {
+    echo "GOOGLE_MAPS_API_KEY no configurada. Define la variable en .env.\n";
+    exit(1);
+}
 
 echo "=== IO Group - Geocodificacion de Sedes ===\n\n";
 
