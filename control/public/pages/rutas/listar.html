@@ -383,51 +383,56 @@
                 padding: 0 !important;
             }
 
-            .card-header {
-                background: #1B5E20 !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                padding: 4px 8px !important;
-                font-size: 10px !important;
+            .card-header,
+            .modal-header,
+            .route-capacity-note {
+                display: none !important;
             }
 
             .hoja-ruta-table {
                 border-collapse: collapse !important;
-                font-size: 7pt !important;
+                font-family: Arial, sans-serif !important;
+                font-size: 7.5pt !important;
+                line-height: 1.15 !important;
                 width: 100% !important;
             }
 
             .hoja-ruta-table th,
             .hoja-ruta-table td {
-                padding: 2px 3px !important;
+                border: 0.5pt solid #333 !important;
+                padding: 2px !important;
+                vertical-align: middle !important;
             }
 
             .hoja-ruta-table th {
-                background: #e8f5e9 !important;
+                background: #f1f5f9 !important;
+                color: #000 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 font-size: 6.5pt !important;
-                white-space: nowrap;
+                font-weight: bold !important;
+                text-align: left !important;
+                text-transform: uppercase !important;
             }
 
             .print-header {
-                border-bottom: 2px solid #1B5E20 !important;
                 display: block !important;
-                margin-bottom: 6px !important;
-                padding: 4px 0 6px 0 !important;
+                margin-bottom: 4px !important;
+                padding-bottom: 2px !important;
+                font-family: Arial, sans-serif !important;
             }
 
             .print-header h4 {
-                color: #1B5E20 !important;
-                font-size: 13pt !important;
-                font-weight: 800 !important;
+                color: #000 !important;
+                font-size: 12pt !important;
+                font-weight: bold !important;
                 margin: 0 0 4px 0 !important;
                 text-align: center;
+                text-transform: uppercase;
             }
 
             @page {
-                margin: 10mm 8mm;
+                margin: 5mm;
                 size: A4 landscape;
             }
         }
@@ -441,14 +446,14 @@
 <body class="control-app">
     <div class="print-header">
         <h4>HOJA DE RUTA - IO GROUP</h4>
-        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;">
-            <div><strong>Vehiculo:</strong> <span id="printVehiculo">-</span></div>
-            <div><strong>Fecha:</strong> <span id="printFecha">-</span></div>
-            <div><strong>Total:</strong> <span id="printTotal">0</span> clientes</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:bold;margin-bottom:2px;">
+            <div>VEHICULO: <span id="printVehiculo" style="font-weight:normal;">-</span></div>
+            <div>FECHA: <span id="printFecha" style="font-weight:normal;">-</span></div>
+            <div>TOTAL SEDES: <span id="printTotal" style="font-weight:normal;">0</span></div>
         </div>
-        <div style="font-size:9.5px;color:#555;border-top:1px solid #ccc;padding-top:4px;margin-bottom:6px;display:flex;gap:32px;">
-            <span><i>Chofer:</i> <strong id="printChofer">-</strong></span>
-            <span><i>Ayudante:</i> <strong id="printAyudante">-</strong></span>
+        <div style="font-size:9.5px;border-top:1pt solid #000;padding-top:2px;display:flex;gap:32px;">
+            <span>CHOFER: <strong id="printChofer">-</strong></span>
+            <span>AYUDANTE: <strong id="printAyudante">-</strong></span>
         </div>
     </div>
 

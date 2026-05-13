@@ -222,7 +222,7 @@ class RouteAssignmentMap {
             const id = String(item.sede.id_sede);
             nextIds.add(id);
             const marker = this.getOrCreateMarker(item.sede, item.position);
-            this.updateIcon(marker.content, this.getStatus(item.sede, context));
+            this.updateIcon(marker._iconEl, this.getStatus(item.sede, context));
             marker.title = item.sede.nombre_comercial || '';
             if (!this.lastVisibleIds.has(id)) marker.map = this.map;
         }
@@ -626,11 +626,11 @@ class RouteAssignmentMap {
                 z-index: 4;
             }
 
-            .route-fallback-marker.assignedActive { background: #22c55e; }
-            .route-fallback-marker.assignedOther { background: #98a5be; }
-            .route-fallback-marker.pending { background: #38bdf8; }
+            .route-fallback-marker.assignedActive { background: #22c55e; transform: translate(-50%, -50%) scale(1.15); }
+            .route-fallback-marker.assignedOther { background: #94a3b8; transform: translate(-50%, -50%) scale(0.85); opacity: 0.8; }
+            .route-fallback-marker.pending { background: #3b82f6; }
             .route-fallback-marker.selected,
-            .route-fallback-marker.is-selected { background: #f59e0b; }
+            .route-fallback-marker.is-selected { background: #f59e0b; z-index: 5; }
 
             .route-fallback-info {
                 background: rgba(255, 255, 255, 0.96);
@@ -795,19 +795,25 @@ class RouteAssignmentMap {
 
     getLeafletStyle(status, selected = false) {
         const colors = {
-            pending: '#38bdf8',
+            pending: '#3b82f6',
             selected: '#f59e0b',
             assignedActive: '#22c55e',
-            assignedOther: '#98a5be'
+            assignedOther: '#94a3b8'
         };
         const fillColor = selected ? colors.selected : (colors[status] || colors.pending);
+        let radius = 7;
+        let opacity = 0.95;
+        if (selected) { radius = 10; opacity = 1; }
+        else if (status === 'assignedActive') { radius = 8; opacity = 1; }
+        else if (status === 'assignedOther') { radius = 5; opacity = 0.75; }
+
         return {
             color: '#ffffff',
             fillColor,
-            fillOpacity: 0.95,
-            opacity: 1,
-            radius: selected ? 9 : 7,
-            weight: selected ? 3 : 2
+            fillOpacity: opacity,
+            opacity: opacity,
+            radius,
+            weight: selected ? 3 : 1.5
         };
     }
 
@@ -1027,6 +1033,7 @@ class RouteAssignmentMap {
         el.style.borderRadius = '50%';
         el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
         el.style.transform = 'translate(0, 50%)';
+        el.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
         el.addEventListener('dblclick', () => {
             if (this.options.onQuickAdd) this.options.onQuickAdd(sede);
         });
@@ -1036,6 +1043,7 @@ class RouteAssignmentMap {
             gmpClickable: true,
             content: el
         });
+        marker._iconEl = el;
         marker.addListener('gmp-click', () => {
             if (this.options.onSelect) this.options.onSelect(sede);
             this.openInfo(marker, sede);
@@ -1052,20 +1060,29 @@ class RouteAssignmentMap {
     }
 
     updateIcon(el, status) {
+        if (!el) return;
         const colors = {
-            pending: '#2563eb',
+            pending: '#3b82f6',
             selected: '#f59e0b',
-            assignedActive: '#166534',
-            assignedOther: '#64748b'
+            assignedActive: '#22c55e',
+            assignedOther: '#94a3b8'
         };
         const color = colors[status] || colors.pending;
-        const size = status === 'selected' ? 16 : 12;
-        const border = status === 'selected' ? 3 : 1.5;
+        
+        let size = 12;
+        let border = 1.5;
+        let opacity = 1;
+        
+        if (status === 'selected') { size = 18; border = 3; }
+        else if (status === 'assignedActive') { size = 14; border = 2; }
+        else if (status === 'assignedOther') { size = 10; border = 1; opacity = 0.75; }
 
         el.style.width = size + 'px';
         el.style.height = size + 'px';
         el.style.backgroundColor = color;
         el.style.border = border + 'px solid #ffffff';
+        el.style.opacity = opacity;
+        el.style.zIndex = status === 'selected' ? 100 : (status === 'pending' ? 10 : 1);
     }
 
     openInfo(marker, sede) {
