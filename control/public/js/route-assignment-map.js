@@ -12,6 +12,10 @@ class RouteAssignmentMap {
         this.lastVisibleIds = new Set();
         this.pendingFrame = null;
         this.hasFit = false;
+        this.isFallback = false;
+        this.fallbackLayer = null;
+        this.fallbackInfo = null;
+        this.fallbackBounds = null;
         this.maxMarkers = options.maxMarkers || 420;
         this.defaultCenter = { lat: -12.0464, lng: -77.0428 };
     }
@@ -23,7 +27,7 @@ class RouteAssignmentMap {
         try {
             await RouteAssignmentMap.loadGoogleMaps();
         } catch (error) {
-            this.setStatus(error.message || 'Mapa no disponible');
+            this.initFallback(container, error.message || 'Mapa simplificado activo');
             return;
         }
 
@@ -72,6 +76,11 @@ class RouteAssignmentMap {
 
     render(sedes = [], context = {}) {
         this.lastRender = { sedes, context };
+        if (this.isFallback) {
+            this.renderFallback(sedes, context);
+            return;
+        }
+
         if (!this.map) {
             const count = sedes.filter(s => this.parsePosition(s.coordenadas_gps)).length;
             this.setStatus(count ? `${count} sedes con GPS listas` : 'Sin sedes con GPS en el filtro');
@@ -129,6 +138,223 @@ class RouteAssignmentMap {
         if (!this.hasFit || context.forceFit || selectedId) {
             this.fitVisible(visible, selectedId);
         }
+    }
+
+    initFallback(container, reason) {
+        this.isFallback = true;
+        this.map = null;
+        this.infoWindow = null;
+        container.innerHTML = `
+            <div class="route-fallback-map" aria-label="Mapa simplificado de sedes">
+                <div class="route-fallback-grid"></div>
+                <div class="route-fallback-region region-lima">Lima</div>
+                <div class="route-fallback-region region-ica">Ica</div>
+                <div class="route-fallback-layer"></div>
+                <div class="route-fallback-info d-none"></div>
+            </div>
+        `;
+        this.ensureFallbackStyles();
+        this.fallbackLayer = container.querySelector('.route-fallback-layer');
+        this.fallbackInfo = container.querySelector('.route-fallback-info');
+        this.setStatus(reason ? `${reason}. Usando mapa rapido sin tiles.` : 'Mapa rapido sin tiles activo.');
+    }
+
+    ensureFallbackStyles() {
+        if (document.getElementById('routeFallbackMapStyles')) return;
+        const style = document.createElement('style');
+        style.id = 'routeFallbackMapStyles';
+        style.textContent = `
+            .route-fallback-map {
+                position: absolute;
+                inset: 0;
+                overflow: hidden;
+                background:
+                    radial-gradient(circle at 30% 34%, rgba(22, 101, 52, 0.12), transparent 24%),
+                    radial-gradient(circle at 73% 78%, rgba(37, 99, 235, 0.10), transparent 22%),
+                    linear-gradient(135deg, #eef7f1 0%, #f8fafc 48%, #eef4ff 100%);
+            }
+
+            .route-fallback-grid {
+                position: absolute;
+                inset: 0;
+                background-image:
+                    linear-gradient(rgba(15, 23, 42, 0.07) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(15, 23, 42, 0.07) 1px, transparent 1px);
+                background-size: 64px 64px;
+                opacity: 0.42;
+            }
+
+            .route-fallback-region {
+                position: absolute;
+                color: rgba(15, 23, 42, 0.18);
+                font-size: 0.84rem;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                user-select: none;
+            }
+
+            .route-fallback-region.region-lima { left: 24%; top: 26%; }
+            .route-fallback-region.region-ica { right: 22%; bottom: 22%; }
+
+            .route-fallback-layer {
+                position: absolute;
+                inset: 20px;
+            }
+
+            .route-fallback-marker {
+                align-items: center;
+                border: 2px solid #fff;
+                border-radius: 999px;
+                box-shadow: 0 5px 14px rgba(15, 23, 42, 0.24);
+                cursor: pointer;
+                display: inline-flex;
+                height: 14px;
+                justify-content: center;
+                margin-left: -7px;
+                margin-top: -7px;
+                position: absolute;
+                transition: transform 0.12s ease, box-shadow 0.12s ease;
+                width: 14px;
+            }
+
+            .route-fallback-marker:hover,
+            .route-fallback-marker.is-selected {
+                box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28);
+                transform: scale(1.35);
+                z-index: 4;
+            }
+
+            .route-fallback-marker.assignedActive { background: #166534; }
+            .route-fallback-marker.assignedOther { background: #64748b; }
+            .route-fallback-marker.pending { background: #2563eb; }
+            .route-fallback-marker.selected,
+            .route-fallback-marker.is-selected { background: #f59e0b; }
+
+            .route-fallback-info {
+                background: rgba(255, 255, 255, 0.96);
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+                max-width: 280px;
+                padding: 10px;
+                position: absolute;
+                right: 12px;
+                top: 12px;
+                z-index: 5;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    renderFallback(sedes = [], context = {}) {
+        if (!this.fallbackLayer) return;
+
+        const selectedId = context.selectedSedeId ? String(context.selectedSedeId) : null;
+        const withPosition = [];
+        for (const sede of sedes) {
+            const position = this.parsePosition(sede.coordenadas_gps);
+            if (!position) continue;
+            withPosition.push({ sede, position });
+        }
+
+        const selectedItem = selectedId
+            ? withPosition.find(item => String(item.sede.id_sede) === selectedId)
+            : null;
+        const visible = withPosition.slice(0, this.maxMarkers);
+        if (selectedItem && !visible.some(item => String(item.sede.id_sede) === selectedId)) {
+            visible.push(selectedItem);
+        }
+
+        if (!this.fallbackBounds || context.forceFit || !this.hasFit) {
+            this.fallbackBounds = this.computeFallbackBounds(visible);
+            this.hasFit = true;
+        }
+
+        const hidden = withPosition.length - visible.length;
+        this.fallbackLayer.innerHTML = visible.map(item => {
+            const point = this.projectFallbackPoint(item.position, this.fallbackBounds);
+            const status = this.getStatus(item.sede, context);
+            const selected = String(item.sede.id_sede) === selectedId;
+            return `
+                <button type="button"
+                    class="route-fallback-marker ${status} ${selected ? 'is-selected' : ''}"
+                    style="left:${point.x}%;top:${point.y}%"
+                    title="${this.escapeHtml(item.sede.nombre_comercial || '')}"
+                    data-sede-id="${this.escapeHtml(item.sede.id_sede)}"></button>
+            `;
+        }).join('');
+
+        this.fallbackLayer.querySelectorAll('[data-sede-id]').forEach(marker => {
+            const sede = visible.find(item => String(item.sede.id_sede) === String(marker.dataset.sedeId))?.sede;
+            if (!sede) return;
+            marker.addEventListener('click', () => {
+                if (this.options.onSelect) this.options.onSelect(sede);
+                this.openFallbackInfo(sede);
+            });
+            marker.addEventListener('dblclick', () => {
+                if (this.options.onQuickAdd) this.options.onQuickAdd(sede);
+            });
+        });
+
+        this.setStatus(hidden > 0
+            ? `${visible.length} de ${withPosition.length} sedes en mapa rapido`
+            : `${visible.length} sedes en mapa rapido`);
+    }
+
+    computeFallbackBounds(items) {
+        if (!items.length) {
+            return { north: -10.1, south: -15.6, west: -78.2, east: -74.4 };
+        }
+
+        let north = -90;
+        let south = 90;
+        let east = -180;
+        let west = 180;
+        for (const item of items) {
+            north = Math.max(north, item.position.lat);
+            south = Math.min(south, item.position.lat);
+            east = Math.max(east, item.position.lng);
+            west = Math.min(west, item.position.lng);
+        }
+
+        const latPad = Math.max((north - south) * 0.18, 0.018);
+        const lngPad = Math.max((east - west) * 0.18, 0.018);
+        return {
+            north: Math.min(-10.1, north + latPad),
+            south: Math.max(-15.6, south - latPad),
+            east: Math.min(-74.4, east + lngPad),
+            west: Math.max(-78.2, west - lngPad)
+        };
+    }
+
+    projectFallbackPoint(position, bounds) {
+        const lngSpan = Math.max(bounds.east - bounds.west, 0.0001);
+        const latSpan = Math.max(bounds.north - bounds.south, 0.0001);
+        const x = ((position.lng - bounds.west) / lngSpan) * 100;
+        const y = ((bounds.north - position.lat) / latSpan) * 100;
+        return {
+            x: Math.max(2, Math.min(98, x)),
+            y: Math.max(2, Math.min(98, y))
+        };
+    }
+
+    openFallbackInfo(sede) {
+        if (!this.fallbackInfo) return;
+        const action = this.options.actionForSede ? this.options.actionForSede(sede) : null;
+        const actionHtml = action
+            ? `<button class="btn btn-sm ${action.kind === 'reassign' ? 'btn-warning' : 'btn-success'} w-100 mt-2" data-map-action="1">${this.escapeHtml(action.label)}</button>`
+            : '<div class="small text-muted mt-2">Selecciona un camion para asignar</div>';
+        this.fallbackInfo.innerHTML = `
+            <div class="fw-bold">${this.escapeHtml(sede.nombre_comercial || '-')}</div>
+            <div class="small text-muted">${this.escapeHtml(sede.empresa_ruc || '')}</div>
+            <div class="small">${this.escapeHtml(sede.distrito || '')}</div>
+            <div class="small text-muted">${this.escapeHtml(sede.frecuencia || 'Sin frecuencia')}</div>
+            ${actionHtml}
+        `;
+        this.fallbackInfo.classList.remove('d-none');
+        const btn = this.fallbackInfo.querySelector('[data-map-action]');
+        if (btn && action?.handler) btn.addEventListener('click', action.handler);
     }
 
     getOrCreateMarker(sede, position) {
