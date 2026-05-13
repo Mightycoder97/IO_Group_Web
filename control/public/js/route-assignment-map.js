@@ -48,6 +48,7 @@ class RouteAssignmentMap {
             clickableIcons: false,
             gestureHandling: 'greedy',
             keyboardShortcuts: false,
+            mapId: 'DEMO_MAP_ID',
             restriction: {
                 latLngBounds: {
                     north: -10.1,
@@ -117,7 +118,7 @@ class RouteAssignmentMap {
         window.__routeAssignmentMapsLoading = new Promise((resolve, reject) => {
             window.__routeAssignmentMapsReady = () => resolve();
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=__routeAssignmentMapsReady&v=weekly&language=es&region=PE`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=__routeAssignmentMapsReady&v=weekly&language=es&region=PE&loading=async&libraries=marker`;
             script.async = true;
             script.defer = true;
             script.onerror = () => reject(new Error('No se pudo cargar Google Maps'));
@@ -221,15 +222,15 @@ class RouteAssignmentMap {
             const id = String(item.sede.id_sede);
             nextIds.add(id);
             const marker = this.getOrCreateMarker(item.sede, item.position);
-            marker.setIcon(this.getIcon(this.getStatus(item.sede, context)));
-            marker.setTitle(item.sede.nombre_comercial || '');
-            if (!this.lastVisibleIds.has(id)) marker.setMap(this.map);
+            this.updateIcon(marker.content, this.getStatus(item.sede, context));
+            marker.title = item.sede.nombre_comercial || '';
+            if (!this.lastVisibleIds.has(id)) marker.map = this.map;
         }
 
         for (const id of this.lastVisibleIds) {
             if (!nextIds.has(id)) {
                 const marker = this.markersById.get(id);
-                if (marker) marker.setMap(null);
+                if (marker) marker.map = null;
             }
         }
         this.lastVisibleIds = nextIds;
@@ -1018,22 +1019,28 @@ class RouteAssignmentMap {
         const id = String(sede.id_sede);
         if (this.markersById.has(id)) {
             const marker = this.markersById.get(id);
-            marker.setPosition(position);
+            marker.position = position;
             return marker;
         }
 
-        const marker = new google.maps.Marker({
-            position,
-            optimized: true,
-            clickable: true
+        const el = document.createElement('div');
+        el.style.borderRadius = '50%';
+        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+        el.style.transform = 'translate(0, 50%)';
+        el.addEventListener('dblclick', () => {
+            if (this.options.onQuickAdd) this.options.onQuickAdd(sede);
         });
-        marker.addListener('click', () => {
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+            position,
+            gmpClickable: true,
+            content: el
+        });
+        marker.addListener('gmp-click', () => {
             if (this.options.onSelect) this.options.onSelect(sede);
             this.openInfo(marker, sede);
         });
-        marker.addListener('dblclick', () => {
-            if (this.options.onQuickAdd) this.options.onQuickAdd(sede);
-        });
+        
         this.markersById.set(id, marker);
         return marker;
     }
@@ -1044,25 +1051,21 @@ class RouteAssignmentMap {
         return 'pending';
     }
 
-    getIcon(status) {
-        if (this.iconCache.has(status)) return this.iconCache.get(status);
+    updateIcon(el, status) {
         const colors = {
             pending: '#2563eb',
             selected: '#f59e0b',
             assignedActive: '#166534',
             assignedOther: '#64748b'
         };
-        const icon = {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: colors[status] || colors.pending,
-            fillOpacity: 0.95,
-            strokeColor: '#ffffff',
-            strokeOpacity: 1,
-            strokeWeight: status === 'selected' ? 3 : 1.5,
-            scale: status === 'selected' ? 8 : 6
-        };
-        this.iconCache.set(status, icon);
-        return icon;
+        const color = colors[status] || colors.pending;
+        const size = status === 'selected' ? 16 : 12;
+        const border = status === 'selected' ? 3 : 1.5;
+
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        el.style.backgroundColor = color;
+        el.style.border = border + 'px solid #ffffff';
     }
 
     openInfo(marker, sede) {
