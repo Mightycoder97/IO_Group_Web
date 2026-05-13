@@ -23,7 +23,6 @@ class RouteAssignmentMap {
         this.tileZoom = 12;
         this.tileCenter = this.defaultCenter;
         this.tilePane = null;
-        this.tileSubdomains = ['a', 'b', 'c', 'd'];
         this.tileDragging = null;
     }
 
@@ -194,7 +193,7 @@ class RouteAssignmentMap {
                     <button type="button" data-tile-zoom="out" title="Alejar">-</button>
                 </div>
                 <div class="route-tile-attribution">
-                    &copy; OpenStreetMap &copy; CARTO
+                    &copy; OpenStreetMap contributors
                 </div>
             </div>
         `;
@@ -334,7 +333,9 @@ class RouteAssignmentMap {
             }
 
             .route-tile-pane img {
+                filter: invert(1) hue-rotate(180deg) saturate(0.72) brightness(0.82) contrast(1.06);
                 height: 256px;
+                opacity: 0.92;
                 position: absolute;
                 user-select: none;
                 width: 256px;
@@ -665,10 +666,9 @@ class RouteAssignmentMap {
         for (let x = startX; x <= endX; x += 1) {
             for (let y = startY; y <= endY; y += 1) {
                 const wrappedX = ((x % tileCount) + tileCount) % tileCount;
-                const subdomain = this.tileSubdomains[Math.abs(wrappedX + y) % this.tileSubdomains.length];
                 tiles.push(`
                     <img
-                        src="https://${subdomain}.basemaps.cartocdn.com/dark_all/${viewport.zoom}/${wrappedX}/${y}.png"
+                        src="https://tile.openstreetmap.org/${viewport.zoom}/${wrappedX}/${y}.png"
                         alt=""
                         draggable="false"
                         loading="lazy"
