@@ -360,9 +360,28 @@
             .modal-header,
             .modal-footer,
             .modal-backdrop,
-            .route-capacity-note,
-            #gastosRutaModal {
+            .route-capacity-note {
                 display: none !important;
+            }
+
+            /* Hide ALL modals by default (password change, gastos, etc.) */
+            .modal {
+                display: none !important;
+            }
+
+            /* Only show the route sheet modal */
+            #resumenRutaModal {
+                display: block !important;
+                position: static !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                z-index: auto !important;
+                background: none !important;
             }
 
             /* Hide action columns (Orden, Mover, Acciones) */
@@ -415,26 +434,9 @@
                 overflow: visible !important;
             }
 
-            /* ===== 3. FLATTEN MODAL STRUCTURE ===== */
-            .modal,
-            .modal.fade,
-            .modal.show {
-                position: static !important;
-                display: block !important;
-                height: auto !important;
-                min-height: 0 !important;
-                overflow: visible !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                opacity: 1 !important;
-                visibility: visible !important;
-                z-index: auto !important;
-                background: none !important;
-            }
-
-            .modal-dialog,
-            .modal-dialog.modal-fullscreen,
-            .modal-dialog.modal-xl {
+            /* ===== 3. FLATTEN ROUTE MODAL STRUCTURE ===== */
+            #resumenRutaModal .modal-dialog,
+            #resumenRutaModal .modal-dialog.modal-fullscreen {
                 max-width: 100% !important;
                 width: 100% !important;
                 height: auto !important;
@@ -444,8 +446,7 @@
                 transform: none !important;
             }
 
-            .modal-content,
-            .modal-fullscreen .modal-content {
+            #resumenRutaModal .modal-content {
                 border: none !important;
                 border-radius: 0 !important;
                 height: auto !important;
@@ -456,7 +457,7 @@
                 background: #fff !important;
             }
 
-            .modal-body {
+            #resumenRutaModal .modal-body {
                 padding: 0 !important;
                 margin: 0 !important;
                 height: auto !important;
@@ -495,6 +496,35 @@
                 table-layout: fixed !important;
                 page-break-inside: auto !important;
             }
+
+            /* Print column widths — optimized for A4 landscape */
+            /* nth-child(2) = Orden (hidden via action-cell), nth-child(15/16) = Mover/Acciones (hidden) */
+            .hoja-ruta-table th:nth-child(1),
+            .hoja-ruta-table td:nth-child(1) { width: 3% !important; }   /* N */
+            .hoja-ruta-table th:nth-child(3),
+            .hoja-ruta-table td:nth-child(3) { width: 8% !important; }   /* RUC */
+            .hoja-ruta-table th:nth-child(4),
+            .hoja-ruta-table td:nth-child(4) { width: 9% !important; }   /* Razon social */
+            .hoja-ruta-table th:nth-child(5),
+            .hoja-ruta-table td:nth-child(5) { width: 10% !important; }  /* Nombre comercial */
+            .hoja-ruta-table th:nth-child(6),
+            .hoja-ruta-table td:nth-child(6) { width: 20% !important; }  /* Direccion — widest */
+            .hoja-ruta-table th:nth-child(7),
+            .hoja-ruta-table td:nth-child(7) { width: 7% !important; }   /* Distrito */
+            .hoja-ruta-table th:nth-child(8),
+            .hoja-ruta-table td:nth-child(8) { width: 6% !important; }   /* Frec */
+            .hoja-ruta-table th:nth-child(9),
+            .hoja-ruta-table td:nth-child(9) { width: 8% !important; }   /* Contacto */
+            .hoja-ruta-table th:nth-child(10),
+            .hoja-ruta-table td:nth-child(10) { width: 7% !important; }  /* Telefono */
+            .hoja-ruta-table th:nth-child(11),
+            .hoja-ruta-table td:nth-child(11) { width: 5% !important; }  /* Tarifa */
+            .hoja-ruta-table th:nth-child(12),
+            .hoja-ruta-table td:nth-child(12) { width: 6% !important; }  /* Tipo pago */
+            .hoja-ruta-table th:nth-child(13),
+            .hoja-ruta-table td:nth-child(13) { width: 6% !important; }  /* Obs */
+            .hoja-ruta-table th:nth-child(14),
+            .hoja-ruta-table td:nth-child(14) { width: 5% !important; }  /* Residuo */
 
             .hoja-ruta-table thead {
                 display: table-header-group !important;
