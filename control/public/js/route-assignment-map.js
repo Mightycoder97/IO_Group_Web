@@ -20,7 +20,7 @@ class RouteAssignmentMap {
         this.fallbackBounds = null;
         this.maxMarkers = options.maxMarkers || 420;
         this.defaultCenter = { lat: -12.0464, lng: -77.0428 };
-        this.mapStyles = options.mapStyles || [];
+        this.mapStyles = options.mapStyles || RouteAssignmentMap.minimalLightMapStyles();
         this.tileSize = 256;
         this.tileZoom = 12;
         this.tileCenter = this.defaultCenter;
@@ -60,6 +60,18 @@ class RouteAssignmentMap {
         });
         this.infoWindow = new google.maps.InfoWindow();
         this.setStatus('');
+    }
+
+    static minimalLightMapStyles() {
+        return [
+            { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+            { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+            { featureType: 'landscape.man_made', stylers: [{ visibility: 'off' }] },
+            { featureType: 'landscape.natural', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+            { featureType: 'water', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+            { featureType: 'administrative.neighborhood', stylers: [{ visibility: 'off' }] },
+            { featureType: 'administrative.land_parcel', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+        ];
     }
 
     static darkMapStyles() {
@@ -254,9 +266,10 @@ class RouteAssignmentMap {
                 zoomControl: true,
                 worldCopyJump: true
             }).setView([this.defaultCenter.lat, this.defaultCenter.lng], 12);
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                subdomains: 'abcd'
             }).addTo(this.leafletMap);
             setTimeout(() => this.leafletMap?.invalidateSize(), 0);
             setTimeout(() => this.leafletMap?.invalidateSize(), 250);
