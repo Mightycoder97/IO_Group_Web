@@ -5,89 +5,370 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="theme-color" content="#1B5E20">
-    <title>Asignación de Rutas - IO Group</title>
+    <title>Asignacion de Rutas - IO Group</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../css/global.css?v=2.5" rel="stylesheet">
     <link href="../../css/control.css?v=2.3" rel="stylesheet">
-    <!-- Rutas styles now loaded from external control.css for better caching -->
     <style>
-        /* ===== PRINT BUTTON HIGHLIGHT ===== */
-        #btnImprimir {
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            padding: 6px 16px;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 6px rgba(13, 110, 253, 0.35);
-            transition: all 0.2s;
+        .route-page-toolbar,
+        .route-work-panel,
+        .route-map-panel,
+        .route-sheet-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
         }
 
-        #btnImprimir:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.45);
+        .route-page-toolbar {
+            align-items: center;
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 12px;
+        }
+
+        .route-assignment-workspace {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: minmax(300px, 30%) minmax(0, 70%);
+            margin-bottom: 12px;
+        }
+
+        .route-work-panel,
+        .route-map-panel {
+            min-height: 520px;
+            overflow: hidden;
+        }
+
+        .route-work-panel {
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+        }
+
+        .route-map-panel {
+            position: relative;
+        }
+
+        .route-panel-title {
+            color: #0f172a;
+            font-size: 0.98rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .route-panel-subtitle {
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .route-search-results {
+            display: grid;
+            gap: 8px;
+            max-height: 310px;
+            overflow: auto;
+            padding-right: 2px;
+        }
+
+        .route-result {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            color: #0f172a;
+            cursor: pointer;
+            padding: 10px;
+            text-align: left;
+            transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .route-result:hover,
+        .route-result.selected {
+            background: #f8fafc;
+            border-color: #22c55e;
+            box-shadow: 0 6px 16px rgba(22, 101, 52, 0.08);
+        }
+
+        .route-result.assigned-other {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .route-result-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .route-result-meta {
+            color: #64748b;
+            display: grid;
+            font-size: 0.74rem;
+            gap: 2px;
+            line-height: 1.25;
+            margin-top: 4px;
+        }
+
+        .route-filter-chips,
+        .route-metric-grid,
+        .route-frequency-grid {
+            display: grid;
+            gap: 8px;
+        }
+
+        .route-frequency-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .route-frequency-grid .btn {
+            border-radius: 8px;
+            font-size: 0.78rem;
+            justify-content: center;
+            min-height: 34px;
+            padding: 6px 8px;
+        }
+
+        .route-frequency-grid .btn.active {
+            background: #166534;
+            border-color: #166534;
+            color: #fff;
+        }
+
+        .route-metric-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .route-metric {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .route-metric strong {
+            color: #0f172a;
+            display: block;
+            font-size: 1.3rem;
+            line-height: 1.1;
+        }
+
+        .route-metric span {
+            color: #64748b;
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 3px;
+            text-transform: uppercase;
+        }
+
+        .route-breakdown {
+            border-top: 1px solid #e2e8f0;
+            display: grid;
+            gap: 6px;
+            margin-top: 12px;
+            padding-top: 10px;
+        }
+
+        .route-breakdown-row {
+            align-items: center;
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            font-size: 0.78rem;
+        }
+
+        .route-breakdown-row b {
+            color: #b45309;
+        }
+
+        .route-map-header {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            min-height: 58px;
+            padding: 10px 12px;
+            position: relative;
+            z-index: 5;
+        }
+
+        #routeMap {
+            bottom: 0;
+            left: 0;
+            min-height: 462px;
+            position: absolute;
+            right: 0;
+            top: 58px;
+        }
+
+        .route-map-status {
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            color: #334155;
+            font-size: 0.78rem;
+            font-weight: 700;
+            left: 12px;
+            padding: 7px 10px;
+            position: absolute;
+            top: 70px;
+            z-index: 6;
+        }
+
+        .route-map-legend {
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            left: 12px;
+            padding: 8px 10px;
+            position: absolute;
+            z-index: 6;
+        }
+
+        .legend-dot {
+            border-radius: 50%;
+            display: inline-flex;
+            height: 10px;
+            margin-right: 4px;
+            width: 10px;
+        }
+
+        .selected-sede-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            min-height: 64px;
+            padding: 10px;
+        }
+
+        .vehiculo-tabs {
+            margin-bottom: 12px;
+        }
+
+        .vehiculo-tab {
+            flex: 0 0 210px;
+            min-height: 96px;
+        }
+
+        .vehiculo-tab .route-tab-meta {
+            color: inherit;
+            display: grid;
+            font-size: 0.72rem;
+            gap: 2px;
+            opacity: 0.84;
+            width: 100%;
+        }
+
+        .route-sheet-card .card-header {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .route-row-selected td {
+            background: #fffbeb !important;
+        }
+
+        .route-order-buttons {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .route-order-buttons .btn {
+            border-radius: 6px;
+            height: 28px;
+            padding: 0;
+            width: 28px;
+        }
+
+        .route-capacity-note {
+            color: #64748b;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .distrito-tag {
+            border-radius: 8px;
+        }
+
+        .route-empty-state {
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            color: #64748b;
+            padding: 14px;
+            text-align: center;
         }
 
         .gasto-ruta-row {
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 0.75rem;
             background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
             margin-bottom: 0.75rem;
+            padding: 0.75rem;
         }
 
         .gasto-ruta-row .form-label {
+            color: #475569;
             font-size: 0.75rem;
             font-weight: 700;
-            color: #475569;
             margin-bottom: 0.25rem;
         }
 
         .gasto-ruta-total {
-            border-radius: 10px;
             background: #ecfdf5;
             border: 1px solid #bbf7d0;
+            border-radius: 8px;
             color: #166534;
             font-weight: 800;
             padding: 0.65rem 0.8rem;
         }
 
-        /* ===== PRINT STYLES: compact & space-efficient ===== */
-        @media print {
+        @media (max-width: 1100px) {
+            .route-assignment-workspace {
+                grid-template-columns: 1fr;
+            }
 
-            /* Hide all non-essential UI */
+            .route-work-panel,
+            .route-map-panel {
+                min-height: 460px;
+            }
+        }
+
+        @media print {
             .sidebar,
             .top-nav,
-            .breadcrumb-container,
-            .user-menu,
+            .route-page-toolbar,
+            .route-assignment-workspace,
             .vehiculo-tabs,
-            .search-panel,
-            .distritos-hoy,
-            .d-flex.justify-content-between.align-items-center,
             .card-header .btn,
             .card-header .badge,
             .action-cell,
             th.action-cell,
-            #btnImprimir,
-            .btn-group {
+            .btn-group,
+            .route-order-buttons {
                 display: none !important;
             }
 
-            /* Remove all padding/margin for tight layout */
             body,
-            html {
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-
+            html,
             .app-container,
             .main-content,
             .content-area {
-                padding: 0 !important;
                 margin: 0 !important;
+                padding: 0 !important;
             }
 
-            .card {
+            .card,
+            .route-sheet-card {
                 border: none !important;
                 box-shadow: none !important;
             }
@@ -105,83 +386,46 @@
                 font-size: 10px !important;
             }
 
-            /* Compact table */
             .hoja-ruta-table {
+                border-collapse: collapse !important;
                 font-size: 7pt !important;
                 width: 100% !important;
-                border-collapse: collapse !important;
+            }
+
+            .hoja-ruta-table th,
+            .hoja-ruta-table td {
+                padding: 2px 3px !important;
             }
 
             .hoja-ruta-table th {
                 background: #e8f5e9 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                padding: 2px 3px !important;
                 font-size: 6.5pt !important;
-                font-weight: 700 !important;
                 white-space: nowrap;
             }
 
-            .hoja-ruta-table td {
-                padding: 2px 3px !important;
-                vertical-align: middle !important;
-                line-height: 1.2 !important;
-                font-size: 7pt !important;
-            }
-
-            .hoja-ruta-table td small {
-                font-size: 6.5pt !important;
-            }
-
-            /* Alternate row shading */
-            .hoja-ruta-table tbody tr:nth-child(even) td {
-                background: #f9f9f9 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            /* Selects printed as plain text */
-            .hoja-ruta-table select {
-                border: none !important;
-                background: transparent !important;
-                font-size: 8pt !important;
-            }
-
-            /* Inputs printed as plain text */
-            .hoja-ruta-table input[type="text"] {
-                border: none !important;
-                border-bottom: 1px solid #ccc !important;
-                background: transparent !important;
-                padding: 0 !important;
-                font-size: 8pt !important;
-            }
-
-            /* Show print header */
             .print-header {
-                display: block !important;
-                padding: 4px 0 6px 0 !important;
                 border-bottom: 2px solid #1B5E20 !important;
+                display: block !important;
                 margin-bottom: 6px !important;
+                padding: 4px 0 6px 0 !important;
             }
 
             .print-header h4 {
+                color: #1B5E20 !important;
                 font-size: 13pt !important;
                 font-weight: 800 !important;
-                color: #1B5E20 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
                 margin: 0 0 4px 0 !important;
                 text-align: center;
             }
 
-            /* Page settings */
             @page {
                 margin: 10mm 8mm;
                 size: A4 landscape;
             }
         }
 
-        /* Print header hidden on screen */
         .print-header {
             display: none;
         }
@@ -189,16 +433,14 @@
 </head>
 
 <body class="control-app">
-    <!-- Print Header -->
     <div class="print-header">
         <h4>HOJA DE RUTA - IO GROUP</h4>
-        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px;">
-            <div><strong>Vehículo:</strong> <span id="printVehiculo">-</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;">
+            <div><strong>Vehiculo:</strong> <span id="printVehiculo">-</span></div>
             <div><strong>Fecha:</strong> <span id="printFecha">-</span></div>
             <div><strong>Total:</strong> <span id="printTotal">0</span> clientes</div>
         </div>
-        <div
-            style="font-size: 9.5px; color: #555; border-top: 1px solid #ccc; padding-top: 4px; margin-bottom: 6px; display: flex; gap: 32px;">
+        <div style="font-size:9.5px;color:#555;border-top:1px solid #ccc;padding-top:4px;margin-bottom:6px;display:flex;gap:32px;">
             <span><i>Chofer:</i> <strong id="printChofer">-</strong></span>
             <span><i>Ayudante:</i> <strong id="printAyudante">-</strong></span>
         </div>
@@ -213,7 +455,7 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
-                            <li class="breadcrumb-item active">Asignación de Rutas</li>
+                            <li class="breadcrumb-item active">Asignacion de Rutas</li>
                         </ol>
                     </nav>
                 </div>
@@ -225,109 +467,156 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
                                     data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
-                                    Contraseña</a></li>
+                                    contrasena</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li><a class="dropdown-item" href="#" onclick="logout()"><i
-                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                                        class="bi bi-box-arrow-right"></i> Cerrar sesion</a></li>
                         </ul>
                     </div>
                 </div>
             </nav>
+
             <div class="content-area">
-                <!-- Fecha y Distritos del Día -->
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                    <div class="d-flex align-items-center gap-3">
-                        <label class="mb-0"><strong>Fecha:</strong></label>
-                        <input type="date" class="form-control" id="fechaRuta" style="width: auto;">
+                <section class="route-page-toolbar">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <label class="mb-0 fw-bold" for="fechaRuta">Fecha</label>
+                        <input type="date" class="form-control" id="fechaRuta" style="width:auto;">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle" id="todayAssignedPill">0 sedes hoy</span>
                     </div>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
                         <a href="../calendario/index.html" class="btn btn-outline-primary btn-sm">
                             <i class="bi bi-calendar3"></i> Calendario
                         </a>
                         <a href="historial.html" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-clock-history"></i> Historial
                         </a>
+                        <button class="btn btn-outline-success btn-sm" onclick="savePlanDelDia()">
+                            <i class="bi bi-cloud-check"></i> Guardar dia
+                        </button>
                     </div>
-                </div>
+                </section>
 
-                <!-- Distritos del día desde calendario -->
-                <div class="distritos-hoy" id="distritosHoy">
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <strong><i class="bi bi-geo-alt-fill text-success"></i> Distritos programados:</strong>
-                        <span id="distritosChips" class="text-muted">Cargando...</span>
-                    </div>
-                </div>
-
-                <!-- Vehiculo Tabs -->
-                <div class="vehiculo-tabs" id="vehiculoTabs">
-                    <div class="text-muted">Cargando vehículos...</div>
-                </div>
-
-                <div class="search-panel">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="searchCliente"
-                                    placeholder="Buscar por nombre comercial, razón social, RUC o distrito...">
+                <section class="route-assignment-workspace">
+                    <aside class="route-work-panel">
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+                            <div>
+                                <h1 class="route-panel-title">Busqueda operativa</h1>
+                                <div class="route-panel-subtitle">Sedes por nombre, codigo, RUC o distrito</div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="position-relative">
-                                <input type="text" class="form-control form-control-sm" id="distritoSearch"
-                                    placeholder="Buscar distrito..." autocomplete="off">
-                                <div class="distrito-dropdown" id="distritoDropdown"></div>
-                            </div>
-                            <div class="distrito-tag-container mt-2" id="selectedDistritosTags"></div>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-success" onclick="saveRuta()">
-                                <i class="bi bi-check"></i> Guardar Ruta
+                            <button class="btn btn-sm btn-outline-secondary" type="button" onclick="clearAllFilters()" title="Limpiar filtros">
+                                <i class="bi bi-arrow-counterclockwise"></i>
                             </button>
                         </div>
-                    </div>
-                    <!-- Empleados row -->
-                    <div class="row g-2 mt-1">
-                        <div class="col-md-4">
-                            <div class="input-group input-group-sm">
+
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="searchCliente"
+                                placeholder="Nombre, codigo, RUC, razon social, distrito">
+                        </div>
+
+                        <div class="mb-3 district-picker position-relative">
+                            <input type="text" class="form-control form-control-sm" id="distritoSearch"
+                                placeholder="Agregar distrito..." autocomplete="off">
+                            <div class="distrito-dropdown" id="distritoDropdown"></div>
+                            <div class="distrito-tag-container mt-2" id="selectedDistritosTags"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small text-muted text-uppercase fw-bold">Frecuencia</span>
+                                <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" onclick="selectAllFrequencies()">Todas</button>
+                            </div>
+                            <div class="route-frequency-grid" id="frequencyFilters"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="small text-muted text-uppercase fw-bold mb-2">Distritos programados</div>
+                            <div id="distritosChips" class="d-flex flex-wrap gap-1 text-muted">Cargando...</div>
+                        </div>
+
+                        <div class="route-metric-grid mb-2">
+                            <div class="route-metric"><strong id="metricTotal">0</strong><span>Total filtro</span></div>
+                            <div class="route-metric"><strong id="metricAssigned">0</strong><span>Asignadas mes</span></div>
+                            <div class="route-metric"><strong id="metricPending">0</strong><span>Pendientes</span></div>
+                            <div class="route-metric"><strong id="metricCompliance">0%</strong><span>Cumplimiento</span></div>
+                        </div>
+
+                        <div class="route-breakdown" id="coverageBreakdown">
+                            <div class="small text-muted">Sin pendientes para el filtro actual.</div>
+                        </div>
+
+                        <div class="mt-3 selected-sede-panel" id="selectedSedePanel">
+                            <div class="small text-muted">Selecciona una sede del buscador o mapa.</div>
+                        </div>
+
+                        <div class="route-search-results mt-3" id="searchResults"></div>
+                    </aside>
+
+                    <section class="route-map-panel">
+                        <div class="route-map-header">
+                            <div>
+                                <h2 class="route-panel-title">Mapa de asignacion</h2>
+                                <div class="route-panel-subtitle" id="mapSubtitle">Solo sedes filtradas con GPS</div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="fitMapToSelection()">
+                                    <i class="bi bi-bounding-box"></i> Ajustar
+                                </button>
+                                <button class="btn btn-sm btn-success" type="button" onclick="quickAddSelectedSede()">
+                                    <i class="bi bi-plus-circle"></i> Agregar seleccion
+                                </button>
+                            </div>
+                        </div>
+                        <div id="routeMap"></div>
+                        <div class="route-map-status" id="routeMapStatus">Preparando mapa...</div>
+                        <div class="route-map-legend small">
+                            <span><i class="legend-dot" style="background:#2563eb"></i>Pendiente</span>
+                            <span><i class="legend-dot" style="background:#f59e0b"></i>Seleccionada</span>
+                            <span><i class="legend-dot" style="background:#166534"></i>Camion activo</span>
+                            <span><i class="legend-dot" style="background:#64748b"></i>Otro camion</span>
+                        </div>
+                    </section>
+                </section>
+
+                <div class="vehiculo-tabs" id="vehiculoTabs">
+                    <div class="text-muted">Cargando vehiculos...</div>
+                </div>
+
+                <div class="route-sheet-card card">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <span><i class="bi bi-list-ol"></i> Hoja de ruta: <strong id="vehiculoActual">-</strong></span>
+                            <div class="route-capacity-note" id="routeSummaryLine">Selecciona un camion</div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                            <div class="input-group input-group-sm" style="width: 210px;">
                                 <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
                                 <select class="form-select form-select-sm" id="selectChofer">
                                     <option value="">Chofer...</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="input-group input-group-sm">
+                            <div class="input-group input-group-sm" style="width: 210px;">
                                 <span class="input-group-text"><i class="bi bi-person"></i></span>
                                 <select class="form-select form-select-sm" id="selectAyudante">
                                     <option value="">Ayudante...</option>
                                 </select>
                             </div>
-                        </div>
-                    </div>
-                    <!-- Search Results -->
-                    <div id="searchResults" class="mt-2" style="max-height: 200px; overflow-y: auto; display: none;">
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <span><i class="bi bi-list-ol"></i> Clientes en Ruta: <strong
-                                id="vehiculoActual">-</strong></span>
-                        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
                             <button class="btn btn-outline-success btn-sm" id="btnGastosRuta"
                                 onclick="abrirGastosRuta()" title="Registrar gastos operativos de la ruta">
-                                <i class="bi bi-receipt-cutoff me-1"></i> Gastos de ruta
+                                <i class="bi bi-receipt-cutoff"></i> Gastos
                             </button>
                             <button class="btn btn-outline-primary btn-sm" id="btnImprimir" onclick="window.print()"
-                                title="Imprimir Hoja de Ruta">
-                                <i class="bi bi-printer-fill me-1"></i> Imprimir
+                                title="Imprimir hoja de ruta">
+                                <i class="bi bi-printer-fill"></i> Imprimir
                             </button>
                             <button class="btn btn-success btn-sm" onclick="sendWhatsAppAll()"
                                 title="Confirmar todos por WhatsApp">
-                                <i class="bi bi-whatsapp"></i> Confirmar Todos
+                                <i class="bi bi-whatsapp"></i> Confirmar
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="saveRuta()">
+                                <i class="bi bi-check"></i> Guardar camion
                             </button>
                             <span class="badge bg-primary" id="countEnRuta">0</span>
                         </div>
@@ -337,24 +626,27 @@
                             <table class="table table-bordered table-hover hoja-ruta-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th style="width: 40px;">N°</th>
+                                        <th style="width: 42px;">N</th>
+                                        <th style="width: 76px;" class="action-cell">Orden</th>
                                         <th>RUC</th>
-                                        <th>RAZÓN SOCIAL</th>
-                                        <th>NOMBRE COMERCIAL</th>
-                                        <th>DIRECCION</th>
-                                        <th>DISTRITO</th>
-                                        <th>CONTACTO</th>
-                                        <th>TELÉFONO</th>
-                                        <th>TARIFA</th>
-                                        <th style="width: 120px;">TIPO PAGO</th>
-                                        <th style="width: 100px;">OBS</th>
-                                        <th style="width: 120px;">RESIDUO</th>
-                                        <th style="width: 100px;" class="action-cell">ACCIONES</th>
+                                        <th>Razon social</th>
+                                        <th>Nombre comercial</th>
+                                        <th>Direccion</th>
+                                        <th>Distrito</th>
+                                        <th>Frec.</th>
+                                        <th>Contacto</th>
+                                        <th>Telefono</th>
+                                        <th>Tarifa</th>
+                                        <th style="width: 126px;">Tipo pago</th>
+                                        <th style="width: 120px;">Obs</th>
+                                        <th style="width: 142px;">Residuo</th>
+                                        <th style="width: 150px;" class="action-cell">Mover</th>
+                                        <th style="width: 92px;" class="action-cell">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="clientesTableBody">
                                     <tr>
-                                        <td colspan="10" class="text-center py-4 text-muted">Selecciona un vehículo</td>
+                                        <td colspan="16" class="text-center py-4 text-muted">Selecciona un vehiculo</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -365,7 +657,6 @@
         </main>
     </div>
 
-    <!-- Modal: Gastos de ruta -->
     <div class="modal fade" id="gastosRutaModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
@@ -398,25 +689,23 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/config.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js?v=2.5"></script>
+    <script src="../../js/route-assignment-map.js?v=1.0"></script>
     <script>
         bootControlPage('rutas');
 
-        let vehiculos = [];
-        let selectedVehiculo = null;
-        let allClientes = [];
-        let clientesEnRuta = [];
-        let serviciosRecientes = {};
-        let allDistritos = new Set();
-        let distritoDisplayMap = {};
-        let distritosCalendario = [];
-        let currentRutaId = null;
-        let currentRutaCodigo = '';
-        let gastosRuta = [];
-        let gastoRutaCounter = 0;
-        let gastosRutaModal = null;
-
+        const ALL_FREQUENCIES = ['diario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual'];
+        const FREQUENCY_LABELS = {
+            diario: 'Diario',
+            semanal: 'Semanal',
+            quincenal: 'Quincenal',
+            mensual: 'Mensual',
+            bimestral: 'Bimestral',
+            trimestral: 'Trimestral',
+            eventual: 'Eventual'
+        };
         const GASTO_RUTA_TIPOS = [
             { value: 'combustible', label: 'Combustible' },
             { value: 'peajes', label: 'Peajes' },
@@ -426,14 +715,53 @@
             { value: 'otros', label: 'Otros' }
         ];
 
-        // Normalize district name: remove accents + uppercase for consistent comparison
+        let vehiculos = [];
+        let selectedVehiculo = null;
+        let allClientes = [];
+        let clientesEnRuta = [];
+        let serviciosRecientes = {};
+        let allDistritos = new Set();
+        let distritoDisplayMap = {};
+        let distritosCalendario = [];
+        let selectedDistritos = new Set();
+        let sedesEnOtrasRutas = new Map();
+        let currentRutaId = null;
+        let currentRutaCodigo = '';
+        let gastosRuta = [];
+        let gastoRutaCounter = 0;
+        let gastosRutaModal = null;
+        let routeAssignmentMap = null;
+
+        const assignmentState = {
+            allClientes: [],
+            clientesPorVehiculo: new Map(),
+            routeMetaByVehiculo: new Map(),
+            selectedVehiculoId: null,
+            selectedSedeId: null,
+            filters: {
+                search: '',
+                frequencies: new Set(ALL_FREQUENCIES),
+                distritos: selectedDistritos
+            },
+            calendarDistricts: [],
+            assignedBySede: new Map(),
+            monthlyAssignedBySede: new Map(),
+            filteredClientes: [],
+            dirtyVehiculos: new Set()
+        };
+
         function normDistr(str) {
             if (!str) return '';
-            return str.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+            return String(str).trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        }
+
+        function normalizeFrequency(value) {
+            const raw = String(value || '').trim().toLowerCase();
+            return ALL_FREQUENCIES.includes(raw) ? raw : '';
         }
 
         function escapeHtml(value) {
-            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
                 '&': '&amp;',
                 '<': '&lt;',
                 '>': '&gt;',
@@ -442,145 +770,408 @@
             }[char]));
         }
 
-        document.getElementById('fechaRuta').value = new Date().toISOString().split('T')[0];
-
-        async function init() {
-            gastosRutaModal = new bootstrap.Modal(document.getElementById('gastosRutaModal'));
-            await loadVehiculos();
-            await loadClientes();
-            await loadServiciosRecientes();
-            await loadDistritosDelDia();
+        function getFechaRuta() {
+            return document.getElementById('fechaRuta').value;
         }
 
-        async function loadDistritosDelDia() {
-            const fecha = document.getElementById('fechaRuta').value;
-            const [year, month] = fecha.split('-');
-            try {
-                const result = await api.get(`/calendario?mes=${parseInt(month)}&anio=${year}`);
-                const container = document.getElementById('distritosChips');
-                distritosCalendario = [];
-                if (result.success && result.data?.dias?.[fecha]?.length > 0) {
-                    distritosCalendario = result.data.dias[fecha].map(d => d.toUpperCase());
-                    container.innerHTML = result.data.dias[fecha].map(d =>
-                        `<span class="badge bg-success me-1">${d}</span>`
-                    ).join('');
-                } else {
-                    container.innerHTML = '<span class="text-muted">No hay distritos. <a href="../calendario/index.html">Configurar</a></span>';
-                }
-                // Actualizar selector con distritos del calendario preseleccionados
-                updateDistritoFilterSelection();
-            } catch (err) {
-                document.getElementById('distritosChips').innerHTML = '<span class="text-muted">Error</span>';
+        function getVehiculoKey(id) {
+            return String(id ?? '');
+        }
+
+        function getVehiculoById(id) {
+            const key = getVehiculoKey(id);
+            return vehiculos.find(v => getVehiculoKey(v.id_vehiculo) === key) || null;
+        }
+
+        function ensureVehiculoBucket(id) {
+            const key = getVehiculoKey(id);
+            if (!assignmentState.clientesPorVehiculo.has(key)) {
+                assignmentState.clientesPorVehiculo.set(key, []);
             }
-        }
-
-        async function loadVehiculos() {
-            try {
-                const result = await api.get('/vehiculos');
-                if (result.success) {
-                    vehiculos = result.data;
-                    renderVehiculoTabs();
-                    if (vehiculos.length > 0) selectVehiculo(vehiculos[0].id_vehiculo);
-                }
-            } catch (err) { console.error(err); }
-        }
-
-        async function loadClientes() {
-            try {
-                const result = await api.get('/sedes?limit=5000');
-                if (result.success) {
-                    allClientes = result.data;
-                    allDistritos.clear();
-                    distritoDisplayMap = {};
-                    allClientes.forEach(trackClienteDistrito);
-                    renderDistritoFilter();
-                }
-            } catch (err) { console.error(err); }
+            return assignmentState.clientesPorVehiculo.get(key);
         }
 
         function trackClienteDistrito(cliente) {
             if (!cliente?.distrito?.trim()) return;
             const norm = normDistr(cliente.distrito);
             allDistritos.add(norm);
-            // Keep the prettiest version (Title Case wins over ALL CAPS)
-            if (!distritoDisplayMap[norm] ||
-                distritoDisplayMap[norm] === distritoDisplayMap[norm].toUpperCase()) {
+            if (!distritoDisplayMap[norm] || distritoDisplayMap[norm] === distritoDisplayMap[norm].toUpperCase()) {
                 distritoDisplayMap[norm] = cliente.distrito.trim();
             }
         }
 
-        function mergeClientesCache(clientes) {
-            const existingIds = new Set(allClientes.map(c => String(c.id_sede)));
-            let added = false;
-            clientes.forEach(cliente => {
-                if (!existingIds.has(String(cliente.id_sede))) {
-                    allClientes.push(cliente);
-                    existingIds.add(String(cliente.id_sede));
-                    added = true;
+        function clienteSearchText(c) {
+            return [
+                c.id_sede,
+                c.nombre_comercial,
+                c.empresa_ruc,
+                c.empresa_razon_social,
+                c.razon_social,
+                c.direccion,
+                c.distrito,
+                c.frecuencia
+            ].filter(Boolean).join(' ').toLowerCase();
+        }
+
+        function normalizeCliente(raw) {
+            return {
+                ...raw,
+                id_sede: Number(raw.id_sede),
+                frecuencia: normalizeFrequency(raw.frecuencia),
+                _district: normDistr(raw.distrito),
+                _searchText: clienteSearchText(raw)
+            };
+        }
+
+        function normalizeRouteServicio(s) {
+            return {
+                id_sede: Number(s.id_sede),
+                id_servicio: s.id_servicio,
+                nombre_comercial: s.sede_nombre || s.nombre_comercial || '',
+                empresa_ruc: s.empresa_ruc || '',
+                razon_social: s.empresa_razon_social || s.razon_social || '',
+                empresa_razon_social: s.empresa_razon_social || s.razon_social || '',
+                direccion: s.direccion || s.sede_direccion || '',
+                distrito: s.distrito || '',
+                contacto_nombre: s.contacto_nombre || '',
+                contacto_telefono: s.contacto_telefono || '',
+                telefono: s.contacto_telefono || s.telefono || '',
+                tarifa: s.tarifa_servicio || s.tarifa || 0,
+                frecuencia: normalizeFrequency(s.frecuencia),
+                coordenadas_gps: s.coordenadas_gps || '',
+                peso: s.peso_kg || s.peso || '',
+                tipo_pago: s.forma_pago || '',
+                obs: s.observaciones || s.obs || '',
+                residuo: s.residuo || ''
+            };
+        }
+
+        function createRouteCliente(cliente) {
+            const ultimoServicio = serviciosRecientes[cliente.id_sede];
+            return {
+                id_sede: Number(cliente.id_sede),
+                nombre_comercial: cliente.nombre_comercial || '',
+                empresa_ruc: cliente.empresa_ruc || cliente.ruc || '',
+                razon_social: cliente.empresa_razon_social || cliente.razon_social || '',
+                empresa_razon_social: cliente.empresa_razon_social || cliente.razon_social || '',
+                direccion: cliente.direccion || '',
+                distrito: cliente.distrito || '',
+                contacto_nombre: cliente.contacto_nombre || '',
+                contacto_telefono: cliente.contacto_telefono || '',
+                telefono: cliente.contacto_telefono || cliente.telefono || '',
+                tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
+                frecuencia: normalizeFrequency(cliente.frecuencia || ultimoServicio?.frecuencia),
+                coordenadas_gps: cliente.coordenadas_gps || '',
+                peso: cliente.peso || '',
+                tipo_pago: ultimoServicio?.forma_pago || '',
+                obs: ultimoServicio?.obs || '',
+                residuo: ultimoServicio?.residuo || ''
+            };
+        }
+
+        function markDirty(vehiculoId) {
+            if (vehiculoId) assignmentState.dirtyVehiculos.add(getVehiculoKey(vehiculoId));
+        }
+
+        function syncCurrentRouteRefs() {
+            const key = getVehiculoKey(assignmentState.selectedVehiculoId);
+            clientesEnRuta = key ? ensureVehiculoBucket(key) : [];
+            const meta = assignmentState.routeMetaByVehiculo.get(key) || {};
+            currentRutaId = meta.id_ruta || null;
+            currentRutaCodigo = meta.codigo_ruta || '';
+        }
+
+        function rebuildAssignedBySede() {
+            assignmentState.assignedBySede.clear();
+            for (const [vehiculoId, clientes] of assignmentState.clientesPorVehiculo.entries()) {
+                const vehiculo = getVehiculoById(vehiculoId);
+                const meta = assignmentState.routeMetaByVehiculo.get(vehiculoId) || {};
+                clientes.forEach(cliente => {
+                    assignmentState.assignedBySede.set(String(cliente.id_sede), {
+                        vehiculoId,
+                        placa: vehiculo?.placa || `V${vehiculoId}`,
+                        rutaId: meta.id_ruta || null
+                    });
+                });
+            }
+
+            sedesEnOtrasRutas = new Map();
+            const activeKey = getVehiculoKey(assignmentState.selectedVehiculoId);
+            for (const [sedeId, assigned] of assignmentState.assignedBySede.entries()) {
+                if (assigned.vehiculoId !== activeKey) sedesEnOtrasRutas.set(sedeId, assigned.placa);
+            }
+        }
+
+        function getAssignedMonthMap() {
+            const assigned = new Map(assignmentState.monthlyAssignedBySede);
+            for (const [sedeId, data] of assignmentState.assignedBySede.entries()) {
+                assigned.set(sedeId, data);
+            }
+            return assigned;
+        }
+
+        async function init() {
+            document.getElementById('fechaRuta').value = new Date().toISOString().split('T')[0];
+            gastosRutaModal = new bootstrap.Modal(document.getElementById('gastosRutaModal'));
+            renderFrequencyFilters();
+            bindControls();
+
+            await Promise.all([
+                loadEmpleados(),
+                loadVehiculos(),
+                loadClientes(),
+                loadServiciosRecientes()
+            ]);
+            await loadDistritosDelDia();
+            await loadRoutesForDate();
+            await loadRoutesForMonth();
+
+            if (vehiculos.length > 0) {
+                selectVehiculo(assignmentState.selectedVehiculoId || vehiculos[0].id_vehiculo, { skipLoad: true });
+            } else {
+                renderAll();
+            }
+            setupLazyMap();
+        }
+
+        async function loadVehiculos() {
+            try {
+                const result = await api.get('/vehiculos');
+                if (result.success) {
+                    vehiculos = (result.data || []).filter(v => String(v.activo ?? '1') !== '0');
+                    vehiculos.forEach(v => ensureVehiculoBucket(v.id_vehiculo));
+                    if (!assignmentState.selectedVehiculoId && vehiculos.length) {
+                        assignmentState.selectedVehiculoId = getVehiculoKey(vehiculos[0].id_vehiculo);
+                    }
                 }
-                trackClienteDistrito(cliente);
-            });
-            if (added) renderDistritoFilter();
+            } catch (err) {
+                console.error(err);
+                showToast('Error cargando vehiculos', 'danger');
+            }
+        }
+
+        async function loadClientes() {
+            try {
+                const result = await api.get('/sedes?limit=5000&activo=true');
+                if (result.success) {
+                    allClientes = (result.data || []).map(normalizeCliente);
+                    assignmentState.allClientes = allClientes;
+                    allDistritos.clear();
+                    distritoDisplayMap = {};
+                    allClientes.forEach(trackClienteDistrito);
+                    renderDistritoTags();
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error cargando sedes', 'danger');
+            }
         }
 
         async function loadServiciosRecientes() {
             try {
-                const result = await api.get('/servicios?limit=5000');
+                const result = await api.get('/servicios?limit=500');
+                if (!result.success) return;
+                serviciosRecientes = {};
+                (result.data || []).forEach(s => {
+                    const fecha = s.fecha_ejecucion || s.fecha_servicio || s.mes_servicio || '';
+                    const current = serviciosRecientes[s.id_sede];
+                    if (!current || fecha > current.fecha) {
+                        serviciosRecientes[s.id_sede] = {
+                            fecha,
+                            frecuencia: normalizeFrequency(s.frecuencia),
+                            forma_pago: s.forma_pago || '',
+                            obs: s.observaciones || s.obs || '',
+                            residuo: s.residuo || ''
+                        };
+                    }
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadDistritosDelDia() {
+            const fecha = getFechaRuta();
+            const [year, month] = fecha.split('-');
+            const container = document.getElementById('distritosChips');
+            distritosCalendario = [];
+            assignmentState.calendarDistricts = [];
+
+            try {
+                const result = await api.get(`/calendario?mes=${parseInt(month, 10)}&anio=${year}`, { cache: false });
+                if (result.success && result.data?.dias?.[fecha]?.length > 0) {
+                    distritosCalendario = result.data.dias[fecha];
+                    assignmentState.calendarDistricts = distritosCalendario.map(normDistr);
+                    selectedDistritos = new Set(assignmentState.calendarDistricts);
+                    assignmentState.filters.distritos = selectedDistritos;
+                    container.innerHTML = distritosCalendario.map(d => `<span class="badge bg-success">${escapeHtml(d)}</span>`).join('');
+                } else {
+                    selectedDistritos = new Set();
+                    assignmentState.filters.distritos = selectedDistritos;
+                    container.innerHTML = '<span class="text-muted">Sin distritos configurados</span>';
+                }
+                renderDistritoTags();
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<span class="text-muted">Error calendario</span>';
+            }
+        }
+
+        async function loadRoutesForDate() {
+            const fecha = getFechaRuta();
+            if (!fecha) return;
+
+            vehiculos.forEach(v => ensureVehiculoBucket(v.id_vehiculo).length = 0);
+            assignmentState.routeMetaByVehiculo.clear();
+
+            try {
+                const result = await api.get(`/rutas?fecha=${fecha}&limit=200&include=sedes`, { cache: false });
                 if (result.success) {
-                    serviciosRecientes = {};
-                    result.data.forEach(s => {
-                        if (!serviciosRecientes[s.id_sede] || s.fecha_ejecucion > serviciosRecientes[s.id_sede].fecha) {
-                            serviciosRecientes[s.id_sede] = {
-                                fecha: s.fecha_ejecucion,
-                                frecuencia: s.frecuencia || 'mensual',
-                                peso: s.peso || '',
-                                forma_pago: s.forma_pago || '',
-                                obs: s.observaciones || s.obs || '',
-                                residuo: s.residuo || ''
-                            };
-                        }
+                    (result.data || []).forEach(route => {
+                        const key = getVehiculoKey(route.id_vehiculo);
+                        assignmentState.routeMetaByVehiculo.set(key, {
+                            id_ruta: route.id_ruta,
+                            codigo_ruta: route.codigo_ruta,
+                            id_chofer: route.id_chofer || '',
+                            id_ayudante: route.id_ayudante || '',
+                            chofer_nombre: route.chofer_nombre || '',
+                            ayudante_nombre: route.ayudante_nombre || ''
+                        });
+                        assignmentState.clientesPorVehiculo.set(key, (route.servicios || []).map(normalizeRouteServicio));
                     });
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) {
+                console.error(err);
+                showToast('Error cargando rutas del dia', 'danger');
+            }
+
+            syncCurrentRouteRefs();
+            rebuildAssignedBySede();
+            applyRouteEmployees();
+            updateGastosRutaButton();
         }
 
-        function getAlertaFrecuencia(cliente) {
-            const servicio = serviciosRecientes[cliente.id_sede];
-            if (!servicio?.fecha) return null;
-            const fechaRuta = new Date(document.getElementById('fechaRuta').value);
-            const ultimaFecha = new Date(servicio.fecha);
-            const diffDays = Math.floor((fechaRuta - ultimaFecha) / (1000 * 60 * 60 * 24));
-            const frecuencia = (cliente.frecuencia_recojo || servicio.frecuencia || 'mensual').toLowerCase();
-            let diasMinimo = frecuencia.includes('semanal') ? 7 : frecuencia.includes('quincenal') ? 15 : 30;
-            if (diffDays < diasMinimo) return { diasRestantes: diasMinimo - diffDays, ultimaFecha: servicio.fecha };
-            return null;
+        async function loadRoutesForMonth() {
+            const fecha = getFechaRuta();
+            if (!fecha) return;
+            const [year, month] = fecha.split('-');
+            assignmentState.monthlyAssignedBySede.clear();
+
+            try {
+                const result = await api.get(`/rutas?mes=${parseInt(month, 10)}&anio=${year}&limit=200&include=sedes`, { cache: false });
+                if (result.success) {
+                    (result.data || []).forEach(route => {
+                        (route.servicios || []).forEach(s => {
+                            assignmentState.monthlyAssignedBySede.set(String(s.id_sede), {
+                                vehiculoId: getVehiculoKey(route.id_vehiculo),
+                                placa: route.vehiculo_placa || '',
+                                rutaId: route.id_ruta
+                            });
+                        });
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
 
-        function renderVehiculoTabs() {
-            document.getElementById('vehiculoTabs').innerHTML = vehiculos.map(v => `
-                <div class="vehiculo-tab ${selectedVehiculo?.id_vehiculo === v.id_vehiculo ? 'active' : ''}" 
-                     onclick="selectVehiculo(${v.id_vehiculo})">
-                    <div class="placa"><i class="bi bi-truck"></i> ${v.placa}</div>
-                    <div class="info">${v.marca || ''} ${v.modelo || ''}</div>
-                </div>
+        function bindControls() {
+            document.getElementById('searchCliente').addEventListener('input', debounce(event => {
+                assignmentState.filters.search = event.target.value.toLowerCase().trim();
+                applyFiltersAndRender();
+            }, 140));
+
+            document.getElementById('distritoSearch').addEventListener('input', function () {
+                showDistritoDropdown(normDistr(this.value));
+            });
+
+            document.getElementById('distritoSearch').addEventListener('focus', function () {
+                showDistritoDropdown(normDistr(this.value));
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('.district-picker')) {
+                    document.getElementById('distritoDropdown').classList.remove('show');
+                }
+            });
+
+            document.getElementById('fechaRuta').addEventListener('change', async () => {
+                await loadDistritosDelDia();
+                await loadRoutesForDate();
+                await loadRoutesForMonth();
+                renderAll();
+            });
+        }
+
+        function renderFrequencyFilters() {
+            const container = document.getElementById('frequencyFilters');
+            container.innerHTML = ALL_FREQUENCIES.map(freq => `
+                <button type="button" class="btn btn-sm btn-outline-secondary active" data-frequency="${freq}" onclick="toggleFrequency('${freq}', this)">
+                    ${FREQUENCY_LABELS[freq]}
+                </button>
             `).join('');
         }
 
-        let selectedDistritos = new Set();
-
-        function renderDistritoFilter() {
-            renderDistritoTags();
+        function toggleFrequency(freq, button) {
+            if (assignmentState.filters.frequencies.has(freq)) {
+                assignmentState.filters.frequencies.delete(freq);
+            } else {
+                assignmentState.filters.frequencies.add(freq);
+            }
+            button.classList.toggle('active', assignmentState.filters.frequencies.has(freq));
+            applyFiltersAndRender();
         }
 
-        function updateDistritoFilterSelection() {
-            // Preseleccionar distritos del calendario — normalize so accents don't break matching
-            selectedDistritos = new Set(distritosCalendario.map(d => normDistr(d)));
-            renderDistritoTags();
-            filterClientes();
+        function selectAllFrequencies() {
+            assignmentState.filters.frequencies = new Set(ALL_FREQUENCIES);
+            document.querySelectorAll('[data-frequency]').forEach(btn => btn.classList.add('active'));
+            applyFiltersAndRender();
         }
 
-        function getSelectedDistritos() {
-            return Array.from(selectedDistritos);
+        function clearAllFilters() {
+            document.getElementById('searchCliente').value = '';
+            assignmentState.filters.search = '';
+            selectedDistritos = new Set(assignmentState.calendarDistricts);
+            assignmentState.filters.distritos = selectedDistritos;
+            selectAllFrequencies();
+            renderDistritoTags();
+            applyFiltersAndRender();
+        }
+
+        function showDistritoDropdown(term = '') {
+            const dropdown = document.getElementById('distritoDropdown');
+            const sorted = Array.from(allDistritos).sort((a, b) =>
+                (distritoDisplayMap[a] || a).localeCompare(distritoDisplayMap[b] || b, 'es'));
+            const filtered = term
+                ? sorted.filter(d => d.includes(term) || normDistr(distritoDisplayMap[d] || '').includes(term))
+                : sorted;
+            const visible = filtered.slice(0, 18);
+
+            dropdown.innerHTML = visible.length
+                ? visible.map(d => `
+                    <div class="distrito-option ${selectedDistritos.has(d) ? 'selected' : ''}" onclick="addDistrito('${escapeHtml(d)}')">
+                        ${escapeHtml(distritoDisplayMap[d] || d)}
+                        ${selectedDistritos.has(d) ? '<i class="bi bi-check text-success float-end"></i>' : ''}
+                    </div>
+                `).join('')
+                : '<div class="distrito-option text-muted">No encontrado</div>';
+            dropdown.classList.add('show');
+        }
+
+        function addDistrito(distrito) {
+            selectedDistritos.add(distrito);
+            assignmentState.filters.distritos = selectedDistritos;
+            document.getElementById('distritoSearch').value = '';
+            document.getElementById('distritoDropdown').classList.remove('show');
+            renderDistritoTags();
+            applyFiltersAndRender();
+        }
+
+        function removeDistrito(distrito) {
+            selectedDistritos.delete(distrito);
+            assignmentState.filters.distritos = selectedDistritos;
+            renderDistritoTags();
+            applyFiltersAndRender();
         }
 
         function renderDistritoTags() {
@@ -591,207 +1182,262 @@
             }
             container.innerHTML = Array.from(selectedDistritos).map(d => `
                 <span class="distrito-tag">
-                    ${distritoDisplayMap[d] || d}
-                    <span class="remove" onclick="removeDistrito('${d}')">&times;</span>
+                    ${escapeHtml(distritoDisplayMap[d] || d)}
+                    <span class="remove" onclick="removeDistrito('${escapeHtml(d)}')">&times;</span>
                 </span>
             `).join('');
         }
 
-        function addDistrito(distrito) {
-            selectedDistritos.add(distrito);
-            renderDistritoTags();
-            document.getElementById('distritoSearch').value = '';
-            document.getElementById('distritoDropdown').classList.remove('show');
-            filterClientes();
-        }
-
-        function removeDistrito(distrito) {
-            selectedDistritos.delete(distrito);
-            renderDistritoTags();
-            filterClientes();
-        }
-
-        // Distrito search dropdown
-        const distritoSearchInput = document.getElementById('distritoSearch');
-        const distritoDropdown = document.getElementById('distritoDropdown');
-
-        distritoSearchInput.addEventListener('input', function () {
-            const term = normDistr(this.value);
-            showDistritoDropdown(term);
-        });
-
-        function showDistritoDropdown(term = '') {
-            const sorted = Array.from(allDistritos).sort((a, b) =>
-                (distritoDisplayMap[a] || a).localeCompare(distritoDisplayMap[b] || b, 'es'));
-            const filtered = term
-                ? sorted.filter(d => d.includes(term) || normDistr(distritoDisplayMap[d] || '').includes(term))
-                : sorted;
-            const visible = filtered.slice(0, 15);
-
-            if (visible.length === 0) {
-                distritoDropdown.innerHTML = '<div class="distrito-option text-muted">No encontrado</div>';
-            } else {
-                distritoDropdown.innerHTML = visible.map(d => `
-                    <div class="distrito-option ${selectedDistritos.has(d) ? 'selected' : ''}" onclick="addDistrito('${d}')">
-                        ${distritoDisplayMap[d] || d}
-                        ${selectedDistritos.has(d) ? '<i class="bi bi-check text-success float-end"></i>' : ''}
-                    </div>
-                `).join('');
-            }
-            distritoDropdown.classList.add('show');
-        }
-
-        distritoSearchInput.addEventListener('focus', function () {
-            showDistritoDropdown(normDistr(this.value));
-        });
-
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('.position-relative')) {
-                distritoDropdown.classList.remove('show');
-            }
-        });
-
-        async function selectVehiculo(id) {
-            selectedVehiculo = vehiculos.find(v => v.id_vehiculo === id);
-            document.getElementById('vehiculoActual').textContent = selectedVehiculo?.placa || '-';
-            document.getElementById('printVehiculo').textContent = selectedVehiculo?.placa || '-';
-            currentRutaId = null;
-            currentRutaCodigo = '';
-            clientesEnRuta = [];
-            await loadExistingRoute();
-            renderVehiculoTabs();
-            renderClientesTable();
+        function selectVehiculo(id, options = {}) {
+            selectedVehiculo = getVehiculoById(id);
+            assignmentState.selectedVehiculoId = selectedVehiculo ? getVehiculoKey(selectedVehiculo.id_vehiculo) : null;
+            syncCurrentRouteRefs();
+            rebuildAssignedBySede();
+            applyRouteEmployees();
+            renderAll();
             updateGastosRutaButton();
         }
 
-        // Track which sedes are assigned to OTHER vehicles on the same date
-        // Map: id_sede -> placa del vehículo
-        let sedesEnOtrasRutas = new Map();
-
-        async function loadExistingRoute() {
-            const fecha = document.getElementById('fechaRuta').value;
-            if (!selectedVehiculo || !fecha) return;
-            currentRutaId = null;
-            currentRutaCodigo = '';
-            try {
-                // Load all routes for this date to know which sedes are taken by other trucks
-                const allRoutesResult = await api.get(`/rutas?fecha=${fecha}&limit=50`);
-                sedesEnOtrasRutas = new Map();
-                if (allRoutesResult.success) {
-                    for (const ruta of allRoutesResult.data) {
-                        if (ruta.id_vehiculo == selectedVehiculo.id_vehiculo) continue;
-                        const placa = ruta.vehiculo_placa || `V${ruta.id_vehiculo}`;
-                        // Get detail of each other route
-                        try {
-                            const detail = await api.get(`/rutas/${ruta.id_ruta}`);
-                            if (detail.success && detail.data.servicios) {
-                                detail.data.servicios.forEach(s => sedesEnOtrasRutas.set(s.id_sede, placa));
-                            }
-                        } catch (e) { }
-                    }
-                }
-
-                const result = await api.get(`/rutas?vehiculo=${selectedVehiculo.id_vehiculo}&fecha=${fecha}`);
-                if (result.success && result.data.length > 0) {
-                    currentRutaId = result.data[0].id_ruta || null;
-                    currentRutaCodigo = result.data[0].codigo_ruta || (currentRutaId ? `Ruta #${currentRutaId}` : '');
-                    const rutaDetail = await api.get(`/rutas/${currentRutaId}`);
-                    if (rutaDetail.success && rutaDetail.data.servicios) {
-                        clientesEnRuta = rutaDetail.data.servicios.map(s => ({
-                            id_sede: s.id_sede,
-                            nombre_comercial: s.sede_nombre || '',
-                            empresa_ruc: s.empresa_ruc || '',
-                            razon_social: s.empresa_razon_social || '',
-                            direccion: s.direccion || '',
-                            distrito: s.distrito || '',
-                            tarifa: s.tarifa_servicio || 0,
-                            contacto_nombre: s.contacto_nombre || '',
-                            telefono: s.contacto_telefono || '',
-                            peso: s.peso || '',
-                            tipo_pago: s.forma_pago || '',
-                            obs: s.observaciones || s.obs || '',
-                            residuo: s.residuo || ''
-                        }));
-                        // Populate employee selects from saved route
-                        const rData = rutaDetail.data;
-                        currentRutaId = rData.id_ruta || currentRutaId;
-                        currentRutaCodigo = rData.codigo_ruta || currentRutaCodigo;
-                        const selChofer = document.getElementById('selectChofer');
-                        const selAyudante = document.getElementById('selectAyudante');
-                        if (selChofer && rData.id_chofer) selChofer.value = rData.id_chofer;
-                        if (selAyudante && rData.id_ayudante) selAyudante.value = rData.id_ayudante;
-                        // Update print header
-                        document.getElementById('printChofer').textContent = rData.chofer_nombre || '-';
-                        document.getElementById('printAyudante').textContent = rData.ayudante_nombre || '-';
-                    }
-                } else {
-                    clientesEnRuta = [];
-                    currentRutaId = null;
-                    currentRutaCodigo = '';
-                    // Clear employee selects when no route exists
-                    const selChofer = document.getElementById('selectChofer');
-                    const selAyudante = document.getElementById('selectAyudante');
-                    if (selChofer) selChofer.value = '';
-                    if (selAyudante) selAyudante.value = '';
-                    document.getElementById('printChofer').textContent = '-';
-                    document.getElementById('printAyudante').textContent = '-';
-                }
-                updateGastosRutaButton();
-            } catch (err) { console.error(err); }
+        function applyRouteEmployees() {
+            const meta = assignmentState.routeMetaByVehiculo.get(getVehiculoKey(assignmentState.selectedVehiculoId)) || {};
+            const selChofer = document.getElementById('selectChofer');
+            const selAyudante = document.getElementById('selectAyudante');
+            if (selChofer) selChofer.value = meta.id_chofer || '';
+            if (selAyudante) selAyudante.value = meta.id_ayudante || '';
+            document.getElementById('printChofer').textContent = meta.chofer_nombre || selChofer?.options[selChofer.selectedIndex]?.text || '-';
+            document.getElementById('printAyudante').textContent = meta.ayudante_nombre || selAyudante?.options[selAyudante.selectedIndex]?.text || '-';
         }
 
-        function updateGastosRutaButton() {
-            const btn = document.getElementById('btnGastosRuta');
-            if (!btn) return;
-            btn.classList.remove('d-none');
-            btn.disabled = false;
-            if (!selectedVehiculo) {
-                btn.title = 'Selecciona un vehiculo para registrar gastos';
-            } else if (!currentRutaId) {
-                btn.title = 'Guarda la ruta antes de registrar gastos';
-            } else {
-                btn.title = 'Registrar gastos operativos de la ruta';
+        function renderAll() {
+            renderVehiculoTabs();
+            renderClientesTable();
+            renderSelectedSedePanel();
+            applyFiltersAndRender();
+        }
+
+        function renderVehiculoTabs() {
+            const container = document.getElementById('vehiculoTabs');
+            if (!vehiculos.length) {
+                container.innerHTML = '<div class="text-muted">No hay vehiculos activos</div>';
+                return;
             }
+
+            container.innerHTML = vehiculos.map(v => {
+                const key = getVehiculoKey(v.id_vehiculo);
+                const clientes = assignmentState.clientesPorVehiculo.get(key) || [];
+                const districts = new Set(clientes.map(c => normDistr(c.distrito)).filter(Boolean));
+                const freqs = new Set(clientes.map(c => normalizeFrequency(c.frecuencia)).filter(Boolean));
+                const capacity = formatCapacity(v, clientes);
+                const dirty = assignmentState.dirtyVehiculos.has(key) ? '<span class="badge bg-warning text-dark ms-1">Sin guardar</span>' : '';
+                return `
+                    <div class="vehiculo-tab ${assignmentState.selectedVehiculoId === key ? 'active' : ''}" onclick="selectVehiculo('${key}')">
+                        <div class="placa"><i class="bi bi-truck"></i> ${escapeHtml(v.placa || '-')} ${dirty}</div>
+                        <div class="info">${escapeHtml([v.marca, v.modelo].filter(Boolean).join(' ') || v.tipo || '')}</div>
+                        <div class="route-tab-meta">
+                            <span>${clientes.length} sedes | ${districts.size} distritos</span>
+                            <span>${Array.from(freqs).map(f => FREQUENCY_LABELS[f]).slice(0, 2).join(', ') || 'Sin frecuencia'}</span>
+                            <span>${escapeHtml(capacity)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatCapacity(vehiculo, clientes) {
+            const capacityKg = Number(vehiculo?.tonelaje_max || 0) * 1000;
+            const weights = clientes.map(c => Number(c.peso || 0)).filter(n => Number.isFinite(n) && n > 0);
+            if (!capacityKg) return 'Capacidad no registrada';
+            if (!weights.length) return `${Number(vehiculo.tonelaje_max).toFixed(2)} t | sin peso registrado`;
+            const used = weights.reduce((sum, value) => sum + value, 0);
+            return `${used.toFixed(0)} / ${capacityKg.toFixed(0)} kg`;
+        }
+
+        function getClientesFiltrados() {
+            const term = assignmentState.filters.search;
+            const selectedFreqs = assignmentState.filters.frequencies;
+            const useFreqFilter = selectedFreqs.size !== ALL_FREQUENCIES.length;
+            const districts = assignmentState.filters.distritos;
+
+            return allClientes.filter(c => {
+                const matchTerm = !term || c._searchText.includes(term);
+                const matchDistrito = districts.size === 0 || districts.has(c._district);
+                const freq = normalizeFrequency(c.frecuencia);
+                const matchFreq = !useFreqFilter || (freq && selectedFreqs.has(freq));
+                return matchTerm && matchDistrito && matchFreq;
+            });
+        }
+
+        function applyFiltersAndRender() {
+            const filtered = getClientesFiltrados();
+            assignmentState.filteredClientes = filtered;
+            renderClientesBusqueda(filtered);
+            renderMetrics(filtered);
+            updateRouteMap(filtered);
+        }
+
+        function renderClientesBusqueda(filtered) {
+            const container = document.getElementById('searchResults');
+            const visible = filtered.slice(0, 70);
+
+            if (!visible.length) {
+                container.innerHTML = '<div class="route-empty-state">Sin sedes para el filtro actual.</div>';
+                return;
+            }
+
+            container.innerHTML = visible.map(c => {
+                const assigned = assignmentState.assignedBySede.get(String(c.id_sede));
+                const activeAssigned = assigned?.vehiculoId === assignmentState.selectedVehiculoId;
+                const assignedOther = assigned && !activeAssigned;
+                const alerta = getAlertaFrecuencia(c);
+                const selected = String(assignmentState.selectedSedeId || '') === String(c.id_sede);
+                const action = !selectedVehiculo
+                    ? '<span class="badge bg-secondary">Sin camion</span>'
+                    : activeAssigned
+                        ? '<span class="badge bg-success">En camion</span>'
+                        : assignedOther
+                            ? `<button class="btn btn-warning btn-sm" onclick="event.stopPropagation(); reasignarCliente(${c.id_sede}, '${assignmentState.selectedVehiculoId}')">Mover aqui</button>`
+                            : `<button class="btn btn-success btn-sm" onclick="event.stopPropagation(); agregarCliente(${c.id_sede}, 'buscador')"><i class="bi bi-plus"></i></button>`;
+
+                return `
+                    <button type="button" class="route-result ${selected ? 'selected' : ''} ${assignedOther ? 'assigned-other' : ''}" onclick="selectSede(${c.id_sede})">
+                        <div class="d-flex justify-content-between gap-2">
+                            <div class="min-w-0">
+                                <div class="route-result-title">${escapeHtml(c.nombre_comercial || '-')}</div>
+                                <div class="route-result-meta">
+                                    <span>${escapeHtml([`#${c.id_sede}`, c.empresa_ruc, c.empresa_razon_social].filter(Boolean).join(' | '))}</span>
+                                    <span><i class="bi bi-geo-alt"></i> ${escapeHtml([c.direccion, c.distrito].filter(Boolean).join(' | ') || '-')}</span>
+                                    <span>${escapeHtml(FREQUENCY_LABELS[normalizeFrequency(c.frecuencia)] || 'Sin frecuencia')} ${assignedOther ? `| En ${escapeHtml(assigned.placa)}` : ''}</span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                ${action}
+                                ${alerta ? `<div class="badge bg-warning text-dark mt-1">Faltan ${alerta.diasRestantes}d</div>` : ''}
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderMetrics(filtered) {
+            const monthlyAssigned = getAssignedMonthMap();
+            const assignedMonth = filtered.filter(c => monthlyAssigned.has(String(c.id_sede))).length;
+            const assignedToday = filtered.filter(c => assignmentState.assignedBySede.has(String(c.id_sede))).length;
+            const pending = Math.max(filtered.length - assignedMonth, 0);
+            const compliance = filtered.length ? Math.round((assignedMonth / filtered.length) * 100) : 0;
+
+            document.getElementById('metricTotal').textContent = filtered.length;
+            document.getElementById('metricAssigned').textContent = assignedMonth;
+            document.getElementById('metricPending').textContent = pending;
+            document.getElementById('metricCompliance').textContent = `${compliance}%`;
+            document.getElementById('todayAssignedPill').textContent = `${assignedToday} sedes hoy`;
+
+            const pendingGroups = new Map();
+            filtered.forEach(c => {
+                if (monthlyAssigned.has(String(c.id_sede))) return;
+                const key = `${c._district || 'SIN DISTRITO'}|${normalizeFrequency(c.frecuencia) || 'sin frecuencia'}`;
+                pendingGroups.set(key, (pendingGroups.get(key) || 0) + 1);
+            });
+
+            const rows = Array.from(pendingGroups.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8);
+
+            document.getElementById('coverageBreakdown').innerHTML = rows.length
+                ? rows.map(([key, total]) => {
+                    const [district, freq] = key.split('|');
+                    return `<div class="route-breakdown-row"><span>${escapeHtml(distritoDisplayMap[district] || district)} | ${escapeHtml(FREQUENCY_LABELS[freq] || freq)}</span><b>${total}</b></div>`;
+                }).join('')
+                : '<div class="small text-muted">Sin pendientes para el filtro actual.</div>';
+        }
+
+        function renderSelectedSedePanel() {
+            const panel = document.getElementById('selectedSedePanel');
+            const sede = allClientes.find(c => String(c.id_sede) === String(assignmentState.selectedSedeId));
+            if (!sede) {
+                panel.innerHTML = '<div class="small text-muted">Selecciona una sede del buscador o mapa.</div>';
+                return;
+            }
+
+            const assigned = assignmentState.assignedBySede.get(String(sede.id_sede));
+            const activeAssigned = assigned?.vehiculoId === assignmentState.selectedVehiculoId;
+            const action = !selectedVehiculo
+                ? '<span class="badge bg-secondary">Selecciona un camion</span>'
+                : activeAssigned
+                    ? '<span class="badge bg-success">Ya esta en el camion activo</span>'
+                    : assigned
+                        ? `<button class="btn btn-warning btn-sm" onclick="reasignarCliente(${sede.id_sede}, '${assignmentState.selectedVehiculoId}')">Reasignar a ${escapeHtml(selectedVehiculo?.placa || '-')}</button>`
+                        : `<button class="btn btn-success btn-sm" onclick="agregarCliente(${sede.id_sede}, 'panel')">Agregar a ${escapeHtml(selectedVehiculo?.placa || '-')}</button>`;
+
+            panel.innerHTML = `
+                <div class="fw-bold">${escapeHtml(sede.nombre_comercial || '-')}</div>
+                <div class="small text-muted">${escapeHtml([`#${sede.id_sede}`, sede.empresa_ruc, sede.distrito, FREQUENCY_LABELS[normalizeFrequency(sede.frecuencia)]].filter(Boolean).join(' | '))}</div>
+                <div class="mt-2">${action}</div>
+            `;
         }
 
         function renderClientesTable() {
             const tbody = document.getElementById('clientesTableBody');
+            document.getElementById('vehiculoActual').textContent = selectedVehiculo?.placa || '-';
+            document.getElementById('printVehiculo').textContent = selectedVehiculo?.placa || '-';
             document.getElementById('countEnRuta').textContent = clientesEnRuta.length;
             document.getElementById('printTotal').textContent = clientesEnRuta.length;
-            document.getElementById('printFecha').textContent = new Date(document.getElementById('fechaRuta').value).toLocaleDateString('es-PE');
+            document.getElementById('printFecha').textContent = getFechaRuta() ? new Date(getFechaRuta()).toLocaleDateString('es-PE') : '-';
+            document.getElementById('routeSummaryLine').textContent = selectedVehiculo
+                ? buildRouteSummary(selectedVehiculo, clientesEnRuta)
+                : 'Selecciona un camion';
 
-            if (clientesEnRuta.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Sin clientes. Usa el buscador para agregar.</td></tr>';
+            if (!selectedVehiculo) {
+                tbody.innerHTML = '<tr><td colspan="16" class="text-center py-4 text-muted">Selecciona un vehiculo</td></tr>';
                 return;
             }
+            if (clientesEnRuta.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="16" class="text-center py-4 text-muted">Sin sedes. Usa el buscador o el mapa para agregar.</td></tr>';
+                return;
+            }
+
             tbody.innerHTML = clientesEnRuta.map((c, i) => `
-                <tr>
+                <tr class="${String(assignmentState.selectedSedeId || '') === String(c.id_sede) ? 'route-row-selected' : ''}" draggable="true"
+                    ondragstart="event.dataTransfer.setData('text/plain', '${i}')"
+                    ondragover="event.preventDefault()"
+                    ondrop="reordenarCliente(Number(event.dataTransfer.getData('text/plain')), ${i})">
                     <td class="text-center fw-bold">${i + 1}</td>
-                    <td>${c.empresa_ruc || '-'}</td>
-                    <td><small>${c.razon_social || '-'}</small></td>
-                    <td><strong>${c.nombre_comercial}</strong></td>
-                    <td><small>${c.direccion || '-'}</small></td>
-                    <td>${c.distrito || '-'}</td>
-                    <td><small>${c.contacto_nombre || '-'}</small></td>
-                    <td><small>${c.telefono || '-'}</small></td>
-                    <td>S/ ${parseFloat(c.tarifa || 0).toFixed(2)}</td>
+                    <td class="action-cell">
+                        <span class="route-order-buttons">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="moveCliente(${i}, -1)" title="Subir"><i class="bi bi-chevron-up"></i></button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="moveCliente(${i}, 1)" title="Bajar"><i class="bi bi-chevron-down"></i></button>
+                        </span>
+                    </td>
+                    <td>${escapeHtml(c.empresa_ruc || '-')}</td>
+                    <td><small>${escapeHtml(c.razon_social || c.empresa_razon_social || '-')}</small></td>
+                    <td><button class="btn btn-link btn-sm p-0 fw-bold text-start" onclick="selectSede(${c.id_sede})">${escapeHtml(c.nombre_comercial || '-')}</button></td>
+                    <td><small>${escapeHtml(c.direccion || '-')}</small></td>
+                    <td>${escapeHtml(c.distrito || '-')}</td>
+                    <td>${escapeHtml(FREQUENCY_LABELS[normalizeFrequency(c.frecuencia)] || '-')}</td>
+                    <td><small>${escapeHtml(c.contacto_nombre || '-')}</small></td>
+                    <td><small>${escapeHtml(c.telefono || c.contacto_telefono || '-')}</small></td>
+                    <td>S/ ${Number(c.tarifa || 0).toFixed(2)}</td>
                     <td>
-                        <select class="form-select form-select-sm" onchange="clientesEnRuta[${i}].tipo_pago=this.value">
+                        <select class="form-select form-select-sm" onchange="updateClienteField(${i}, 'tipo_pago', this.value)">
                             <option value="" ${!c.tipo_pago ? 'selected' : ''}>-</option>
                             <option value="efectivo" ${c.tipo_pago === 'efectivo' ? 'selected' : ''}>Efectivo</option>
                             <option value="transferencia" ${c.tipo_pago === 'transferencia' ? 'selected' : ''}>Transferencia</option>
-                            <option value="observacion" ${c.tipo_pago === 'observacion' ? 'selected' : ''}>Observación</option>
+                            <option value="observacion" ${c.tipo_pago === 'observacion' ? 'selected' : ''}>Observacion</option>
                         </select>
                     </td>
-                    <td><input type="text" class="form-control form-control-sm obs-input" value="${c.obs || ''}" 
-                        onchange="clientesEnRuta[${i}].obs=this.value"></td>
+                    <td><input type="text" class="form-control form-control-sm obs-input" value="${escapeHtml(c.obs || '')}" onchange="updateClienteField(${i}, 'obs', this.value)"></td>
                     <td>
-                        <select class="form-select form-select-sm" onchange="clientesEnRuta[${i}].residuo=this.value">
+                        <select class="form-select form-select-sm" onchange="updateClienteField(${i}, 'residuo', this.value)">
                             <option value="">-</option>
                             <option value="BIOCONTAMINADO" ${c.residuo === 'BIOCONTAMINADO' ? 'selected' : ''}>BIOCONTAMINADO</option>
                             <option value="ESPECIAL" ${c.residuo === 'ESPECIAL' ? 'selected' : ''}>ESPECIAL</option>
                             <option value="ANIMAL CONTAMINADO" ${c.residuo === 'ANIMAL CONTAMINADO' ? 'selected' : ''}>ANIMAL CONTAMINADO</option>
                             <option value="MERMA Y/O DESMEDRO" ${c.residuo === 'MERMA Y/O DESMEDRO' ? 'selected' : ''}>MERMA Y/O DESMEDRO</option>
+                        </select>
+                    </td>
+                    <td class="action-cell">
+                        <select class="form-select form-select-sm" onchange="moverClienteAVehiculo(${c.id_sede}, this.value)">
+                            ${vehiculos.map(v => `<option value="${v.id_vehiculo}" ${getVehiculoKey(v.id_vehiculo) === assignmentState.selectedVehiculoId ? 'selected' : ''}>${escapeHtml(v.placa || `V${v.id_vehiculo}`)}</option>`).join('')}
                         </select>
                     </td>
                     <td class="action-cell">
@@ -808,18 +1454,353 @@
             `).join('');
         }
 
-        function sendWhatsApp(sedeId) {
-            const cliente = clientesEnRuta.find(c => c.id_sede == sedeId) || allClientes.find(c => c.id_sede == sedeId);
-            if (!cliente) return;
-            const telefono = cliente.contacto_telefono;
-            if (!telefono) {
-                showToast('Cliente sin teléfono registrado', 'warning');
+        function buildRouteSummary(vehiculo, clientes) {
+            const districts = new Set(clientes.map(c => normDistr(c.distrito)).filter(Boolean));
+            const freqs = new Set(clientes.map(c => normalizeFrequency(c.frecuencia)).filter(Boolean));
+            return `${clientes.length} sedes | ${districts.size} distritos | ${Array.from(freqs).map(f => FREQUENCY_LABELS[f]).join(', ') || 'sin frecuencia'} | ${formatCapacity(vehiculo, clientes)}`;
+        }
+
+        function updateClienteField(index, field, value) {
+            if (!clientesEnRuta[index]) return;
+            clientesEnRuta[index][field] = value;
+            markDirty(assignmentState.selectedVehiculoId);
+            renderVehiculoTabs();
+        }
+
+        function moveCliente(index, delta) {
+            const target = index + delta;
+            if (target < 0 || target >= clientesEnRuta.length) return;
+            [clientesEnRuta[index], clientesEnRuta[target]] = [clientesEnRuta[target], clientesEnRuta[index]];
+            markDirty(assignmentState.selectedVehiculoId);
+            renderClientesTable();
+            renderVehiculoTabs();
+        }
+
+        function reordenarCliente(from, to) {
+            if (!Number.isInteger(from) || !Number.isInteger(to) || from === to) return;
+            if (from < 0 || from >= clientesEnRuta.length || to < 0 || to >= clientesEnRuta.length) return;
+            const [item] = clientesEnRuta.splice(from, 1);
+            clientesEnRuta.splice(to, 0, item);
+            markDirty(assignmentState.selectedVehiculoId);
+            renderClientesTable();
+            renderVehiculoTabs();
+        }
+
+        function selectSede(sedeId) {
+            assignmentState.selectedSedeId = Number(sedeId);
+            renderSelectedSedePanel();
+            renderClientesBusqueda(assignmentState.filteredClientes);
+            renderClientesTable();
+            updateRouteMap(assignmentState.filteredClientes, true);
+        }
+
+        function agregarCliente(sedeId, source = 'manual') {
+            if (!selectedVehiculo) {
+                showToast('Selecciona un camion', 'warning');
+                return false;
+            }
+            const id = String(sedeId);
+            const cliente = allClientes.find(c => String(c.id_sede) === id);
+            if (!cliente) return false;
+
+            const assigned = assignmentState.assignedBySede.get(id);
+            if (assigned?.vehiculoId === assignmentState.selectedVehiculoId) {
+                selectSede(sedeId);
+                return true;
+            }
+            if (assigned) {
+                showToast(`"${cliente.nombre_comercial}" ya esta asignada al camion ${assigned.placa}. Usa Reasignar.`, 'warning');
+                return false;
+            }
+
+            clientesEnRuta.push(createRouteCliente(cliente));
+            assignmentState.selectedSedeId = Number(sedeId);
+            markDirty(assignmentState.selectedVehiculoId);
+            rebuildAssignedBySede();
+            renderAll();
+            showToast(`Sede agregada a ${selectedVehiculo.placa}`);
+            return true;
+        }
+
+        function reasignarCliente(sedeId, targetVehiculoId) {
+            const targetKey = getVehiculoKey(targetVehiculoId);
+            if (!targetKey) return;
+            const id = String(sedeId);
+            const cliente = allClientes.find(c => String(c.id_sede) === id);
+            const assigned = assignmentState.assignedBySede.get(id);
+            if (!cliente || assigned?.vehiculoId === targetKey) return;
+
+            if (assigned?.vehiculoId) {
+                const previous = ensureVehiculoBucket(assigned.vehiculoId);
+                const idx = previous.findIndex(c => String(c.id_sede) === id);
+                if (idx >= 0) previous.splice(idx, 1);
+                markDirty(assigned.vehiculoId);
+            }
+
+            const target = ensureVehiculoBucket(targetKey);
+            if (!target.some(c => String(c.id_sede) === id)) {
+                target.push(createRouteCliente(cliente));
+                markDirty(targetKey);
+            }
+
+            syncCurrentRouteRefs();
+            rebuildAssignedBySede();
+            assignmentState.selectedSedeId = Number(sedeId);
+            renderAll();
+            showToast(`Sede reasignada a ${getVehiculoById(targetKey)?.placa || 'camion'}`, 'warning');
+        }
+
+        function moverClienteAVehiculo(sedeId, vehiculoId) {
+            if (getVehiculoKey(vehiculoId) === assignmentState.selectedVehiculoId) return;
+            reasignarCliente(sedeId, vehiculoId);
+        }
+
+        function removerCliente(sedeId) {
+            const id = String(sedeId);
+            const idx = clientesEnRuta.findIndex(c => String(c.id_sede) === id);
+            if (idx < 0) return;
+            clientesEnRuta.splice(idx, 1);
+            markDirty(assignmentState.selectedVehiculoId);
+            rebuildAssignedBySede();
+            renderAll();
+        }
+
+        function quickAddSelectedSede() {
+            if (!assignmentState.selectedSedeId) {
+                showToast('Selecciona una sede', 'warning');
                 return;
             }
-            const fecha = document.getElementById('fechaRuta').value;
-            const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-PE') : 'mañana';
-            const mensaje = `Hola ${cliente.nombre_comercial}, somos de IO Group. Confirmamos su recojo de residuos para el ${fechaFormateada}. ¿Puede confirmar?`;
-            const phone = telefono.replace(/\D/g, '');
+            const assigned = assignmentState.assignedBySede.get(String(assignmentState.selectedSedeId));
+            if (assigned && assigned.vehiculoId !== assignmentState.selectedVehiculoId) {
+                reasignarCliente(assignmentState.selectedSedeId, assignmentState.selectedVehiculoId);
+            } else {
+                agregarCliente(assignmentState.selectedSedeId, 'mapa');
+            }
+        }
+
+        function getAlertaFrecuencia(cliente) {
+            const servicio = serviciosRecientes[cliente.id_sede];
+            if (!servicio?.fecha || !getFechaRuta()) return null;
+            const fechaRuta = new Date(getFechaRuta());
+            const ultimaFecha = new Date(servicio.fecha);
+            if (!Number.isFinite(ultimaFecha.getTime())) return null;
+            const diffDays = Math.floor((fechaRuta - ultimaFecha) / (1000 * 60 * 60 * 24));
+            const frecuencia = normalizeFrequency(cliente.frecuencia || servicio.frecuencia) || 'mensual';
+            const daysByFrequency = { diario: 1, semanal: 7, quincenal: 15, mensual: 30, bimestral: 60, trimestral: 90, eventual: 30 };
+            const diasMinimo = daysByFrequency[frecuencia] || 30;
+            if (diffDays < diasMinimo) return { diasRestantes: diasMinimo - diffDays, ultimaFecha: servicio.fecha };
+            return null;
+        }
+
+        function setupLazyMap() {
+            const target = document.getElementById('routeMap');
+            if (!target || !window.RouteAssignmentMap) return;
+            const start = () => initRouteMap();
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver(entries => {
+                    if (entries.some(entry => entry.isIntersecting)) {
+                        observer.disconnect();
+                        start();
+                    }
+                }, { rootMargin: '160px' });
+                observer.observe(target);
+            } else {
+                setTimeout(start, 300);
+            }
+        }
+
+        async function initRouteMap() {
+            if (routeAssignmentMap) return;
+            routeAssignmentMap = new RouteAssignmentMap({
+                maxMarkers: 420,
+                onSelect: sede => selectSede(sede.id_sede),
+                onQuickAdd: sede => agregarCliente(sede.id_sede, 'mapa'),
+                statusForSede: sede => {
+                    const assigned = assignmentState.assignedBySede.get(String(sede.id_sede));
+                    if (!assigned) return 'pending';
+                    return assigned.vehiculoId === assignmentState.selectedVehiculoId ? 'assignedActive' : 'assignedOther';
+                },
+                actionForSede: sede => {
+                    if (!selectedVehiculo) return null;
+                    const assigned = assignmentState.assignedBySede.get(String(sede.id_sede));
+                    if (assigned && assigned.vehiculoId !== assignmentState.selectedVehiculoId) {
+                        return {
+                            kind: 'reassign',
+                            label: `Reasignar a ${selectedVehiculo.placa}`,
+                            handler: () => reasignarCliente(sede.id_sede, assignmentState.selectedVehiculoId)
+                        };
+                    }
+                    return {
+                        kind: 'add',
+                        label: assigned ? `En ${selectedVehiculo.placa}` : `Agregar a ${selectedVehiculo.placa}`,
+                        handler: () => agregarCliente(sede.id_sede, 'mapa')
+                    };
+                }
+            });
+            await routeAssignmentMap.init(document.getElementById('routeMap'));
+            updateRouteMap(assignmentState.filteredClientes, true);
+        }
+
+        function updateRouteMap(filtered = assignmentState.filteredClientes, forceFit = false) {
+            const selected = assignmentState.selectedSedeId
+                ? allClientes.find(c => String(c.id_sede) === String(assignmentState.selectedSedeId))
+                : null;
+            const mapSet = selected && !filtered.some(c => String(c.id_sede) === String(selected.id_sede))
+                ? [selected, ...filtered]
+                : filtered;
+            document.getElementById('mapSubtitle').textContent = `${mapSet.filter(c => c.coordenadas_gps).length} sedes filtradas con GPS`;
+            if (routeAssignmentMap) {
+                routeAssignmentMap.render(mapSet, {
+                    selectedSedeId: assignmentState.selectedSedeId,
+                    forceFit,
+                    statusForSede: sede => {
+                        const assigned = assignmentState.assignedBySede.get(String(sede.id_sede));
+                        if (!assigned) return 'pending';
+                        return assigned.vehiculoId === assignmentState.selectedVehiculoId ? 'assignedActive' : 'assignedOther';
+                    }
+                });
+            }
+        }
+
+        function fitMapToSelection() {
+            updateRouteMap(assignmentState.filteredClientes, true);
+        }
+
+        function validateRoutePlan() {
+            const seen = new Map();
+            const duplicates = [];
+            for (const [vehiculoId, clientes] of assignmentState.clientesPorVehiculo.entries()) {
+                for (const cliente of clientes) {
+                    const id = String(cliente.id_sede);
+                    if (seen.has(id)) {
+                        duplicates.push(`${cliente.nombre_comercial || id}: ${seen.get(id)} y ${vehiculoId}`);
+                    } else {
+                        seen.set(id, vehiculoId);
+                    }
+                }
+            }
+            if (duplicates.length) {
+                showToast(`Sedes duplicadas: ${duplicates.slice(0, 2).join(' | ')}`, 'warning');
+                return false;
+            }
+            return true;
+        }
+
+        async function saveRutaForVehiculo(vehiculoId) {
+            const key = getVehiculoKey(vehiculoId);
+            const vehiculo = getVehiculoById(key);
+            if (!vehiculo) return { success: false, message: 'Vehiculo no encontrado' };
+            const fecha = getFechaRuta();
+            const clientes = assignmentState.clientesPorVehiculo.get(key) || [];
+            const meta = assignmentState.routeMetaByVehiculo.get(key) || {};
+            const isActive = key === assignmentState.selectedVehiculoId;
+            const idChofer = isActive ? (document.getElementById('selectChofer')?.value || null) : (meta.id_chofer || null);
+            const idAyudante = isActive ? (document.getElementById('selectAyudante')?.value || null) : (meta.id_ayudante || null);
+
+            return api.post('/rutas', {
+                id_vehiculo: vehiculo.id_vehiculo,
+                fecha,
+                estado: 'programada',
+                sedes: clientes.map(c => ({
+                    id_sede: c.id_sede,
+                    forma_pago: c.tipo_pago || null,
+                    obs: c.obs || null,
+                    residuo: c.residuo || null
+                })),
+                id_chofer: idChofer,
+                id_ayudante: idAyudante
+            });
+        }
+
+        async function saveRuta() {
+            if (!selectedVehiculo) return showToast('Selecciona un camion', 'warning');
+            if (!getFechaRuta()) return showToast('Selecciona una fecha', 'warning');
+            if (!validateRoutePlan()) return;
+
+            const hasOtherDirtyRoutes = Array.from(assignmentState.dirtyVehiculos)
+                .some(vehiculoId => vehiculoId !== assignmentState.selectedVehiculoId);
+            if (hasOtherDirtyRoutes) {
+                await savePlanDelDia();
+                return;
+            }
+
+            const selChofer = document.getElementById('selectChofer');
+            const selAyudante = document.getElementById('selectAyudante');
+            document.getElementById('printChofer').textContent = selChofer?.options[selChofer.selectedIndex]?.text || '-';
+            document.getElementById('printAyudante').textContent = selAyudante?.options[selAyudante.selectedIndex]?.text || '-';
+
+            try {
+                const result = await saveRutaForVehiculo(selectedVehiculo.id_vehiculo);
+                if (result.success) {
+                    api.clearCache();
+                    assignmentState.dirtyVehiculos.delete(assignmentState.selectedVehiculoId);
+                    await loadRoutesForDate();
+                    await loadRoutesForMonth();
+                    renderAll();
+                    showToast('Ruta guardada');
+                } else {
+                    showToast(result.message || 'Error', 'danger');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error al guardar', 'danger');
+            }
+        }
+
+        async function savePlanDelDia() {
+            if (!getFechaRuta()) return showToast('Selecciona una fecha', 'warning');
+            if (!validateRoutePlan()) return;
+            if (assignmentState.selectedVehiculoId) assignmentState.dirtyVehiculos.add(assignmentState.selectedVehiculoId);
+            const dirty = Array.from(assignmentState.dirtyVehiculos);
+            if (!dirty.length) return showToast('No hay cambios pendientes', 'info');
+
+            let ok = 0;
+            const failures = [];
+            for (const vehiculoId of dirty) {
+                try {
+                    const result = await saveRutaForVehiculo(vehiculoId);
+                    if (result.success) ok++;
+                    else failures.push(`${getVehiculoById(vehiculoId)?.placa || vehiculoId}: ${result.message || 'error'}`);
+                } catch (err) {
+                    failures.push(`${getVehiculoById(vehiculoId)?.placa || vehiculoId}: error`);
+                }
+            }
+
+            api.clearCache();
+            if (!failures.length) {
+                assignmentState.dirtyVehiculos.clear();
+                await loadRoutesForDate();
+                await loadRoutesForMonth();
+                renderAll();
+                showToast(`${ok} camion(es) guardados`);
+            } else {
+                showToast(`${ok} guardados, ${failures.length} con error`, ok ? 'warning' : 'danger');
+                console.warn('Errores guardando plan', failures);
+            }
+        }
+
+        function updateGastosRutaButton() {
+            const btn = document.getElementById('btnGastosRuta');
+            if (!btn) return;
+            btn.disabled = !selectedVehiculo;
+            if (!selectedVehiculo) btn.title = 'Selecciona un vehiculo';
+            else if (!currentRutaId) btn.title = 'Guarda la ruta antes de registrar gastos';
+            else btn.title = 'Registrar gastos operativos de la ruta';
+        }
+
+        function sendWhatsApp(sedeId) {
+            const id = String(sedeId);
+            const cliente = clientesEnRuta.find(c => String(c.id_sede) === id) || allClientes.find(c => String(c.id_sede) === id);
+            if (!cliente) return;
+            const telefono = cliente.telefono || cliente.contacto_telefono;
+            if (!telefono) {
+                showToast('Cliente sin telefono registrado', 'warning');
+                return;
+            }
+            const fecha = getFechaRuta();
+            const fechaFormateada = fecha ? new Date(fecha).toLocaleDateString('es-PE') : 'manana';
+            const mensaje = `Hola ${cliente.nombre_comercial}, somos de IO Group. Confirmamos su recojo de residuos para el ${fechaFormateada}. Puede confirmar?`;
+            const phone = String(telefono).replace(/\D/g, '');
             window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
@@ -830,15 +1811,13 @@
             }
             let count = 0;
             clientesEnRuta.forEach((cliente, i) => {
-                const telefono = cliente.contacto_telefono;
+                const telefono = cliente.telefono || cliente.contacto_telefono;
                 if (telefono) {
                     count++;
                     setTimeout(() => sendWhatsApp(cliente.id_sede), i * 1500);
                 }
             });
-            if (count === 0) {
-                showToast('Ningún cliente tiene teléfono', 'warning');
-            }
+            if (count === 0) showToast('Ningun cliente tiene telefono', 'warning');
         }
 
         function abrirGastosRuta() {
@@ -851,15 +1830,11 @@
                 return;
             }
 
-            if (!gastosRutaModal) {
-                gastosRutaModal = new bootstrap.Modal(document.getElementById('gastosRutaModal'));
-            }
-
             gastosRuta = [];
             gastoRutaCounter = 0;
             agregarGastoRuta();
 
-            const fecha = document.getElementById('fechaRuta').value || '-';
+            const fecha = getFechaRuta() || '-';
             const codigo = currentRutaCodigo || `Ruta #${currentRutaId}`;
             document.getElementById('gastosRutaMeta').innerHTML = `
                 <strong>${escapeHtml(codigo)}</strong>
@@ -964,7 +1939,7 @@
                 showToast('Guarda la ruta antes de registrar gastos', 'warning');
                 return;
             }
-            const fecha = document.getElementById('fechaRuta').value;
+            const fecha = getFechaRuta();
             if (!fecha) {
                 showToast('Selecciona una fecha', 'warning');
                 return;
@@ -989,7 +1964,7 @@
                     subcategoria: gasto.tipo,
                     descripcion: String(gasto.descripcion || '').trim(),
                     monto: parseFloat(gasto.monto),
-                    fecha: fecha,
+                    fecha,
                     id_ruta: currentRutaId,
                     id_vehiculo: selectedVehiculo.id_vehiculo,
                     comprobante: String(gasto.comprobante || '').trim() || null,
@@ -1026,166 +2001,19 @@
             console.warn('Errores al guardar gastos de ruta', fallas);
         }
 
-        // Search functionality
-        const searchInput = document.getElementById('searchCliente');
-        const searchResults = document.getElementById('searchResults');
-        const filterDistrito = document.getElementById('filterDistrito');
-
-        function getClientesFiltrados(term, distritos) {
-            return allClientes.filter(c => {
-                const matchTerm = !term || c.nombre_comercial?.toLowerCase().includes(term) ||
-                    c.empresa_ruc?.includes(term) || c.distrito?.toLowerCase().includes(term) ||
-                    c.direccion?.toLowerCase().includes(term) ||
-                    c.empresa_razon_social?.toLowerCase().includes(term);
-                const matchDistrito = distritos.length === 0 || distritos.includes(normDistr(c.distrito));
-                return matchTerm && matchDistrito;
-            }).slice(0, 50);
-        }
-
-        function renderClientesBusqueda(filtered) {
-            const enRutaIds = new Set(clientesEnRuta.map(c => c.id_sede));
-            if (filtered.length === 0) {
-                searchResults.innerHTML = '<div class="p-3 text-muted">No se encontraron clientes</div>';
-            } else {
-                searchResults.innerHTML = filtered.map(c => {
-                    const inRoute = enRutaIds.has(c.id_sede);
-                    const otherPlaca = sedesEnOtrasRutas.get(c.id_sede);
-                    const alerta = getAlertaFrecuencia(c);
-                    const isBlocked = !!otherPlaca; // assigned to another truck
-                    const empresaInfo = [c.empresa_razon_social, c.empresa_ruc].filter(Boolean).join(' | ');
-                    const ubicacionInfo = [c.direccion, c.distrito].filter(Boolean).join(' | ');
-                    return `
-                    <div class="cliente-result ${inRoute || isBlocked ? 'in-route' : ''}" onclick="${inRoute || isBlocked ? '' : `agregarCliente(${c.id_sede})`}">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>${escapeHtml(c.nombre_comercial)}</strong>
-                                ${inRoute ? '<span class="badge bg-info ms-1">En ruta</span>' : ''}
-                                ${isBlocked ? `<span class="badge bg-secondary ms-1">En ruta &middot; ${otherPlaca}</span>` : ''}
-                                ${alerta ? `<span class="badge bg-warning text-dark alerta-frecuencia ms-1">Faltan ${alerta.diasRestantes}d</span>` : ''}
-                                <div class="cliente-result-meta text-muted">
-                                    <div>${escapeHtml(empresaInfo || '-')}</div>
-                                    <div><i class="bi bi-geo-alt"></i> ${escapeHtml(ubicacionInfo || '-')}</div>
-                                </div>
-                            </div>
-                            ${!inRoute && !isBlocked ? '<i class="bi bi-plus-circle text-success"></i>' : ''}
-                        </div>
-                    </div>`;
-                }).join('');
-            }
-            searchResults.style.display = 'block';
-        }
-
-        async function buscarClientesServidor(term) {
-            if (term.length < 2) return;
-            const result = await api.get(`/sedes?search=${encodeURIComponent(term)}&limit=50`);
-            if (result.success && Array.isArray(result.data)) {
-                mergeClientesCache(result.data);
-            }
-        }
-
-        async function filterClientes() {
-            const term = searchInput.value.toLowerCase().trim();
-            const distritos = getSelectedDistritos();
-            if (term.length < 2 && distritos.length === 0) {
-                searchResults.style.display = 'none';
-                return;
-            }
-
-            let filtered = getClientesFiltrados(term, distritos);
-            if (filtered.length === 0 && term.length >= 2) {
-                searchResults.innerHTML = '<div class="p-3 text-muted">Buscando en clientes...</div>';
-                searchResults.style.display = 'block';
-                const requestedTerm = term;
-                try {
-                    await buscarClientesServidor(term);
-                } catch (err) {
-                    console.error(err);
-                }
-                if (requestedTerm !== searchInput.value.toLowerCase().trim()) return;
-                filtered = getClientesFiltrados(term, distritos);
-            }
-            renderClientesBusqueda(filtered);
-        }
-
-        searchInput.addEventListener('input', debounce(filterClientes, 300));
-
-        function agregarCliente(sedeId) {
-            const cliente = allClientes.find(c => c.id_sede == sedeId);
-            if (!cliente) return;
-            if (clientesEnRuta.find(c => c.id_sede == sedeId)) return;
-
-            // Validate: sede must not be assigned to another vehicle on the same date
-            if (sedesEnOtrasRutas.has(sedeId)) {
-                const placa = sedesEnOtrasRutas.get(sedeId);
-                showToast(`"${cliente.nombre_comercial}" ya está asignada al camión ${placa} en esta fecha`, 'warning');
-                return;
-            }
-
-            // Pre-fill tipo_pago and obs from last service for this sede
-            const ultimoServicio = serviciosRecientes[cliente.id_sede];
-            clientesEnRuta.push({
-                id_sede: cliente.id_sede,
-                nombre_comercial: cliente.nombre_comercial || '',
-                empresa_ruc: cliente.empresa_ruc || cliente.ruc || '',
-                razon_social: cliente.empresa_razon_social || '',
-                direccion: cliente.direccion || '',
-                distrito: cliente.distrito || '',
-                contacto_nombre: cliente.contacto_nombre || '',
-                tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
-                telefono: cliente.contacto_telefono || '',
-                tipo_pago: ultimoServicio?.forma_pago || '',
-                obs: ultimoServicio?.obs || '',
-                residuo: ultimoServicio?.residuo || ''
-            });
-            renderClientesTable();
-            filterClientes();
-        }
-
-        function removerCliente(sedeId) {
-            clientesEnRuta = clientesEnRuta.filter(c => c.id_sede != sedeId);
-            renderClientesTable();
-            filterClientes();
-        }
-
-        async function saveRuta() {
-            if (!selectedVehiculo) return showToast('Selecciona un vehículo', 'warning');
-            const fecha = document.getElementById('fechaRuta').value;
-            if (!fecha) return showToast('Selecciona una fecha', 'warning');
-            const id_chofer = document.getElementById('selectChofer')?.value || null;
-            const id_ayudante = document.getElementById('selectAyudante')?.value || null;
-            // Update print header immediately
-            const selChofer = document.getElementById('selectChofer');
-            const selAyudante = document.getElementById('selectAyudante');
-            document.getElementById('printChofer').textContent =
-                selChofer?.options[selChofer.selectedIndex]?.text || '-';
-            document.getElementById('printAyudante').textContent =
-                selAyudante?.options[selAyudante.selectedIndex]?.text || '-';
+        async function loadEmpleados() {
             try {
-                const result = await api.post('/rutas', {
-                    id_vehiculo: selectedVehiculo.id_vehiculo,
-                    fecha: fecha,
-                    estado: 'programada',
-                    sedes: clientesEnRuta.map(c => ({
-                        id_sede: c.id_sede,
-                        forma_pago: c.tipo_pago || null,
-                        obs: c.obs || null,
-                        residuo: c.residuo || null
-                    })),
-                    id_chofer: id_chofer || null,
-                    id_ayudante: id_ayudante || null
-                });
+                const result = await api.get('/empleados?activo=true');
                 if (result.success) {
-                    currentRutaId = result.id || currentRutaId;
-                    currentRutaCodigo = currentRutaId ? (currentRutaCodigo || `Ruta #${currentRutaId}`) : '';
-                    await loadExistingRoute();
-                    renderVehiculoTabs();
-                    renderClientesTable();
-                    updateGastosRutaButton();
-                    showToast('Ruta guardada');
-                } else {
-                    showToast(result.message || 'Error', 'danger');
+                    const options = (result.data || []).map(e =>
+                        `<option value="${e.id_empleado}">${escapeHtml(`${e.nombres || ''} ${e.apellidos || ''}`.trim())}</option>`
+                    ).join('');
+                    document.getElementById('selectChofer').innerHTML = '<option value="">Chofer...</option>' + options;
+                    document.getElementById('selectAyudante').innerHTML = '<option value="">Ayudante...</option>' + options;
                 }
-            } catch (err) { showToast('Error al guardar', 'danger'); }
+            } catch (err) {
+                console.error('Error cargando empleados', err);
+            }
         }
 
         function debounce(fn, ms) {
@@ -1196,28 +2024,6 @@
             };
         }
 
-        async function loadEmpleados() {
-            try {
-                const result = await api.get('/empleados?activo=true');
-                if (result.success) {
-                    const options = '<option value="">-</option>' +
-                        result.data.map(e =>
-                            `<option value="${e.id_empleado}">${e.nombres} ${e.apellidos}</option>`
-                        ).join('');
-                    document.getElementById('selectChofer').innerHTML =
-                        '<option value="">Chofer...</option>' + options;
-                    document.getElementById('selectAyudante').innerHTML =
-                        '<option value="">Ayudante...</option>' + options;
-                }
-            } catch (e) { console.error('Error cargando empleados', e); }
-        }
-
-        document.getElementById('fechaRuta').addEventListener('change', () => {
-            loadDistritosDelDia();
-            if (selectedVehiculo) selectVehiculo(selectedVehiculo.id_vehiculo);
-        });
-
-        loadEmpleados();
         init();
     </script>
 </body>

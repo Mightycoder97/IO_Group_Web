@@ -72,13 +72,14 @@ function buildRutaPlanServicios($planSedes) {
 
     $rows = db()->query(
         "SELECT se.id_sede, se.nombre_comercial as sede_nombre, se.direccion, se.distrito,
+                se.coordenadas_gps,
                 se.contacto_nombre, se.contacto_telefono,
                 e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
-                cs.id_contrato, cs.tarifa as tarifa_servicio
+                cs.id_contrato, cs.tarifa as tarifa_servicio, cs.frecuencia
          FROM Sede se
          INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
          LEFT JOIN (
-             SELECT cs1.id_sede, cs1.id_contrato, cs1.tarifa
+             SELECT cs1.id_sede, cs1.id_contrato, cs1.tarifa, cs1.frecuencia
              FROM ContratoServicio cs1
              WHERE cs1.activo = 1
              AND cs1.fecha_inicio = (

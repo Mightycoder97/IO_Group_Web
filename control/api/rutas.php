@@ -38,6 +38,7 @@ function getAll() {
     $mes = $_GET['mes'] ?? null;
     $anio = $_GET['anio'] ?? null;
     $distrito = $_GET['distrito'] ?? null;
+    $includeSedes = ($_GET['include'] ?? '') === 'sedes' || ($_GET['with_sedes'] ?? '') === '1';
     $limit = min(200, max(10, intval($_GET['limit'] ?? 100)));
     
     // Optimized query using LEFT JOIN instead of correlated subqueries
@@ -96,12 +97,72 @@ function getAll() {
         }
     }
     unset($row);
+
+    if ($includeSedes && !empty($data)) {
+        appendSedesToRoutes($data);
+    }
     
     echo json_encode([
         'success' => true,
         'data' => $data,
         'total' => count($data)
     ]);
+}
+
+function appendSedesToRoutes(&$routes) {
+    $routeIds = array_map(function ($row) {
+        return intval($row['id_ruta'] ?? 0);
+    }, $routes);
+    $routeIds = array_values(array_filter($routeIds));
+    if (empty($routeIds)) return;
+
+    $byRoute = [];
+    foreach ($routeIds as $routeId) {
+        $byRoute[$routeId] = [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($routeIds), '?'));
+    $servicios = db()->query(
+        "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion,
+                se.coordenadas_gps, se.contacto_nombre, se.contacto_telefono,
+                e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
+                cs.tarifa as tarifa_servicio, cs.frecuencia
+         FROM Servicio s
+         INNER JOIN Sede se ON s.id_sede = se.id_sede
+         INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+         LEFT JOIN (
+             SELECT cs1.id_sede, cs1.tarifa, cs1.frecuencia
+             FROM ContratoServicio cs1
+             WHERE cs1.activo = 1
+             AND cs1.fecha_inicio = (
+                 SELECT MAX(cs2.fecha_inicio) FROM ContratoServicio cs2
+                 WHERE cs2.id_sede = cs1.id_sede AND cs2.activo = 1
+             )
+         ) cs ON s.id_sede = cs.id_sede
+         WHERE s.id_ruta IN ($placeholders)
+         ORDER BY s.id_ruta, s.id_servicio",
+        $routeIds
+    );
+
+    foreach ($servicios as $servicio) {
+        $routeId = intval($servicio['id_ruta'] ?? 0);
+        if (!$routeId) continue;
+        if (!isset($byRoute[$routeId])) $byRoute[$routeId] = [];
+        $byRoute[$routeId][] = $servicio;
+    }
+
+    foreach ($routes as &$route) {
+        $routeId = intval($route['id_ruta'] ?? 0);
+        if (!$routeId) {
+            $route['servicios'] = [];
+            continue;
+        }
+        if (empty($byRoute[$routeId])) {
+            $byRoute[$routeId] = buildRutaPlanServicios(getRutaPlanSedes($routeId));
+        }
+        $route['servicios'] = $byRoute[$routeId] ?: [];
+    }
+    unset($route);
 }
 
 function getOne($id) {
@@ -129,14 +190,15 @@ function getOne($id) {
         // Get services for this route
         $servicios = db()->query(
             "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion,
+                    se.coordenadas_gps,
                     se.contacto_nombre, se.contacto_telefono,
                     e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
-                    cs.tarifa as tarifa_servicio
+                    cs.tarifa as tarifa_servicio, cs.frecuencia
              FROM Servicio s 
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
              LEFT JOIN (
-                 SELECT cs1.id_sede, cs1.tarifa
+                 SELECT cs1.id_sede, cs1.tarifa, cs1.frecuencia
                  FROM ContratoServicio cs1
                  WHERE cs1.activo = 1
                  AND cs1.fecha_inicio = (
