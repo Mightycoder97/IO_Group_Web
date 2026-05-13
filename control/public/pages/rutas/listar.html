@@ -516,6 +516,13 @@
                             </button>
                         </div>
 
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-1" style="font-size: 0.85rem;">Seleccion de Camion</h6>
+                            <select class="form-select form-select-sm" id="vehiculoTabs" onchange="selectVehiculo(this.value)">
+                                <option value="">Cargando vehiculos...</option>
+                            </select>
+                        </div>
+
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text"><i class="bi bi-search"></i></span>
                             <input type="text" class="form-control" id="searchCliente"
@@ -537,52 +544,37 @@
                             <div class="route-frequency-grid" id="frequencyFilters"></div>
                         </div>
 
-                        <div class="mb-3 d-none">
-                            <div class="small text-muted text-uppercase fw-bold mb-2">Distritos programados</div>
-                            <div id="distritosChips" class="d-flex flex-wrap gap-1 text-muted">Cargando...</div>
-                        </div>
-
-                        <div class="route-metric-grid mb-2 d-none">
-                            <div class="route-metric"><strong id="metricTotal">0</strong><span>Total filtro</span></div>
-                            <div class="route-metric"><strong id="metricAssigned">0</strong><span>Asignadas mes</span></div>
-                            <div class="route-metric"><strong id="metricPending">0</strong><span>Pendientes</span></div>
-                            <div class="route-metric"><strong id="metricCompliance">0%</strong><span>Cumplimiento</span></div>
-                        </div>
-
-                        <div class="route-breakdown d-none" id="coverageBreakdown">
-                            <div class="small text-muted">Sin pendientes para el filtro actual.</div>
-                        </div>
-
-                        <div class="mt-3 selected-sede-panel d-none" id="selectedSedePanel">
-                            <div class="small text-muted">Selecciona una sede del buscador o mapa.</div>
-                        </div>
-
                         <div class="route-search-results mt-3" id="searchResults" style="flex: 1; min-height: 0;"></div>
 
                         <div class="mt-auto pt-3 border-top">
-                            <h6 class="fw-bold mb-2">Seleccion de Camion</h6>
-                            <div class="vehiculo-tabs" id="vehiculoTabs">
-                                <div class="text-muted">Cargando vehiculos...</div>
-                            </div>
-                            <button class="btn btn-primary w-100 mt-3 fw-bold" onclick="abrirResumenRuta()">
+                            <button class="btn btn-primary w-100 fw-bold" onclick="abrirResumenRuta()">
                                 Continuar <i class="bi bi-arrow-right"></i>
                             </button>
                         </div>
                     </aside>
 
                     <section class="route-map-panel">
-                        <div class="route-map-header">
-                            <div>
-                                <h2 class="route-panel-title">Mapa de asignacion</h2>
-                                <div class="route-panel-subtitle" id="mapSubtitle">Solo sedes filtradas con GPS</div>
+                        <div class="route-map-header" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h2 class="route-panel-title">Mapa de asignacion</h2>
+                                    <div class="route-panel-subtitle" id="mapSubtitle">Solo sedes filtradas con GPS</div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" onclick="fitMapToSelection()">
+                                        <i class="bi bi-bounding-box"></i> Ajustar
+                                    </button>
+                                    <button class="btn btn-sm btn-success" type="button" onclick="quickAddSelectedSede()">
+                                        <i class="bi bi-plus-circle"></i> Agregar seleccion
+                                    </button>
+                                </div>
                             </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="fitMapToSelection()">
-                                    <i class="bi bi-bounding-box"></i> Ajustar
-                                </button>
-                                <button class="btn btn-sm btn-success" type="button" onclick="quickAddSelectedSede()">
-                                    <i class="bi bi-plus-circle"></i> Agregar seleccion
-                                </button>
+                            <div class="d-flex flex-wrap gap-4 px-2 py-1 bg-light border rounded small text-muted">
+                                <div>Total filtro: <strong id="metricTotal" class="text-dark">0</strong></div>
+                                <div>Asignadas mes: <strong id="metricAssigned" class="text-dark">0</strong></div>
+                                <div>Pendientes: <strong id="metricPending" class="text-dark">0</strong></div>
+                                <div>Cumplimiento: <strong id="metricCompliance" class="text-success">0%</strong></div>
+                                <div class="ms-auto d-none" id="coverageBreakdown"></div>
                             </div>
                         </div>
                         <div id="routeMap"></div>
@@ -1251,28 +1243,16 @@
         function renderVehiculoTabs() {
             const container = document.getElementById('vehiculoTabs');
             if (!vehiculos.length) {
-                container.innerHTML = '<div class="text-muted">No hay vehiculos activos</div>';
+                container.innerHTML = '<option value="">No hay vehiculos activos</option>';
                 return;
             }
 
-            container.innerHTML = vehiculos.map(v => {
+            container.innerHTML = '<option value="">-- Selecciona un camion --</option>' + vehiculos.map(v => {
                 const key = getVehiculoKey(v.id_vehiculo);
                 const clientes = assignmentState.clientesPorVehiculo.get(key) || [];
-                const districts = new Set(clientes.map(c => normDistr(c.distrito)).filter(Boolean));
-                const freqs = new Set(clientes.map(c => normalizeFrequency(c.frecuencia)).filter(Boolean));
-                const capacity = formatCapacity(v, clientes);
-                const dirty = assignmentState.dirtyVehiculos.has(key) ? '<span class="badge bg-warning text-dark ms-1">Sin guardar</span>' : '';
-                return `
-                    <div class="vehiculo-tab ${assignmentState.selectedVehiculoId === key ? 'active' : ''}" onclick="selectVehiculo('${key}')">
-                        <div class="placa"><i class="bi bi-truck"></i> ${escapeHtml(v.placa || '-')} ${dirty}</div>
-                        <div class="info">${escapeHtml([v.marca, v.modelo].filter(Boolean).join(' ') || v.tipo || '')}</div>
-                        <div class="route-tab-meta">
-                            <span>${clientes.length} sedes | ${districts.size} distritos</span>
-                            <span>${Array.from(freqs).map(f => FREQUENCY_LABELS[f]).slice(0, 2).join(', ') || 'Sin frecuencia'}</span>
-                            <span>${escapeHtml(capacity)}</span>
-                        </div>
-                    </div>
-                `;
+                const dirty = assignmentState.dirtyVehiculos.has(key) ? ' (Sin guardar)' : '';
+                const selected = assignmentState.selectedVehiculoId === key ? 'selected' : '';
+                return `<option value="${key}" ${selected}>[${escapeHtml(v.placa || '-')}] ${escapeHtml(v.marca || v.tipo || '')} - ${clientes.length} sedes ${dirty}</option>`;
             }).join('');
         }
 
