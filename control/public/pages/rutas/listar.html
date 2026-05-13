@@ -350,61 +350,91 @@
         }
 
         @media print {
+            /* ===== 1. HIDE EVERYTHING THAT ISN'T THE ROUTE SHEET ===== */
             .sidebar,
             .top-nav,
             .route-page-toolbar,
             .route-assignment-workspace,
             .vehiculo-tabs,
-            .card-header .btn,
-            .card-header .badge,
-            .action-cell,
-            th.action-cell,
-            .btn-group,
-            .route-order-buttons {
+            .card-header,
+            .modal-header,
+            .modal-footer,
+            .modal-backdrop,
+            .route-capacity-note,
+            #gastosRutaModal {
                 display: none !important;
             }
 
+            /* Hide action columns (Orden, Mover, Acciones) */
+            .action-cell,
+            th.action-cell,
+            td.action-cell {
+                display: none !important;
+            }
+
+            /* Hide all button groups and order buttons inside table */
+            .hoja-ruta-table .btn-group,
+            .hoja-ruta-table .route-order-buttons,
+            .card-header .btn,
+            .card-header .badge {
+                display: none !important;
+            }
+
+            /* ===== 2. RESET ALL LAYOUT CONTAINERS ===== */
+            *,
+            *::before,
+            *::after {
+                box-shadow: none !important;
+            }
+
             body,
-            html,
-            .app-container,
-            .main-content,
-            .content-area {
+            html {
                 margin: 0 !important;
                 padding: 0 !important;
                 height: auto !important;
                 min-height: 0 !important;
-                display: block !important;
+                overflow: visible !important;
+                background: #fff !important;
             }
 
-            .modal-backdrop {
-                display: none !important;
-            }
-
-            .card,
-            .route-sheet-card {
-                border: none !important;
-                box-shadow: none !important;
-            }
-
-            .card-body,
-            .modal-body {
-                padding: 0 !important;
-                margin: 0 !important;
+            body.modal-open {
+                overflow: visible !important;
                 height: auto !important;
+                padding-right: 0 !important;
+            }
+
+            .app-container,
+            .main-content,
+            .content-area {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                width: 100% !important;
                 overflow: visible !important;
             }
 
-            .modal {
+            /* ===== 3. FLATTEN MODAL STRUCTURE ===== */
+            .modal,
+            .modal.fade,
+            .modal.show {
                 position: static !important;
                 display: block !important;
                 height: auto !important;
+                min-height: 0 !important;
                 overflow: visible !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                z-index: auto !important;
+                background: none !important;
             }
 
             .modal-dialog,
-            .modal-dialog.modal-fullscreen {
+            .modal-dialog.modal-fullscreen,
+            .modal-dialog.modal-xl {
                 max-width: 100% !important;
                 width: 100% !important;
                 height: auto !important;
@@ -417,11 +447,35 @@
             .modal-content,
             .modal-fullscreen .modal-content {
                 border: none !important;
-                box-shadow: none !important;
+                border-radius: 0 !important;
                 height: auto !important;
                 min-height: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                overflow: visible !important;
+                background: #fff !important;
+            }
+
+            .modal-body {
+                padding: 0 !important;
+                margin: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            /* ===== 4. FLATTEN CARD STRUCTURE ===== */
+            .card,
+            .route-sheet-card {
+                border: none !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+            }
+
+            .card-body {
+                padding: 0 !important;
+                margin: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
                 overflow: visible !important;
             }
 
@@ -431,106 +485,166 @@
                 padding: 0 !important;
             }
 
-            body.modal-open {
-                overflow: visible !important;
-                height: auto !important;
-            }
-
-            .card-header,
-            .modal-header,
-            .route-capacity-note {
-                display: none !important;
-            }
-
+            /* ===== 5. TABLE STYLING ===== */
             .hoja-ruta-table {
                 border-collapse: collapse !important;
-                font-family: Arial, sans-serif !important;
-                font-size: 7.5pt !important;
-                line-height: 1.15 !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 7pt !important;
+                line-height: 1.2 !important;
                 width: 100% !important;
+                table-layout: fixed !important;
+                page-break-inside: auto !important;
             }
 
-            .hoja-ruta-table td,
+            .hoja-ruta-table thead {
+                display: table-header-group !important;
+            }
+
+            .hoja-ruta-table tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            .hoja-ruta-table th {
+                background: #e8ecf0 !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 6pt !important;
+                font-weight: bold !important;
+                text-align: left !important;
+                text-transform: uppercase !important;
+                border: 0.5pt solid #444 !important;
+                padding: 2px 3px !important;
+                vertical-align: middle !important;
+                white-space: nowrap !important;
+            }
+
+            .hoja-ruta-table td {
+                border: 0.5pt solid #444 !important;
+                padding: 2px 3px !important;
+                vertical-align: top !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 7pt !important;
+                font-weight: normal !important;
+                color: #000 !important;
+                line-height: 1.2 !important;
+                background: transparent !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                overflow: hidden !important;
+            }
+
+            .hoja-ruta-table td.fw-bold,
+            .hoja-ruta-table td.text-center.fw-bold {
+                font-weight: bold !important;
+                text-align: center !important;
+            }
+
+            /* ===== 6. INLINE ALL CHILD ELEMENTS IN CELLS ===== */
             .hoja-ruta-table td small,
             .hoja-ruta-table td span,
-            .hoja-ruta-table td button {
-                font-family: Arial, sans-serif !important;
-                font-size: 7.5pt !important;
+            .hoja-ruta-table td strong,
+            .hoja-ruta-table td a {
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 7pt !important;
+                font-weight: inherit !important;
+                color: #000 !important;
+                text-decoration: none !important;
+                display: inline !important;
+                line-height: 1.2 !important;
+                background: transparent !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Buttons inside cells rendered as plain text */
+            .hoja-ruta-table td button,
+            .hoja-ruta-table td .btn {
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 7pt !important;
                 font-weight: normal !important;
                 color: #000 !important;
                 text-decoration: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
                 display: inline !important;
-                line-height: 1.15 !important;
-                vertical-align: baseline !important;
+                line-height: 1.2 !important;
                 background: transparent !important;
                 border: none !important;
-            }
-
-            .hoja-ruta-table td.fw-bold {
-                font-weight: bold !important;
-            }
-
-            .hoja-ruta-table input,
-            .hoja-ruta-table select {
-                border: none !important;
-                background: transparent !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                box-shadow: none !important;
+            }
+
+            /* ===== 7. FORM ELEMENTS AS PLAIN TEXT (critical fix) ===== */
+            .hoja-ruta-table input,
+            .hoja-ruta-table select,
+            .hoja-ruta-table textarea,
+            .hoja-ruta-table .form-select,
+            .hoja-ruta-table .form-control {
                 -webkit-appearance: none !important;
                 -moz-appearance: none !important;
                 appearance: none !important;
-                font-family: Arial, sans-serif !important;
-                font-size: 7.5pt !important;
+                border: none !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                background-image: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                font-size: 7pt !important;
                 color: #000 !important;
                 box-shadow: none !important;
                 outline: none !important;
                 width: 100% !important;
                 height: auto !important;
+                min-height: 0 !important;
+                line-height: 1.2 !important;
                 text-overflow: clip !important;
+                overflow: visible !important;
             }
 
+            /* Remove all dropdown arrows across all browsers */
             .hoja-ruta-table select::-ms-expand {
                 display: none !important;
             }
 
-            .hoja-ruta-table th,
-            .hoja-ruta-table td {
-                border: 0.5pt solid #333 !important;
-                padding: 3px !important;
-                vertical-align: middle !important;
+            .hoja-ruta-table select option {
+                display: none !important;
             }
 
-            .hoja-ruta-table th {
-                background: #f1f5f9 !important;
-                color: #000 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                font-size: 6.5pt !important;
-                font-weight: bold !important;
-                text-align: left !important;
-                text-transform: uppercase !important;
+            /* Remove Bootstrap's dropdown caret background image */
+            .hoja-ruta-table .form-select {
+                background-image: none !important;
+                padding-right: 0 !important;
             }
 
+            /* ===== 8. PRINT HEADER ===== */
             .print-header {
                 display: block !important;
-                margin-bottom: 4px !important;
-                padding-bottom: 2px !important;
-                font-family: Arial, sans-serif !important;
+                margin-bottom: 6px !important;
+                padding-bottom: 4px !important;
+                font-family: Arial, Helvetica, sans-serif !important;
             }
 
             .print-header h4 {
                 color: #000 !important;
-                font-size: 12pt !important;
+                font-size: 13pt !important;
                 font-weight: bold !important;
                 margin: 0 0 4px 0 !important;
-                text-align: center;
-                text-transform: uppercase;
+                text-align: center !important;
+                text-transform: uppercase !important;
             }
 
+            /* ===== 9. DRAG ATTRIBUTES — hide drag handles ===== */
+            .hoja-ruta-table [draggable="true"] {
+                cursor: default !important;
+            }
+
+            /* ===== 10. PAGE SETUP ===== */
             @page {
-                margin: 5mm;
+                margin: 8mm;
                 size: A4 landscape;
             }
         }
