@@ -20,7 +20,7 @@ class RouteAssignmentMap {
         this.fallbackBounds = null;
         this.maxMarkers = options.maxMarkers || 420;
         this.defaultCenter = { lat: -12.0464, lng: -77.0428 };
-        this.mapStyles = options.mapStyles || RouteAssignmentMap.darkMapStyles();
+        this.mapStyles = options.mapStyles || [];
         this.tileSize = 256;
         this.tileZoom = 12;
         this.tileCenter = this.defaultCenter;
@@ -43,7 +43,7 @@ class RouteAssignmentMap {
             center: this.defaultCenter,
             zoom: 11,
             styles: this.mapStyles,
-            backgroundColor: '#1d2c4d',
+            backgroundColor: '#f8fafc',
             disableDefaultUI: true,
             clickableIcons: false,
             gestureHandling: 'greedy',
@@ -336,9 +336,9 @@ class RouteAssignmentMap {
                 cursor: grab;
                 touch-action: none;
                 background:
-                    radial-gradient(circle at 58% 42%, rgba(48, 74, 125, 0.42), transparent 30%),
-                    radial-gradient(circle at 32% 62%, rgba(2, 62, 88, 0.34), transparent 24%),
-                    linear-gradient(135deg, #0e1626 0%, #172849 45%, #1d2c4d 100%);
+                    radial-gradient(circle at 58% 42%, rgba(226, 232, 240, 0.42), transparent 30%),
+                    radial-gradient(circle at 32% 62%, rgba(241, 245, 249, 0.34), transparent 24%),
+                    linear-gradient(135deg, #f8fafc 0%, #f1f5f9 45%, #e2e8f0 100%);
             }
 
             .route-fallback-map.is-dragging {
@@ -346,7 +346,7 @@ class RouteAssignmentMap {
             }
 
             .route-leaflet-map {
-                background: #0e1626;
+                background: #f8fafc;
                 height: 100%;
                 inset: 0;
                 position: absolute;
@@ -355,7 +355,7 @@ class RouteAssignmentMap {
             }
 
             .route-leaflet-map .leaflet-tile {
-                filter: invert(1) hue-rotate(180deg) saturate(0.72) brightness(0.82) contrast(1.06);
+                filter: saturate(1.1) brightness(1.05);
             }
 
             .route-leaflet-map .leaflet-container,
@@ -423,7 +423,7 @@ class RouteAssignmentMap {
             }
 
             .route-tile-pane {
-                background: #0e1626;
+                background: #f8fafc;
                 inset: 0;
                 overflow: hidden;
                 position: absolute;
@@ -437,11 +437,11 @@ class RouteAssignmentMap {
                 position: absolute;
                 background:
                     radial-gradient(circle at 50% 52%, rgba(56, 189, 248, 0.08), transparent 34%),
-                    linear-gradient(180deg, rgba(14, 22, 38, 0.04), rgba(14, 22, 38, 0.22));
+                    linear-gradient(180deg, rgba(241, 245, 249, 0.4), rgba(226, 232, 240, 0.6));
             }
 
             .route-tile-pane img {
-                filter: invert(1) hue-rotate(180deg) saturate(0.72) brightness(0.82) contrast(1.06);
+                filter: saturate(1.1) brightness(1.05);
                 height: 256px;
                 opacity: 0.92;
                 position: absolute;
@@ -487,7 +487,7 @@ class RouteAssignmentMap {
             }
 
             .route-fallback-water {
-                background: rgba(14, 22, 38, 0.86);
+                background: rgba(186, 230, 253, 0.6);
                 filter: blur(1px);
             }
 
@@ -510,7 +510,7 @@ class RouteAssignmentMap {
             }
 
             .route-fallback-park {
-                background: rgba(2, 62, 88, 0.72);
+                background: rgba(187, 247, 208, 0.5);
                 border-radius: 22px;
             }
 
@@ -558,12 +558,12 @@ class RouteAssignmentMap {
             }
 
             .route-fallback-label {
-                color: rgba(142, 195, 185, 0.78);
+                color: rgba(71, 85, 105, 0.78);
                 font-size: 0.84rem;
                 font-weight: 800;
                 letter-spacing: 0.02em;
                 position: absolute;
-                text-shadow: 0 2px 4px rgba(26, 54, 70, 0.95);
+                text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95);
                 user-select: none;
                 z-index: 2;
             }
@@ -619,11 +619,11 @@ class RouteAssignmentMap {
             .route-fallback-marker.is-selected { background: #f59e0b; }
 
             .route-fallback-info {
-                background: rgba(29, 44, 77, 0.96);
-                border: 1px solid rgba(142, 195, 185, 0.28);
+                background: rgba(255, 255, 255, 0.96);
+                border: 1px solid rgba(226, 232, 240, 0.8);
                 border-radius: 8px;
-                box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
-                color: #d9f3ef;
+                box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+                color: #0f172a;
                 max-width: 280px;
                 padding: 10px;
                 position: absolute;
@@ -633,7 +633,7 @@ class RouteAssignmentMap {
             }
 
             .route-fallback-info .text-muted {
-                color: #8ec3b9 !important;
+                color: #64748b !important;
             }
         `;
         document.head.appendChild(style);
