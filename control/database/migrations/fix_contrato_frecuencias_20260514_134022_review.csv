@@ -1,0 +1,5 @@
+id_contrato,id_sede,excel_row,raw,frecuencia_actual,reason
+291,291,295,200,mensual,frecuencia requiere revision: 200
+618,618,623,,mensual,sin frecuencia AG para fila Excel
+714,716,721,,mensual,sin frecuencia AG para fila Excel
+1387,1407,1414,MENSUAL / ORDEN DE SERVICIO,eventual,frecuencia requiere revision: MENSUAL / ORDEN DE SERVICIO

@@ -689,12 +689,14 @@ class RouteAssignmentMap {
         this.fallbackLayer.innerHTML = visible.map(item => {
             const point = this.projectTilePoint(item.position, viewport);
             if (!point.visible) return '';
-            const status = this.getStatus(item.sede, context);
+            const statusObj = this.getStatus(item.sede, context);
+            const statusId = typeof statusObj === 'object' ? (statusObj.id || 'pending') : statusObj;
+            const customColor = (typeof statusObj === 'object' && statusObj.color) ? `background-color: ${statusObj.color} !important;` : '';
             const selected = String(item.sede.id_sede) === selectedId;
             return `
                 <button type="button"
-                    class="route-fallback-marker ${status} ${selected ? 'is-selected' : ''}"
-                    style="left:${point.x}px;top:${point.y}px"
+                    class="route-fallback-marker ${statusId} ${selected ? 'is-selected' : ''}"
+                    style="left:${point.x}px;top:${point.y}px;${customColor}"
                     title="${this.escapeHtml(item.sede.nombre_comercial || '')}"
                     data-sede-id="${this.escapeHtml(item.sede.id_sede)}"></button>
             `;
@@ -794,18 +796,19 @@ class RouteAssignmentMap {
     }
 
     getLeafletStyle(status, selected = false) {
+        let stateId = typeof status === 'object' ? (status.id || 'pending') : status;
         const colors = {
             pending: '#3b82f6',
             selected: '#f59e0b',
             assignedActive: '#ef4444',
             assignedOther: '#94a3b8'
         };
-        const fillColor = selected ? colors.selected : (colors[status] || colors.pending);
+        const fillColor = selected ? colors.selected : ((typeof status === 'object' && status.color) ? status.color : (colors[stateId] || colors.pending));
         let radius = 7;
         let opacity = 0.95;
         if (selected) { radius = 10; opacity = 1; }
-        else if (status === 'assignedActive') { radius = 9; opacity = 1; }
-        else if (status === 'assignedOther') { radius = 5; opacity = 0.75; }
+        else if (stateId === 'assignedActive') { radius = 9; opacity = 1; }
+        else if (stateId === 'assignedOther') { radius = 8; opacity = 0.9; }
 
         return {
             color: '#ffffff',
@@ -1061,28 +1064,30 @@ class RouteAssignmentMap {
 
     updateIcon(el, status) {
         if (!el) return;
+        
+        let stateId = typeof status === 'object' ? (status.id || 'pending') : status;
         const colors = {
             pending: '#3b82f6',
             selected: '#f59e0b',
             assignedActive: '#ef4444',
             assignedOther: '#94a3b8'
         };
-        const color = colors[status] || colors.pending;
+        const color = (typeof status === 'object' && status.color) ? status.color : (colors[stateId] || colors.pending);
         
         let size = 12;
         let border = 1.5;
         let opacity = 1;
         
-        if (status === 'selected') { size = 18; border = 3; }
-        else if (status === 'assignedActive') { size = 14; border = 2; }
-        else if (status === 'assignedOther') { size = 10; border = 1; opacity = 0.75; }
+        if (stateId === 'selected') { size = 18; border = 3; }
+        else if (stateId === 'assignedActive') { size = 16; border = 2; }
+        else if (stateId === 'assignedOther') { size = 14; border = 2; opacity = 0.9; }
 
         el.style.width = size + 'px';
         el.style.height = size + 'px';
         el.style.backgroundColor = color;
         el.style.border = border + 'px solid #ffffff';
         el.style.opacity = opacity;
-        el.style.zIndex = status === 'selected' ? 100 : (status === 'pending' ? 10 : 1);
+        el.style.zIndex = stateId === 'selected' ? 100 : (stateId === 'pending' ? 10 : 20);
     }
 
     openInfo(marker, sede) {
