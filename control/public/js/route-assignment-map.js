@@ -815,7 +815,20 @@ class RouteAssignmentMap {
     createLeafletDivIcon(style) {
         const size = style.size || 14;
         const shape = style.shape || 'circle';
-        const html = `<div class="shape-${shape}" style="width:${size}px;height:${size}px;background:${style.fillColor};border:${style.weight}px solid ${style.color};opacity:${style.fillOpacity};border-radius:${shape === 'circle' ? '50%' : (shape === 'square' ? '4px' : '0')};box-shadow:${style.shadow || '0 2px 8px rgba(0,0,0,0.3)'};"></div>`;
+        const shapeClip = {
+            circle:   'circle(50% at 50% 50%)',
+            square:   'none',
+            diamond:  'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+            triangle: 'polygon(50% 0%, 100% 100%, 0% 100%)',
+            hexagon:  'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
+            pentagon: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)',
+            star:     'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
+        };
+        const shapeRadius = {
+            circle: '50%', square: '4px', diamond: '0', triangle: '0',
+            hexagon: '0', pentagon: '0', star: '0'
+        };
+        const html = `<div style="width:${size}px;height:${size}px;background:${style.fillColor};border:${style.weight}px solid ${style.color};opacity:${style.fillOpacity};border-radius:${shapeRadius[shape] || '50%'};clip-path:${shapeClip[shape] || shapeClip.circle};box-shadow:${style.shadow || '0 2px 8px rgba(0,0,0,0.3)'};"></div>`;
         return L.divIcon({
             className: 'route-leaflet-shape-icon',
             html,
@@ -1117,21 +1130,23 @@ class RouteAssignmentMap {
         else if (stateId === 'assignedActive') { size = 20; border = 2; }
         else if (stateId === 'assignedOther') { size = 17; border = 2; opacity = 0.9; }
 
-        const borderRadiusMap = {
-            circle: '50%',
-            square: '4px',
-            diamond: '0',
-            triangle: '0',
-            hexagon: '0',
-            pentagon: '0',
-            star: '0'
+        const shapeStyles = {
+            circle:   { borderRadius: '50%', clipPath: 'circle(50% at 50% 50%)' },
+            square:   { borderRadius: '4px', clipPath: 'none' },
+            diamond:  { borderRadius: '0', clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' },
+            triangle: { borderRadius: '0', clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)' },
+            hexagon:  { borderRadius: '0', clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)' },
+            pentagon: { borderRadius: '0', clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)' },
+            star:     { borderRadius: '0', clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }
         };
+        const s = shapeStyles[shape] || shapeStyles.circle;
 
         el.style.width = size + 'px';
         el.style.height = size + 'px';
         el.style.backgroundColor = color;
         el.style.border = border + 'px solid #ffffff';
-        el.style.borderRadius = borderRadiusMap[shape] || '50%';
+        el.style.borderRadius = s.borderRadius;
+        el.style.clipPath = s.clipPath;
         el.style.opacity = opacity;
         el.style.zIndex = stateId === 'selected' ? 100 : (stateId === 'pending' ? 10 : 20);
 
