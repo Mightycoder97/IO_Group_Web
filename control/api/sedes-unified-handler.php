@@ -7,6 +7,7 @@
  */
 
 require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/helpers/geo_location.php';
 
 function handleUnifiedCreate($user, $data) {
     // Validate required data
@@ -69,9 +70,11 @@ function handleUnifiedCreate($user, $data) {
         }
         
         // 3. Create Sede
+        $sede = geo_enrich_sede_payload($sede);
+        unset($sede['_geo_meta']);
         $sedeId = db()->insert(
-            "INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_email, activo) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+            "INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, region, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_email, activo)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
             [
                 $empresaId,
                 $sede['nombre_comercial'],
@@ -79,6 +82,7 @@ function handleUnifiedCreate($user, $data) {
                 $sede['distrito'] ?? null,
                 $sede['provincia'] ?? null,
                 $sede['departamento'] ?? null,
+                $sede['region'] ?? null,
                 $sede['referencia'] ?? null,
                 $sede['coordenadas_gps'] ?? null,
                 $sede['contacto_nombre'] ?? null,
@@ -97,7 +101,7 @@ function handleUnifiedCreate($user, $data) {
                     $sedeId,
                     $contrato['fecha_inicio'],
                     $contrato['fecha_fin'] ?? null,
-                    $contrato['frecuencia'],
+                    geo_contract_frequency_value($contrato['frecuencia'] ?? null),
                     $contrato['peso_limite_kg'] ?? null,
                     $contrato['tarifa'],
                     $contrato['tipo_tarifa'] ?? 'por_servicio'

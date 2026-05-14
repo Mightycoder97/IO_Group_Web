@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/jwt.php';
+require_once __DIR__ . '/helpers/geo_location.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id = $_GET['id'] ?? null;
@@ -53,7 +54,7 @@ function getAll() {
     }
     
     // Consulta optimizada - solo campos necesarios
-    $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.activo,
+    $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.provincia, s.departamento, s.region, s.activo,
             s.contacto_nombre, s.contacto_telefono, s.contacto_telefono_2, s.coordenadas_gps,
             e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
             cs.tarifa as tarifa_servicio, cs.frecuencia
@@ -127,7 +128,7 @@ function getMapSedes() {
         $limit = min($limit, 30);
     }
 
-    $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito,
+    $sql = "SELECT s.id_sede, s.nombre_comercial, s.direccion, s.distrito, s.provincia, s.departamento, s.region,
             s.coordenadas_gps, s.activo,
             e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
             cs.frecuencia
@@ -175,12 +176,14 @@ function getMapMeta() {
     );
 
     $districtRows = db()->query(
-        "SELECT COALESCE(NULLIF(TRIM(s.distrito), ''), 'Sin distrito') as distrito,
+        "SELECT COALESCE(NULLIF(TRIM(s.region), ''), 'Sin region') as region,
+                COALESCE(NULLIF(TRIM(s.distrito), ''), 'Sin distrito') as distrito,
                 COUNT(*) as total
          FROM Sede s
          WHERE $validWhere
-         GROUP BY COALESCE(NULLIF(TRIM(s.distrito), ''), 'Sin distrito')
-         ORDER BY distrito"
+         GROUP BY COALESCE(NULLIF(TRIM(s.region), ''), 'Sin region'),
+                  COALESCE(NULLIF(TRIM(s.distrito), ''), 'Sin distrito')
+         ORDER BY region, distrito"
     );
 
     echo json_encode([
@@ -346,9 +349,12 @@ function create() {
         return;
     }
     
+    $data = geo_enrich_sede_payload($data);
+    unset($data['_geo_meta']);
+
     $id = db()->insert(
-        "INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_telefono_2, contacto_email) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, region, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_telefono_2, contacto_email, activo)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             $id_empresa,
             $nombre_comercial,
@@ -356,6 +362,7 @@ function create() {
             $data['distrito'] ?? null,
             $data['provincia'] ?? null,
             $data['departamento'] ?? null,
+            $data['region'] ?? null,
             $data['referencia'] ?? null,
             $data['coordenadas_gps'] ?? null,
             $data['contacto_nombre'] ?? null,
@@ -376,7 +383,7 @@ function create() {
                 $id,
                 $contrato['fecha_inicio'],
                 $contrato['fecha_fin'] ?? null,
-                $contrato['frecuencia'],
+                geo_contract_frequency_value($contrato['frecuencia'] ?? null),
                 $contrato['peso_limite_kg'] ?? null,
                 $contrato['tarifa'],
                 $contrato['tipo_tarifa'] ?? 'por_servicio'
@@ -414,6 +421,9 @@ function update($id) {
         return;
     }
     
+    $data = geo_enrich_sede_payload($data, $existing);
+    unset($data['_geo_meta']);
+
     db()->execute(
         "UPDATE Sede SET 
             id_empresa = COALESCE(?, id_empresa),
@@ -422,6 +432,7 @@ function update($id) {
             distrito = ?,
             provincia = ?,
             departamento = ?,
+            region = ?,
             referencia = ?,
             coordenadas_gps = ?,
             contacto_nombre = ?,
@@ -438,6 +449,7 @@ function update($id) {
             $data['distrito'] ?? $existing['distrito'],
             $data['provincia'] ?? $existing['provincia'],
             $data['departamento'] ?? $existing['departamento'],
+            $data['region'] ?? ($existing['region'] ?? null),
             $data['referencia'] ?? $existing['referencia'],
             $data['coordenadas_gps'] ?? $existing['coordenadas_gps'],
             $data['contacto_nombre'] ?? $existing['contacto_nombre'],

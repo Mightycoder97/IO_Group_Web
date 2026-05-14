@@ -115,15 +115,21 @@
 
         .route-filter-chips,
         .route-metric-grid,
+        .route-region-grid,
         .route-frequency-grid {
             display: grid;
             gap: 8px;
+        }
+
+        .route-region-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .route-frequency-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
+        .route-region-grid .btn,
         .route-frequency-grid .btn {
             border-radius: 8px;
             font-size: 0.78rem;
@@ -132,6 +138,7 @@
             padding: 6px 8px;
         }
 
+        .route-region-grid .btn.active,
         .route-frequency-grid .btn.active {
             background: #166534;
             border-color: #166534;
@@ -797,6 +804,14 @@
                                 placeholder="Nombre, codigo, RUC, razon social, distrito">
                         </div>
 
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small text-muted text-uppercase fw-bold">Region</span>
+                                <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" onclick="selectAllRegions()">Todas</button>
+                            </div>
+                            <div class="route-region-grid" id="regionFilters"></div>
+                        </div>
+
                         <div class="mb-3 district-picker position-relative">
                             <input type="text" class="form-control form-control-sm" id="distritoSearch"
                                 placeholder="Agregar distrito..." autocomplete="off">
@@ -992,9 +1007,15 @@
             modal.show();
         }
 
-        const ALL_FREQUENCIES = ['diario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual'];
+        const ROUTE_REGIONS = ['LIMA', 'ICA'];
+        const ROUTE_REGION_LABELS = {
+            LIMA: 'Region Lima',
+            ICA: 'Region Ica'
+        };
+        const ALL_FREQUENCIES = ['diario', 'interdiario', 'semanal', 'quincenal', 'mensual', 'bimestral', 'trimestral', 'eventual'];
         const FREQUENCY_LABELS = {
             diario: 'Diario',
+            interdiario: 'Interdiario',
             semanal: 'Semanal',
             quincenal: 'Quincenal',
             mensual: 'Mensual',
@@ -1030,7 +1051,9 @@
         let serviciosRecientes = {};
         let allDistritos = new Set();
         let distritoDisplayMap = {};
+        let distritoRegionMap = {};
         let distritosCalendario = [];
+        let selectedRegions = new Set(ROUTE_REGIONS);
         let selectedDistritos = new Set();
         let sedesEnOtrasRutas = new Map();
         let currentRutaId = null;
@@ -1048,6 +1071,7 @@
             selectedSedeId: null,
             filters: {
                 search: '',
+                regions: selectedRegions,
                 frequencies: new Set(ALL_FREQUENCIES),
                 distritos: selectedDistritos
             },
@@ -1061,6 +1085,13 @@
         function normDistr(str) {
             if (!str) return '';
             return String(str).trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        }
+
+        function normRegion(str) {
+            const region = normDistr(str);
+            if (region.includes('ICA')) return 'ICA';
+            if (region.includes('LIMA') || region.includes('CALLAO')) return 'LIMA';
+            return region;
         }
 
         function normalizeFrequency(value) {
@@ -1127,6 +1158,8 @@
             if (!cliente?.distrito?.trim()) return;
             const norm = normDistr(cliente.distrito);
             allDistritos.add(norm);
+            const region = normRegion(cliente.region);
+            if (region) distritoRegionMap[norm] = region;
             if (!distritoDisplayMap[norm] || distritoDisplayMap[norm] === distritoDisplayMap[norm].toUpperCase()) {
                 distritoDisplayMap[norm] = cliente.distrito.trim();
             }
@@ -1141,6 +1174,9 @@
                 c.razon_social,
                 c.direccion,
                 c.distrito,
+                c.provincia,
+                c.departamento,
+                c.region,
                 c.frecuencia
             ].filter(Boolean).join(' ').toLowerCase();
         }
@@ -1150,6 +1186,8 @@
                 ...raw,
                 id_sede: Number(raw.id_sede),
                 frecuencia: normalizeFrequency(raw.frecuencia),
+                region: raw.region || '',
+                _region: normRegion(raw.region),
                 _district: normDistr(raw.distrito),
                 _searchText: clienteSearchText(raw)
             };
@@ -1165,11 +1203,14 @@
                 empresa_razon_social: s.empresa_razon_social || s.razon_social || '',
                 direccion: s.direccion || s.sede_direccion || '',
                 distrito: s.distrito || '',
+                region: s.region || '',
                 contacto_nombre: s.contacto_nombre || '',
                 contacto_telefono: s.contacto_telefono || '',
                 telefono: s.contacto_telefono || s.telefono || '',
                 tarifa: s.tarifa_servicio || s.tarifa || 0,
                 frecuencia: normalizeFrequency(s.frecuencia),
+                _region: normRegion(s.region),
+                _district: normDistr(s.distrito),
                 coordenadas_gps: s.coordenadas_gps || '',
                 peso: s.peso_kg || s.peso || '',
                 tipo_pago: s.forma_pago || '',
@@ -1188,11 +1229,14 @@
                 empresa_razon_social: cliente.empresa_razon_social || cliente.razon_social || '',
                 direccion: cliente.direccion || '',
                 distrito: cliente.distrito || '',
+                region: cliente.region || '',
                 contacto_nombre: cliente.contacto_nombre || '',
                 contacto_telefono: cliente.contacto_telefono || '',
                 telefono: cliente.contacto_telefono || cliente.telefono || '',
                 tarifa: cliente.tarifa_servicio || cliente.tarifa || 0,
                 frecuencia: normalizeFrequency(cliente.frecuencia || ultimoServicio?.frecuencia),
+                _region: normRegion(cliente.region),
+                _district: normDistr(cliente.distrito),
                 coordenadas_gps: cliente.coordenadas_gps || '',
                 peso: cliente.peso || '',
                 tipo_pago: ultimoServicio?.forma_pago || '',
@@ -1245,6 +1289,7 @@
         async function init() {
             document.getElementById('fechaRuta').value = new Date().toISOString().split('T')[0];
             gastosRutaModal = new bootstrap.Modal(document.getElementById('gastosRutaModal'));
+            renderRegionFilters();
             renderFrequencyFilters();
             bindControls();
 
@@ -1290,6 +1335,7 @@
                     assignmentState.allClientes = allClientes;
                     allDistritos.clear();
                     distritoDisplayMap = {};
+                    distritoRegionMap = {};
                     allClientes.forEach(trackClienteDistrito);
                     renderDistritoTags();
                 }
@@ -1444,6 +1490,35 @@
             `).join('');
         }
 
+        function renderRegionFilters() {
+            const container = document.getElementById('regionFilters');
+            container.innerHTML = ROUTE_REGIONS.map(region => `
+                <button type="button" class="btn btn-sm btn-outline-secondary active" data-region="${region}" onclick="toggleRegion('${region}', this)">
+                    ${ROUTE_REGION_LABELS[region]}
+                </button>
+            `).join('');
+        }
+
+        function toggleRegion(region, button) {
+            if (assignmentState.filters.regions.has(region)) {
+                assignmentState.filters.regions.delete(region);
+            } else {
+                assignmentState.filters.regions.add(region);
+            }
+            selectedRegions = assignmentState.filters.regions;
+            button.classList.toggle('active', assignmentState.filters.regions.has(region));
+            renderDistritoTags();
+            applyFiltersAndRender();
+        }
+
+        function selectAllRegions() {
+            selectedRegions = new Set(ROUTE_REGIONS);
+            assignmentState.filters.regions = selectedRegions;
+            document.querySelectorAll('[data-region]').forEach(btn => btn.classList.add('active'));
+            renderDistritoTags();
+            applyFiltersAndRender();
+        }
+
         function toggleFrequency(freq, button) {
             if (assignmentState.filters.frequencies.has(freq)) {
                 assignmentState.filters.frequencies.delete(freq);
@@ -1463,6 +1538,9 @@
         function clearAllFilters() {
             document.getElementById('searchCliente').value = '';
             assignmentState.filters.search = '';
+            selectedRegions = new Set(ROUTE_REGIONS);
+            assignmentState.filters.regions = selectedRegions;
+            document.querySelectorAll('[data-region]').forEach(btn => btn.classList.add('active'));
             selectedDistritos = new Set(assignmentState.calendarDistricts);
             assignmentState.filters.distritos = selectedDistritos;
             selectAllFrequencies();
@@ -1472,7 +1550,7 @@
 
         function showDistritoDropdown(term = '') {
             const dropdown = document.getElementById('distritoDropdown');
-            const sorted = Array.from(allDistritos).sort((a, b) =>
+            const sorted = Array.from(allDistritos).filter(districtAllowedByRegion).sort((a, b) =>
                 (distritoDisplayMap[a] || a).localeCompare(distritoDisplayMap[b] || b, 'es'));
             const filtered = term
                 ? sorted.filter(d => d.includes(term) || normDistr(distritoDisplayMap[d] || '').includes(term))
@@ -1488,6 +1566,13 @@
                 `).join('')
                 : '<div class="distrito-option text-muted">No encontrado</div>';
             dropdown.classList.add('show');
+        }
+
+        function districtAllowedByRegion(district) {
+            const region = distritoRegionMap[district] || '';
+            const selected = assignmentState.filters.regions;
+            if (selected.size === ROUTE_REGIONS.length) return true;
+            return Boolean(region && selected.has(region));
         }
 
         function addDistrito(distrito) {
@@ -1574,6 +1659,8 @@
 
         function getClientesFiltrados() {
             const term = assignmentState.filters.search;
+            const regions = assignmentState.filters.regions;
+            const useRegionFilter = regions.size !== ROUTE_REGIONS.length;
             const selectedFreqs = assignmentState.filters.frequencies;
             const useFreqFilter = selectedFreqs.size !== ALL_FREQUENCIES.length;
             const districts = assignmentState.filters.distritos;
@@ -1581,10 +1668,11 @@
 
             return allClientes.filter(c => {
                 const matchTerm = !term || c._searchText.includes(term);
+                const matchRegion = !useRegionFilter || (c._region && regions.has(c._region));
                 const freq = normalizeFrequency(c.frecuencia);
                 const matchDistrito = districts.size === 0 || districts.has(c._district) || calendarFreqs.has(freq);
                 const matchFreq = !useFreqFilter || (freq && selectedFreqs.has(freq));
-                return matchTerm && matchDistrito && matchFreq;
+                return matchTerm && matchRegion && matchDistrito && matchFreq;
             });
         }
 
@@ -1907,7 +1995,7 @@
             if (!Number.isFinite(ultimaFecha.getTime())) return null;
             const diffDays = Math.floor((fechaRuta - ultimaFecha) / (1000 * 60 * 60 * 24));
             const frecuencia = normalizeFrequency(cliente.frecuencia || servicio.frecuencia) || 'mensual';
-            const daysByFrequency = { diario: 1, semanal: 7, quincenal: 15, mensual: 30, bimestral: 60, trimestral: 90, eventual: 30 };
+            const daysByFrequency = { diario: 1, interdiario: 2, semanal: 7, quincenal: 15, mensual: 30, bimestral: 60, trimestral: 90, eventual: 30 };
             const diasMinimo = daysByFrequency[frecuencia] || 30;
             if (diffDays < diasMinimo) return { diasRestantes: diasMinimo - diffDays, ultimaFecha: servicio.fecha };
             return null;

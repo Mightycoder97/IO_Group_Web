@@ -30,6 +30,7 @@ function formatearFechaContrato($fecha_iso) {
 function frecuenciaTexto($freq) {
     $map = [
         'diario' => 'DIARIO',
+        'interdiario' => 'INTERDIARIO',
         'semanal' => 'SEMANAL',
         'quincenal' => 'QUINCENAL',
         'mensual' => 'MENSUAL',

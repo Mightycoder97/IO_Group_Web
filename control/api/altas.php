@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/jwt.php';
+require_once __DIR__ . '/helpers/geo_location.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -625,7 +626,9 @@ function subir_documentos() {
             }
 
             // 3. Sede
-            $pdo->prepare("INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_telefono_2, contacto_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            $datos['sede'] = geo_enrich_sede_payload($datos['sede'] ?? []);
+            unset($datos['sede']['_geo_meta']);
+            $pdo->prepare("INSERT INTO Sede (id_empresa, nombre_comercial, direccion, distrito, provincia, departamento, region, referencia, coordenadas_gps, contacto_nombre, contacto_telefono, contacto_telefono_2, contacto_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
                 ->execute([
                     $id_empresa,
                     $datos['sede']['nombre_comercial'],
@@ -633,6 +636,7 @@ function subir_documentos() {
                     $datos['sede']['distrito'] ?? null,
                     $datos['sede']['provincia'] ?? null,
                     $datos['sede']['departamento'] ?? null,
+                    $datos['sede']['region'] ?? null,
                     $datos['sede']['referencia'] ?? null,
                     $datos['sede']['coordenadas_gps'] ?? null,
                     $datos['sede']['contacto_nombre'] ?? null,
@@ -649,7 +653,7 @@ function subir_documentos() {
                     $id_sede,
                     $datos['contrato']['fecha_inicio'],
                     $datos['contrato']['fecha_fin'] ?? null,
-                    $datos['contrato']['frecuencia'],
+                    geo_contract_frequency_value($datos['contrato']['frecuencia'] ?? null),
                     $datos['contrato']['peso_limite_kg'] ?? null,
                     $datos['contrato']['tarifa'],
                     $datos['contrato']['tipo_tarifa'] ?? 'por_servicio',
@@ -809,6 +813,9 @@ function finalizar_renovacion($user, $id_proceso, $proceso, $datos, $finalDocFir
             $id_empresa
         ]);
 
+        $datos['sede'] = geo_enrich_sede_payload($datos['sede'] ?? []);
+        unset($datos['sede']['_geo_meta']);
+
         $pdo->prepare(
             "UPDATE Sede SET
                 id_empresa = ?,
@@ -817,6 +824,7 @@ function finalizar_renovacion($user, $id_proceso, $proceso, $datos, $finalDocFir
                 distrito = ?,
                 provincia = ?,
                 departamento = ?,
+                region = ?,
                 referencia = ?,
                 coordenadas_gps = ?,
                 contacto_nombre = ?,
@@ -833,6 +841,7 @@ function finalizar_renovacion($user, $id_proceso, $proceso, $datos, $finalDocFir
             $datos['sede']['distrito'] ?? null,
             $datos['sede']['provincia'] ?? null,
             $datos['sede']['departamento'] ?? null,
+            $datos['sede']['region'] ?? null,
             $datos['sede']['referencia'] ?? null,
             $datos['sede']['coordenadas_gps'] ?? null,
             $datos['sede']['contacto_nombre'] ?? null,
@@ -853,7 +862,7 @@ function finalizar_renovacion($user, $id_proceso, $proceso, $datos, $finalDocFir
             $id_sede,
             $datos['contrato']['fecha_inicio'],
             $datos['contrato']['fecha_fin'] ?? null,
-            $datos['contrato']['frecuencia'],
+            geo_contract_frequency_value($datos['contrato']['frecuencia'] ?? null),
             $datos['contrato']['peso_limite_kg'] ?? null,
             $datos['contrato']['tarifa'],
             $datos['contrato']['tipo_tarifa'] ?? 'por_servicio',

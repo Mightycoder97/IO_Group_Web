@@ -329,6 +329,7 @@ CREATE TABLE "Sede" (
   "distrito" varchar(100) DEFAULT NULL,
   "provincia" varchar(100) DEFAULT NULL,
   "departamento" varchar(100) DEFAULT NULL,
+  "region" varchar(20) DEFAULT NULL,
   "referencia" text DEFAULT NULL,
   "coordenadas_gps" varchar(50) DEFAULT NULL,
   "contacto_nombre" varchar(100) DEFAULT NULL,

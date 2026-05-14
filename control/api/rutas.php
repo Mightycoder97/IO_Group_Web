@@ -123,7 +123,7 @@ function appendSedesToRoutes(&$routes) {
 
     $placeholders = implode(',', array_fill(0, count($routeIds), '?'));
     $servicios = db()->query(
-        "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion,
+        "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.region, se.direccion,
                 se.coordenadas_gps, se.contacto_nombre, se.contacto_telefono,
                 e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
                 cs.tarifa as tarifa_servicio, cs.frecuencia
@@ -189,7 +189,7 @@ function getOne($id) {
         
         // Get services for this route
         $servicios = db()->query(
-            "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.direccion,
+            "SELECT s.*, se.nombre_comercial as sede_nombre, se.distrito, se.region, se.direccion,
                     se.coordenadas_gps,
                     se.contacto_nombre, se.contacto_telefono,
                     e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,

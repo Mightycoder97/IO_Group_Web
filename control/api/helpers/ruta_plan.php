@@ -71,7 +71,7 @@ function buildRutaPlanServicios($planSedes) {
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
     $rows = db()->query(
-        "SELECT se.id_sede, se.nombre_comercial as sede_nombre, se.direccion, se.distrito,
+        "SELECT se.id_sede, se.nombre_comercial as sede_nombre, se.direccion, se.distrito, se.region,
                 se.coordenadas_gps,
                 se.contacto_nombre, se.contacto_telefono,
                 e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,

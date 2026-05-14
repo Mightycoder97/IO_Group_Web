@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/jwt.php';
+require_once __DIR__ . '/helpers/geo_location.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id = $_GET['id'] ?? null;
@@ -92,10 +93,11 @@ function create() {
     
     $id_sede = $data['id_sede'] ?? null;
     $fecha_inicio = $data['fecha_inicio'] ?? null;
-    $frecuencia = $data['frecuencia'] ?? null;
+    $frecuenciaRaw = $data['frecuencia'] ?? null;
+    $frecuencia = geo_contract_frequency_value($frecuenciaRaw);
     $tarifa = $data['tarifa'] ?? null;
     
-    if (empty($id_sede) || empty($fecha_inicio) || empty($frecuencia) || empty($tarifa)) {
+    if (empty($id_sede) || empty($fecha_inicio) || empty($frecuenciaRaw) || empty($tarifa)) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Sede, fecha inicio, frecuencia y tarifa son requeridos']);
         return;
@@ -163,7 +165,7 @@ function update($id) {
             $data['id_sede'] ?? null,
             $data['fecha_inicio'] ?? null,
             $data['fecha_fin'] ?? $existing['fecha_fin'],
-            $data['frecuencia'] ?? null,
+            isset($data['frecuencia']) ? geo_contract_frequency_value($data['frecuencia']) : null,
             $data['peso_limite_kg'] ?? $existing['peso_limite_kg'],
             $data['tarifa'] ?? null,
             $data['tipo_tarifa'] ?? $existing['tipo_tarifa'],
