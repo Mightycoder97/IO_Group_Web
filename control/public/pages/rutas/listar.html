@@ -1083,7 +1083,7 @@
             filters: {
                 search: '',
                 regions: selectedRegions,
-                frequencies: new Set(ALL_FREQUENCIES),
+                frequencies: new Set(),
                 distritos: selectedDistritos
             },
             calendarDistricts: [],
@@ -1495,7 +1495,7 @@
         function renderFrequencyFilters() {
             const container = document.getElementById('frequencyFilters');
             container.innerHTML = ALL_FREQUENCIES.map(freq => `
-                <button type="button" class="btn btn-sm btn-outline-secondary active" data-frequency="${freq}" onclick="toggleFrequency('${freq}', this)">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-frequency="${freq}" onclick="toggleFrequency('${freq}', this)">
                     ${FREQUENCY_LABELS[freq]}
                 </button>
             `).join('');
