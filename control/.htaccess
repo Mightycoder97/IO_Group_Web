@@ -44,7 +44,7 @@ RewriteRule ^api/prospectos(.*)$ api/prospectos.php [QSA,L]
 RewriteRule ^api/usuarios(.*)$ api/usuarios.php [QSA,L]
 RewriteRule ^api/calendario(.*)$ api/calendario.php [QSA,L]
 RewriteRule ^api/control_ruta(.*)$ api/control_ruta.php [QSA,L]
-RewriteRule ^api/procesamiento_ia(.*)$ api/procesamiento_ia.php [QSA,L]
+
 RewriteRule ^api/firma(.*)$ api/firma.php [QSA,L]
 RewriteRule ^api/check_frecuencias(.*)$ api/check_frecuencias.php [QSA,L]
 

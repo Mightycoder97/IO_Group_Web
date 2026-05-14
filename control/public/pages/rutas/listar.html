@@ -34,7 +34,7 @@
         .route-assignment-workspace {
             display: grid;
             gap: 12px;
-            grid-template-columns: minmax(300px, 30%) minmax(0, 70%);
+            grid-template-columns: minmax(300px, 40%) minmax(0, 60%);
             margin-bottom: 12px;
         }
 
@@ -2392,13 +2392,20 @@
 
             // Get filtered sedes with valid GPS that are NOT already assigned
             const filtered = getClientesFiltrados();
+            const sinGPSList = [];
             const sedesConGPS = filtered.filter(c => {
-                if (!c.coordenadas_gps) return false;
-                const pos = parseGPS(c.coordenadas_gps);
-                if (!pos) return false;
-                // Skip already assigned sedes
                 const assigned = assignmentState.assignedBySede.get(String(c.id_sede));
-                return !assigned;
+                if (assigned) return false;
+                if (!c.coordenadas_gps) {
+                    sinGPSList.push(c);
+                    return false;
+                }
+                const pos = parseGPS(c.coordenadas_gps);
+                if (!pos) {
+                    sinGPSList.push(c);
+                    return false;
+                }
+                return true;
             }).map(c => {
                 const pos = parseGPS(c.coordenadas_gps);
                 return { ...c, lat: pos.lat, lng: pos.lng };
@@ -2456,9 +2463,14 @@
                 return `${v.placa}: ${count}`;
             }).join(' | ');
 
-            const sinGPS = filtered.length - sedesConGPS.length;
-            const msg = `${sedesConGPS.length} sedes distribuidas (${summary})` +
-                (sinGPS > 0 ? `. ${sinGPS} sin GPS no asignadas.` : '');
+            const sinGPS = sinGPSList.length;
+            if (sinGPS > 0) {
+                console.log('Sedes sin GPS (excluidas de auto-asignación):', sinGPSList.map(s => `#${s.id_sede} ${s.nombre_comercial}`));
+            }
+            const sinGPSNames = sinGPS > 0
+                ? `. ${sinGPS} sin GPS: ` + sinGPSList.map(s => s.nombre_comercial).join(', ')
+                : '';
+            const msg = `${sedesConGPS.length} sedes distribuidas (${summary})${sinGPSNames}`;
             showToast(msg);
         }
 

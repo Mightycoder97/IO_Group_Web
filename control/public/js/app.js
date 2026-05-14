@@ -62,7 +62,7 @@ const SIDEBAR_SECTIONS = [
             { href: 'servicios/listar.html', icon: 'tools', label: 'Servicios', modulo: 'rutas' },
             { href: 'manifiestos/listar.html', icon: 'journal-text', label: 'Manifiestos', modulo: 'manifiestos' },
             { href: 'guias/listar.html', icon: 'file-earmark-arrow-up', label: 'Gu&iacute;as', modulo: 'guias' },
-            { href: 'procesamiento_ia/index.html', icon: 'robot', label: 'Procesamiento IA', modulo: 'rutas' }
+
         ]
     },
     {
@@ -166,7 +166,6 @@ function inferControlModuleFromPath(pathname = window.location.pathname) {
     const moduleByRoot = {
         altas: 'sedes',
         calendario: 'rutas',
-        procesamiento_ia: 'rutas',
         servicios: 'rutas'
     };
 
@@ -398,7 +397,6 @@ const REALTIME_SCOPE_BY_MODULE = {
     rutas: 'rutas',
     calendario: 'calendario',
     servicios: 'servicios',
-    procesamiento_ia: 'rutas',
     facturas: 'facturas',
     guias: 'guias',
     manifiestos: 'manifiestos',
