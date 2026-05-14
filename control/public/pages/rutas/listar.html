@@ -749,6 +749,9 @@
                         <a href="historial.html" class="btn btn-outline-secondary btn-sm">
                             <i class="bi bi-clock-history"></i> Historial
                         </a>
+                        <button class="btn btn-outline-warning btn-sm" id="btnAutoAsignar" onclick="autoAsignarRutas()" title="Distribuir sedes automaticamente entre camiones por proximidad GPS">
+                            <i class="bi bi-lightning-charge-fill"></i> Auto-asignar
+                        </button>
                         <button class="btn btn-outline-success btn-sm" onclick="savePlanDelDia()">
                             <i class="bi bi-cloud-check"></i> Guardar dia
                         </button>
@@ -2044,6 +2047,247 @@
                 showToast(`${ok} guardados, ${failures.length} con error`, ok ? 'warning' : 'danger');
                 console.warn('Errores guardando plan', failures);
             }
+        }
+
+        // ===== AUTO-ASSIGN ALGORITHM =====
+
+        function haversineDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function parseGPS(value) {
+            if (!value) return null;
+            const [lat, lng] = String(value).split(',').map(Number);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            if (lat < -18 || lat > -3 || lng < -82 || lng > -68) return null;
+            return { lat, lng };
+        }
+
+        function kMeansGeo(points, k, maxIter = 15) {
+            if (points.length <= k) {
+                return points.map(p => [p]);
+            }
+
+            // Initialize centroids using farthest-first selection
+            const centroids = [];
+            centroids.push({ lat: points[0].lat, lng: points[0].lng });
+
+            for (let c = 1; c < k; c++) {
+                let bestPoint = null;
+                let bestMinDist = -1;
+                for (const p of points) {
+                    const minDist = Math.min(...centroids.map(ct =>
+                        haversineDistance(p.lat, p.lng, ct.lat, ct.lng)
+                    ));
+                    if (minDist > bestMinDist) {
+                        bestMinDist = minDist;
+                        bestPoint = p;
+                    }
+                }
+                centroids.push({ lat: bestPoint.lat, lng: bestPoint.lng });
+            }
+
+            let assignments = new Array(points.length).fill(0);
+
+            for (let iter = 0; iter < maxIter; iter++) {
+                let changed = false;
+
+                // Assign each point to nearest centroid
+                for (let i = 0; i < points.length; i++) {
+                    let bestCluster = 0;
+                    let bestDist = Infinity;
+                    for (let c = 0; c < k; c++) {
+                        const d = haversineDistance(points[i].lat, points[i].lng, centroids[c].lat, centroids[c].lng);
+                        if (d < bestDist) {
+                            bestDist = d;
+                            bestCluster = c;
+                        }
+                    }
+                    if (assignments[i] !== bestCluster) {
+                        assignments[i] = bestCluster;
+                        changed = true;
+                    }
+                }
+
+                if (!changed) break;
+
+                // Recalculate centroids
+                for (let c = 0; c < k; c++) {
+                    const members = points.filter((_, i) => assignments[i] === c);
+                    if (members.length > 0) {
+                        centroids[c] = {
+                            lat: members.reduce((s, p) => s + p.lat, 0) / members.length,
+                            lng: members.reduce((s, p) => s + p.lng, 0) / members.length
+                        };
+                    }
+                }
+            }
+
+            // Build cluster arrays
+            const clusters = Array.from({ length: k }, () => []);
+            for (let i = 0; i < points.length; i++) {
+                clusters[assignments[i]].push(points[i]);
+            }
+            return clusters;
+        }
+
+        function balanceClusters(clusters, maxDiff = 3) {
+            const total = clusters.reduce((s, c) => s + c.length, 0);
+            const ideal = Math.ceil(total / clusters.length);
+            let changed = true;
+            let safetyCounter = 0;
+
+            while (changed && safetyCounter++ < 50) {
+                changed = false;
+
+                // Find the centroid of each cluster
+                const centroids = clusters.map(cl => {
+                    if (!cl.length) return { lat: -12.05, lng: -77.04 };
+                    return {
+                        lat: cl.reduce((s, p) => s + p.lat, 0) / cl.length,
+                        lng: cl.reduce((s, p) => s + p.lng, 0) / cl.length
+                    };
+                });
+
+                // Find largest and smallest clusters
+                let maxIdx = 0, minIdx = 0;
+                for (let i = 1; i < clusters.length; i++) {
+                    if (clusters[i].length > clusters[maxIdx].length) maxIdx = i;
+                    if (clusters[i].length < clusters[minIdx].length) minIdx = i;
+                }
+
+                if (clusters[maxIdx].length - clusters[minIdx].length <= maxDiff) break;
+
+                // Move the point from maxCluster closest to minCluster's centroid
+                const target = centroids[minIdx];
+                let bestIdx = -1;
+                let bestDist = Infinity;
+                for (let i = 0; i < clusters[maxIdx].length; i++) {
+                    const d = haversineDistance(clusters[maxIdx][i].lat, clusters[maxIdx][i].lng, target.lat, target.lng);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestIdx = i;
+                    }
+                }
+
+                if (bestIdx >= 0) {
+                    clusters[minIdx].push(clusters[maxIdx].splice(bestIdx, 1)[0]);
+                    changed = true;
+                }
+            }
+
+            return clusters;
+        }
+
+        function nearestNeighborOrder(sedes, startLat = -12.0464, startLng = -77.0428) {
+            if (sedes.length <= 1) return sedes;
+
+            const ordered = [];
+            const remaining = [...sedes];
+            let curLat = startLat;
+            let curLng = startLng;
+
+            while (remaining.length > 0) {
+                let bestIdx = 0;
+                let bestDist = Infinity;
+                for (let i = 0; i < remaining.length; i++) {
+                    const d = haversineDistance(curLat, curLng, remaining[i].lat, remaining[i].lng);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestIdx = i;
+                    }
+                }
+                const next = remaining.splice(bestIdx, 1)[0];
+                ordered.push(next);
+                curLat = next.lat;
+                curLng = next.lng;
+            }
+
+            return ordered;
+        }
+
+        function autoAsignarRutas() {
+            if (vehiculos.length < 2) {
+                showToast('Se necesitan al menos 2 camiones activos', 'warning');
+                return;
+            }
+
+            // Get filtered sedes with valid GPS that are NOT already assigned
+            const filtered = getClientesFiltrados();
+            const sedesConGPS = filtered.filter(c => {
+                if (!c.coordenadas_gps) return false;
+                const pos = parseGPS(c.coordenadas_gps);
+                if (!pos) return false;
+                // Skip already assigned sedes
+                const assigned = assignmentState.assignedBySede.get(String(c.id_sede));
+                return !assigned;
+            }).map(c => {
+                const pos = parseGPS(c.coordenadas_gps);
+                return { ...c, lat: pos.lat, lng: pos.lng };
+            });
+
+            if (sedesConGPS.length === 0) {
+                showToast('No hay sedes con GPS disponibles para asignar', 'warning');
+                return;
+            }
+
+            // Check if there are existing assignments
+            const totalExisting = Array.from(assignmentState.clientesPorVehiculo.values())
+                .reduce((s, c) => s + c.length, 0);
+            if (totalExisting > 0) {
+                if (!confirm(`Ya hay ${totalExisting} sedes asignadas.\n\n¿Deseas limpiar las rutas actuales y auto-asignar ${sedesConGPS.length} sedes con GPS?`)) {
+                    return;
+                }
+                // Clear all current assignments
+                vehiculos.forEach(v => {
+                    ensureVehiculoBucket(v.id_vehiculo).length = 0;
+                });
+            }
+
+            const k = vehiculos.length;
+
+            // Step 1: K-means clustering
+            let clusters = kMeansGeo(sedesConGPS, k);
+
+            // Step 2: Balance clusters
+            clusters = balanceClusters(clusters, 3);
+
+            // Step 3: Order each cluster and assign to vehicles
+            const basePoint = { lat: -12.0464, lng: -77.0428 }; // Lima center
+            for (let i = 0; i < k; i++) {
+                const orderedSedes = nearestNeighborOrder(clusters[i] || [], basePoint.lat, basePoint.lng);
+                const vehiculo = vehiculos[i];
+                const key = getVehiculoKey(vehiculo.id_vehiculo);
+                const bucket = ensureVehiculoBucket(vehiculo.id_vehiculo);
+                bucket.length = 0;
+
+                for (const sede of orderedSedes) {
+                    bucket.push(createRouteCliente(sede));
+                }
+                markDirty(vehiculo.id_vehiculo);
+            }
+
+            // Refresh state
+            syncCurrentRouteRefs();
+            rebuildAssignedBySede();
+            renderAll();
+
+            // Summary
+            const summary = vehiculos.map((v, i) => {
+                const count = (assignmentState.clientesPorVehiculo.get(getVehiculoKey(v.id_vehiculo)) || []).length;
+                return `${v.placa}: ${count}`;
+            }).join(' | ');
+
+            const sinGPS = filtered.length - sedesConGPS.length;
+            const msg = `${sedesConGPS.length} sedes distribuidas (${summary})` +
+                (sinGPS > 0 ? `. ${sinGPS} sin GPS no asignadas.` : '');
+            showToast(msg);
         }
 
         function updateGastosRutaButton() {
