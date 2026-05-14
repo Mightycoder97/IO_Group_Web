@@ -868,8 +868,9 @@
                         <div class="route-map-legend small">
                             <span><i class="legend-dot" style="background:#2563eb"></i>Pendiente</span>
                             <span><i class="legend-dot" style="background:#f59e0b"></i>Seleccionada</span>
-                            <span><i class="legend-dot" style="background:#ef4444"></i>Camion activo</span>
-                            <span><i class="legend-dot" style="background:#64748b"></i>Otro camion</span>
+                            <span><i class="legend-dot" style="background:#ef4444"></i>Vehiculo activo</span>
+                            <span><i class="legend-dot" style="background:#64748b"></i>Otro vehiculo</span>
+                            <span class="ms-2 text-muted">Cada vehiculo tiene color y forma unicos</span>
                         </div>
                     </section>
                 </section>
@@ -1012,6 +1013,11 @@
             '#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', 
             '#14b8a6', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', 
             '#d946ef', '#f43f5e', '#64748b'
+        ];
+        const VEHICLE_SHAPES = [
+            'circle', 'square', 'diamond', 'triangle', 'hexagon',
+            'pentagon', 'star', 'circle', 'square', 'diamond',
+            'triangle', 'hexagon', 'pentagon'
         ];
         const ROUTE_REGION_LABELS = {
             LIMA: 'Region Lima',
@@ -2032,7 +2038,12 @@
                 statusForSede: sede => {
                     const assigned = assignmentState.assignedBySede.get(String(sede.id_sede));
                     if (!assigned) return 'pending';
-                    return assigned.vehiculoId === assignmentState.selectedVehiculoId ? 'assignedActive' : 'assignedOther';
+                    const isActive = assigned.vehiculoId === assignmentState.selectedVehiculoId;
+                    return {
+                        id: isActive ? 'assignedActive' : 'assignedOther',
+                        color: getVehiculoColor(assigned.vehiculoId),
+                        shape: getVehiculoShape(assigned.vehiculoId)
+                    };
                 },
                 actionForSede: sede => {
                     if (!selectedVehiculo) return null;
@@ -2061,6 +2072,12 @@
             return VEHICLE_COLORS[index % VEHICLE_COLORS.length];
         }
 
+        function getVehiculoShape(vehiculoId) {
+            const index = vehiculos.findIndex(v => getVehiculoKey(v.id_vehiculo) === vehiculoId);
+            if (index === -1) return 'circle';
+            return VEHICLE_SHAPES[index % VEHICLE_SHAPES.length];
+        }
+
         function updateRouteMap(filtered = assignmentState.filteredClientes, forceFit = false) {
             const selected = assignmentState.selectedSedeId
                 ? allClientes.find(c => String(c.id_sede) === String(assignmentState.selectedSedeId))
@@ -2079,7 +2096,8 @@
                         const isActive = assigned.vehiculoId === assignmentState.selectedVehiculoId;
                         return {
                             id: isActive ? 'assignedActive' : 'assignedOther',
-                            color: getVehiculoColor(assigned.vehiculoId)
+                            color: getVehiculoColor(assigned.vehiculoId),
+                            shape: getVehiculoShape(assigned.vehiculoId)
                         };
                     }
                 });

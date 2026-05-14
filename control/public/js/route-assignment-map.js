@@ -49,6 +49,7 @@ class RouteAssignmentMap {
             gestureHandling: 'greedy',
             keyboardShortcuts: false,
             mapId: 'DEMO_MAP_ID',
+            colorScheme: "LIGHT",
             restriction: {
                 latLngBounds: {
                     north: -10.1,
@@ -423,8 +424,8 @@ class RouteAssignmentMap {
                 position: absolute;
                 inset: 0;
                 background:
-                    radial-gradient(ellipse at 18% 48%, rgba(14, 22, 38, 0.86) 0 18%, transparent 18.5%),
-                    radial-gradient(ellipse at 76% 28%, rgba(14, 22, 38, 0.62) 0 12%, transparent 12.5%);
+                    radial-gradient(ellipse at 18% 48%, rgba(226, 232, 240, 0.86) 0 18%, transparent 18.5%),
+                    radial-gradient(ellipse at 76% 28%, rgba(226, 232, 240, 0.62) 0 12%, transparent 12.5%);
                 pointer-events: none;
                 z-index: 0;
             }
@@ -632,6 +633,14 @@ class RouteAssignmentMap {
             .route-fallback-marker.selected,
             .route-fallback-marker.is-selected { background: #f59e0b; z-index: 5; }
 
+            .shape-circle  { clip-path: circle(50% at 50% 50%); border-radius: 50% !important; }
+            .shape-square  { clip-path: none; border-radius: 4px !important; }
+            .shape-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); border-radius: 0 !important; }
+            .shape-triangle { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); border-radius: 0 !important; }
+            .shape-hexagon { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); border-radius: 0 !important; }
+            .shape-pentagon { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); border-radius: 0 !important; }
+            .shape-star    { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); border-radius: 0 !important; }
+
             .route-fallback-info {
                 background: rgba(255, 255, 255, 0.96);
                 border: 1px solid rgba(226, 232, 240, 0.8);
@@ -648,6 +657,14 @@ class RouteAssignmentMap {
 
             .route-fallback-info .text-muted {
                 color: #64748b !important;
+            }
+
+            .route-leaflet-shape-icon {
+                background: transparent !important;
+                border: none !important;
+            }
+            .route-leaflet-shape-icon > div {
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
         `;
         document.head.appendChild(style);
@@ -692,10 +709,11 @@ class RouteAssignmentMap {
             const statusObj = this.getStatus(item.sede, context);
             const statusId = typeof statusObj === 'object' ? (statusObj.id || 'pending') : statusObj;
             const customColor = (typeof statusObj === 'object' && statusObj.color) ? `background-color: ${statusObj.color} !important;` : '';
+            const shape = (typeof statusObj === 'object' && statusObj.shape) ? statusObj.shape : 'circle';
             const selected = String(item.sede.id_sede) === selectedId;
             return `
                 <button type="button"
-                    class="route-fallback-marker ${statusId} ${selected ? 'is-selected' : ''}"
+                    class="route-fallback-marker ${statusId} shape-${shape} ${selected ? 'is-selected' : ''}"
                     style="left:${point.x}px;top:${point.y}px;${customColor}"
                     title="${this.escapeHtml(item.sede.nombre_comercial || '')}"
                     data-sede-id="${this.escapeHtml(item.sede.id_sede)}"></button>
@@ -741,7 +759,8 @@ class RouteAssignmentMap {
             const id = String(item.sede.id_sede);
             nextIds.add(id);
             const marker = this.getOrCreateLeafletMarker(item.sede, item.position);
-            marker.setStyle(this.getLeafletStyle(this.getStatus(item.sede, context), id === selectedId));
+            const style = this.getLeafletStyle(this.getStatus(item.sede, context), id === selectedId);
+            marker.setIcon(this.createLeafletDivIcon(style));
         }
 
         for (const id of this.lastVisibleIds) {
@@ -772,11 +791,9 @@ class RouteAssignmentMap {
             return marker;
         }
 
-        const marker = L.circleMarker(latLng, {
-            radius: 7,
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.95
+        const marker = L.marker(latLng, {
+            icon: this.createLeafletDivIcon(this.getLeafletStyle('pending', false)),
+            opacity: 1
         });
         marker.on('click', () => {
             if (this.options.onSelect) this.options.onSelect(sede);
@@ -795,8 +812,22 @@ class RouteAssignmentMap {
         return marker;
     }
 
+    createLeafletDivIcon(style) {
+        const size = style.size || 14;
+        const shape = style.shape || 'circle';
+        const html = `<div class="shape-${shape}" style="width:${size}px;height:${size}px;background:${style.fillColor};border:${style.weight}px solid ${style.color};opacity:${style.fillOpacity};border-radius:${shape === 'circle' ? '50%' : (shape === 'square' ? '4px' : '0')};box-shadow:${style.shadow || '0 2px 8px rgba(0,0,0,0.3)'};"></div>`;
+        return L.divIcon({
+            className: 'route-leaflet-shape-icon',
+            html,
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2],
+            popupAnchor: [0, -size / 2]
+        });
+    }
+
     getLeafletStyle(status, selected = false) {
         let stateId = typeof status === 'object' ? (status.id || 'pending') : status;
+        const shape = (typeof status === 'object' && status.shape) ? status.shape : 'circle';
         const colors = {
             pending: '#3b82f6',
             selected: '#f59e0b',
@@ -804,19 +835,22 @@ class RouteAssignmentMap {
             assignedOther: '#94a3b8'
         };
         const fillColor = selected ? colors.selected : ((typeof status === 'object' && status.color) ? status.color : (colors[stateId] || colors.pending));
-        let radius = 7;
-        let opacity = 0.95;
-        if (selected) { radius = 10; opacity = 1; }
-        else if (stateId === 'assignedActive') { radius = 9; opacity = 1; }
-        else if (stateId === 'assignedOther') { radius = 8; opacity = 0.9; }
+        let size = 14;
+        let weight = 1.5;
+        let fillOpacity = 0.95;
+        let shadow = '0 2px 8px rgba(0,0,0,0.3)';
+        if (selected) { size = 20; weight = 3; fillOpacity = 1; shadow = '0 4px 16px rgba(0,0,0,0.45)'; }
+        else if (stateId === 'assignedActive') { size = 22; weight = 2; fillOpacity = 1; }
+        else if (stateId === 'assignedOther') { size = 19; weight = 2; fillOpacity = 0.9; }
 
         return {
             color: '#ffffff',
             fillColor,
-            fillOpacity: opacity,
-            opacity: opacity,
-            radius,
-            weight: selected ? 3 : 1.5
+            fillOpacity,
+            size,
+            weight,
+            shape,
+            shadow
         };
     }
 
@@ -1066,6 +1100,7 @@ class RouteAssignmentMap {
         if (!el) return;
         
         let stateId = typeof status === 'object' ? (status.id || 'pending') : status;
+        const shape = (typeof status === 'object' && status.shape) ? status.shape : 'circle';
         const colors = {
             pending: '#3b82f6',
             selected: '#f59e0b',
@@ -1079,15 +1114,29 @@ class RouteAssignmentMap {
         let opacity = 1;
         
         if (stateId === 'selected') { size = 18; border = 3; }
-        else if (stateId === 'assignedActive') { size = 16; border = 2; }
-        else if (stateId === 'assignedOther') { size = 14; border = 2; opacity = 0.9; }
+        else if (stateId === 'assignedActive') { size = 20; border = 2; }
+        else if (stateId === 'assignedOther') { size = 17; border = 2; opacity = 0.9; }
+
+        const borderRadiusMap = {
+            circle: '50%',
+            square: '4px',
+            diamond: '0',
+            triangle: '0',
+            hexagon: '0',
+            pentagon: '0',
+            star: '0'
+        };
 
         el.style.width = size + 'px';
         el.style.height = size + 'px';
         el.style.backgroundColor = color;
         el.style.border = border + 'px solid #ffffff';
+        el.style.borderRadius = borderRadiusMap[shape] || '50%';
         el.style.opacity = opacity;
         el.style.zIndex = stateId === 'selected' ? 100 : (stateId === 'pending' ? 10 : 20);
+
+        el.className = el.className.replace(/\bshape-\S+/g, '');
+        el.classList.add('shape-' + shape);
     }
 
     openInfo(marker, sede) {
