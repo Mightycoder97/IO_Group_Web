@@ -306,6 +306,20 @@
             border-radius: 8px;
         }
 
+        .distrito-tag.calendar-frequency-tag {
+            background: #EFF6FF;
+            border-color: rgba(37, 99, 235, 0.22);
+            color: #1D4ED8;
+        }
+
+        .distrito-tag.calendar-frequency-tag .remove {
+            background: rgba(37, 99, 235, 0.12);
+        }
+
+        .distrito-tag.calendar-frequency-tag .remove:hover {
+            background: rgba(37, 99, 235, 0.22);
+        }
+
         .route-empty-state {
             border: 1px dashed #cbd5e1;
             border-radius: 8px;
@@ -988,6 +1002,18 @@
             trimestral: 'Trimestral',
             eventual: 'Eventual'
         };
+        const CALENDAR_FREQUENCY_TAGS = {
+            SEMANAL: ['semanal'],
+            SEMANALES: ['semanal'],
+            QUINCENAL: ['quincenal'],
+            QUINCENALES: ['quincenal']
+        };
+        const CALENDAR_FREQUENCY_TAG_LABELS = {
+            SEMANAL: 'Semanal',
+            SEMANALES: 'Semanales',
+            QUINCENAL: 'Quincenal',
+            QUINCENALES: 'Quincenales'
+        };
         const GASTO_RUTA_TIPOS = [
             { value: 'combustible', label: 'Combustible' },
             { value: 'peajes', label: 'Peajes' },
@@ -1040,6 +1066,30 @@
         function normalizeFrequency(value) {
             const raw = String(value || '').trim().toLowerCase();
             return ALL_FREQUENCIES.includes(raw) ? raw : '';
+        }
+
+        function getCalendarFrequenciesFromTags(tags = selectedDistritos) {
+            const frequencies = new Set();
+            tags.forEach(tag => {
+                (CALENDAR_FREQUENCY_TAGS[normDistr(tag)] || []).forEach(freq => frequencies.add(freq));
+            });
+            return frequencies;
+        }
+
+        function isCalendarFrequencyTag(tag) {
+            return Boolean(CALENDAR_FREQUENCY_TAGS[normDistr(tag)]);
+        }
+
+        function calendarFilterLabel(tag) {
+            const normalized = normDistr(tag);
+            return CALENDAR_FREQUENCY_TAG_LABELS[normalized] || distritoDisplayMap[normalized] || tag;
+        }
+
+        function hasValidRouteCoordinate(value) {
+            if (!value) return false;
+            const [lat, lng] = String(value).split(',').map(Number);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+            return lat >= -15.6 && lat <= -10.1 && lng >= -78.2 && lng <= -74.4;
         }
 
         function escapeHtml(value) {
@@ -1463,8 +1513,8 @@
                 return;
             }
             container.innerHTML = Array.from(selectedDistritos).map(d => `
-                <span class="distrito-tag">
-                    ${escapeHtml(distritoDisplayMap[d] || d)}
+                <span class="distrito-tag ${isCalendarFrequencyTag(d) ? 'calendar-frequency-tag' : ''}">
+                    ${escapeHtml(calendarFilterLabel(d))}
                     <span class="remove" onclick="removeDistrito('${escapeHtml(d)}')">&times;</span>
                 </span>
             `).join('');
@@ -1527,11 +1577,12 @@
             const selectedFreqs = assignmentState.filters.frequencies;
             const useFreqFilter = selectedFreqs.size !== ALL_FREQUENCIES.length;
             const districts = assignmentState.filters.distritos;
+            const calendarFreqs = getCalendarFrequenciesFromTags(districts);
 
             return allClientes.filter(c => {
                 const matchTerm = !term || c._searchText.includes(term);
-                const matchDistrito = districts.size === 0 || districts.has(c._district);
                 const freq = normalizeFrequency(c.frecuencia);
+                const matchDistrito = districts.size === 0 || districts.has(c._district) || calendarFreqs.has(freq);
                 const matchFreq = !useFreqFilter || (freq && selectedFreqs.has(freq));
                 return matchTerm && matchDistrito && matchFreq;
             });
@@ -1918,7 +1969,7 @@
             const mapSet = selected && !filtered.some(c => String(c.id_sede) === String(selected.id_sede))
                 ? [selected, ...filtered]
                 : filtered;
-            document.getElementById('mapSubtitle').textContent = `${mapSet.filter(c => c.coordenadas_gps).length} sedes filtradas con GPS`;
+            document.getElementById('mapSubtitle').textContent = `${mapSet.filter(c => hasValidRouteCoordinate(c.coordenadas_gps)).length} sedes filtradas con GPS valido`;
             if (routeAssignmentMap) {
                 routeAssignmentMap.render(mapSet, {
                     selectedSedeId: assignmentState.selectedSedeId,
