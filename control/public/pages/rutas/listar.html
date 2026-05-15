@@ -336,97 +336,123 @@
             transition: width 0.3s ease;
         }
 
-        /* Calendar hover preview */
+        /* Calendar hover preview - Carousel */
         .calendar-preview-popup {
             background: #fff;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             box-shadow: 0 12px 36px rgba(15, 23, 42, 0.18);
             left: 0;
-            min-width: 380px;
-            padding: 16px;
+            min-width: 340px;
+            padding: 14px;
             position: absolute;
             top: 100%;
             z-index: 9999;
             cursor: default;
         }
 
-        .calendar-preview-popup .cal-preview-header {
+        .calendar-preview-popup .cal-carousel-header {
             align-items: center;
             display: flex;
-            font-size: 0.95rem;
-            font-weight: 800;
-            gap: 4px;
+            gap: 8px;
             justify-content: center;
             margin-bottom: 10px;
         }
 
-        .calendar-preview-popup .cal-preview-grid {
-            display: grid;
-            gap: 2px;
-            grid-template-columns: repeat(7, 1fr);
+        .calendar-preview-popup .cal-carousel-nav {
+            align-items: center;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 6px;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            font-size: 1rem;
+            height: 30px;
+            justify-content: center;
+            transition: all 0.15s;
+            width: 30px;
         }
 
-        .calendar-preview-popup .cal-preview-day-header {
-            color: #94a3b8;
-            font-size: 0.62rem;
-            font-weight: 700;
-            padding: 2px 0;
+        .calendar-preview-popup .cal-carousel-nav:hover {
+            background: #166534;
+            color: #fff;
+        }
+
+        .calendar-preview-popup .cal-carousel-date {
+            font-size: 0.95rem;
+            font-weight: 800;
+            min-width: 140px;
             text-align: center;
+        }
+
+        .calendar-preview-popup .cal-carousel-date .cal-date-label {
+            color: #64748b;
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
             text-transform: uppercase;
         }
 
-        .calendar-preview-popup .cal-preview-day {
-            aspect-ratio: 1;
-            background: #f8fafc;
-            border: 1px solid #f1f5f9;
-            border-radius: 4px;
+        .calendar-preview-popup .cal-carousel-badge {
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            color: #166534;
+            display: inline-flex;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 4px;
+            padding: 2px 8px;
+        }
+
+        .calendar-preview-popup .cal-distrito-list {
             display: flex;
             flex-direction: column;
-            font-size: 0.68rem;
-            font-weight: 700;
-            justify-content: center;
-            min-width: 32px;
-            padding: 2px;
+            gap: 4px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .calendar-preview-popup .cal-distrito-item {
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 6px;
+            display: flex;
+            font-size: 0.78rem;
+            gap: 8px;
+            padding: 6px 10px;
+        }
+
+        .calendar-preview-popup .cal-distrito-item .cal-dot {
+            border-radius: 50%;
+            height: 8px;
+            min-width: 8px;
+            width: 8px;
+        }
+
+        .calendar-preview-popup .cal-distrito-item .cal-dot.special {
+            height: 10px;
+            min-width: 10px;
+            width: 10px;
+        }
+
+        .calendar-preview-popup .cal-empty-day {
+            align-items: center;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            font-size: 0.82rem;
+            gap: 6px;
+            padding: 20px 0;
             text-align: center;
         }
 
-        .calendar-preview-popup .cal-preview-day.empty {
-            background: transparent;
-            border-color: transparent;
-        }
-
-        .calendar-preview-popup .cal-preview-day.today {
-            background: #dcfce7;
-            border-color: #22c55e;
-        }
-
-        .calendar-preview-popup .cal-preview-day.has-sedes {
-            border-color: #166534;
-            border-width: 2px;
-        }
-
-        .calendar-preview-popup .cal-preview-day .cal-day-num {
-            line-height: 1;
-        }
-
-        .calendar-preview-popup .cal-preview-day .cal-day-dots {
-            display: flex;
-            gap: 1px;
-            justify-content: center;
-            margin-top: 1px;
-        }
-
-        .calendar-preview-popup .cal-preview-day .cal-day-dot {
-            border-radius: 50%;
-            height: 4px;
-            width: 4px;
-        }
-
-        .calendar-preview-popup .cal-preview-loading {
+        .calendar-preview-popup .cal-loading {
             color: #94a3b8;
             font-size: 0.8rem;
-            padding: 20px;
+            padding: 24px 0;
             text-align: center;
         }
 
@@ -2344,36 +2370,43 @@
             updateRouteMap(assignmentState.filteredClientes, true);
         }
 
-        // ─── Calendar Hover Preview ──────────────────────────────────
+        // ─── Calendar Hover Preview (Carousel) ────────────────────────
         let calendarPreviewTimer = null;
-        let calendarPreviewData = null;
+        let calendarPreviewData = {};
+        let calendarPreviewDay = null; // 'YYYY-MM-DD'
 
         async function showCalendarPreview(e) {
             const popup = document.getElementById('calendarPreviewPopup');
             if (!popup) return;
 
-            // Use setTimeout to avoid flickering on quick hovers
             calendarPreviewTimer = setTimeout(async () => {
                 popup.style.display = 'block';
 
-                if (!calendarPreviewData) {
-                    popup.innerHTML = '<div class="cal-preview-loading"><div class="spinner-border spinner-border-sm text-muted me-2"></div>Cargando...</div>';
+                if (!Object.keys(calendarPreviewData).length) {
+                    popup.innerHTML = '<div class="cal-loading"><div class="spinner-border spinner-border-sm text-muted me-2"></div>Cargando...</div>';
                     try {
                         const now = new Date();
                         const mes = now.getMonth() + 1;
                         const anio = now.getFullYear();
                         const result = await api.get(`/calendario?mes=${mes}&anio=${anio}`);
-                        if (result.success && result.data) {
-                            calendarPreviewData = result.data.dias || {};
-                        } else {
-                            calendarPreviewData = {};
-                        }
+                        calendarPreviewData = result.success && result.data ? (result.data.dias || {}) : {};
                     } catch (err) {
                         calendarPreviewData = {};
                     }
                 }
 
-                renderCalendarPreview(popup, calendarPreviewData);
+                // Default to today or route date
+                if (!calendarPreviewDay) {
+                    const routeDate = getFechaRuta();
+                    if (routeDate) {
+                        calendarPreviewDay = routeDate;
+                    } else {
+                        const now = new Date();
+                        calendarPreviewDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                    }
+                }
+
+                renderCalendarCarousel(popup);
             }, 300);
         }
 
@@ -2383,70 +2416,81 @@
             if (popup) popup.style.display = 'none';
         }
 
-        function renderCalendarPreview(popup, data) {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const todayDate = now.getDate();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDay = new Date(year, month, 1).getDay();
-            const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        function calendarCarouselPrev() {
+            calendarPreviewDay = shiftDay(calendarPreviewDay, -1);
+            renderCalendarCarousel(document.getElementById('calendarPreviewPopup'));
+        }
+
+        function calendarCarouselNext() {
+            calendarPreviewDay = shiftDay(calendarPreviewDay, 1);
+            renderCalendarCarousel(document.getElementById('calendarPreviewPopup'));
+        }
+
+        function shiftDay(dateStr, offset) {
+            const d = new Date(dateStr + 'T12:00:00');
+            d.setDate(d.getDate() + offset);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function renderCalendarCarousel(popup) {
+            if (!popup || !calendarPreviewDay) return;
+
+            const d = new Date(calendarPreviewDay + 'T12:00:00');
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            const isToday = calendarPreviewDay === todayStr;
+
+            const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
             const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const monthStr = String(month + 1).padStart(2, '0');
+            const diaNombre = diasSemana[d.getDay()];
+            const fechaFormato = `${diaNombre} ${d.getDate()} de ${meses[d.getMonth()]}`;
 
-            // Get sede counts for each date
-            const sedeCounts = {};
-            const routeDate = getFechaRuta(); // current selected date
-            if (routeDate) {
-                try {
-                    const routeD = new Date(routeDate);
-                    const rMonth = routeD.getMonth();
-                    const rYear = routeD.getFullYear();
-                    if (rMonth === month && rYear === year) {
-                        const rDay = routeD.getDate();
-                        const rDateStr = `${year}-${monthStr}-${String(rDay).padStart(2, '0')}`;
-                        const filtered = getClientesFiltrados();
-                        sedeCounts[rDateStr] = filtered.length;
-                    }
-                } catch (_) {}
-            }
+            const distritos = calendarPreviewData[calendarPreviewDay] || [];
+            const specialTags = ['QUINCENALES', 'GAMARRA', 'ONCOLOGIA', 'CHORRISALUD', 'ESCUELA EJERCITO', 'SEMANALES', 'MAPEVAS'];
 
-            let html = `<div class="cal-preview-header">
-                <i class="bi bi-calendar3 text-primary"></i> ${meses[month]} ${year}
-            </div><div class="cal-preview-grid">`;
-
-            // Day headers
-            diasSemana.forEach(d => {
-                html += `<div class="cal-preview-day-header">${d}</div>`;
+            const distritoColors = {};
+            specialTags.forEach((tag, i) => {
+                const colors = ['#e64a19', '#d946ef', '#f43f5e', '#8b5cf6', '#2563eb', '#0891b2', '#ca8a04'];
+                distritoColors[tag] = colors[i % colors.length];
             });
 
-            // Empty cells
-            for (let i = 0; i < firstDay; i++) {
-                html += '<div class="cal-preview-day empty"></div>';
-            }
+            const badgesHtml = isToday ? '<span class="cal-carousel-badge"><i class="bi bi-star-fill"></i> Hoy</span>' : '';
 
-            // Days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `${year}-${monthStr}-${String(day).padStart(2, '0')}`;
-                const distritos = data[dateStr] || [];
-                const isToday = day === todayDate;
-                const hasSedes = !!sedeCounts[dateStr];
-                const maxDots = 3;
-                const dotColors = distritos.slice(0, maxDots).map((d, i) => {
-                    const colors = ['#f43f5e', '#3b82f6', '#f59e0b', '#22c55e', '#6366f1', '#ec4899'];
-                    return `<span class="cal-day-dot" style="background:${colors[i % colors.length]}"></span>`;
-                }).join('');
-                const moreDots = distritos.length > maxDots ? `<span style="font-size:0.55rem;color:#94a3b8;">+${distritos.length - maxDots}</span>` : '';
-
-                html += `<div class="cal-preview-day${isToday ? ' today' : ''}${hasSedes ? ' has-sedes' : ''}" title="${distritos.join(', ') || 'Sin asignaciones'}">
-                    <span class="cal-day-num">${day}</span>
-                    <span class="cal-day-dots">${dotColors}${moreDots}</span>
+            let listHtml;
+            if (!distritos.length) {
+                listHtml = `<div class="cal-empty-day">
+                    <i class="bi bi-calendar-x" style="font-size:1.5rem;"></i>
+                    <span>Sin distritos asignados</span>
                 </div>`;
+            } else {
+                listHtml = `<div class="cal-distrito-list">${distritos.map((d, i) => {
+                    const isSpecial = specialTags.includes(d);
+                    const color = distritoColors[d] || '#94a3b8';
+                    return `<div class="cal-distrito-item">
+                        <span class="cal-dot${isSpecial ? ' special' : ''}" style="background:${color};"></span>
+                        <span style="flex:1;font-weight:${isSpecial ? '700' : '500'};">${d}</span>
+                        ${isSpecial ? '<span class="badge bg-secondary rounded-pill" style="font-size:0.6rem;">especial</span>' : ''}
+                    </div>`;
+                }).join('')}</div>`;
             }
 
-            html += '</div>';
-            popup.innerHTML = html;
+            popup.innerHTML = `
+                <div class="cal-carousel-header">
+                    <button class="cal-carousel-nav" onclick="calendarCarouselPrev()" title="Día anterior">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <div class="cal-carousel-date">
+                        <span class="cal-date-label">${diasSemana[d.getDay()].substring(0, 3)}</span>
+                        ${d.getDate()} ${meses[d.getMonth()].substring(0, 3)}
+                        ${badgesHtml}
+                    </div>
+                    <button class="cal-carousel-nav" onclick="calendarCarouselNext()" title="Día siguiente">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                ${listHtml}
+            `;
         }
 
         let districtVisible = false;
