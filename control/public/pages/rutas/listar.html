@@ -2672,9 +2672,13 @@
         }
 
         function showKMeansConfirmDialog(sedesConGPS, clusters, sinGPSList, totalExisting, summary) {
+            // Remove any existing overlay first
+            const existing = document.getElementById('kmeansConfirmOverlay');
+            if (existing) existing.remove();
+
             const overlay = document.createElement('div');
             overlay.id = 'kmeansConfirmOverlay';
-            overlay.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:16px 20px;display:flex;align-items:center;gap:16px;font-size:0.9rem;max-width:95vw;';
+            overlay.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;background:#fff;border:2px solid #22c55e;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.2);padding:16px 20px;display:flex;align-items:center;gap:16px;font-size:0.9rem;max-width:95vw;pointer-events:auto;';
             overlay.innerHTML = `
                 <div>
                     <div class="fw-bold mb-1"><i class="bi bi-lightning-charge-fill text-warning"></i> Auto-asignacion — Vista previa</div>
@@ -2688,32 +2692,62 @@
             `;
             document.body.appendChild(overlay);
 
-            document.getElementById('btnKmeansConfirm').addEventListener('click', () => {
-                overlay.remove();
-                if (routeAssignmentMap) routeAssignmentMap.clearKMeansPreview();
-                executeAutoAssign(sedesConGPS, clusters, sinGPSList);
-            });
-            document.getElementById('btnKmeansCancel').addEventListener('click', () => {
-                overlay.remove();
-                if (routeAssignmentMap) routeAssignmentMap.clearKMeansPreview();
-                updateRouteMap(assignmentState.filteredClientes, true);
-                document.getElementById('mapSubtitle').textContent = 'Solo sedes filtradas con GPS';
-            });
+            const confirmBtn = document.getElementById('btnKmeansConfirm');
+            const cancelBtn = document.getElementById('btnKmeansCancel');
+
+            if (confirmBtn) {
+                confirmBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    overlay.remove();
+                    if (routeAssignmentMap) routeAssignmentMap.clearKMeansPreview();
+                    try {
+                        executeAutoAssign(sedesConGPS, clusters, sinGPSList);
+                    } catch (err) {
+                        console.error('Error en auto-asignacion:', err);
+                        showToast('Error al ejecutar auto-asignacion: ' + err.message, 'danger');
+                    }
+                };
+            }
+
+            if (cancelBtn) {
+                cancelBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    overlay.remove();
+                    if (routeAssignmentMap) routeAssignmentMap.clearKMeansPreview();
+                    updateRouteMap(assignmentState.filteredClientes, true);
+                    document.getElementById('mapSubtitle').textContent = 'Solo sedes filtradas con GPS';
+                };
+            }
         }
 
         function executeAutoAssign(sedesConGPS, clusters, sinGPSList) {
-            const k = vehiculos.length;
+            if (!vehiculos || !vehiculos.length) {
+                showToast('No hay vehiculos disponibles', 'danger');
+                return;
+            }
+            if (!clusters || !clusters.length) {
+                showToast('No se generaron clusters', 'warning');
+                return;
+            }
+
+            const k = Math.min(vehiculos.length, clusters.length);
             
-            // Clear all current assignments if any
+            // Clear all current assignments
             vehiculos.forEach(v => {
-                ensureVehiculoBucket(v.id_vehiculo).length = 0;
+                const bucket = ensureVehiculoBucket(v.id_vehiculo);
+                if (bucket) bucket.length = 0;
             });
 
             // Step 3: Order each cluster and assign to vehicles
-            const basePoint = { lat: -12.0464, lng: -77.0428 }; // Lima center
+            const basePoint = { lat: -12.0464, lng: -77.0428 };
             for (let i = 0; i < k; i++) {
-                const orderedSedes = nearestNeighborOrder(clusters[i] || [], basePoint.lat, basePoint.lng);
+                const clusterItems = clusters[i] || [];
+                if (!clusterItems.length) continue;
+                const orderedSedes = nearestNeighborOrder(clusterItems, basePoint.lat, basePoint.lng);
                 const vehiculo = vehiculos[i];
+                if (!vehiculo) continue;
                 const bucket = ensureVehiculoBucket(vehiculo.id_vehiculo);
                 bucket.length = 0;
 
