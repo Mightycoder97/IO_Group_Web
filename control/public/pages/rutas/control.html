@@ -600,6 +600,83 @@
             padding-left: 0.25rem;
         }
 
+        /* Document upload strips */
+        .doc-upload-strip {
+            align-items: center;
+            background: #fafbfc;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            padding: 6px 10px;
+        }
+
+        .doc-upload-strip label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #475569;
+            margin: 0;
+            min-width: 75px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .doc-upload-strip .file-input-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .doc-upload-strip .doc-preview {
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            display: none;
+            gap: 6px;
+            margin-left: 8px;
+            padding: 3px 8px;
+        }
+
+        .doc-upload-strip .doc-preview.has-file {
+            display: inline-flex;
+        }
+
+        .doc-upload-strip .doc-preview img {
+            border-radius: 3px;
+            height: 28px;
+            object-fit: cover;
+            width: 28px;
+        }
+
+        .doc-upload-strip .doc-preview .doc-name {
+            color: #0f172a;
+            font-size: 0.7rem;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .doc-upload-strip .btn-upload {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            white-space: nowrap;
+        }
+
+        .doc-upload-strip .upload-status {
+            font-size: 0.65rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .doc-upload-strip .upload-status.uploaded {
+            color: #166534;
+        }
+
+        .doc-upload-strip .upload-status.uploading {
+            color: #3b82f6;
+        }
+
         .gasto-ruta-row {
             border: 1px solid #e5e7eb;
             border-radius: 8px;
@@ -1325,6 +1402,11 @@
                                        placeholder="Ej: GR-001"
                                        onchange="onDatoIaChange(${s.id_servicio}, 'numero_guia', this.value)">
                             </div>
+                            <div class="col-12 mt-2">
+                                ${renderDocUploadStrip(s.id_servicio, 'manifiesto', 'Manifiesto', s.doc_manifiesto || '')}
+                                ${renderDocUploadStrip(s.id_servicio, 'guia', 'Guía', s.doc_guia || '')}
+                                ${renderDocUploadStrip(s.id_servicio, 'factura', 'Factura', s.doc_factura || '')}
+                            </div>
                             <div class="col-sm-12">
                                 ${renderMontoDiff(s, edit)}
                                 <button class="btn btn-sm btn-primary w-100" onclick="saveDocumentos(${s.id_servicio})">
@@ -1338,6 +1420,156 @@
                 </div>
             </div>`;
             }).join('');
+        }
+
+        // ─── Document Upload Helpers ──────────────────────────────────
+        function renderDocUploadStrip(idServicio, tipo, label, existingPath) {
+            const hasDoc = !!existingPath;
+            const previewHtml = hasDoc
+                ? `<a href="../${escapeHtml(existingPath)}" target="_blank" class="doc-preview has-file" title="Ver ${label}">
+                    <i class="bi bi-file-earmark-check text-success"></i>
+                    <span class="doc-name">${escapeHtml(label)} subido</span>
+                   </a>`
+                : `<span class="doc-preview" id="preview-${tipo}-${idServicio}">
+                    <span class="doc-name"></span>
+                   </span>`;
+
+            return `<div class="doc-upload-strip" id="uploadStrip-${tipo}-${idServicio}">
+                <label><i class="bi bi-file-earmark-arrow-up"></i> ${label}</label>
+                <input type="file" class="d-none" id="fileInput-${tipo}-${idServicio}"
+                    accept=".jpg,.jpeg,.png,.webp,.pdf,image/*,application/pdf"
+                    onchange="handleDocFile(${idServicio}, '${tipo}')">
+                <button class="btn btn-sm btn-outline-secondary" type="button"
+                    onclick="document.getElementById('fileInput-${tipo}-${idServicio}').click()">
+                    <i class="bi bi-folder2-open me-1"></i>Archivo
+                </button>
+                ${previewHtml}
+                <button class="btn btn-sm btn-success btn-upload d-none" type="button"
+                    id="btnUpload-${tipo}-${idServicio}"
+                    onclick="uploadDocumento(${idServicio}, '${tipo}')">
+                    <i class="bi bi-cloud-arrow-up me-1"></i>Subir
+                </button>
+                <span class="upload-status" id="status-${tipo}-${idServicio}">
+                    ${hasDoc ? '<span class="uploaded"><i class="bi bi-check-circle"></i> Listo</span>' : ''}
+                </span>
+            </div>`;
+        }
+
+        async function handleDocFile(idServicio, tipo) {
+            const input = document.getElementById(`fileInput-${tipo}-${idServicio}`);
+            const file = input?.files?.[0];
+            if (!file) return;
+
+            const btnUpload = document.getElementById(`btnUpload-${tipo}-${idServicio}`);
+            const previewEl = document.getElementById(`preview-${tipo}-${idServicio}`);
+            const statusEl = document.getElementById(`status-${tipo}-${idServicio}`);
+
+            // Store file globally for upload
+            if (!window._docFiles) window._docFiles = {};
+            const key = `${idServicio}_${tipo}`;
+
+            // Compress image client-side if image > 2MB
+            if (file.type.startsWith('image/') && file.size > 2 * 1024 * 1024) {
+                try {
+                    const compressed = await compressImageClient(file);
+                    window._docFiles[key] = new File([compressed], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
+                } catch (_) {
+                    window._docFiles[key] = file;
+                }
+            } else {
+                window._docFiles[key] = file;
+            }
+
+            // Show preview
+            if (previewEl) {
+                if (file.type.startsWith('image/')) {
+                    const url = URL.createObjectURL(file);
+                    previewEl.innerHTML = `<img src="${url}" alt=""><span class="doc-name">${escapeHtml(file.name)}</span>`;
+                    previewEl.classList.add('has-file');
+                } else {
+                    previewEl.innerHTML = `<i class="bi bi-file-pdf text-danger"></i><span class="doc-name">${escapeHtml(file.name)}</span>`;
+                    previewEl.classList.add('has-file');
+                }
+            }
+
+            if (btnUpload) btnUpload.classList.remove('d-none');
+            if (statusEl) statusEl.textContent = '';
+        }
+
+        function compressImageClient(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    const maxDim = 1920;
+                    let w = img.width, h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        const ratio = Math.min(maxDim / w, maxDim / h);
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob(blob => {
+                        if (blob) resolve(blob);
+                        else reject(new Error('Compresión fallida'));
+                    }, 'image/jpeg', 0.75);
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo cargar imagen')); };
+                img.src = url;
+            });
+        }
+
+        async function uploadDocumento(idServicio, tipo) {
+            const key = `${idServicio}_${tipo}`;
+            const file = window._docFiles?.[key];
+            if (!file) { showToast('Selecciona un archivo primero', 'warning'); return; }
+
+            const statusEl = document.getElementById(`status-${tipo}-${idServicio}`);
+            const btnUpload = document.getElementById(`btnUpload-${tipo}-${idServicio}`);
+            if (statusEl) { statusEl.textContent = 'Subiendo...'; statusEl.className = 'upload-status uploading'; }
+            if (btnUpload) btnUpload.disabled = true;
+
+            const formData = new FormData();
+            formData.append('archivo_pdf', file);
+            formData.append('tipo', tipo);
+            // Include number fields if present
+            const numInput = document.getElementById(tipo === 'manifiesto' ? `numManifiesto-${idServicio}` : (tipo === 'guia' ? `numGuia-${idServicio}` : `numFactura-${idServicio}`));
+            if (numInput && numInput.value.trim()) {
+                formData.append(tipo === 'manifiesto' ? 'numero_manifiesto' : (tipo === 'guia' ? 'numero_guia' : 'numero_factura'), numInput.value.trim());
+            }
+
+            try {
+                const resp = await fetch(`../api/servicios.php?action=upload_documento&id=${idServicio}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    if (statusEl) { statusEl.innerHTML = '<span class="uploaded"><i class="bi bi-check-circle"></i> Subido</span>'; statusEl.className = 'upload-status uploaded'; }
+                    if (btnUpload) btnUpload.classList.add('d-none');
+                    // Update preview to show link
+                    const previewEl = document.getElementById(`preview-${tipo}-${idServicio}`);
+                    if (previewEl) {
+                        previewEl.innerHTML = `<a href="../${escapeHtml(result.doc_escaneado)}" target="_blank" class="doc-preview has-file" title="Ver documento">
+                            <i class="bi bi-file-earmark-check text-success"></i>
+                            <span class="doc-name">Ver doc</span>
+                        </a>`;
+                        previewEl.classList.add('has-file');
+                    }
+                    showToast(`${tipo} subido correctamente`);
+                } else {
+                    if (statusEl) { statusEl.textContent = result.message || 'Error'; statusEl.className = 'upload-status text-danger'; }
+                    if (btnUpload) btnUpload.disabled = false;
+                }
+            } catch (err) {
+                if (statusEl) { statusEl.textContent = 'Error de conexión'; statusEl.className = 'upload-status text-danger'; }
+                if (btnUpload) btnUpload.disabled = false;
+            }
         }
 
         function renderAiInfo(s, edit) {

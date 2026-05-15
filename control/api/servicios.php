@@ -482,16 +482,22 @@ function uploadDocumento($id) {
     }
 
     $file = $_FILES['archivo_pdf'];
-    if ($file['size'] > 20 * 1024 * 1024) {
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowedExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp'];
+
+    if (!in_array($ext, $allowedExts, true)) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'El PDF no debe superar 20 MB']);
+        echo json_encode(['success' => false, 'message' => 'Solo se permiten PDF, JPG, PNG o WebP']);
         return;
     }
 
-    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if ($ext !== 'pdf') {
+    $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true);
+    $maxSize = $isImage ? 10 * 1024 * 1024 : 20 * 1024 * 1024;
+
+    if ($file['size'] > $maxSize) {
+        $maxMB = $isImage ? '10 MB' : '20 MB';
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Solo se permiten archivos PDF']);
+        echo json_encode(['success' => false, 'message' => "El archivo no debe superar $maxMB"]);
         return;
     }
 
@@ -499,10 +505,11 @@ function uploadDocumento($id) {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : null;
         if ($finfo) finfo_close($finfo);
-        $mimesPermitidos = ['application/pdf', 'application/x-pdf', 'application/octet-stream'];
+        $mimesPermitidos = ['application/pdf', 'application/x-pdf', 'application/octet-stream',
+            'image/jpeg', 'image/png', 'image/webp'];
         if ($mime && !in_array($mime, $mimesPermitidos, true)) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'El archivo seleccionado no parece ser un PDF']);
+            echo json_encode(['success' => false, 'message' => 'El archivo no es un tipo permitido']);
             return;
         }
     }
@@ -514,13 +521,23 @@ function uploadDocumento($id) {
         return;
     }
 
-    $fileName = 'servicio_' . intval($id) . '_' . $tipo . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.pdf';
+    $outExt = $isImage ? 'jpg' : 'pdf';
+    $fileName = 'servicio_' . intval($id) . '_' . $tipo . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $outExt;
     $filePath = $uploadDir . $fileName;
 
-    if (!move_uploaded_file($file['tmp_name'], $filePath)) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'message' => 'No se pudo guardar el PDF']);
-        return;
+    if ($isImage) {
+        $saved = compressAndSaveImage($file['tmp_name'], $filePath, $ext);
+        if (!$saved) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'No se pudo procesar la imagen']);
+            return;
+        }
+    } else {
+        if (!move_uploaded_file($file['tmp_name'], $filePath)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'No se pudo guardar el PDF']);
+            return;
+        }
     }
 
     $docPath = 'uploads/servicios/' . $tipo . '/' . $fileName;
@@ -545,7 +562,7 @@ function uploadDocumento($id) {
 
     echo json_encode([
         'success' => true,
-        'message' => 'PDF subido exitosamente',
+        'message' => 'Documento subido exitosamente',
         'tipo' => $tipo,
         'id_documento' => $documentId,
         'doc_escaneado' => $docPath
@@ -627,6 +644,69 @@ function nullIfEmpty($value) {
     if ($value === null) return null;
     $value = trim((string)$value);
     return $value === '' ? null : $value;
+}
+
+function compressAndSaveImage($sourcePath, $destPath, $sourceExt) {
+    $maxWidth = 1920;
+    $maxHeight = 1920;
+    $jpgQuality = 75;
+
+    // Load source image based on format
+    $srcImage = null;
+    switch ($sourceExt) {
+        case 'jpg':
+        case 'jpeg':
+            $srcImage = @imagecreatefromjpeg($sourcePath);
+            break;
+        case 'png':
+            $srcImage = @imagecreatefrompng($sourcePath);
+            break;
+        case 'webp':
+            if (function_exists('imagecreatefromwebp')) {
+                $srcImage = @imagecreatefromwebp($sourcePath);
+            }
+            break;
+    }
+
+    if (!$srcImage) {
+        // GD failed — save original as fallback
+        return move_uploaded_file($sourcePath, $destPath);
+    }
+
+    $origW = imagesx($srcImage);
+    $origH = imagesy($srcImage);
+
+    // Calculate new dimensions preserving aspect ratio
+    $ratio = min($maxWidth / $origW, $maxHeight / $origH, 1.0);
+    $newW = (int) round($origW * $ratio);
+    $newH = (int) round($origH * $ratio);
+
+    if ($newW < $origW || $newH < $origH) {
+        $dstImage = imagecreatetruecolor($newW, $newH);
+        // Preserve transparency for PNG
+        if ($sourceExt === 'png') {
+            imagealphablending($dstImage, false);
+            imagesavealpha($dstImage, true);
+        }
+        imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+        imagedestroy($srcImage);
+        $srcImage = $dstImage;
+    }
+
+    // Convert PNG with transparency to white background for JPEG
+    if ($sourceExt === 'png') {
+        $bgImage = imagecreatetruecolor($newW, $newH);
+        $white = imagecolorallocate($bgImage, 255, 255, 255);
+        imagefill($bgImage, 0, 0, $white);
+        imagecopy($bgImage, $srcImage, 0, 0, 0, 0, $newW, $newH);
+        imagedestroy($srcImage);
+        $srcImage = $bgImage;
+    }
+
+    $result = imagejpeg($srcImage, $destPath, $jpgQuality);
+    imagedestroy($srcImage);
+
+    return $result;
 }
 
 function delete($id) {

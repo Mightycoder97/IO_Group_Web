@@ -74,7 +74,9 @@ function getRouteServices($id_ruta) {
         $servicios = db()->query(
             "SELECT s.id_servicio, s.id_sede, s.estado, s.estado_pago, s.forma_pago,
                     s.fecha_pago, s.residuo, s.observaciones, $montoCobradoSelect as monto_cobrado,
-                    m.numero_manifiesto, m.peso_kg, g.numero_guia,
+                    m.numero_manifiesto, m.peso_kg, m.doc_escaneado as doc_manifiesto,
+                    g.numero_guia, g.doc_escaneado as doc_guia,
+                    f.numero_factura, f.doc_escaneado as doc_factura,
                     se.nombre_comercial as sede_nombre, se.direccion, se.distrito,
                     se.contacto_nombre, se.contacto_telefono,
                     e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
@@ -84,6 +86,7 @@ function getRouteServices($id_ruta) {
              INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
              LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
              LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
+             LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
              LEFT JOIN (
                  SELECT cs1.id_sede, cs1.tarifa
                  FROM ContratoServicio cs1
