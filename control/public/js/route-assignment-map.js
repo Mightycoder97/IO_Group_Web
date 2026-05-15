@@ -26,6 +26,8 @@ class RouteAssignmentMap {
         this.tileCenter = this.defaultCenter;
         this.tilePane = null;
         this.tileDragging = null;
+        this.routePolyline = null;
+        this.routeArrows = [];
     }
 
     async init(container) {
@@ -182,6 +184,9 @@ class RouteAssignmentMap {
 
     render(sedes = [], context = {}) {
         this.lastRender = { sedes, context };
+        if (!context.routePath || !context.routePath.length) {
+            this.clearRouteLine();
+        }
         if (this.isFallback) {
             this.renderFallback(sedes, context);
             return;
@@ -213,18 +218,36 @@ class RouteAssignmentMap {
         const selectedItem = selectedId
             ? withPosition.find(item => String(item.sede.id_sede) === selectedId)
             : null;
-        const visible = withPosition.slice(0, this.maxMarkers);
-        if (selectedItem && !visible.some(item => String(item.sede.id_sede) === selectedId)) {
-            visible.push(selectedItem);
+
+        // Clustering: group nearby markers at zoom <= 13
+        const currentZoom = this.map.getZoom();
+        const useClusters = currentZoom <= 13 && withPosition.length > 20;
+        let visible;
+        
+        if (useClusters) {
+            visible = this.clusterPoints(withPosition, currentZoom);
+        } else {
+            visible = withPosition.slice(0, this.maxMarkers);
+            if (selectedItem && !visible.some(item => String(item.sede.id_sede) === selectedId)) {
+                visible.push(selectedItem);
+            }
         }
 
+        // Clear old markers
         const nextIds = new Set();
         for (const item of visible) {
-            const id = String(item.sede.id_sede);
+            const isCluster = item.isCluster;
+            const id = isCluster ? ('cluster_' + item.id) : String(item.sede.id_sede);
             nextIds.add(id);
-            const marker = this.getOrCreateMarker(item.sede, item.position);
-            this.updateIcon(marker._iconEl, this.getStatus(item.sede, context));
-            marker.title = item.sede.nombre_comercial || '';
+            const marker = this.getOrCreateClusterMarker(item, id, isCluster, context);
+            if (isCluster) {
+                this.updateIcon(marker._iconEl, 'pending', marker._labelEl, String(item.count));
+            } else {
+                const status = this.getStatus(item.sede, context);
+                const labelText = context.showLabels ? this.getMarkerLabel(item.sede, context) : null;
+                this.updateIcon(marker._iconEl, status, marker._labelEl, labelText);
+                marker.title = item.sede.nombre_comercial || '';
+            }
             if (!this.lastVisibleIds.has(id)) marker.map = this.map;
         }
 
@@ -236,13 +259,220 @@ class RouteAssignmentMap {
         }
         this.lastVisibleIds = nextIds;
 
-        const hidden = withPosition.length - visible.length;
-        this.setStatus(hidden > 0
-            ? `${visible.length} de ${withPosition.length} sedes en mapa; ajusta filtros para ver mas`
-            : `${visible.length} sedes en mapa`);
+        const hidden = withPosition.length - (useClusters ? visible.reduce((s, c) => s + (c.count || 1), 0) : visible.length);
+        this.setStatus(useClusters
+            ? `${visible.length} grupos — ${withPosition.length} sedes (zoom para ver detalle)`
+            : hidden > 0
+                ? `${visible.length} de ${withPosition.length} sedes en mapa; ajusta filtros para ver mas`
+                : `${visible.length} sedes en mapa`);
 
         if (!this.hasFit || context.forceFit || selectedId) {
-            this.fitVisible(visible, selectedId);
+            this.fitVisible(useClusters ? visible.filter(v => !v.isCluster) : visible, selectedId);
+        }
+
+        // Draw route line for active vehicle
+        this.drawRouteLine(context);
+    }
+
+    clusterPoints(points, zoom) {
+        const cellSize = Math.max(0.008, 0.14 / Math.pow(2, zoom - 10));
+        const grid = new Map();
+        
+        for (const item of points) {
+            const cellX = Math.floor(item.position.lng / cellSize);
+            const cellY = Math.floor(item.position.lat / cellSize);
+            const key = `${cellX},${cellY}`;
+            if (!grid.has(key)) grid.set(key, []);
+            grid.get(key).push(item);
+        }
+        
+        const clusters = [];
+        for (const [key, items] of grid) {
+            if (items.length === 1) {
+                clusters.push(items[0]);
+            } else {
+                const avgLat = items.reduce((s, i) => s + i.position.lat, 0) / items.length;
+                const avgLng = items.reduce((s, i) => s + i.position.lng, 0) / items.length;
+                const assigned = items.filter(i => {
+                    const s = this.getStatus(i.sede, {});
+                    return s !== 'pending' && s !== 'selected';
+                }).length;
+                clusters.push({
+                    isCluster: true,
+                    id: key,
+                    position: { lat: avgLat, lng: avgLng },
+                    count: items.length,
+                    assigned,
+                    items
+                });
+            }
+        }
+        return clusters.slice(0, this.maxMarkers);
+    }
+
+    getOrCreateClusterMarker(item, id, isCluster, context) {
+        if (this.markersById.has(id)) {
+            const marker = this.markersById.get(id);
+            if (!isCluster) marker.position = item.position;
+            return marker;
+        }
+
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.alignItems = 'center';
+        container.style.gap = '1px';
+        container.style.transform = 'translate(0, 50%)';
+        container.style.cursor = 'pointer';
+
+        const el = document.createElement('div');
+        el.style.borderRadius = '50%';
+        el.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+
+        const label = document.createElement('span');
+        label.style.cssText = 'background:rgba(255,255,255,0.94);border:1px solid rgba(0,0,0,0.12);border-radius:4px;color:#0f172a;display:none;font-size:0.68rem;font-weight:700;line-height:1.15;max-width:120px;overflow:hidden;padding:1px 5px;text-align:center;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;';
+
+        container.appendChild(el);
+        container.appendChild(label);
+
+        if (isCluster) {
+            el.style.width = '30px';
+            el.style.height = '30px';
+            el.style.backgroundColor = '#6366f1';
+            el.style.border = '3px solid #ffffff';
+            el.style.boxShadow = '0 3px 10px rgba(99,102,241,0.4)';
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'center';
+            el.style.color = '#fff';
+            el.style.fontSize = '0.7rem';
+            el.style.fontWeight = '800';
+            el.textContent = String(item.count);
+            label.style.display = 'none';
+            container.addEventListener('click', () => {
+                this.map.setZoom(Math.min(this.map.getZoom() + 2, 15));
+                this.map.panTo(item.position);
+            });
+        } else {
+            el.style.borderRadius = '50%';
+            el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+            el.addEventListener('dblclick', () => {
+                if (this.options.onQuickAdd) this.options.onQuickAdd(item.sede);
+            });
+        }
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+            position: item.position,
+            gmpClickable: true,
+            content: container
+        });
+        marker._iconEl = el;
+        marker._labelEl = label;
+
+        if (!isCluster) {
+            marker.addListener('gmp-click', () => {
+                if (this.options.onSelect) this.options.onSelect(item.sede);
+                this.openInfo(marker, item.sede);
+            });
+        }
+
+        this.markersById.set(id, marker);
+        return marker;
+    }
+
+    getMarkerLabel(sede, context) {
+        if (!context.showLabels) return null;
+        const activeVehicleIds = context.activeVehicleClientIds;
+        if (!activeVehicleIds || !activeVehicleIds.has(String(sede.id_sede))) return null;
+        const name = (sede.nombre_comercial || '').substring(0, 16);
+        return name || null;
+    }
+
+    drawRouteLine(context) {
+        // Clear previous route line
+        if (this.routePolyline) {
+            this.routePolyline.setMap(null);
+            this.routePolyline = null;
+        }
+        if (this.routeArrows) {
+            this.routeArrows.forEach(a => a.setMap(null));
+            this.routeArrows = [];
+        }
+
+        if (!context.routePath || !context.routePath.length || context.routePath.length < 2) return;
+
+        const path = context.routePath.map(p => ({ lat: p.lat, lng: p.lng }));
+        const color = context.routeColor || '#ef4444';
+
+        this.routePolyline = new google.maps.Polyline({
+            path,
+            geodesic: true,
+            strokeColor: color,
+            strokeOpacity: 0.7,
+            strokeWeight: 3,
+            zIndex: 5
+        });
+        this.routePolyline.setMap(this.map);
+
+        // Direction arrows at midpoints
+        this.routeArrows = [];
+        for (let i = 0; i < path.length - 1; i++) {
+            const mid = {
+                lat: (path[i].lat + path[i + 1].lat) / 2,
+                lng: (path[i].lng + path[i + 1].lng) / 2
+            };
+            const angle = this.computeHeading(path[i], path[i + 1]);
+            const arrow = new google.maps.Marker({
+                position: mid,
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: 2.5,
+                    fillColor: color,
+                    fillOpacity: 0.8,
+                    strokeColor: '#fff',
+                    strokeWeight: 1,
+                    rotation: angle
+                },
+                clickable: false,
+                zIndex: 6
+            });
+            arrow.setMap(this.map);
+            this.routeArrows.push(arrow);
+        }
+    }
+
+    computeHeading(from, to) {
+        const dLng = (to.lng - from.lng) * Math.PI / 180;
+        const lat1 = from.lat * Math.PI / 180;
+        const lat2 = to.lat * Math.PI / 180;
+        const y = Math.sin(dLng) * Math.cos(lat2);
+        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+        return Math.atan2(y, x) * 180 / Math.PI;
+    }
+
+    clearRouteLine() {
+        if (this.routePolyline) {
+            this.routePolyline.setMap(null);
+            this.routePolyline = null;
+        }
+        if (this.routeArrows) {
+            this.routeArrows.forEach(a => a.setMap(null));
+            this.routeArrows = [];
+        }
+    }
+
+    highlightMarker(sedeId, active) {
+        const id = String(sedeId);
+        const marker = this.markersById.get(id);
+        if (!marker || !marker._iconEl) return;
+        if (active) {
+            marker._iconEl.style.transform = 'scale(1.5)';
+            marker._iconEl.style.boxShadow = '0 0 12px rgba(245,158,11,0.7)';
+            marker._iconEl.style.zIndex = '200';
+        } else {
+            marker._iconEl.style.transform = '';
+            marker._iconEl.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+            marker._iconEl.style.zIndex = '';
         }
     }
 
@@ -1079,21 +1309,46 @@ class RouteAssignmentMap {
             return marker;
         }
 
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.alignItems = 'center';
+        container.style.gap = '1px';
+        container.style.transform = 'translate(0, 50%)';
+
         const el = document.createElement('div');
         el.style.borderRadius = '50%';
         el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
-        el.style.transform = 'translate(0, 50%)';
         el.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
         el.addEventListener('dblclick', () => {
             if (this.options.onQuickAdd) this.options.onQuickAdd(sede);
         });
 
+        const label = document.createElement('span');
+        label.style.cssText = 'background:rgba(255,255,255,0.94);border:1px solid rgba(0,0,0,0.12);border-radius:4px;color:#0f172a;display:none;font-size:0.68rem;font-weight:700;line-height:1.15;max-width:120px;overflow:hidden;padding:1px 5px;text-align:center;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;';
+
+        container.appendChild(el);
+        container.appendChild(label);
+
+        // Hover sync: map → search panel
+        container.addEventListener('mouseenter', () => {
+            if (this.options.onHover) this.options.onHover(sede, true);
+            el.style.transform = 'scale(1.3)';
+            el.style.boxShadow = '0 0 10px rgba(245,158,11,0.6)';
+        });
+        container.addEventListener('mouseleave', () => {
+            if (this.options.onHover) this.options.onHover(sede, false);
+            el.style.transform = '';
+            el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+        });
+
         const marker = new google.maps.marker.AdvancedMarkerElement({
             position,
             gmpClickable: true,
-            content: el
+            content: container
         });
         marker._iconEl = el;
+        marker._labelEl = label;
         marker.addListener('gmp-click', () => {
             if (this.options.onSelect) this.options.onSelect(sede);
             this.openInfo(marker, sede);
@@ -1109,7 +1364,7 @@ class RouteAssignmentMap {
         return 'pending';
     }
 
-    updateIcon(el, status) {
+    updateIcon(el, status, labelEl, labelText) {
         if (!el) return;
         
         let stateId = typeof status === 'object' ? (status.id || 'pending') : status;
@@ -1152,20 +1407,46 @@ class RouteAssignmentMap {
 
         el.className = el.className.replace(/\bshape-\S+/g, '');
         el.classList.add('shape-' + shape);
+
+        if (labelEl) {
+            if (labelText) {
+                labelEl.textContent = labelText;
+                labelEl.style.display = 'block';
+            } else {
+                labelEl.style.display = 'none';
+            }
+        }
     }
 
     openInfo(marker, sede) {
         const action = this.options.actionForSede ? this.options.actionForSede(sede) : null;
-        const button = action
-            ? `<button class="btn btn-sm ${action.kind === 'reassign' ? 'btn-warning' : 'btn-success'} w-100 mt-2" id="routeMapAction">${this.escapeHtml(action.label)}</button>`
-            : '<div class="small text-muted mt-2">Selecciona un camion para asignar</div>';
+        const telefono = sede.telefono || sede.contacto_telefono || '';
+        const direccion = sede.direccion || '';
+        const distrito = sede.distrito || '';
+        const frecuencia = sede.frecuencia || 'Sin frecuencia';
+        const tarifa = sede.tarifa ? `S/ ${sede.tarifa}` : '';
+
+        const actionBtn = action
+            ? `<button class="btn btn-sm ${action.kind === 'reassign' ? 'btn-warning' : 'btn-success'} w-100 mt-1" id="routeMapAction">${this.escapeHtml(action.label)}</button>`
+            : '<div class="small text-muted mt-1">Selecciona un camion para asignar</div>';
+
+        const whatsappBtn = telefono
+            ? `<a class="btn btn-sm btn-outline-success w-100 mt-1" href="https://wa.me/51${telefono.replace(/\D/g, '')}" target="_blank"><i class="bi bi-whatsapp"></i> WhatsApp</a>`
+            : '';
+
         const content = `
-            <div style="max-width:260px">
-                <div class="fw-bold">${this.escapeHtml(sede.nombre_comercial || '-')}</div>
-                <div class="small text-muted">${this.escapeHtml(sede.empresa_ruc || '')}</div>
-                <div class="small">${this.escapeHtml(sede.distrito || '')}</div>
-                <div class="small text-muted">${this.escapeHtml(sede.frecuencia || 'Sin frecuencia')}</div>
-                ${button}
+            <div style="max-width:280px;font-size:0.88rem;">
+                <div class="fw-bold mb-1" style="font-size:0.95rem;">${this.escapeHtml(sede.nombre_comercial || '-')}</div>
+                <div class="small text-muted">RUC: ${this.escapeHtml(sede.empresa_ruc || '-')}</div>
+                ${direccion ? `<div class="small mt-1"><i class="bi bi-geo-alt"></i> ${this.escapeHtml(direccion)}</div>` : ''}
+                <div class="d-flex gap-3 mt-1 flex-wrap">
+                    ${distrito ? `<span class="small text-muted">${this.escapeHtml(distrito)}</span>` : ''}
+                    <span class="small text-muted">${this.escapeHtml(frecuencia)}</span>
+                    ${tarifa ? `<span class="small fw-bold text-success">${tarifa}</span>` : ''}
+                </div>
+                ${telefono ? `<div class="small mt-1"><i class="bi bi-telephone"></i> ${this.escapeHtml(telefono)}</div>` : ''}
+                ${actionBtn}
+                ${whatsappBtn}
             </div>`;
 
         this.infoWindow.setContent(content);
@@ -1222,6 +1503,214 @@ class RouteAssignmentMap {
             '"': '&quot;',
             "'": '&#39;'
         }[char]));
+    }
+
+    // ─── District Layer ───────────────────────────────────────────
+    async loadDistrictLayer(geoJsonUrl) {
+        if (this.districtLayer) return;
+        try {
+            const resp = await fetch(geoJsonUrl);
+            if (!resp.ok) throw new Error('No se pudo cargar GeoJSON de distritos');
+            const geoJson = await resp.json();
+            this.districtData = geoJson;
+            this.districtLayer = new google.maps.Data({ map: this.map, style: { fillOpacity: 0, strokeWeight: 0 } });
+            this.districtLayer.addGeoJson(geoJson);
+            this.districtSedesMap = new Map();
+            this._districtVisible = false;
+        } catch (e) {
+            console.warn('Capa de distritos no disponible:', e.message);
+        }
+    }
+
+    toggleDistrictLayer(visible, sedesWithGPS = []) {
+        if (!this.districtLayer || !this.districtData) return;
+        this._districtVisible = visible;
+        if (!visible) {
+            this.districtLayer.setStyle({ fillOpacity: 0, strokeWeight: 0 });
+            return;
+        }
+
+        // Build map: district name -> count of sedes
+        const distCount = new Map();
+        for (const s of sedesWithGPS) {
+            const d = (s.distrito || '').toUpperCase().trim();
+            if (d) distCount.set(d, (distCount.get(d) || 0) + 1);
+        }
+        const maxCount = Math.max(1, ...distCount.values());
+
+        this.districtLayer.setStyle(feature => {
+            const name = (feature.getProperty('NOMBDIST') || '').toUpperCase().trim();
+            const count = distCount.get(name) || 0;
+            const alpha = count ? 0.12 + (count / maxCount) * 0.2 : 0;
+            const color = count ? '#166534' : '#94a3b8';
+            return {
+                fillColor: color,
+                fillOpacity: count ? alpha : 0.03,
+                strokeColor: color,
+                strokeWeight: count ? 1.5 : 0.5,
+                strokeOpacity: count ? 0.6 : 0.2
+            };
+        });
+
+        // Hover: show district name
+        this.districtLayer.addListener('mouseover', e => {
+            const name = e.feature.getProperty('NOMBDIST') || '';
+            const count = distCount.get(name.toUpperCase().trim()) || 0;
+            this.setStatus(count ? `${name}: ${count} sedes` : name);
+        });
+        this.districtLayer.addListener('mouseout', () => this.setStatus(''));
+    }
+
+    updateDistrictSedes(sedesWithGPS = []) {
+        if (this._districtVisible) this.toggleDistrictLayer(true, sedesWithGPS);
+    }
+
+    // ─── Heatmap ──────────────────────────────────────────────────
+    toggleHeatmap(visible, sedes = []) {
+        if (this.heatmapCircles) {
+            this.heatmapCircles.forEach(c => c.setMap(null));
+            this.heatmapCircles = [];
+        }
+        if (this.heatmapActive === visible) { this.heatmapActive = !visible; visible = this.heatmapActive; }
+        this.heatmapActive = visible;
+        if (!visible || !sedes.length) return;
+
+        const gridSize = 0.02; // ~2km cells
+        const grid = new Map();
+        for (const s of sedes) {
+            const pos = this.parsePosition(s.coordenadas_gps);
+            if (!pos) continue;
+            const gx = Math.floor(pos.lng / gridSize);
+            const gy = Math.floor(pos.lat / gridSize);
+            const key = `${gx},${gy}`;
+            if (!grid.has(key)) grid.set(key, { count: 0, lat: 0, lng: 0 });
+            const cell = grid.get(key);
+            cell.count++;
+            cell.lat += pos.lat;
+            cell.lng += pos.lng;
+        }
+
+        const maxCount = Math.max(1, ...Array.from(grid.values()).map(c => c.count));
+        this.heatmapCircles = [];
+        for (const [, cell] of grid) {
+            const radius = 300 + (cell.count / maxCount) * 900;
+            const alpha = 0.15 + (cell.count / maxCount) * 0.35;
+            const circle = new google.maps.Circle({
+                center: { lat: cell.lat / cell.count, lng: cell.lng / cell.count },
+                radius,
+                fillColor: '#ef4444',
+                fillOpacity: alpha,
+                strokeColor: '#ef4444',
+                strokeOpacity: 0.4,
+                strokeWeight: 1,
+                clickable: false,
+                zIndex: 2
+            });
+            circle.setMap(this.map);
+            this.heatmapCircles.push(circle);
+        }
+    }
+
+    // ─── K-Means Preview ──────────────────────────────────────────
+    showKMeansPreview(clusters, vehicleColors) {
+        this.clearKMeansPreview();
+        this.kmeansCircles = [];
+        this.kmeansMarkers = [];
+
+        for (let i = 0; i < clusters.length; i++) {
+            const cluster = clusters[i] || [];
+            if (!cluster.length) continue;
+            const color = vehicleColors[i % vehicleColors.length];
+
+            // Cluster center
+            const avgLat = cluster.reduce((s, p) => s + p.lat, 0) / cluster.length;
+            const avgLng = cluster.reduce((s, p) => s + p.lng, 0) / cluster.length;
+
+            // Bounding circle
+            const maxDist = Math.max(...cluster.map(p => {
+                const dLat = (p.lat - avgLat) * 111320;
+                const dLng = (p.lng - avgLng) * 111320 * Math.cos(avgLat * Math.PI / 180);
+                return Math.sqrt(dLat * dLat + dLng * dLng);
+            }));
+            const radius = Math.max(800, maxDist * 1.3);
+
+            const circle = new google.maps.Circle({
+                center: { lat: avgLat, lng: avgLng },
+                radius,
+                fillColor: color,
+                fillOpacity: 0.12,
+                strokeColor: color,
+                strokeOpacity: 0.7,
+                strokeWeight: 2.5,
+                clickable: false,
+                zIndex: 4
+            });
+            circle.setMap(this.map);
+            this.kmeansCircles.push(circle);
+
+            // Cluster markers with vehicle color
+            for (const p of cluster) {
+                const marker = new google.maps.Marker({
+                    position: { lat: p.lat, lng: p.lng },
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 7,
+                        fillColor: color,
+                        fillOpacity: 0.9,
+                        strokeColor: '#fff',
+                        strokeWeight: 1.5
+                    },
+                    clickable: false,
+                    zIndex: 5
+                });
+                marker.setMap(this.map);
+                this.kmeansMarkers.push(marker);
+            }
+
+            // Label with count
+            const label = new google.maps.Marker({
+                position: { lat: avgLat, lng: avgLng },
+                label: {
+                    text: String(cluster.length),
+                    color: '#fff',
+                    fontSize: '13px',
+                    fontWeight: 'bold'
+                },
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 14,
+                    fillColor: color,
+                    fillOpacity: 0.95,
+                    strokeColor: '#fff',
+                    strokeWeight: 2.5
+                },
+                clickable: false,
+                zIndex: 10
+            });
+            label.setMap(this.map);
+            this.kmeansMarkers.push(label);
+        }
+
+        // Fit bounds to show all clusters
+        if (this.kmeansCircles.length) {
+            const bounds = new google.maps.LatLngBounds();
+            this.kmeansCircles.forEach(c => {
+                const center = c.getCenter();
+                if (center) bounds.extend(center);
+            });
+            this.map.fitBounds(bounds, 80);
+        }
+    }
+
+    clearKMeansPreview() {
+        if (this.kmeansCircles) {
+            this.kmeansCircles.forEach(c => c.setMap(null));
+            this.kmeansCircles = [];
+        }
+        if (this.kmeansMarkers) {
+            this.kmeansMarkers.forEach(m => m.setMap(null));
+            this.kmeansMarkers = [];
+        }
     }
 }
 

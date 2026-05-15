@@ -205,6 +205,22 @@
             z-index: 5;
         }
 
+        .route-map-header .btn.active {
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #btnToggleDistritos.active {
+            background: #166534 !important;
+            border-color: #166534 !important;
+            color: #fff !important;
+        }
+
+        #btnToggleHeatmap.active {
+            background: #dc2626 !important;
+            border-color: #dc2626 !important;
+            color: #fff !important;
+        }
+
         #routeMap {
             bottom: 0;
             left: 0;
@@ -242,12 +258,82 @@
             z-index: 6;
         }
 
+        .route-map-legend .legend-vehicle {
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            display: flex;
+            font-size: 0.7rem;
+            gap: 5px;
+            padding: 3px 7px;
+        }
+
         .legend-dot {
             border-radius: 50%;
             display: inline-flex;
             height: 10px;
             margin-right: 4px;
             width: 10px;
+        }
+
+        .legend-dot.shape-square { border-radius: 2px; }
+        .legend-dot.shape-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .legend-dot.shape-triangle { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); }
+        .legend-dot.shape-hexagon { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+        .legend-dot.shape-pentagon { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+        .legend-dot.shape-star { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+        .route-map-metrics {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 6px 10px;
+        }
+
+        .map-metric-card {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px 6px;
+            text-align: center;
+        }
+
+        .map-metric-card i {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .map-metric-card strong {
+            font-size: 1.15rem;
+            line-height: 1;
+        }
+
+        .map-metric-card span {
+            color: #64748b;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .map-progress-bar {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 4px;
+            margin-top: 4px;
+            width: 100%;
+        }
+
+        .map-progress-fill {
+            background: #22c55e;
+            border-radius: 4px;
+            height: 100%;
+            transition: width 0.3s ease;
         }
 
         .selected-sede-panel {
@@ -367,6 +453,17 @@
             .route-work-panel,
             .route-map-panel {
                 min-height: 460px;
+            }
+
+            .route-map-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .route-map-legend {
+                bottom: 8px;
+                gap: 4px;
+                left: 8px;
+                padding: 6px 8px;
             }
         }
 
@@ -850,27 +947,44 @@
                                     <button class="btn btn-sm btn-outline-secondary" type="button" onclick="fitMapToSelection()">
                                         <i class="bi bi-bounding-box"></i> Ajustar
                                     </button>
+                                    <button class="btn btn-sm btn-outline-info" type="button" id="btnToggleDistritos" onclick="toggleDistrictLayer()" title="Mostrar/ocultar capa de distritos">
+                                        <i class="bi bi-map"></i> Distritos
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" type="button" id="btnToggleHeatmap" onclick="toggleHeatmap()" title="Mostrar/ocultar mapa de calor de sedes sin asignar">
+                                        <i class="bi bi-fire"></i> Densidad
+                                    </button>
                                     <button class="btn btn-sm btn-success" type="button" onclick="quickAddSelectedSede()">
                                         <i class="bi bi-plus-circle"></i> Agregar seleccion
                                     </button>
                                 </div>
                             </div>
-                            <div class="d-flex flex-wrap gap-4 px-2 py-1 bg-light border rounded small text-muted">
-                                <div>Total filtro: <strong id="metricTotal" class="text-dark">0</strong></div>
-                                <div>Asignadas mes: <strong id="metricAssigned" class="text-dark">0</strong></div>
-                                <div>Pendientes: <strong id="metricPending" class="text-dark">0</strong></div>
-                                <div>Cumplimiento: <strong id="metricCompliance" class="text-success">0%</strong></div>
-                                <div class="ms-auto d-none" id="coverageBreakdown"></div>
+                            <div class="route-map-metrics" id="mapMetrics">
+                                <div class="map-metric-card" id="metricCardTotal">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <strong id="metricTotal">0</strong>
+                                    <span>Total filtro</span>
+                                </div>
+                                <div class="map-metric-card text-success" id="metricCardAssigned">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <strong id="metricAssigned">0</strong>
+                                    <span>Asignadas</span>
+                                </div>
+                                <div class="map-metric-card text-warning" id="metricCardPending">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <strong id="metricPending">0</strong>
+                                    <span>Pendientes</span>
+                                </div>
+                                <div class="map-metric-card" id="metricCardCompliance">
+                                    <i class="bi bi-graph-up"></i>
+                                    <strong id="metricCompliance">0%</strong>
+                                    <div class="map-progress-bar"><div class="map-progress-fill" id="complianceBar" style="width:0%"></div></div>
+                                </div>
                             </div>
                         </div>
                         <div id="routeMap"></div>
                         <div class="route-map-status" id="routeMapStatus">Preparando mapa...</div>
-                        <div class="route-map-legend small">
-                            <span><i class="legend-dot" style="background:#2563eb"></i>Pendiente</span>
-                            <span><i class="legend-dot" style="background:#f59e0b"></i>Seleccionada</span>
-                            <span><i class="legend-dot" style="background:#ef4444"></i>Vehiculo activo</span>
-                            <span><i class="legend-dot" style="background:#64748b"></i>Otro vehiculo</span>
-                            <span class="ms-2 text-muted">Cada vehiculo tiene color y forma unicos</span>
+                        <div class="route-map-legend small" id="vehicleLegend">
+                            <span class="text-muted">Cargando vehiculos...</span>
                         </div>
                     </section>
                 </section>
@@ -995,7 +1109,7 @@
     <script src="../../js/config.js"></script>
     <script src="../../js/api.js"></script>
     <script src="../../js/app.js?v=2.5"></script>
-    <script src="../../js/route-assignment-map.js?v=1.6"></script>
+    <script src="../../js/route-assignment-map.js?v=1.8"></script>
     <script>
         bootControlPage('rutas');
 
@@ -1752,23 +1866,11 @@
             document.getElementById('metricCompliance').textContent = `${compliance}%`;
             document.getElementById('todayAssignedPill').textContent = `${assignedToday} sedes hoy`;
 
-            const pendingGroups = new Map();
-            filtered.forEach(c => {
-                if (monthlyAssigned.has(String(c.id_sede))) return;
-                const key = `${c._district || 'SIN DISTRITO'}|${normalizeFrequency(c.frecuencia) || 'sin frecuencia'}`;
-                pendingGroups.set(key, (pendingGroups.get(key) || 0) + 1);
-            });
+            const bar = document.getElementById('complianceBar');
+            if (bar) bar.style.width = `${compliance}%`;
 
-            const rows = Array.from(pendingGroups.entries())
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 8);
-
-            document.getElementById('coverageBreakdown').innerHTML = rows.length
-                ? rows.map(([key, total]) => {
-                    const [district, freq] = key.split('|');
-                    return `<div class="route-breakdown-row"><span>${escapeHtml(distritoDisplayMap[district] || district)} | ${escapeHtml(FREQUENCY_LABELS[freq] || freq)}</span><b>${total}</b></div>`;
-                }).join('')
-                : '<div class="small text-muted">Sin pendientes para el filtro actual.</div>';
+            // Update vehicle legend
+            updateVehicleLegend();
         }
 
         function renderSelectedSedePanel() {
@@ -2035,6 +2137,18 @@
                 maxMarkers: 420,
                 onSelect: sede => selectSede(sede.id_sede),
                 onQuickAdd: sede => agregarCliente(sede.id_sede, 'mapa'),
+                onHover: (sede, active) => {
+                    const id = String(sede.id_sede);
+                    const cards = document.querySelectorAll('.route-result');
+                    cards.forEach(card => {
+                        const onclick = card.getAttribute('onclick') || '';
+                        if (onclick.includes(`selectSede(${id})`)) {
+                            card.style.borderColor = active ? '#f59e0b' : '';
+                            card.style.boxShadow = active ? '0 0 0 2px rgba(245,158,11,0.3)' : '';
+                            if (active) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                        }
+                    });
+                },
                 statusForSede: sede => {
                     const assigned = assignmentState.assignedBySede.get(String(sede.id_sede));
                     if (!assigned) return 'pending';
@@ -2063,7 +2177,10 @@
                 }
             });
             await routeAssignmentMap.init(document.getElementById('routeMap'));
+            // Load district layer after map is ready
+            routeAssignmentMap.loadDistrictLayer('../../data/lima_distritos.json');
             updateRouteMap(assignmentState.filteredClientes, true);
+            setupHoverSync();
         }
 
         function getVehiculoColor(vehiculoId) {
@@ -2086,10 +2203,26 @@
                 ? [selected, ...filtered]
                 : filtered;
             document.getElementById('mapSubtitle').textContent = `${mapSet.filter(c => hasValidRouteCoordinate(c.coordenadas_gps)).length} sedes filtradas con GPS valido`;
+            
+            // Build route path for active vehicle
+            const activeKey = assignmentState.selectedVehiculoId;
+            const activeClientes = activeKey ? (assignmentState.clientesPorVehiculo.get(activeKey) || []) : [];
+            const routePath = activeClientes
+                .map(c => parseGPS(c.coordenadas_gps))
+                .filter(p => p);
+            const routeColor = activeKey ? getVehiculoColor(activeKey) : null;
+
+            // Build set of active vehicle's client IDs for labels
+            const activeVehicleClientIds = new Set(activeClientes.map(c => String(c.id_sede)));
+
             if (routeAssignmentMap) {
                 routeAssignmentMap.render(mapSet, {
                     selectedSedeId: assignmentState.selectedSedeId,
                     forceFit,
+                    showLabels: !!activeKey && activeClientes.length > 0,
+                    activeVehicleClientIds,
+                    routePath,
+                    routeColor,
                     statusForSede: sede => {
                         const assigned = assignmentState.assignedBySede.get(String(sede.id_sede));
                         if (!assigned) return 'pending';
@@ -2101,11 +2234,95 @@
                         };
                     }
                 });
+                // Update district and heatmap layers
+                const withGPS = mapSet.filter(c => hasValidRouteCoordinate(c.coordenadas_gps));
+                routeAssignmentMap.updateDistrictSedes(withGPS);
+                if (heatmapVisible) {
+                    const unassigned = assignmentState.filteredClientes.filter(c => !assignmentState.assignedBySede.has(String(c.id_sede)));
+                    routeAssignmentMap.toggleHeatmap(true, unassigned);
+                }
             }
         }
 
         function fitMapToSelection() {
             updateRouteMap(assignmentState.filteredClientes, true);
+        }
+
+        let districtVisible = false;
+        function toggleDistrictLayer() {
+            if (!routeAssignmentMap || routeAssignmentMap.isFallback) return;
+            districtVisible = !districtVisible;
+            const btn = document.getElementById('btnToggleDistritos');
+            if (btn) btn.classList.toggle('active', districtVisible);
+            const withGPS = assignmentState.filteredClientes.filter(c => hasValidRouteCoordinate(c.coordenadas_gps));
+            routeAssignmentMap.toggleDistrictLayer(districtVisible, withGPS);
+        }
+
+        let heatmapVisible = false;
+        function toggleHeatmap() {
+            if (!routeAssignmentMap || routeAssignmentMap.isFallback) return;
+            heatmapVisible = !heatmapVisible;
+            const btn = document.getElementById('btnToggleHeatmap');
+            if (btn) btn.classList.toggle('active', heatmapVisible);
+            const unassigned = assignmentState.filteredClientes.filter(c => !assignmentState.assignedBySede.has(String(c.id_sede)));
+            routeAssignmentMap.toggleHeatmap(heatmapVisible, unassigned);
+        }
+
+        function updateVehicleLegend() {
+            const el = document.getElementById('vehicleLegend');
+            if (!el) return;
+            if (!vehiculos.length) {
+                el.innerHTML = '<span class="text-muted">Sin vehiculos disponibles</span>';
+                return;
+            }
+            el.innerHTML = vehiculos.map((v, i) => {
+                const key = getVehiculoKey(v.id_vehiculo);
+                const count = (assignmentState.clientesPorVehiculo.get(key) || []).length;
+                const color = VEHICLE_COLORS[i % VEHICLE_COLORS.length];
+                const shape = VEHICLE_SHAPES[i % VEHICLE_SHAPES.length];
+                const isActive = key === assignmentState.selectedVehiculoId;
+                return `<div class="legend-vehicle ${isActive ? 'border-primary bg-primary-subtle' : ''}">
+                    <i class="legend-dot shape-${shape}" style="background:${color};min-width:10px;"></i>
+                    <span class="fw-bold">${escapeHtml(v.placa || '-')}</span>
+                    <span class="badge bg-secondary rounded-pill">${count}</span>
+                </div>`;
+            }).join('');
+            // Add pending indicator
+            el.innerHTML += '<div class="legend-vehicle"><i class="legend-dot" style="background:#3b82f6;"></i><span>Pendientes</span></div>';
+        }
+
+        function highlightMapMarker(sedeId, active) {
+            if (routeAssignmentMap && !routeAssignmentMap.isFallback) {
+                routeAssignmentMap.highlightMarker(sedeId, active);
+            }
+        }
+
+        function setupHoverSync() {
+            const results = document.getElementById('searchResults');
+            if (!results) return;
+            // Delegate hover events on search result buttons
+            results.addEventListener('mouseenter', e => {
+                const btn = e.target.closest('.route-result');
+                if (!btn) return;
+                const onclick = btn.getAttribute('onclick') || '';
+                const match = onclick.match(/selectSede\((\d+)\)/);
+                if (match) {
+                    highlightMapMarker(match[1], true);
+                    btn.style.borderColor = '#f59e0b';
+                    btn.style.boxShadow = '0 0 0 2px rgba(245,158,11,0.3)';
+                }
+            }, true);
+            results.addEventListener('mouseleave', e => {
+                const btn = e.target.closest('.route-result');
+                if (!btn) return;
+                const onclick = btn.getAttribute('onclick') || '';
+                const match = onclick.match(/selectSede\((\d+)\)/);
+                if (match) {
+                    highlightMapMarker(match[1], false);
+                    btn.style.borderColor = '';
+                    btn.style.boxShadow = '';
+                }
+            }, true);
         }
 
         function validateRoutePlan() {
@@ -2419,15 +2636,6 @@
             // Check if there are existing assignments
             const totalExisting = Array.from(assignmentState.clientesPorVehiculo.values())
                 .reduce((s, c) => s + c.length, 0);
-            if (totalExisting > 0) {
-                if (!confirm(`Ya hay ${totalExisting} sedes asignadas.\n\n¿Deseas limpiar las rutas actuales y auto-asignar ${sedesConGPS.length} sedes con GPS?`)) {
-                    return;
-                }
-                // Clear all current assignments
-                vehiculos.forEach(v => {
-                    ensureVehiculoBucket(v.id_vehiculo).length = 0;
-                });
-            }
 
             const k = vehiculos.length;
 
@@ -2437,12 +2645,75 @@
             // Step 2: Balance clusters
             clusters = balanceClusters(clusters, 3);
 
+            // Show K-means preview on map
+            if (routeAssignmentMap && !routeAssignmentMap.isFallback) {
+                const existingMsg = totalExisting > 0
+                    ? `\n\nSe limpiaran ${totalExisting} asignaciones existentes.`
+                    : '';
+                const sinGPSMsg = sinGPSList.length > 0
+                    ? `\n\n${sinGPSList.length} sede(s) sin GPS seran excluidas: ${sinGPSList.map(s => s.nombre_comercial).join(', ')}`
+                    : '';
+                const summary = vehiculos.map((v, i) => {
+                    const count = (clusters[i] || []).length;
+                    return `${v.placa}: ${count}`;
+                }).join(' | ');
+
+                routeAssignmentMap.clearKMeansPreview();
+                routeAssignmentMap.showKMeansPreview(clusters, VEHICLE_COLORS);
+                document.getElementById('mapSubtitle').textContent = `Vista previa: ${summary} — Confirma o cancela`;
+
+                // Show confirmation toast with buttons
+                showKMeansConfirmDialog(sedesConGPS, clusters, sinGPSList, totalExisting, summary);
+                return;
+            }
+
+            // Fallback: execute directly if no map available
+            executeAutoAssign(sedesConGPS, clusters, sinGPSList);
+        }
+
+        function showKMeansConfirmDialog(sedesConGPS, clusters, sinGPSList, totalExisting, summary) {
+            const overlay = document.createElement('div');
+            overlay.id = 'kmeansConfirmOverlay';
+            overlay.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:16px 20px;display:flex;align-items:center;gap:16px;font-size:0.9rem;max-width:95vw;';
+            overlay.innerHTML = `
+                <div>
+                    <div class="fw-bold mb-1"><i class="bi bi-lightning-charge-fill text-warning"></i> Auto-asignacion — Vista previa</div>
+                    <div class="small text-muted">${summary}${totalExisting > 0 ? ` (${totalExisting} asignaciones previas se limpiaran)` : ''}</div>
+                    ${sinGPSList.length > 0 ? `<div class="small text-danger mt-1">${sinGPSList.length} sede(s) sin GPS excluidas</div>` : ''}
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm fw-bold" id="btnKmeansConfirm"><i class="bi bi-check-lg"></i> Confirmar</button>
+                    <button class="btn btn-outline-secondary btn-sm" id="btnKmeansCancel">Cancelar</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('btnKmeansConfirm').addEventListener('click', () => {
+                overlay.remove();
+                if (routeAssignmentMap) routeAssignmentMap.clearKMeansPreview();
+                executeAutoAssign(sedesConGPS, clusters, sinGPSList);
+            });
+            document.getElementById('btnKmeansCancel').addEventListener('click', () => {
+                overlay.remove();
+                if (routeAssignmentMap) routeAssignmentMap.clearKMeansPreview();
+                updateRouteMap(assignmentState.filteredClientes, true);
+                document.getElementById('mapSubtitle').textContent = 'Solo sedes filtradas con GPS';
+            });
+        }
+
+        function executeAutoAssign(sedesConGPS, clusters, sinGPSList) {
+            const k = vehiculos.length;
+            
+            // Clear all current assignments if any
+            vehiculos.forEach(v => {
+                ensureVehiculoBucket(v.id_vehiculo).length = 0;
+            });
+
             // Step 3: Order each cluster and assign to vehicles
             const basePoint = { lat: -12.0464, lng: -77.0428 }; // Lima center
             for (let i = 0; i < k; i++) {
                 const orderedSedes = nearestNeighborOrder(clusters[i] || [], basePoint.lat, basePoint.lng);
                 const vehiculo = vehiculos[i];
-                const key = getVehiculoKey(vehiculo.id_vehiculo);
                 const bucket = ensureVehiculoBucket(vehiculo.id_vehiculo);
                 bucket.length = 0;
 

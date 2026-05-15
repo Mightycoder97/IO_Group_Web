@@ -3689,3 +3689,31 @@ section.bg-light {
         height: 300px;
     }
 }
+
+/* ===== PRINT STYLES - Hide UI overlays ===== */
+@media print {
+    .toast-container,
+    .loading-overlay,
+    .fab-new,
+    .whatsapp-float,
+    .newsletter-overlay,
+    .newsletter-popup,
+    .preloader,
+    .control-app .sidebar,
+    .control-app .top-nav,
+    .control-app .mobile-action-bar,
+    .control-app .toggle-sidebar,
+    .control-app .alert-badge {
+        display: none !important;
+    }
+
+    .control-app .main-content {
+        margin-left: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .control-app .content-area {
+        padding: 0 !important;
+        background: #fff !important;
+    }
+}
