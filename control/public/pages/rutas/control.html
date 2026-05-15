@@ -563,12 +563,41 @@
         }
 
         .ai-status {
-            font-size: 0.76rem;
-            color: #455a64;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            font-size: 0.72rem;
+            color: #888;
+        }
+
+        /* Smart search */
+        .smart-search-wrap {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #e9ecef;
+            background: #fafbfc;
+            flex-shrink: 0;
+        }
+
+        .smart-search-wrap .input-group-text {
+            background: #fff;
+        }
+
+        .smart-search-wrap .form-control:focus {
+            border-color: #166534;
+            box-shadow: 0 0 0 2px rgba(22, 101, 52, 0.12);
+        }
+
+        .sede-card.search-hidden {
+            display: none !important;
+        }
+
+        .sede-card.search-highlight {
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+        }
+
+        #smartSearchInfo {
+            display: block;
+            font-size: 0.72rem;
+            margin-top: 0.3rem;
+            padding-left: 0.25rem;
         }
 
         .gasto-ruta-row {
@@ -769,6 +798,21 @@
                             <div id="aiUnmatched" class="mt-2"></div>
                         </div>
 
+                        <!-- Smart search ▼ -->
+                        <div class="smart-search-wrap d-none" id="smartSearchWrap">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="smartSearchInput"
+                                    placeholder="Buscar sede por nombre o RUC..."
+                                    oninput="filterSedes()" autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearSmartSearch()"
+                                    title="Limpiar búsqueda">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted" id="smartSearchInfo" style="display:none;"></small>
+                        </div>
+
                         <!-- Sedes list -->
                         <div class="panel-body p-3" id="sedesList">
                             <div class="empty-state">
@@ -827,7 +871,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/api.js"></script>
-    <script src="../../js/app.js?v=2.5"></script>
+    <script src="../../js/app.js?v=2.6"></script>
     <script>
         bootControlPage('rutas');
         // State
@@ -993,6 +1037,56 @@
             }).join('');
         }
 
+        // ─── Smart Search Filter ──────────────────────────────────────
+        function filterSedes() {
+            const input = document.getElementById('smartSearchInput');
+            const info = document.getElementById('smartSearchInfo');
+            const term = (input?.value || '').toLowerCase().trim();
+
+            const cards = document.querySelectorAll('#sedesList .sede-card');
+            let visible = 0;
+
+            cards.forEach(card => {
+                if (!term) {
+                    card.classList.remove('search-hidden', 'search-highlight');
+                    visible++;
+                    return;
+                }
+
+                // Search by name (in the header) and RUC
+                const text = (card.textContent || '').toLowerCase();
+                const headerEl = card.querySelector('.sede-card-header');
+                const headerText = (headerEl?.textContent || '').toLowerCase();
+
+                if (headerText.includes(term) || text.includes(term)) {
+                    card.classList.remove('search-hidden');
+                    card.classList.add('search-highlight');
+                    visible++;
+                } else {
+                    card.classList.add('search-hidden');
+                    card.classList.remove('search-highlight');
+                }
+            });
+
+            if (info) {
+                if (term) {
+                    info.style.display = 'block';
+                    info.textContent = visible > 0
+                        ? `${visible} de ${cards.length} sedes visibles`
+                        : 'Sin resultados';
+                } else {
+                    info.style.display = 'none';
+                }
+            }
+        }
+
+        function clearSmartSearch() {
+            const input = document.getElementById('smartSearchInput');
+            if (input) input.value = '';
+            filterSedes();
+            input?.focus();
+        }
+
         // ========================
         // Select & load route detail
         // ========================
@@ -1072,6 +1166,9 @@
                 document.getElementById('progressWrap').classList.remove('d-none');
                 document.getElementById('aiRouteWrap').classList.remove('d-none');
                 document.getElementById('saveBar').classList.remove('d-none');
+                document.getElementById('smartSearchWrap').classList.remove('d-none');
+                document.getElementById('smartSearchInput').value = '';
+                document.getElementById('smartSearchInfo').style.display = 'none';
 
             } catch (err) {
                 document.getElementById('sedesList').innerHTML =
