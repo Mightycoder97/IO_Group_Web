@@ -1972,6 +1972,7 @@
                     id_sede: Number(raw.id_sede),
                     frecuencia: normalizeFrequency(raw.frecuencia),
                     region: raw.region || "",
+                    activo: String(raw.activo ?? "1") !== "0",
                     _region: normRegion(raw.region),
                     _district: normDistr(raw.distrito),
                     _searchText: clienteSearchText(raw),
@@ -2623,6 +2624,9 @@
                 const calendarFreqs = getCalendarFrequenciesFromTags(districts);
 
                 return allClientes.filter((c) => {
+                    // Solo sedes activas
+                    if (c.activo !== true) return false;
+
                     const matchTerm = !term || c._searchText.includes(term);
                     const matchRegion =
                         !useRegionFilter ||

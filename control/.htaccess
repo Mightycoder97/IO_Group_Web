@@ -77,14 +77,21 @@ RewriteRule ^$ public/index.html [L]
     Header set X-XSS-Protection "1; mode=block"
     Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net www.googletagmanager.com www.google-analytics.com *.googleapis.com *.gstatic.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; font-src fonts.gstatic.com cdn.jsdelivr.net; img-src 'self' data: tile.openstreetmap.org *.tile.openstreetmap.org www.google-analytics.com *.googleapis.com *.gstatic.com maps.gstatic.com maps.googleapis.com; connect-src 'self' cdn.jsdelivr.net www.google-analytics.com analytics.google.com www.googletagmanager.com *.googleapis.com *.gstatic.com"
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net www.googletagmanager.com www.google-analytics.com *.googleapis.com *.gstatic.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; font-src fonts.gstatic.com cdn.jsdelivr.net; img-src 'self' data: tile.openstreetmap.org *.tile.openstreetmap.org www.google-analytics.com *.googleapis.com *.gstatic.com maps.gstatic.com maps.googleapis.com www.google.com.pe google.com.pe; connect-src 'self' cdn.jsdelivr.net www.google-analytics.com analytics.google.com www.googletagmanager.com *.googleapis.com *.gstatic.com"
 </IfModule>
 
 # Prevent access to sensitive files
-<FilesMatch "\.(env|md|json|lock)$">
+# Block sensitive files, but allow JSON data files in /public/data/
+<FilesMatch "\.(env|md|lock)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
+
+# Block direct access to JSON files EXCEPT in public/data/
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_URI} !^/control/public/data/
+    RewriteRule \.json$ - [F,L]
+</IfModule>
 
 # Block direct access to config directory (SEC-11)
 <IfModule mod_rewrite.c>
