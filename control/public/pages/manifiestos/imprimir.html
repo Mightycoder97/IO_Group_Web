@@ -194,6 +194,10 @@
                                         <label class="form-label small text-muted mb-1">Placa del Camión</label>
                                         <input type="text" class="form-control form-control-sm" id="input_placaveh" oninput="updatePreview('placaveh', this.value)">
                                     </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted mb-1">DNI Carla</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_dnicarla" value="07967422" oninput="updatePreview('dnicarla', this.value)">
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -216,6 +220,7 @@
                                 <span class="print-field field-cargochofer" id="prev_cargochofer">Transportista</span>
                                 <span class="print-field field-dnichofer" id="prev_dnichofer"></span>
                                 <span class="print-field field-placaveh" id="prev_placaveh"></span>
+                                <span class="print-field field-dnicarla" id="prev_dnicarla">07967422</span>
                             </div>
                         </div>
                     </div>
@@ -347,7 +352,8 @@
             chofer: d => [d.chofer_nombres, d.chofer_apellidos].filter(Boolean).join(' '),
             cargochofer: () => 'Transportista',
             dnichofer: d => d.chofer_dni || '',
-            placaveh: d => d.vehiculo_placa || ''
+            placaveh: d => d.vehiculo_placa || '',
+            dnicarla: () => '07967422'
         };
 
         function inyectarClonesEnContenedor(container, data) {
@@ -392,6 +398,7 @@
                 <span class="print-field field-cargochofer">Transportista</span>
                 <span class="print-field field-dnichofer">${data.chofer_dni || ''}</span>
                 <span class="print-field field-placaveh">${data.vehiculo_placa || ''}</span>
+                <span class="print-field field-dnicarla">07967422</span>
             `;
             // Inject saved clones
             inyectarClonesEnContenedor(container, data);
@@ -534,6 +541,7 @@
                         .field-cargochofer { left: 502.50pt; top: 95.00pt; width: 105.00pt; height: 15.75pt; }
                         .field-dnichofer { left: 512.25pt; top: 126.00pt; width: 98.25pt; height: 15.75pt; }
                         .field-placaveh { left: 263.25pt; top: 386.25pt; width: 93.75pt; height: 15.00pt; }
+                        .field-dnicarla { left: 519.00pt; top: 528.00pt; width: 99.75pt; height: 15.75pt; }
                         /* Custom Positioning overrides */
                         ${getInlineCustomCss()}
                     </style>
