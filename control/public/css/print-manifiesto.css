@@ -115,7 +115,8 @@
     border: none !important;
     box-shadow: none !important;
     background: transparent !important;
-    transform: none !important; /* No scaling in actual print */
+    transform: rotate(180deg) !important;
+    transform-origin: center center !important;
     page-break-after: always !important;
     margin: 0 !important;
     padding: 0 !important;
