@@ -1853,6 +1853,14 @@
                 window.open(`../manifiestos/imprimir.html?ruta=${currentRutaId}`, "_blank");
             }
 
+            function imprimirManifiestoIndividual(idSede) {
+                if (!currentRutaId) {
+                    showToast("Por favor guarda la ruta primero para poder imprimir este manifiesto.", "warning");
+                    return;
+                }
+                window.open(`../manifiestos/imprimir.html?ruta=${currentRutaId}&sede=${idSede}`, "_blank");
+            }
+
             const ROUTE_REGIONS = ["LIMA", "ICA"];
             const VEHICLE_COLORS = [
                 "#ef4444",
@@ -2977,6 +2985,9 @@
                     </td>
                     <td class="action-cell">
                         <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary" onclick="imprimirManifiestoIndividual(${c.id_sede})" title="Imprimir Manifiesto">
+                                <i class="bi bi-printer"></i>
+                            </button>
                             <button class="btn btn-outline-success" onclick="sendWhatsApp(${c.id_sede})" title="WhatsApp">
                                 <i class="bi bi-whatsapp"></i>
                             </button>

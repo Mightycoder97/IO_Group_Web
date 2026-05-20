@@ -256,6 +256,7 @@
         
         const manifiestoId = getUrlParam('id');
         const rutaId = getUrlParam('ruta');
+        const sedeId = getUrlParam('sede');
         
         // Manejo de offsets
         const offsetXInput = document.getElementById('offsetX');
@@ -313,7 +314,7 @@
 
         // Update preview field when input changes (Only for single manifest mode)
         function updatePreview(fieldId, value) {
-            if (!rutaId) {
+            if (!rutaId || (rutaId && sedeId)) {
                 const el = document.getElementById('prev_' + fieldId);
                 if (el) el.textContent = value;
             }
@@ -422,23 +423,40 @@
 
         async function loadData() {
             if (rutaId) {
-                // Modo Ruta: múltiples manifiestos
                 document.getElementById('manifiestoSubtitle').textContent = `Cargando manifiestos de la ruta...`;
-                // Hide the edit form column, expand preview
-                document.querySelector('.col-md-3').style.display = 'none';
-                document.querySelector('.col-md-9').className = 'col-md-12';
                 
                 try {
                     const result = await api.get(`/manifiestos?ruta_full=${rutaId}`);
                     if (result.success && result.data && result.data.length > 0) {
-                        document.getElementById('manifiestoSubtitle').textContent = `Impresión por lote - ${result.data.length} manifiestos`;
-                        const wrapper = document.querySelector('.preview-wrapper');
-                        // Clear existing empty container
-                        wrapper.innerHTML = '';
-                        // Append a container for each manifest
-                        result.data.forEach((manifiesto, index) => {
-                            wrapper.appendChild(createPreviewContainer(manifiesto, index));
-                        });
+                        let targetData = result.data;
+                        
+                        if (sedeId) {
+                            // Print individual manifest from a route
+                            targetData = targetData.filter(m => String(m.id_sede) === String(sedeId));
+                            if (targetData.length === 0) {
+                                showToast('El cliente no tiene manifiesto generado en esta ruta', 'warning');
+                                document.getElementById('manifiestoSubtitle').textContent = `Sin manifiesto para esta sede`;
+                                return;
+                            }
+                            // Keep edit form visible and populate it for the individual manifest
+                            document.getElementById('manifiestoSubtitle').textContent = `Impresión Individual (Ruta) - ${targetData[0].sede_nombre}`;
+                            populateForm(targetData[0]);
+                        } else {
+                            // Modo Ruta Completa: múltiples manifiestos
+                            // Hide the edit form column, expand preview
+                            document.querySelector('.col-md-3').style.display = 'none';
+                            document.querySelector('.col-md-9').className = 'col-md-12';
+                            
+                            document.getElementById('manifiestoSubtitle').textContent = `Impresión por lote - ${targetData.length} manifiestos`;
+                            const wrapper = document.querySelector('.preview-wrapper');
+                            // Clear existing empty container
+                            wrapper.innerHTML = '';
+                            // Append a container for each manifest
+                            targetData.forEach((manifiesto, index) => {
+                                wrapper.appendChild(createPreviewContainer(manifiesto, index));
+                            });
+                        }
+                        
                         // Allow layout to settle then adjust scale
                         setTimeout(adjustScale, 100);
                     } else {
@@ -451,7 +469,7 @@
                     console.error(err);
                 }
             } else if (manifiestoId) {
-                // Modo individual
+                // Modo individual directo
                 try {
                     const result = await api.get(`/manifiestos/${manifiestoId}`);
                     if (result.success) {
@@ -474,7 +492,7 @@
         loadOffsets();
         // Give a slight delay for layout to calculate properly before adjusting scale
         setTimeout(() => {
-            if(!rutaId) adjustScale();
+            if(!rutaId || (rutaId && sedeId)) adjustScale();
             loadData();
         }, 100);
 
