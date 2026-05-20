@@ -112,9 +112,15 @@
                 <div class="row mb-3" id="panelDiseno" style="display: none;">
                     <div class="col-12">
                         <div class="alert alert-info py-2 mb-0 d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-info-circle-fill me-2"></i><strong>Modo Diseño:</strong> Haz clic en un campo para seleccionarlo. Arrástralo con el ratón o usa las <strong>flechas del teclado</strong> para moverlo con precisión.</span>
+                            <span><i class="bi bi-info-circle-fill me-2"></i><strong>Modo Diseño:</strong> Clic para seleccionar, arrastra o usa flechas. <kbd>Shift+Flecha</kbd> = rápido.</span>
                             <div class="d-flex align-items-center gap-3">
                                 <span class="badge bg-secondary" id="coordenadasActuales">X: 0pt | Y: 0pt</span>
+                                <button class="btn btn-outline-primary btn-sm" onclick="duplicarCampoSeleccionado()" id="btnDuplicar" disabled title="Selecciona un campo primero">
+                                    <i class="bi bi-copy"></i> Duplicar
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="eliminarClonSeleccionado()" id="btnEliminarClon" style="display:none;" title="Eliminar esta copia">
+                                    <i class="bi bi-trash"></i> Borrar copia
+                                </button>
                                 <button class="btn btn-success btn-sm" onclick="guardarCalibracion()" id="btnGuardarCalibracion">
                                     <i class="bi bi-save"></i> Guardar para todos
                                 </button>
@@ -141,14 +147,6 @@
                                         <input type="text" class="form-control form-control-sm" id="input_ruc" oninput="updatePreview('ruc', this.value)">
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">Rep. Legal</label>
-                                        <input type="text" class="form-control form-control-sm" id="input_rlegal" oninput="updatePreview('rlegal', this.value)">
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">DNI Rep. Legal</label>
-                                        <input type="text" class="form-control form-control-sm" id="input_dnirlegal" oninput="updatePreview('dnirlegal', this.value)">
-                                    </div>
-                                    <div class="mb-2">
                                         <label class="form-label small text-muted mb-1">Dirección</label>
                                         <input type="text" class="form-control form-control-sm" id="input_direccion" oninput="updatePreview('direccion', this.value)">
                                     </div>
@@ -168,64 +166,33 @@
                                     </div>
                                     <hr>
                                     <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">Nro Manifiesto</label>
-                                        <input type="text" class="form-control form-control-sm" id="input_nromanif" oninput="updatePreview('nromanif', this.value)">
+                                        <label class="form-label small text-muted mb-1">Rep. Legal de la Sede</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_rlegal" oninput="updatePreview('rlegal', this.value)">
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">Nro Registro EPS</label>
-                                        <input type="text" class="form-control form-control-sm" id="input_regeps" value="EP-IO-2026" oninput="updatePreview('regeps', this.value)">
+                                        <label class="form-label small text-muted mb-1">DNI Rep. Legal</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_dnirlegal" oninput="updatePreview('dnirlegal', this.value)">
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">Fecha</label>
-                                        <input type="text" class="form-control form-control-sm" id="input_fechaizq" oninput="updatePreview('fechaizq', this.value)">
-                                    </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <label class="form-label small text-muted mb-1">Chofer/Transp.</label>
-                                            <input type="text" class="form-control form-control-sm" id="input_chofer" oninput="updatePreview('chofer', this.value)">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label small text-muted mb-1">DNI Chofer</label>
-                                            <input type="text" class="form-control form-control-sm" id="input_dnichofer" oninput="updatePreview('dnichofer', this.value)">
-                                        </div>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">Placa Vehículo</label>
-                                        <input type="text" class="form-control form-control-sm" id="input_placaveh" oninput="updatePreview('placaveh', this.value)">
-                                    </div>
-                                    <hr>
-                                    <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">Tipo de RRSS</label>
+                                        <label class="form-label small text-muted mb-1">Tipo de Residuo</label>
                                         <input type="text" class="form-control form-control-sm" id="input_tiporrss" oninput="updatePreview('tiporrss', this.value)">
                                     </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <label class="form-label small text-muted mb-1">Peso/Cant.</label>
-                                            <input type="text" class="form-control form-control-sm" id="input_peso" oninput="updatePreview('peso', this.value)">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label small text-muted mb-1">Empaque</label>
-                                            <input type="text" class="form-control form-control-sm" id="input_empaque" oninput="updatePreview('empaque', this.value)">
-                                        </div>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">Peso Total (Kg)</label>
-                                        <input type="text" class="form-control form-control-sm" id="input_pesototal" oninput="updatePreview('pesototal', this.value)">
-                                    </div>
                                     <hr>
                                     <div class="mb-2">
-                                        <label class="form-label small text-muted mb-1">Nombre Planta</label>
-                                        <input type="text" class="form-control form-control-sm" id="input_planta" oninput="updatePreview('planta', this.value)">
+                                        <label class="form-label small text-muted mb-1">Nombre del Chofer</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_chofer" oninput="updatePreview('chofer', this.value)">
                                     </div>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <label class="form-label small text-muted mb-1">DNI Planta</label>
-                                            <input type="text" class="form-control form-control-sm" id="input_dniplanta" oninput="updatePreview('dniplanta', this.value)">
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label small text-muted mb-1">Fecha Entrega</label>
-                                            <input type="text" class="form-control form-control-sm" id="input_fechaplanta" oninput="updatePreview('fechaplanta', this.value)">
-                                        </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted mb-1">Cargo del Chofer</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_cargochofer" value="Transportista" oninput="updatePreview('cargochofer', this.value)">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted mb-1">DNI Chofer</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_dnichofer" oninput="updatePreview('dnichofer', this.value)">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted mb-1">Placa del Camión</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_placaveh" oninput="updatePreview('placaveh', this.value)">
                                     </div>
                                 </form>
                             </div>
@@ -245,17 +212,9 @@
                                 <span class="print-field field-provincia" id="prev_provincia"></span>
                                 <span class="print-field field-departamento" id="prev_departamento"></span>
                                 <span class="print-field field-tiporrss" id="prev_tiporrss"></span>
-                                <span class="print-field field-peso" id="prev_peso"></span>
-                                <span class="print-field field-empaque" id="prev_empaque"></span>
-                                <span class="print-field field-nromanif" id="prev_nromanif"></span>
-                                <span class="print-field field-regeps" id="prev_regeps"></span>
-                                <span class="print-field field-fechaizq" id="prev_fechaizq"></span>
                                 <span class="print-field field-chofer" id="prev_chofer"></span>
+                                <span class="print-field field-cargochofer" id="prev_cargochofer">Transportista</span>
                                 <span class="print-field field-dnichofer" id="prev_dnichofer"></span>
-                                <span class="print-field field-pesototal" id="prev_pesototal"></span>
-                                <span class="print-field field-planta" id="prev_planta"></span>
-                                <span class="print-field field-dniplanta" id="prev_dniplanta"></span>
-                                <span class="print-field field-fechaplanta" id="prev_fechaplanta"></span>
                                 <span class="print-field field-placaveh" id="prev_placaveh"></span>
                             </div>
                         </div>
@@ -339,7 +298,6 @@
         }
 
         function populateForm(data) {
-            // Mapping specific keys from the enriched API response to form inputs
             const mapDataToForm = (fieldId, value) => {
                 const el = document.getElementById('input_' + fieldId);
                 if (el) {
@@ -348,70 +306,77 @@
                 }
             };
             
-            // Generador
+            // Generador / Sede
             mapDataToForm('rsocial', data.empresa_razon_social);
             mapDataToForm('ruc', data.empresa_ruc);
-            mapDataToForm('rlegal', data.cliente_nombre);
-            mapDataToForm('dnirlegal', data.cliente_dni);
             mapDataToForm('direccion', data.sede_direccion);
             mapDataToForm('distrito', data.sede_distrito);
             mapDataToForm('provincia', data.sede_provincia);
             mapDataToForm('departamento', data.sede_departamento);
+            mapDataToForm('rlegal', data.cliente_nombre);
+            mapDataToForm('dnirlegal', data.cliente_dni);
             
-            // Manifiesto / Transportista
-            mapDataToForm('nromanif', data.numero_manifiesto);
-            updatePreview('regeps', document.getElementById('input_regeps').value);
-            
-            // Fechas
-            let fechaFormatted = '';
-            if (data.fecha_servicio) {
-                const parts = data.fecha_servicio.split('-');
-                if (parts.length === 3) {
-                    fechaFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                } else {
-                    fechaFormatted = data.fecha_servicio;
-                }
-            }
-            mapDataToForm('fechaizq', fechaFormatted);
-            mapDataToForm('fechaplanta', fechaFormatted);
+            // Residuos
+            mapDataToForm('tiporrss', data.tipo_residuo);
             
             // Chofer
             const choferNombreFull = [data.chofer_nombres, data.chofer_apellidos].filter(Boolean).join(' ');
             mapDataToForm('chofer', choferNombreFull);
             mapDataToForm('dnichofer', data.chofer_dni);
+            // Cargo del chofer: default "Transportista", editable por el usuario
+            updatePreview('cargochofer', document.getElementById('input_cargochofer').value);
             
             // Vehículo
             mapDataToForm('placaveh', data.vehiculo_placa);
             
-            // Residuos
-            mapDataToForm('tiporrss', data.tipo_residuo);
-            mapDataToForm('peso', data.peso_kg ? data.peso_kg + ' ' + (data.unidad_medida || 'kg') : '');
-            mapDataToForm('pesototal', data.peso_kg);
-            mapDataToForm('empaque', data.cantidad_bultos ? data.cantidad_bultos + ' bultos' : '');
-            
-            // Planta
-            mapDataToForm('planta', data.planta_nombre);
+            // Inyectar clones desde la calibración
+            inyectarClonesEnContenedor(document.getElementById('printArea'), data);
+        }
+
+        // Map field names to data keys for clone value resolution
+        const FIELD_DATA_MAP = {
+            rsocial: d => d.empresa_razon_social || '',
+            ruc: d => d.empresa_ruc || '',
+            rlegal: d => d.cliente_nombre || '',
+            dnirlegal: d => d.cliente_dni || '',
+            direccion: d => d.sede_direccion || '',
+            distrito: d => d.sede_distrito || '',
+            provincia: d => d.sede_provincia || '',
+            departamento: d => d.sede_departamento || '',
+            tiporrss: d => d.tipo_residuo || '',
+            chofer: d => [d.chofer_nombres, d.chofer_apellidos].filter(Boolean).join(' '),
+            cargochofer: () => 'Transportista',
+            dnichofer: d => d.chofer_dni || '',
+            placaveh: d => d.vehiculo_placa || ''
+        };
+
+        function inyectarClonesEnContenedor(container, data) {
+            // Check customPositions for clone entries (keys like "prev_rsocial_clone_1")
+            for (const [key, pos] of Object.entries(customPositions)) {
+                if (!key.includes('_clone_')) continue;
+                // e.g. prev_rsocial_clone_1 → baseField = rsocial
+                const baseField = key.replace('prev_', '').replace(/_clone_\d+$/, '');
+                const fieldClass = 'field-' + baseField;
+                const resolver = FIELD_DATA_MAP[baseField];
+                const value = resolver ? resolver(data) : '';
+                
+                const span = document.createElement('span');
+                span.className = `print-field ${fieldClass}`;
+                span.id = key;
+                span.textContent = value;
+                span.dataset.clone = 'true';
+                span.dataset.baseField = baseField;
+                container.appendChild(span);
+            }
         }
 
         function createPreviewContainer(data, index) {
             const container = document.createElement('div');
             container.className = 'preview-container';
             container.id = 'printArea_' + index;
-            // Add some margin between containers in screen view
             if (index > 0) container.style.marginTop = '20px';
             
-            let fechaFormatted = '';
-            if (data.fecha_servicio) {
-                const parts = data.fecha_servicio.split('-');
-                if (parts.length === 3) {
-                    fechaFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                } else {
-                    fechaFormatted = data.fecha_servicio;
-                }
-            }
             const choferNombreFull = [data.chofer_nombres, data.chofer_apellidos].filter(Boolean).join(' ');
-            const pesoStr = data.peso_kg ? data.peso_kg + ' ' + (data.unidad_medida || 'kg') : '';
-            const empaqueStr = data.cantidad_bultos ? data.cantidad_bultos + ' bultos' : '';
 
             container.innerHTML = `
                 <span class="print-field field-rsocial">${data.empresa_razon_social || ''}</span>
@@ -423,19 +388,13 @@
                 <span class="print-field field-provincia">${data.sede_provincia || ''}</span>
                 <span class="print-field field-departamento">${data.sede_departamento || ''}</span>
                 <span class="print-field field-tiporrss">${data.tipo_residuo || ''}</span>
-                <span class="print-field field-peso">${pesoStr}</span>
-                <span class="print-field field-empaque">${empaqueStr}</span>
-                <span class="print-field field-nromanif">${data.numero_manifiesto || ''}</span>
-                <span class="print-field field-regeps">EP-IO-2026</span>
-                <span class="print-field field-fechaizq">${fechaFormatted}</span>
                 <span class="print-field field-chofer">${choferNombreFull}</span>
+                <span class="print-field field-cargochofer">Transportista</span>
                 <span class="print-field field-dnichofer">${data.chofer_dni || ''}</span>
-                <span class="print-field field-pesototal">${data.peso_kg || ''}</span>
-                <span class="print-field field-planta">${data.planta_nombre || ''}</span>
-                <span class="print-field field-dniplanta"></span>
-                <span class="print-field field-fechaplanta">${fechaFormatted}</span>
                 <span class="print-field field-placaveh">${data.vehiculo_placa || ''}</span>
             `;
+            // Inject saved clones
+            inyectarClonesEnContenedor(container, data);
             return container;
         }
 
@@ -571,17 +530,9 @@
                         .field-provincia { left: 162.00pt; top: 126.00pt; width: 96.00pt; height: 15.00pt; }
                         .field-departamento { left: 309.00pt; top: 124.50pt; width: 96.00pt; height: 15.00pt; }
                         .field-tiporrss { left: 58.50pt; top: 261.75pt; width: 187.50pt; height: 15.00pt; }
-                        .field-peso { left: 39.75pt; top: 300.75pt; width: 87.00pt; height: 15.75pt; }
-                        .field-empaque { left: 155.25pt; top: 300.75pt; width: 92.25pt; height: 15.75pt; }
-                        .field-nromanif { left: 462.00pt; top: 33.75pt; width: 97.50pt; height: 15.75pt; }
-                        .field-regeps { left: 458.25pt; top: 60.00pt; width: 98.25pt; height: 15.75pt; }
-                        .field-fechaizq { left: 409.50pt; top: 124.50pt; width: 51.00pt; height: 15.00pt; }
                         .field-chofer { left: 502.50pt; top: 109.50pt; width: 105.00pt; height: 15.75pt; }
+                        .field-cargochofer { left: 502.50pt; top: 95.00pt; width: 105.00pt; height: 15.75pt; }
                         .field-dnichofer { left: 512.25pt; top: 126.00pt; width: 98.25pt; height: 15.75pt; }
-                        .field-pesototal { left: 630.00pt; top: 241.50pt; width: 51.00pt; height: 15.75pt; }
-                        .field-planta { left: 501.75pt; top: 513.75pt; width: 99.75pt; height: 15.75pt; }
-                        .field-dniplanta { left: 519.00pt; top: 528.00pt; width: 99.75pt; height: 15.75pt; }
-                        .field-fechaplanta { left: 414.00pt; top: 528.75pt; width: 51.00pt; height: 15.00pt; }
                         .field-placaveh { left: 263.25pt; top: 386.25pt; width: 93.75pt; height: 15.00pt; }
                         /* Custom Positioning overrides */
                         ${getInlineCustomCss()}
@@ -632,10 +583,14 @@
             
             let css = '';
             for (const [id, pos] of Object.entries(customPositions)) {
-                // El ID de los span es prev_rsocial, prev_ruc, etc.
-                // Y tienen clases como field-rsocial
-                const className = id.replace('prev_', 'field-');
-                css += `.${className} { left: ${pos.left}pt !important; top: ${pos.top}pt !important; }\n`;
+                if (id.includes('_clone_')) {
+                    // Clones: target by unique ID
+                    css += `#${id} { left: ${pos.left}pt !important; top: ${pos.top}pt !important; }\n`;
+                } else {
+                    // Originals: target by class name (field-rsocial, etc.)
+                    const className = id.replace('prev_', 'field-');
+                    css += `.${className} { left: ${pos.left}pt !important; top: ${pos.top}pt !important; }\n`;
+                }
             }
             styleEl.innerHTML = css;
         }
@@ -643,25 +598,14 @@
         // Obtener el CSS limpio para el iframe basado en posiciones customizadas o por defecto
         function getInlineCustomCss() {
             let css = '';
-            const allFields = document.querySelectorAll('.preview-container .print-field');
-            // We only need fields from the first container to extract classes and positions
-            const container = document.querySelector('.preview-container');
-            if(!container) return '';
-            
-            const fields = container.querySelectorAll('.print-field');
-            fields.forEach(f => {
-                const id = f.id;
-                // En modo multi-hoja, los IDs en copias no son únicos, pero la clase sí.
-                // Buscar la clase que empieza con 'field-'
-                const fieldClass = Array.from(f.classList).find(c => c.startsWith('field-'));
-                if (!fieldClass) return;
-                
-                // Si existe posición customizada:
-                const baseId = id.replace(/_\d+$/, ''); // limpiar sufijo si es multihoja
-                if (customPositions[baseId]) {
-                    css += `.${fieldClass} { left: ${customPositions[baseId].left}pt; top: ${customPositions[baseId].top}pt; }\n`;
+            for (const [id, pos] of Object.entries(customPositions)) {
+                if (id.includes('_clone_')) {
+                    css += `#${id} { left: ${pos.left}pt; top: ${pos.top}pt; }\n`;
+                } else {
+                    const className = id.replace('prev_', 'field-');
+                    css += `.${className} { left: ${pos.left}pt; top: ${pos.top}pt; }\n`;
                 }
-            });
+            }
             return css;
         }
 
@@ -716,15 +660,12 @@
                     startX = e.clientX;
                     startY = e.clientY;
                     
-                    // Extraer los pt actuales calculados o in-line
                     const computed = window.getComputedStyle(e.target);
-                    // Para convertir px a pt aproximado (1px = 0.75pt)
-                    // Pero mejor leer customPositions si existe
-                    const baseId = e.target.id.replace(/_\d+$/, '');
+                    const posKey = getPositionKey(e.target);
                     
-                    if (customPositions[baseId]) {
-                        startLeft = customPositions[baseId].left;
-                        startTop = customPositions[baseId].top;
+                    if (customPositions[posKey]) {
+                        startLeft = customPositions[posKey].left;
+                        startTop = customPositions[posKey].top;
                     } else {
                         startLeft = parseFloat(computed.left) * 0.75;
                         startTop = parseFloat(computed.top) * 0.75;
@@ -755,12 +696,12 @@
             document.addEventListener('keydown', (e) => {
                 if (!modoDiseno || !elementoSeleccionado) return;
                 
-                let step = e.shiftKey ? 5 : 0.5; // shift para mover más rápido
+                let step = e.shiftKey ? 5 : 0.5;
                 let changed = false;
                 
-                const baseId = elementoSeleccionado.id.replace(/_\d+$/, '');
-                let currLeft = customPositions[baseId] ? customPositions[baseId].left : parseFloat(window.getComputedStyle(elementoSeleccionado).left) * 0.75;
-                let currTop = customPositions[baseId] ? customPositions[baseId].top : parseFloat(window.getComputedStyle(elementoSeleccionado).top) * 0.75;
+                const posKey = getPositionKey(elementoSeleccionado);
+                let currLeft = customPositions[posKey] ? customPositions[posKey].left : parseFloat(window.getComputedStyle(elementoSeleccionado).left) * 0.75;
+                let currTop = customPositions[posKey] ? customPositions[posKey].top : parseFloat(window.getComputedStyle(elementoSeleccionado).top) * 0.75;
                 
                 if (e.key === 'ArrowUp') { currTop -= step; changed = true; }
                 else if (e.key === 'ArrowDown') { currTop += step; changed = true; }
@@ -781,6 +722,9 @@
             elementoSeleccionado = el;
             el.classList.add('selected-field');
             actualizarIndicadorCoords();
+            // Toggle buttons
+            document.getElementById('btnDuplicar').disabled = false;
+            document.getElementById('btnEliminarClon').style.display = el.dataset.clone ? 'inline-block' : 'none';
         }
         
         function deseleccionarElemento() {
@@ -789,11 +733,19 @@
                 elementoSeleccionado = null;
             }
             document.getElementById('coordenadasActuales').textContent = 'X: 0pt | Y: 0pt';
+            document.getElementById('btnDuplicar').disabled = true;
+            document.getElementById('btnEliminarClon').style.display = 'none';
+        }
+        
+        function getPositionKey(el) {
+            // Clones use their full ID (e.g. prev_rsocial_clone_1)
+            // Originals use their element ID (e.g. prev_rsocial)
+            return el.id;
         }
         
         function aplicarPosicionAElemento(el, leftPt, topPt) {
-            const baseId = el.id.replace(/_\d+$/, '');
-            customPositions[baseId] = { left: leftPt, top: topPt };
+            const key = getPositionKey(el);
+            customPositions[key] = { left: leftPt, top: topPt };
             
             // Reflejar en la UI
             aplicarCalibracionesUI();
@@ -803,16 +755,93 @@
         function actualizarIndicadorCoords(l, t) {
             if (l === undefined || t === undefined) {
                 if (!elementoSeleccionado) return;
-                const baseId = elementoSeleccionado.id.replace(/_\d+$/, '');
-                if (customPositions[baseId]) {
-                    l = customPositions[baseId].left;
-                    t = customPositions[baseId].top;
+                const key = getPositionKey(elementoSeleccionado);
+                if (customPositions[key]) {
+                    l = customPositions[key].left;
+                    t = customPositions[key].top;
                 } else {
                     l = parseFloat(window.getComputedStyle(elementoSeleccionado).left) * 0.75;
                     t = parseFloat(window.getComputedStyle(elementoSeleccionado).top) * 0.75;
                 }
             }
             document.getElementById('coordenadasActuales').textContent = `X: ${l.toFixed(2)}pt | Y: ${t.toFixed(2)}pt`;
+        }
+
+        // --- DUPLICAR / ELIMINAR CLONES ---
+        function duplicarCampoSeleccionado() {
+            if (!elementoSeleccionado) return;
+            
+            // Determine the base field name (e.g. rsocial from prev_rsocial or prev_rsocial_clone_1)
+            let baseField;
+            if (elementoSeleccionado.dataset.baseField) {
+                baseField = elementoSeleccionado.dataset.baseField;
+            } else {
+                baseField = elementoSeleccionado.id.replace('prev_', '');
+            }
+            
+            // Find the next clone number
+            let maxClone = 0;
+            for (const key of Object.keys(customPositions)) {
+                const match = key.match(new RegExp(`prev_${baseField}_clone_(\\d+)`));
+                if (match) maxClone = Math.max(maxClone, parseInt(match[1]));
+            }
+            // Also check DOM for clones not yet saved
+            document.querySelectorAll(`[data-base-field="${baseField}"]`).forEach(el => {
+                const m = el.id.match(/_clone_(\d+)$/);
+                if (m) maxClone = Math.max(maxClone, parseInt(m[1]));
+            });
+            const cloneNum = maxClone + 1;
+            const cloneId = `prev_${baseField}_clone_${cloneNum}`;
+            
+            // Get position of the source element + slight offset so it's visible
+            const sourceKey = getPositionKey(elementoSeleccionado);
+            let srcLeft, srcTop;
+            if (customPositions[sourceKey]) {
+                srcLeft = customPositions[sourceKey].left;
+                srcTop = customPositions[sourceKey].top;
+            } else {
+                srcLeft = parseFloat(window.getComputedStyle(elementoSeleccionado).left) * 0.75;
+                srcTop = parseFloat(window.getComputedStyle(elementoSeleccionado).top) * 0.75;
+            }
+            const newLeft = Math.round((srcLeft + 20) * 100) / 100;
+            const newTop = Math.round((srcTop + 20) * 100) / 100;
+            
+            // Create the DOM element
+            const span = document.createElement('span');
+            span.className = elementoSeleccionado.className.replace('selected-field', '').trim();
+            span.id = cloneId;
+            span.textContent = elementoSeleccionado.textContent;
+            span.dataset.clone = 'true';
+            span.dataset.baseField = baseField;
+            
+            // Add to all preview containers
+            document.querySelectorAll('.preview-container').forEach(container => {
+                container.appendChild(span.cloneNode(true));
+            });
+            
+            // Register its position
+            customPositions[cloneId] = { left: newLeft, top: newTop };
+            aplicarCalibracionesUI();
+            
+            // Select the new clone in the first container
+            const newEl = document.getElementById(cloneId);
+            if (newEl) seleccionarElemento(newEl);
+            
+            showToast(`Copia creada: ${baseField} #${cloneNum}. Muévela a su posición y guarda.`, 'info');
+        }
+        
+        function eliminarClonSeleccionado() {
+            if (!elementoSeleccionado || !elementoSeleccionado.dataset.clone) return;
+            
+            const cloneId = elementoSeleccionado.id;
+            // Remove from all containers
+            document.querySelectorAll(`#${cloneId}`).forEach(el => el.remove());
+            // Remove from positions
+            delete customPositions[cloneId];
+            
+            deseleccionarElemento();
+            aplicarCalibracionesUI();
+            showToast('Copia eliminada', 'warning');
         }
 
         // Initialize

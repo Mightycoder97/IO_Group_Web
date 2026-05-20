@@ -55,17 +55,9 @@
 .field-provincia { left: 162.00pt; top: 126.00pt; width: 96.00pt; height: 15.00pt; }
 .field-departamento { left: 309.00pt; top: 124.50pt; width: 96.00pt; height: 15.00pt; }
 .field-tiporrss { left: 58.50pt; top: 261.75pt; width: 187.50pt; height: 15.00pt; }
-.field-peso { left: 39.75pt; top: 300.75pt; width: 87.00pt; height: 15.75pt; }
-.field-empaque { left: 155.25pt; top: 300.75pt; width: 92.25pt; height: 15.75pt; }
-.field-nromanif { left: 462.00pt; top: 33.75pt; width: 97.50pt; height: 15.75pt; }
-.field-regeps { left: 458.25pt; top: 60.00pt; width: 98.25pt; height: 15.75pt; }
-.field-fechaizq { left: 409.50pt; top: 124.50pt; width: 51.00pt; height: 15.00pt; }
 .field-chofer { left: 502.50pt; top: 109.50pt; width: 105.00pt; height: 15.75pt; }
+.field-cargochofer { left: 502.50pt; top: 95.00pt; width: 105.00pt; height: 15.75pt; }
 .field-dnichofer { left: 512.25pt; top: 126.00pt; width: 98.25pt; height: 15.75pt; }
-.field-pesototal { left: 630.00pt; top: 241.50pt; width: 51.00pt; height: 15.75pt; }
-.field-planta { left: 501.75pt; top: 513.75pt; width: 99.75pt; height: 15.75pt; }
-.field-dniplanta { left: 519.00pt; top: 528.00pt; width: 99.75pt; height: 15.75pt; }
-.field-fechaplanta { left: 414.00pt; top: 528.75pt; width: 51.00pt; height: 15.00pt; }
 .field-placaveh { left: 263.25pt; top: 386.25pt; width: 93.75pt; height: 15.00pt; }
 
 /* The preview container for screen */
