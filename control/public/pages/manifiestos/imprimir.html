@@ -535,15 +535,23 @@
                             transform-origin: center center;
                         }
                         
-                        /* Text Fields */
+                        /* Text Fields - optimized for Epson LQ 590 dot-matrix */
                         .print-field {
                             position: absolute;
                             font-family: 'Courier New', Courier, monospace;
                             font-size: 11pt;
+                            font-weight: bold;
                             color: #000;
                             white-space: nowrap;
                             line-height: 1;
                             width: auto;
+                            /* Disable anti-aliasing for sharp dot-matrix output */
+                            -webkit-font-smoothing: none;
+                            font-smooth: never;
+                            text-rendering: optimizeLegibility;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                            image-rendering: crisp-edges;
                             transform: translate(${offsetXInput.value}pt, ${offsetYInput.value}pt);
                         }
                         
@@ -575,11 +583,16 @@
             `);
             doc.close();
 
-            // Wait a moment for styles to apply, then print
+            // Trigger print quickly - content is text-only, no external resources to load
+            iframe.contentWindow.addEventListener('afterprint', () => {
+                // Cleanup iframe after printing
+                setTimeout(() => iframe.remove(), 100);
+            });
+            
             setTimeout(() => {
                 iframe.contentWindow.focus();
                 iframe.contentWindow.print();
-            }, 250);
+            }, 80);
         }
 
         // --- CALIBRATION (MODO DISEÑO) LOGIC ---

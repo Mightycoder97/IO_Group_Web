@@ -136,5 +136,14 @@
     border: none !important;
     background: transparent !important;
     color: #000 !important;
+    /* Dot-matrix optimizations (Epson LQ 590) */
+    font-weight: bold !important;
+    -webkit-font-smoothing: none !important;
+    -moz-osx-font-smoothing: unset !important;
+    font-smooth: never !important;
+    text-rendering: optimizeLegibility !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    image-rendering: crisp-edges !important;
   }
 }

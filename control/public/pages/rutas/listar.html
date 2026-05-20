@@ -1620,9 +1620,16 @@
                                                 </button>
                                                 <button
                                                     class="btn btn-outline-secondary btn-sm"
+                                                    onclick="abrirDisenoManifiestos()"
+                                                    title="Diseñar / calibrar posiciones del manifiesto"
+                                                >
+                                                    <i class="bi bi-gear"></i>
+                                                </button>
+                                                <button
+                                                    class="btn btn-outline-secondary btn-sm"
                                                     id="btnImprimirManifiestos"
-                                                    onclick="abrirImpresionManifiestos()"
-                                                    title="Imprimir manifiestos (Matricial)"
+                                                    onclick="imprimirManifiestosNinja()"
+                                                    title="Imprimir todos los manifiestos (directo a impresora)"
                                                 >
                                                     <i class="bi bi-printer"></i>
                                                     Manifiestos
@@ -1845,20 +1852,259 @@
                 modal.show();
             }
 
-            function abrirImpresionManifiestos() {
+            // ============================
+            // IMPRESIÓN NINJA DE MANIFIESTOS (headless, directo a cola de impresión)
+            // ============================
+            
+            let _calibracionCache = null; // Cache para no recargar en cada impresión
+            
+            // Abrir página de diseño/calibración (único camino)
+            function abrirDisenoManifiestos() {
                 if (!currentRutaId) {
-                    showToast("Por favor guarda la ruta primero para poder imprimir los manifiestos.", "warning");
+                    showToast("Por favor guarda la ruta primero.", "warning");
                     return;
                 }
                 window.open(`../manifiestos/imprimir.html?ruta=${currentRutaId}`, "_blank");
             }
-
-            function imprimirManifiestoIndividual(idSede) {
+            
+            // Cargar calibración desde la BD (con caché)
+            async function cargarCalibracionNinja() {
+                if (_calibracionCache) return _calibracionCache;
+                try {
+                    const res = await api.get('/manifiesto_calibracion');
+                    if (res && res.data) {
+                        _calibracionCache = res.data;
+                        return _calibracionCache;
+                    }
+                } catch (e) {
+                    console.error("Error cargando calibración:", e);
+                }
+                return {};
+            }
+            
+            // Generar CSS completo para el iframe de impresión
+            function generarCSSManifiesto(calibracion) {
+                const offsetX = localStorage.getItem('print_offsetX') || '0';
+                const offsetY = localStorage.getItem('print_offsetY') || '0';
+                
+                // CSS base de posicionamiento
+                let customCss = '';
+                for (const [id, pos] of Object.entries(calibracion)) {
+                    if (id.includes('_clone_')) {
+                        customCss += `#${id} { left: ${pos.left}pt; top: ${pos.top}pt; }\n`;
+                    } else {
+                        const className = id.replace('prev_', 'field-');
+                        customCss += `.${className} { left: ${pos.left}pt; top: ${pos.top}pt; }\n`;
+                    }
+                }
+                
+                return `
+                    body, html { margin: 0; padding: 0; background: white; }
+                    @page { size: 297mm 210mm; margin: 0mm; }
+                    .preview-container {
+                        position: relative;
+                        width: 841.89pt;
+                        height: 595.28pt;
+                        page-break-after: always;
+                        margin: 0; padding: 0;
+                        background: white;
+                        overflow: hidden;
+                        transform: rotate(180deg);
+                        transform-origin: center center;
+                    }
+                    .print-field {
+                        position: absolute;
+                        font-family: 'Courier New', Courier, monospace;
+                        font-size: 11pt;
+                        font-weight: bold;
+                        color: #000;
+                        white-space: nowrap;
+                        line-height: 1;
+                        width: auto;
+                        -webkit-font-smoothing: none;
+                        font-smooth: never;
+                        text-rendering: optimizeLegibility;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        image-rendering: crisp-edges;
+                        transform: translate(${offsetX}pt, ${offsetY}pt);
+                    }
+                    /* Posiciones base */
+                    .field-rsocial { left: 54.75pt; top: 46.50pt; height: 17.25pt; }
+                    .field-ruc { left: 23.25pt; top: 60.00pt; height: 15.00pt; }
+                    .field-rlegal { left: 66.00pt; top: 72.00pt; height: 14.25pt; }
+                    .field-dnirlegal { left: 306.75pt; top: 72.00pt; height: 15.00pt; }
+                    .field-direccion { left: 63.00pt; top: 110.25pt; height: 17.25pt; }
+                    .field-distrito { left: 20.25pt; top: 125.25pt; height: 15.00pt; }
+                    .field-provincia { left: 162.00pt; top: 126.00pt; height: 15.00pt; }
+                    .field-departamento { left: 309.00pt; top: 124.50pt; height: 15.00pt; }
+                    .field-tiporrss { left: 58.50pt; top: 261.75pt; height: 15.00pt; }
+                    .field-chofer { left: 502.50pt; top: 109.50pt; height: 15.75pt; }
+                    .field-cargochofer { left: 502.50pt; top: 95.00pt; height: 15.75pt; }
+                    .field-dnichofer { left: 512.25pt; top: 126.00pt; height: 15.75pt; }
+                    .field-placaveh { left: 263.25pt; top: 386.25pt; height: 15.00pt; }
+                    .field-dnicarla { left: 519.00pt; top: 528.00pt; height: 15.75pt; }
+                    .field-tiporecipiente { left: 58.50pt; top: 290.00pt; height: 15.00pt; }
+                    .field-material { left: 58.50pt; top: 310.00pt; height: 15.00pt; }
+                    /* Calibración personalizada */
+                    ${customCss}
+                `;
+            }
+            
+            // Map de campos a datos (misma lógica que imprimir.html)
+            const NINJA_FIELD_MAP = {
+                rsocial: d => d.empresa_razon_social || '',
+                ruc: d => d.empresa_ruc || '',
+                rlegal: d => d.cliente_nombre || '',
+                dnirlegal: d => d.cliente_dni || '',
+                direccion: d => d.sede_direccion || '',
+                distrito: d => d.sede_distrito || '',
+                provincia: d => d.sede_provincia || '',
+                departamento: d => d.sede_departamento || '',
+                tiporrss: d => d.tipo_residuo || '',
+                chofer: d => [d.chofer_nombres, d.chofer_apellidos].filter(Boolean).join(' '),
+                cargochofer: () => 'Transportista',
+                dnichofer: d => d.chofer_dni || '',
+                placaveh: d => d.vehiculo_placa || '',
+                dnicarla: () => '07967422',
+                tiporecipiente: () => 'BOLSAS/CAJAS',
+                material: () => 'PLASTICO/CARTON'
+            };
+            
+            // Generar HTML de un manifiesto (un preview-container)
+            function generarHTMLManifiesto(data, calibracion) {
+                const chofer = [data.chofer_nombres, data.chofer_apellidos].filter(Boolean).join(' ');
+                
+                let html = `<div class="preview-container">
+                    <span class="print-field field-rsocial">${data.empresa_razon_social || ''}</span>
+                    <span class="print-field field-ruc">${data.empresa_ruc || ''}</span>
+                    <span class="print-field field-rlegal">${data.cliente_nombre || ''}</span>
+                    <span class="print-field field-dnirlegal">${data.cliente_dni || ''}</span>
+                    <span class="print-field field-direccion">${data.sede_direccion || ''}</span>
+                    <span class="print-field field-distrito">${data.sede_distrito || ''}</span>
+                    <span class="print-field field-provincia">${data.sede_provincia || ''}</span>
+                    <span class="print-field field-departamento">${data.sede_departamento || ''}</span>
+                    <span class="print-field field-tiporrss">${data.tipo_residuo || ''}</span>
+                    <span class="print-field field-chofer">${chofer}</span>
+                    <span class="print-field field-cargochofer">Transportista</span>
+                    <span class="print-field field-dnichofer">${data.chofer_dni || ''}</span>
+                    <span class="print-field field-placaveh">${data.vehiculo_placa || ''}</span>
+                    <span class="print-field field-dnicarla">07967422</span>
+                    <span class="print-field field-tiporecipiente">BOLSAS/CAJAS</span>
+                    <span class="print-field field-material">PLASTICO/CARTON</span>`;
+                
+                // Inyectar clones desde calibración
+                for (const [key, pos] of Object.entries(calibracion)) {
+                    if (!key.includes('_clone_')) continue;
+                    const baseField = key.replace('prev_', '').replace(/_clone_\d+$/, '');
+                    const resolver = NINJA_FIELD_MAP[baseField];
+                    const value = resolver ? resolver(data) : '';
+                    html += `\n                    <span class="print-field field-${baseField}" id="${key}">${value}</span>`;
+                }
+                
+                html += `\n                </div>`;
+                return html;
+            }
+            
+            // Disparar impresión headless via iframe oculto
+            function dispararImpresionNinja(htmlContent, css) {
+                const oldFrame = document.getElementById('ninjaFrame');
+                if (oldFrame) oldFrame.remove();
+                
+                const iframe = document.createElement('iframe');
+                iframe.id = 'ninjaFrame';
+                iframe.style.cssText = 'position:absolute;width:0;height:0;border:none;';
+                document.body.appendChild(iframe);
+                
+                const doc = iframe.contentWindow.document;
+                doc.open();
+                doc.write(`<!DOCTYPE html><html><head><title>Manifiestos</title><style>${css}</style></head><body>${htmlContent}</body></html>`);
+                doc.close();
+                
+                iframe.contentWindow.addEventListener('afterprint', () => {
+                    setTimeout(() => iframe.remove(), 100);
+                });
+                
+                setTimeout(() => {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                }, 80);
+            }
+            
+            // BOTÓN PRINCIPAL: Imprimir TODOS los manifiestos de la ruta
+            async function imprimirManifiestosNinja() {
                 if (!currentRutaId) {
-                    showToast("Por favor guarda la ruta primero para poder imprimir este manifiesto.", "warning");
+                    showToast("Guarda la ruta primero para poder imprimir.", "warning");
                     return;
                 }
-                window.open(`../manifiestos/imprimir.html?ruta=${currentRutaId}&sede=${idSede}`, "_blank");
+                
+                const btn = document.getElementById('btnImprimirManifiestos');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Preparando...';
+                btn.disabled = true;
+                
+                try {
+                    // Cargar calibración y datos en paralelo
+                    const [calibracion, result] = await Promise.all([
+                        cargarCalibracionNinja(),
+                        api.get(`/manifiestos?ruta_full=${currentRutaId}`)
+                    ]);
+                    
+                    if (!result.success || !result.data || result.data.length === 0) {
+                        showToast("No hay manifiestos generados en esta ruta.", "warning");
+                        return;
+                    }
+                    
+                    // Generar HTML para todos los manifiestos
+                    const allHtml = result.data.map(m => generarHTMLManifiesto(m, calibracion)).join('\n');
+                    const css = generarCSSManifiesto(calibracion);
+                    
+                    showToast(`Enviando ${result.data.length} manifiestos a la impresora...`, "success");
+                    dispararImpresionNinja(allHtml, css);
+                    
+                } catch (err) {
+                    console.error("Error en impresión ninja:", err);
+                    showToast("Error preparando la impresión.", "danger");
+                } finally {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            }
+            
+            // BOTÓN INDIVIDUAL: Imprimir manifiesto de una sede
+            async function imprimirManifiestoNinja(idSede) {
+                if (!currentRutaId) {
+                    showToast("Guarda la ruta primero.", "warning");
+                    return;
+                }
+                
+                try {
+                    const [calibracion, result] = await Promise.all([
+                        cargarCalibracionNinja(),
+                        api.get(`/manifiestos?ruta_full=${currentRutaId}`)
+                    ]);
+                    
+                    if (!result.success || !result.data) {
+                        showToast("Error cargando manifiestos.", "danger");
+                        return;
+                    }
+                    
+                    const filtered = result.data.filter(m => String(m.id_sede) === String(idSede));
+                    if (filtered.length === 0) {
+                        showToast("No hay manifiesto para esta sede.", "warning");
+                        return;
+                    }
+                    
+                    const html = filtered.map(m => generarHTMLManifiesto(m, calibracion)).join('\n');
+                    const css = generarCSSManifiesto(calibracion);
+                    
+                    showToast("Enviando manifiesto a la impresora...", "success");
+                    dispararImpresionNinja(html, css);
+                    
+                } catch (err) {
+                    console.error("Error en impresión ninja individual:", err);
+                    showToast("Error preparando la impresión.", "danger");
+                }
             }
 
             const ROUTE_REGIONS = ["LIMA", "ICA"];
@@ -2985,7 +3231,7 @@
                     </td>
                     <td class="action-cell">
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary" onclick="imprimirManifiestoIndividual(${c.id_sede})" title="Imprimir Manifiesto">
+                            <button class="btn btn-outline-secondary" onclick="imprimirManifiestoNinja(${c.id_sede})" title="Imprimir Manifiesto">
                                 <i class="bi bi-printer"></i>
                             </button>
                             <button class="btn btn-outline-success" onclick="sendWhatsApp(${c.id_sede})" title="WhatsApp">
