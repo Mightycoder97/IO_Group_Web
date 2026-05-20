@@ -99,7 +99,7 @@
                         </div>
                     </div>
                     <div class="col-md-2 text-end">
-                        <button class="btn btn-primary" onclick="window.print()">
+                        <button class="btn btn-primary" onclick="imprimirLimpio()">
                             <i class="bi bi-printer-fill"></i> Imprimir
                         </button>
                     </div>
@@ -486,6 +486,99 @@
                 showToast('ID de manifiesto o ruta requerido', 'danger');
                 document.getElementById('manifiestoSubtitle').textContent = 'Faltan parámetros';
             }
+        }
+
+        function imprimirLimpio() {
+            // Remove old iframe if it exists
+            const oldFrame = document.getElementById('printFrame');
+            if (oldFrame) oldFrame.remove();
+
+            // Create hidden iframe
+            const iframe = document.createElement('iframe');
+            iframe.id = 'printFrame';
+            iframe.style.position = 'absolute';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = 'none';
+            document.body.appendChild(iframe);
+
+            // Get the HTML content of the print containers
+            const printContent = document.querySelector('.preview-wrapper').innerHTML;
+            
+            // Generate clean HTML document for the iframe
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Imprimir Manifiestos - IO Group</title>
+                    <style>
+                        /* Base Print Styles */
+                        body, html { margin: 0; padding: 0; background: white; }
+                        
+                        /* Layout definition */
+                        @page { size: A4 landscape; margin: 0; }
+                        
+                        /* Container for each page */
+                        .preview-container {
+                            position: relative;
+                            width: 841.89pt;
+                            height: 595.28pt;
+                            page-break-after: always;
+                            margin: 0;
+                            padding: 0;
+                            background: white;
+                            overflow: hidden;
+                        }
+                        
+                        /* Text Fields */
+                        .print-field {
+                            position: absolute;
+                            font-family: 'Courier New', Courier, monospace;
+                            font-size: 11pt;
+                            color: #000;
+                            white-space: nowrap;
+                            line-height: 1;
+                            transform: translate(${offsetXInput.value}pt, ${offsetYInput.value}pt);
+                        }
+                        
+                        /* Exact positioning based on XLSM VML extraction */
+                        .field-rsocial { left: 54.75pt; top: 46.50pt; width: 432.00pt; height: 17.25pt; }
+                        .field-ruc { left: 23.25pt; top: 60.00pt; width: 94.50pt; height: 15.00pt; }
+                        .field-rlegal { left: 66.00pt; top: 72.00pt; width: 166.50pt; height: 14.25pt; }
+                        .field-dnirlegal { left: 306.75pt; top: 72.00pt; width: 44.25pt; height: 15.00pt; }
+                        .field-direccion { left: 63.00pt; top: 110.25pt; width: 291.75pt; height: 17.25pt; }
+                        .field-distrito { left: 20.25pt; top: 125.25pt; width: 120.00pt; height: 15.00pt; }
+                        .field-provincia { left: 162.00pt; top: 126.00pt; width: 96.00pt; height: 15.00pt; }
+                        .field-departamento { left: 309.00pt; top: 124.50pt; width: 96.00pt; height: 15.00pt; }
+                        .field-tiporrss { left: 58.50pt; top: 261.75pt; width: 187.50pt; height: 15.00pt; }
+                        .field-peso { left: 39.75pt; top: 300.75pt; width: 87.00pt; height: 15.75pt; }
+                        .field-empaque { left: 155.25pt; top: 300.75pt; width: 92.25pt; height: 15.75pt; }
+                        .field-nromanif { left: 462.00pt; top: 33.75pt; width: 97.50pt; height: 15.75pt; }
+                        .field-regeps { left: 458.25pt; top: 60.00pt; width: 98.25pt; height: 15.75pt; }
+                        .field-fechaizq { left: 409.50pt; top: 124.50pt; width: 51.00pt; height: 15.00pt; }
+                        .field-chofer { left: 502.50pt; top: 109.50pt; width: 105.00pt; height: 15.75pt; }
+                        .field-dnichofer { left: 512.25pt; top: 126.00pt; width: 98.25pt; height: 15.75pt; }
+                        .field-pesototal { left: 630.00pt; top: 241.50pt; width: 51.00pt; height: 15.75pt; }
+                        .field-planta { left: 501.75pt; top: 513.75pt; width: 99.75pt; height: 15.75pt; }
+                        .field-dniplanta { left: 519.00pt; top: 528.00pt; width: 99.75pt; height: 15.75pt; }
+                        .field-fechaplanta { left: 414.00pt; top: 528.75pt; width: 51.00pt; height: 15.00pt; }
+                        .field-placaveh { left: 263.25pt; top: 386.25pt; width: 93.75pt; height: 15.00pt; }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                </body>
+                </html>
+            `);
+            doc.close();
+
+            // Wait a moment for styles to apply, then print
+            setTimeout(() => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }, 250);
         }
 
         // Initialize
