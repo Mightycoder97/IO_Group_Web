@@ -1619,6 +1619,15 @@
                                                     Gastos
                                                 </button>
                                                 <button
+                                                    class="btn btn-outline-secondary btn-sm"
+                                                    id="btnImprimirManifiestos"
+                                                    onclick="abrirImpresionManifiestos()"
+                                                    title="Imprimir manifiestos (Matricial)"
+                                                >
+                                                    <i class="bi bi-printer"></i>
+                                                    Manifiestos
+                                                </button>
+                                                <button
                                                     class="btn btn-outline-primary btn-sm"
                                                     id="btnImprimir"
                                                     onclick="window.print()"
@@ -1834,6 +1843,14 @@
                     document.getElementById("resumenRutaModal"),
                 );
                 modal.show();
+            }
+
+            function abrirImpresionManifiestos() {
+                if (!currentRutaId) {
+                    showToast("Por favor guarda la ruta primero para poder imprimir los manifiestos.", "warning");
+                    return;
+                }
+                window.open(`../manifiestos/imprimir.html?ruta=${currentRutaId}`, "_blank");
             }
 
             const ROUTE_REGIONS = ["LIMA", "ICA"];

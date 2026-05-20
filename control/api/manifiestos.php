@@ -12,7 +12,11 @@ $id = $_GET['id'] ?? null;
 
 switch ($method) {
     case 'GET':
-        $id ? getOne($id) : getAll();
+        if (isset($_GET['ruta_full'])) {
+            getFullByRuta($_GET['ruta_full']);
+        } else {
+            $id ? getOne($id) : getAll();
+        }
         break;
     case 'POST':
         create();
@@ -91,10 +95,23 @@ function getOne($id) {
     canView();
     
     $manifiesto = db()->queryOne(
-        "SELECT m.*, s.mes_servicio, s.fecha_ejecucion as fecha_servicio, se.nombre_comercial as sede_nombre
+        "SELECT m.*, s.mes_servicio, s.fecha_ejecucion as fecha_servicio, 
+                se.nombre_comercial as sede_nombre, se.direccion as sede_direccion,
+                se.distrito as sede_distrito, se.provincia as sede_provincia, se.departamento as sede_departamento,
+                e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
+                c.nombre as cliente_nombre, c.dni as cliente_dni,
+                v.placa as vehiculo_placa,
+                p.nombre_comercial as planta_nombre,
+                ch.nombres as chofer_nombres, ch.apellidos as chofer_apellidos, ch.dni as chofer_dni
          FROM Manifiesto m 
          INNER JOIN Servicio s ON m.id_servicio = s.id_servicio 
          INNER JOIN Sede se ON s.id_sede = se.id_sede
+         INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+         INNER JOIN Cliente c ON e.id_cliente = c.id_cliente
+         LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
+         LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
+         LEFT JOIN Planta p ON s.id_planta = p.id_planta
+         LEFT JOIN Empleado ch ON r.id_chofer = ch.id_empleado
          WHERE m.id_manifiesto = ?",
         [$id]
     );
@@ -108,6 +125,36 @@ function getOne($id) {
     echo json_encode([
         'success' => true,
         'data' => $manifiesto
+    ]);
+}
+
+function getFullByRuta($id_ruta) {
+    canView();
+    $manifiestos = db()->query(
+        "SELECT m.*, s.mes_servicio, s.fecha_ejecucion as fecha_servicio, 
+                se.nombre_comercial as sede_nombre, se.direccion as sede_direccion,
+                se.distrito as sede_distrito, se.provincia as sede_provincia, se.departamento as sede_departamento,
+                e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
+                c.nombre as cliente_nombre, c.dni as cliente_dni,
+                v.placa as vehiculo_placa,
+                p.nombre_comercial as planta_nombre,
+                ch.nombres as chofer_nombres, ch.apellidos as chofer_apellidos, ch.dni as chofer_dni
+         FROM Manifiesto m 
+         INNER JOIN Servicio s ON m.id_servicio = s.id_servicio 
+         INNER JOIN Sede se ON s.id_sede = se.id_sede
+         INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+         INNER JOIN Cliente c ON e.id_cliente = c.id_cliente
+         LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
+         LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
+         LEFT JOIN Planta p ON s.id_planta = p.id_planta
+         LEFT JOIN Empleado ch ON r.id_chofer = ch.id_empleado
+         WHERE s.id_ruta = ?",
+        [$id_ruta]
+    );
+    
+    echo json_encode([
+        'success' => true,
+        'data' => $manifiestos
     ]);
 }
 
