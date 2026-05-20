@@ -122,10 +122,10 @@
     display: block !important;
   }
 
-  /* Define page layout */
+  /* Define page layout - explicit dimensions for left-to-right landscape */
   @page {
-    size: A4 landscape;
-    margin: 0; /* Important: zero margins to rely entirely on our absolute positioning */
+    size: 297mm 210mm;
+    margin: 0;
   }
 
   /* Remove borders and background for print */
