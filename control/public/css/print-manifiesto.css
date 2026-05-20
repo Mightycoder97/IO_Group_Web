@@ -8,19 +8,19 @@
 .print-field {
   position: absolute;
   font-family: 'Courier New', Courier, monospace;
-  font-size: 11pt; /* Slightly bigger for dot-matrix */
+  font-size: 11pt;
   color: #000;
   border: 1px dashed rgba(22, 101, 52, 0.3);
   background: rgba(22, 101, 52, 0.05);
   box-sizing: border-box;
-  overflow: hidden;
   white-space: nowrap;
   line-height: 1;
-  padding: 0;
-  display: flex;
+  padding: 2px 4px;
+  display: inline-flex;
   align-items: center;
+  width: auto;
   transform: translate(var(--offset-x), var(--offset-y));
-  user-select: none; /* Prevent text selection while dragging */
+  user-select: none;
 }
 
 /* Modo Diseño: Interacciones */
@@ -46,20 +46,20 @@
 }
 
 /* Exact positioning based on XLSM VML extraction */
-.field-rsocial { left: 54.75pt; top: 46.50pt; width: 432.00pt; height: 17.25pt; }
-.field-ruc { left: 23.25pt; top: 60.00pt; width: 94.50pt; height: 15.00pt; }
-.field-rlegal { left: 66.00pt; top: 72.00pt; width: 166.50pt; height: 14.25pt; }
-.field-dnirlegal { left: 306.75pt; top: 72.00pt; width: 44.25pt; height: 15.00pt; }
-.field-direccion { left: 63.00pt; top: 110.25pt; width: 291.75pt; height: 17.25pt; }
-.field-distrito { left: 20.25pt; top: 125.25pt; width: 120.00pt; height: 15.00pt; }
-.field-provincia { left: 162.00pt; top: 126.00pt; width: 96.00pt; height: 15.00pt; }
-.field-departamento { left: 309.00pt; top: 124.50pt; width: 96.00pt; height: 15.00pt; }
-.field-tiporrss { left: 58.50pt; top: 261.75pt; width: 187.50pt; height: 15.00pt; }
-.field-chofer { left: 502.50pt; top: 109.50pt; width: 105.00pt; height: 15.75pt; }
-.field-cargochofer { left: 502.50pt; top: 95.00pt; width: 105.00pt; height: 15.75pt; }
-.field-dnichofer { left: 512.25pt; top: 126.00pt; width: 98.25pt; height: 15.75pt; }
-.field-placaveh { left: 263.25pt; top: 386.25pt; width: 93.75pt; height: 15.00pt; }
-.field-dnicarla { left: 519.00pt; top: 528.00pt; width: 99.75pt; height: 15.75pt; }
+.field-rsocial { left: 54.75pt; top: 46.50pt; height: 17.25pt; }
+.field-ruc { left: 23.25pt; top: 60.00pt; height: 15.00pt; }
+.field-rlegal { left: 66.00pt; top: 72.00pt; height: 14.25pt; }
+.field-dnirlegal { left: 306.75pt; top: 72.00pt; height: 15.00pt; }
+.field-direccion { left: 63.00pt; top: 110.25pt; height: 17.25pt; }
+.field-distrito { left: 20.25pt; top: 125.25pt; height: 15.00pt; }
+.field-provincia { left: 162.00pt; top: 126.00pt; height: 15.00pt; }
+.field-departamento { left: 309.00pt; top: 124.50pt; height: 15.00pt; }
+.field-tiporrss { left: 58.50pt; top: 261.75pt; height: 15.00pt; }
+.field-chofer { left: 502.50pt; top: 109.50pt; height: 15.75pt; }
+.field-cargochofer { left: 502.50pt; top: 95.00pt; height: 15.75pt; }
+.field-dnichofer { left: 512.25pt; top: 126.00pt; height: 15.75pt; }
+.field-placaveh { left: 263.25pt; top: 386.25pt; height: 15.00pt; }
+.field-dnicarla { left: 519.00pt; top: 528.00pt; height: 15.75pt; }
 
 /* The preview container for screen */
 .preview-container {
