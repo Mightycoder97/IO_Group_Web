@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/jwt.php';
+require_once __DIR__ . '/helpers/ruta_plan.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id = $_GET['id'] ?? null;
@@ -152,6 +153,58 @@ function getFullByRuta($id_ruta) {
          ORDER BY s.id_servicio ASC",
         [$id_ruta]
     );
+
+    if (empty($manifiestos)) {
+        $planSedes = getRutaPlanSedes($id_ruta);
+        if (!empty($planSedes)) {
+            $ids = array_map(function($item) { return intval($item['id_sede']); }, $planSedes);
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            
+            // Get Route context
+            $ruta = db()->queryOne(
+                "SELECT r.fecha, v.placa as vehiculo_placa, 
+                        ch.nombres as chofer_nombres, ch.apellidos as chofer_apellidos, ch.dni as chofer_dni 
+                 FROM Ruta r 
+                 LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo 
+                 LEFT JOIN Empleado ch ON r.id_chofer = ch.id_empleado 
+                 WHERE r.id_ruta = ?",
+                [$id_ruta]
+            );
+            
+            $rows = db()->query(
+                "SELECT se.id_sede, se.nombre_comercial as sede_nombre, se.direccion as sede_direccion,
+                        se.distrito as sede_distrito, se.provincia as sede_provincia, se.departamento as sede_departamento,
+                        e.razon_social as empresa_razon_social, e.ruc as empresa_ruc,
+                        c.nombre as cliente_nombre, c.dni as cliente_dni
+                 FROM Sede se
+                 INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+                 INNER JOIN Cliente c ON e.id_cliente = c.id_cliente
+                 WHERE se.id_sede IN ($placeholders)",
+                $ids
+            );
+            
+            $bySede = [];
+            foreach ($rows as $row) {
+                $bySede[intval($row['id_sede'])] = $row;
+            }
+            
+            foreach ($planSedes as $item) {
+                $id_sede = intval($item['id_sede']);
+                if (isset($bySede[$id_sede])) {
+                    $m = $bySede[$id_sede];
+                    if ($ruta) {
+                        $m['vehiculo_placa'] = $ruta['vehiculo_placa'];
+                        $m['chofer_nombres'] = $ruta['chofer_nombres'];
+                        $m['chofer_apellidos'] = $ruta['chofer_apellidos'];
+                        $m['chofer_dni'] = $ruta['chofer_dni'];
+                        $m['fecha_servicio'] = $ruta['fecha'];
+                    }
+                    $m['tipo_residuo'] = $item['residuo'] ?? null;
+                    $manifiestos[] = $m;
+                }
+            }
+        }
+    }
     
     echo json_encode([
         'success' => true,
