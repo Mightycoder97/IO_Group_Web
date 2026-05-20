@@ -201,6 +201,14 @@
                                         <label class="form-label small text-muted mb-1">DNI Carla</label>
                                         <input type="text" class="form-control form-control-sm" id="input_dnicarla" value="07967422" oninput="updatePreview('dnicarla', this.value)">
                                     </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted mb-1">Tipo de Recipiente</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_tiporecipiente" value="BOLSAS/CAJAS" oninput="updatePreview('tiporecipiente', this.value)">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small text-muted mb-1">Material</label>
+                                        <input type="text" class="form-control form-control-sm" id="input_material" value="PLASTICO/CARTON" oninput="updatePreview('material', this.value)">
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -224,6 +232,8 @@
                                 <span class="print-field field-dnichofer" id="prev_dnichofer"></span>
                                 <span class="print-field field-placaveh" id="prev_placaveh"></span>
                                 <span class="print-field field-dnicarla" id="prev_dnicarla">07967422</span>
+                                <span class="print-field field-tiporecipiente" id="prev_tiporecipiente">BOLSAS/CAJAS</span>
+                                <span class="print-field field-material" id="prev_material">PLASTICO/CARTON</span>
                             </div>
                         </div>
                     </div>
@@ -356,7 +366,9 @@
             cargochofer: () => 'Transportista',
             dnichofer: d => d.chofer_dni || '',
             placaveh: d => d.vehiculo_placa || '',
-            dnicarla: () => '07967422'
+            dnicarla: () => '07967422',
+            tiporecipiente: () => 'BOLSAS/CAJAS',
+            material: () => 'PLASTICO/CARTON'
         };
 
         function inyectarClonesEnContenedor(container, data) {
@@ -402,6 +414,8 @@
                 <span class="print-field field-dnichofer">${data.chofer_dni || ''}</span>
                 <span class="print-field field-placaveh">${data.vehiculo_placa || ''}</span>
                 <span class="print-field field-dnicarla">07967422</span>
+                <span class="print-field field-tiporecipiente">BOLSAS/CAJAS</span>
+                <span class="print-field field-material">PLASTICO/CARTON</span>
             `;
             // Inject saved clones
             inyectarClonesEnContenedor(container, data);
@@ -548,6 +562,8 @@
                         .field-dnichofer { left: 512.25pt; top: 126.00pt; height: 15.75pt; }
                         .field-placaveh { left: 263.25pt; top: 386.25pt; height: 15.00pt; }
                         .field-dnicarla { left: 519.00pt; top: 528.00pt; height: 15.75pt; }
+                        .field-tiporecipiente { left: 58.50pt; top: 290.00pt; height: 15.00pt; }
+                        .field-material { left: 58.50pt; top: 310.00pt; height: 15.00pt; }
                         /* Custom Positioning overrides */
                         ${getInlineCustomCss()}
                     </style>
