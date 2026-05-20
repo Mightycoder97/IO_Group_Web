@@ -60,33 +60,33 @@
 
 /* Print specific styles */
 @media print {
-  /* Hide all UI elements */
-  body * {
-    visibility: hidden;
+  /* Hide all UI elements except the print wrapper */
+  .sidebar,
+  .bg-white.border-bottom.p-3,
+  .controls-panel,
+  .col-md-3 {
+    display: none !important;
   }
   
-  /* Reset layout constraints on parents so absolute positioning starts exactly at 0,0 of paper */
-  body, html, main, .container-fluid, .row, .col-md-9, .col-md-12, .d-flex {
+  /* Reset layout constraints so the print area flows naturally from 0,0 */
+  body, html, main, .d-flex, .p-4, .container-fluid, .content-area, .row, .col-md-9, .col-md-12 {
     margin: 0 !important;
     padding: 0 !important;
     position: static !important;
     transform: none !important;
     overflow: visible !important;
+    background: transparent !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
   
   .preview-wrapper {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: relative !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
-    visibility: visible !important;
-  }
-
-  /* Show only the print container and its contents */
-  .preview-container, .preview-container * {
-    visibility: visible;
+    display: block !important;
   }
 
   /* Position the print area at the absolute top-left of the paper */
@@ -102,6 +102,8 @@
     transform: none !important; /* No scaling in actual print */
     page-break-after: always !important;
     margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
   }
 
   /* Define page layout */
