@@ -612,7 +612,7 @@
         // Cargar calibraciones desde la BD
         async function cargarCalibracionBD() {
             try {
-                const res = await api.get('/manifiesto_calibracion.php');
+                const res = await api.get('/manifiesto_calibracion');
                 if (res && res.data) {
                     customPositions = res.data;
                     aplicarCalibracionesUI();
@@ -672,7 +672,7 @@
             btn.disabled = true;
             
             try {
-                const res = await api.post('/manifiesto_calibracion.php', customPositions);
+                const res = await api.post('/manifiesto_calibracion', customPositions);
                 if (res && res.success) {
                     showToast('Calibración guardada exitosamente para todos los usuarios', 'success');
                 } else {
