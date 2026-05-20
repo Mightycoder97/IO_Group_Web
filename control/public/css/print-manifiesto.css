@@ -65,33 +65,43 @@
     visibility: hidden;
   }
   
+  /* Reset layout constraints on parents so absolute positioning starts exactly at 0,0 of paper */
+  body, html, main, .container-fluid, .row, .col-md-9, .col-md-12, .d-flex {
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+  
+  .preview-wrapper {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    visibility: visible !important;
+  }
+
   /* Show only the print container and its contents */
   .preview-container, .preview-container * {
     visibility: visible;
   }
-  
-  .preview-wrapper {
-    position: absolute;
-    left: 0;
-    top: 0;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-  }
 
   /* Position the print area at the absolute top-left of the paper */
   .preview-container {
-    position: relative;
-    left: 0;
-    top: 0;
-    width: 841.89pt;
-    height: 595.28pt;
-    border: none;
-    box-shadow: none;
-    background: transparent;
-    transform: none; /* No scaling in actual print */
-    page-break-after: always;
-    margin: 0;
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 841.89pt !important;
+    height: 595.28pt !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    transform: none !important; /* No scaling in actual print */
+    page-break-after: always !important;
+    margin: 0 !important;
   }
 
   /* Define page layout */
@@ -102,8 +112,8 @@
 
   /* Remove borders and background for print */
   .print-field {
-    border: none;
-    background: transparent;
-    color: #000;
+    border: none !important;
+    background: transparent !important;
+    color: #000 !important;
   }
 }
