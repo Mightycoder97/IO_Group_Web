@@ -98,10 +98,28 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2 text-end">
-                        <button class="btn btn-primary" onclick="imprimirLimpio()">
+                    <div class="col-md-2 text-end d-flex gap-2 justify-content-end">
+                        <div class="form-check form-switch d-flex align-items-center" title="Activar para mover campos">
+                            <input class="form-check-input" type="checkbox" id="modoDisenoSwitch">
+                            <label class="form-check-label ms-2 small fw-bold text-muted" for="modoDisenoSwitch">Diseño</label>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="imprimirLimpio()">
                             <i class="bi bi-printer-fill"></i> Imprimir
                         </button>
+                    </div>
+                </div>
+                
+                <div class="row mb-3" id="panelDiseno" style="display: none;">
+                    <div class="col-12">
+                        <div class="alert alert-info py-2 mb-0 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-info-circle-fill me-2"></i><strong>Modo Diseño:</strong> Haz clic en un campo para seleccionarlo. Arrástralo con el ratón o usa las <strong>flechas del teclado</strong> para moverlo con precisión.</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-secondary" id="coordenadasActuales">X: 0pt | Y: 0pt</span>
+                                <button class="btn btn-success btn-sm" onclick="guardarCalibracion()" id="btnGuardarCalibracion">
+                                    <i class="bi bi-save"></i> Guardar para todos
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -565,6 +583,8 @@
                         .field-dniplanta { left: 519.00pt; top: 528.00pt; width: 99.75pt; height: 15.75pt; }
                         .field-fechaplanta { left: 414.00pt; top: 528.75pt; width: 51.00pt; height: 15.00pt; }
                         .field-placaveh { left: 263.25pt; top: 386.25pt; width: 93.75pt; height: 15.00pt; }
+                        /* Custom Positioning overrides */
+                        ${getInlineCustomCss()}
                     </style>
                 </head>
                 <body>
@@ -581,7 +601,225 @@
             }, 250);
         }
 
+        // --- CALIBRATION (MODO DISEÑO) LOGIC ---
+        let modoDiseno = false;
+        let elementoSeleccionado = null;
+        let isDragging = false;
+        let startX, startY;
+        let startLeft, startTop;
+        let customPositions = {}; // Store custom overrides
+        
+        // Cargar calibraciones desde la BD
+        async function cargarCalibracionBD() {
+            try {
+                const res = await api.get('/manifiesto_calibracion.php');
+                if (res && res.data) {
+                    customPositions = res.data;
+                    aplicarCalibracionesUI();
+                }
+            } catch (error) {
+                console.error("No se pudo cargar la calibración de BD", error);
+            }
+        }
+        
+        function aplicarCalibracionesUI() {
+            let styleEl = document.getElementById('customCalibrationStyles');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'customCalibrationStyles';
+                document.head.appendChild(styleEl);
+            }
+            
+            let css = '';
+            for (const [id, pos] of Object.entries(customPositions)) {
+                // El ID de los span es prev_rsocial, prev_ruc, etc.
+                // Y tienen clases como field-rsocial
+                const className = id.replace('prev_', 'field-');
+                css += `.${className} { left: ${pos.left}pt !important; top: ${pos.top}pt !important; }\n`;
+            }
+            styleEl.innerHTML = css;
+        }
+
+        // Obtener el CSS limpio para el iframe basado en posiciones customizadas o por defecto
+        function getInlineCustomCss() {
+            let css = '';
+            const allFields = document.querySelectorAll('.preview-container .print-field');
+            // We only need fields from the first container to extract classes and positions
+            const container = document.querySelector('.preview-container');
+            if(!container) return '';
+            
+            const fields = container.querySelectorAll('.print-field');
+            fields.forEach(f => {
+                const id = f.id;
+                // En modo multi-hoja, los IDs en copias no son únicos, pero la clase sí.
+                // Buscar la clase que empieza con 'field-'
+                const fieldClass = Array.from(f.classList).find(c => c.startsWith('field-'));
+                if (!fieldClass) return;
+                
+                // Si existe posición customizada:
+                const baseId = id.replace(/_\d+$/, ''); // limpiar sufijo si es multihoja
+                if (customPositions[baseId]) {
+                    css += `.${fieldClass} { left: ${customPositions[baseId].left}pt; top: ${customPositions[baseId].top}pt; }\n`;
+                }
+            });
+            return css;
+        }
+
+        async function guardarCalibracion() {
+            const btn = document.getElementById('btnGuardarCalibracion');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Guardando...';
+            btn.disabled = true;
+            
+            try {
+                const res = await api.post('/manifiesto_calibracion.php', customPositions);
+                if (res && res.success) {
+                    showToast('Calibración guardada exitosamente para todos los usuarios', 'success');
+                } else {
+                    showToast(res.message || 'Error al guardar', 'error');
+                }
+            } catch (error) {
+                showToast('Error de conexión', 'error');
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        function initDragAndDrop() {
+            const switchDiseno = document.getElementById('modoDisenoSwitch');
+            const panelDiseno = document.getElementById('panelDiseno');
+            
+            switchDiseno.addEventListener('change', (e) => {
+                modoDiseno = e.target.checked;
+                panelDiseno.style.display = modoDiseno ? 'flex' : 'none';
+                
+                document.querySelectorAll('.preview-container').forEach(c => {
+                    if (modoDiseno) {
+                        c.classList.add('modo-diseno-activo');
+                    } else {
+                        c.classList.remove('modo-diseno-activo');
+                        deseleccionarElemento();
+                    }
+                });
+            });
+
+            // Usamos event delegation para capturar clics en los campos de impresión
+            document.addEventListener('mousedown', (e) => {
+                if (!modoDiseno) return;
+                
+                if (e.target.classList.contains('print-field')) {
+                    e.preventDefault();
+                    seleccionarElemento(e.target);
+                    
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    // Extraer los pt actuales calculados o in-line
+                    const computed = window.getComputedStyle(e.target);
+                    // Para convertir px a pt aproximado (1px = 0.75pt)
+                    // Pero mejor leer customPositions si existe
+                    const baseId = e.target.id.replace(/_\d+$/, '');
+                    
+                    if (customPositions[baseId]) {
+                        startLeft = customPositions[baseId].left;
+                        startTop = customPositions[baseId].top;
+                    } else {
+                        startLeft = parseFloat(computed.left) * 0.75;
+                        startTop = parseFloat(computed.top) * 0.75;
+                    }
+                } else if (!e.target.closest('#panelDiseno') && !e.target.closest('.print-field')) {
+                    // Clic fuera, deseleccionar
+                    deseleccionarElemento();
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging || !elementoSeleccionado) return;
+                
+                const dx = (e.clientX - startX) * 0.75; // Convertir px movidos a pt
+                const dy = (e.clientY - startY) * 0.75;
+                
+                let newLeft = Math.round((startLeft + dx) * 100) / 100;
+                let newTop = Math.round((startTop + dy) * 100) / 100;
+                
+                aplicarPosicionAElemento(elementoSeleccionado, newLeft, newTop);
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            // Teclado
+            document.addEventListener('keydown', (e) => {
+                if (!modoDiseno || !elementoSeleccionado) return;
+                
+                let step = e.shiftKey ? 5 : 0.5; // shift para mover más rápido
+                let changed = false;
+                
+                const baseId = elementoSeleccionado.id.replace(/_\d+$/, '');
+                let currLeft = customPositions[baseId] ? customPositions[baseId].left : parseFloat(window.getComputedStyle(elementoSeleccionado).left) * 0.75;
+                let currTop = customPositions[baseId] ? customPositions[baseId].top : parseFloat(window.getComputedStyle(elementoSeleccionado).top) * 0.75;
+                
+                if (e.key === 'ArrowUp') { currTop -= step; changed = true; }
+                else if (e.key === 'ArrowDown') { currTop += step; changed = true; }
+                else if (e.key === 'ArrowLeft') { currLeft -= step; changed = true; }
+                else if (e.key === 'ArrowRight') { currLeft += step; changed = true; }
+                
+                if (changed) {
+                    e.preventDefault();
+                    currLeft = Math.round(currLeft * 100) / 100;
+                    currTop = Math.round(currTop * 100) / 100;
+                    aplicarPosicionAElemento(elementoSeleccionado, currLeft, currTop);
+                }
+            });
+        }
+        
+        function seleccionarElemento(el) {
+            deseleccionarElemento();
+            elementoSeleccionado = el;
+            el.classList.add('selected-field');
+            actualizarIndicadorCoords();
+        }
+        
+        function deseleccionarElemento() {
+            if (elementoSeleccionado) {
+                elementoSeleccionado.classList.remove('selected-field');
+                elementoSeleccionado = null;
+            }
+            document.getElementById('coordenadasActuales').textContent = 'X: 0pt | Y: 0pt';
+        }
+        
+        function aplicarPosicionAElemento(el, leftPt, topPt) {
+            const baseId = el.id.replace(/_\d+$/, '');
+            customPositions[baseId] = { left: leftPt, top: topPt };
+            
+            // Reflejar en la UI
+            aplicarCalibracionesUI();
+            actualizarIndicadorCoords(leftPt, topPt);
+        }
+        
+        function actualizarIndicadorCoords(l, t) {
+            if (l === undefined || t === undefined) {
+                if (!elementoSeleccionado) return;
+                const baseId = elementoSeleccionado.id.replace(/_\d+$/, '');
+                if (customPositions[baseId]) {
+                    l = customPositions[baseId].left;
+                    t = customPositions[baseId].top;
+                } else {
+                    l = parseFloat(window.getComputedStyle(elementoSeleccionado).left) * 0.75;
+                    t = parseFloat(window.getComputedStyle(elementoSeleccionado).top) * 0.75;
+                }
+            }
+            document.getElementById('coordenadasActuales').textContent = `X: ${l.toFixed(2)}pt | Y: ${t.toFixed(2)}pt`;
+        }
+
         // Initialize
+        cargarCalibracionBD().then(() => {
+            initDragAndDrop();
+        });
+        
         loadOffsets();
         // Give a slight delay for layout to calculate properly before adjusting scale
         setTimeout(() => {
