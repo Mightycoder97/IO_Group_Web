@@ -1858,13 +1858,23 @@
             
             let _calibracionCache = null; // Cache para no recargar en cada impresión
             
-            // Abrir página de diseño/calibración (único camino)
+            // Abrir página de diseño/calibración con un manifiesto individual
             function abrirDisenoManifiestos() {
                 if (!currentRutaId) {
                     showToast("Por favor guarda la ruta primero.", "warning");
                     return;
                 }
-                window.open(`../manifiestos/imprimir.html?ruta=${currentRutaId}`, "_blank");
+                // Buscar cualquier sede de la ruta actual para mostrar un manifiesto individual
+                let sedeId = null;
+                const key = getVehiculoKey(assignmentState.selectedVehiculoId);
+                const clientes = assignmentState.clientesPorVehiculo.get(key);
+                if (clientes && clientes.length > 0) {
+                    sedeId = clientes[0].id_sede;
+                }
+                const url = sedeId 
+                    ? `../manifiestos/imprimir.html?ruta=${currentRutaId}&sede=${sedeId}`
+                    : `../manifiestos/imprimir.html?ruta=${currentRutaId}`;
+                window.open(url, "_blank");
             }
             
             // Cargar calibración desde la BD (con caché)
