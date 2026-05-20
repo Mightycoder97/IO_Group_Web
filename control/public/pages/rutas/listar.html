@@ -343,11 +343,17 @@
                 background: #fff;
                 border: 1px solid #e2e8f0;
                 border-radius: 8px;
+                cursor: pointer;
                 display: flex;
                 flex-direction: column;
                 gap: 2px;
                 padding: 8px 6px;
                 text-align: center;
+                transition: border-color 0.15s, box-shadow 0.15s;
+            }
+            .map-metric-card:hover {
+                border-color: #22c55e;
+                box-shadow: 0 4px 12px rgba(34, 197, 94, 0.12);
             }
 
             .map-metric-card i {
@@ -372,7 +378,97 @@
                 background: #e2e8f0;
                 border-radius: 4px;
                 height: 4px;
-                margin-top: 4px;
+                margin-top: 4px;}
+
+            /* Modal de detalle de metricas */
+            .metric-detail-overlay {
+                background: rgba(15, 23, 42, 0.5);
+                bottom: 0;
+                display: none;
+                left: 0;
+                position: fixed;
+                right: 0;
+                top: 0;
+                z-index: 9999;
+            }
+            .metric-detail-overlay.show {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .metric-detail-panel {
+                background: #fff;
+                border-radius: 16px;
+                box-shadow: 0 25px 60px rgba(15, 23, 42, 0.3);
+                max-height: 80vh;
+                max-width: 520px;
+                overflow: hidden;
+                width: 90vw;
+            }
+            .metric-detail-header {
+                align-items: center;
+                border-bottom: 1px solid #e2e8f0;
+                display: flex;
+                justify-content: space-between;
+                padding: 16px 18px;
+            }
+            .metric-detail-header h3 {
+                font-size: 1rem;
+                font-weight: 800;
+                margin: 0;
+            }
+            .metric-detail-header .btn-close {
+                font-size: 0.75rem;
+            }
+            .metric-detail-count {
+                color: #64748b;
+                font-size: 0.82rem;
+            }
+            .metric-detail-list {
+                max-height: calc(80vh - 70px);
+                overflow-y: auto;
+                padding: 8px 0;
+            }
+            .metric-detail-item {
+                align-items: center;
+                border-bottom: 1px solid #f1f5f9;
+                cursor: default;
+                display: flex;
+                gap: 10px;
+                padding: 10px 18px;
+                transition: background 0.12s;
+            }
+            .metric-detail-item:hover {
+                background: #f8fafc;
+            }
+            .metric-detail-item .sedename {
+                flex: 1;
+                font-size: 0.88rem;
+                font-weight: 700;
+                line-height: 1.2;
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .metric-detail-item .sedemeta {
+                color: #64748b;
+                flex-shrink: 0;
+                font-size: 0.72rem;
+                text-align: right;
+            }
+            .metric-detail-item .sedebadge {
+                border-radius: 999px;
+                font-size: 0.65rem;
+                font-weight: 700;
+                padding: 2px 8px;
+                white-space: nowrap;
+            }
+            .metric-detail-empty {
+                color: #94a3b8;
+                padding: 40px 18px;
+                text-align: center;
+            }
                 width: 100%;
             }
 
@@ -1116,6 +1212,7 @@
                             <span
                                 class="badge bg-success-subtle text-success border border-success-subtle"
                                 id="todayAssignedPill"
+                                style="cursor:pointer"
                                 >0 sedes hoy</span
                             >
                         </div>
@@ -1405,6 +1502,23 @@
                             <div class="route-map-status" id="routeMapStatus">
                                 Preparando mapa...
                             </div>
+                        </div>
+
+                        <!-- Modal de detalle de metricas -->
+                        <div class="metric-detail-overlay" id="metricDetailOverlay">
+                            <div class="metric-detail-panel">
+                                <div class="metric-detail-header">
+                                    <div>
+                                        <h3 id="metricDetailTitle">Sedes</h3>
+                                        <span class="metric-detail-count" id="metricDetailCount">0 sedes</span>
+                                    </div>
+                                    <button type="button" class="btn-close" onclick="closeMetricDetail()" aria-label="Cerrar"></button>
+                                </div>
+                                <div class="metric-detail-list" id="metricDetailList">
+                                    <div class="metric-detail-empty">Cargando...</div>
+                                </div>
+                            </div>
+                        </div>
                             <div
                                 class="route-map-legend small"
                                 id="vehicleLegend"
@@ -3480,6 +3594,122 @@
                 );
                 routeAssignmentMap.toggleHeatmap(heatmapVisible, unassigned);
             }
+
+            // ─── Modal de detalle de metricas ───────────────────────────
+            function openMetricDetail(type) {
+                const overlay = document.getElementById("metricDetailOverlay");
+                const list = document.getElementById("metricDetailList");
+                const title = document.getElementById("metricDetailTitle");
+                const count = document.getElementById("metricDetailCount");
+                const monthlyAssignedIds = getAssignedMonthMap();
+                const todayAssignedIds = assignmentState.assignedBySede;
+                let sedes = [];
+                let label = "";
+
+                switch (type) {
+                    case "total":
+                        sedes = assignmentState.filteredClientes;
+                        label = "Total filtro";
+                        break;
+                    case "assigned":
+                        sedes = assignmentState.filteredClientes.filter((c) =>
+                            monthlyAssignedIds.has(String(c.id_sede)),
+                        );
+                        label = "Asignadas (mes)";
+                        break;
+                    case "pending":
+                        sedes = assignmentState.filteredClientes.filter(
+                            (c) =>
+                                !monthlyAssignedIds.has(String(c.id_sede)),
+                        );
+                        label = "Pendientes";
+                        break;
+                    case "today":
+                        sedes = assignmentState.filteredClientes.filter((c) =>
+                            todayAssignedIds.has(String(c.id_sede)),
+                        );
+                        label = "Asignadas hoy";
+                        break;
+                    default:
+                        return;
+                }
+
+                title.textContent = label;
+                count.textContent = `${sedes.length} sede${sedes.length !== 1 ? "s" : ""}`;
+
+                if (!sedes.length) {
+                    list.innerHTML =
+                        '<div class="metric-detail-empty">No hay sedes en esta categoria</div>';
+                } else {
+                    list.innerHTML = sedes
+                        .map((s) => {
+                            const freq = s.frecuencia || "-";
+                            const dist = s.distrito || "";
+                            const vehiculo = todayAssignedIds.get(
+                                String(s.id_sede),
+                            );
+                            const badge =
+                                type === "assigned" || type === "today"
+                                    ? `<span class="sedebadge bg-success-subtle text-success">${vehiculo?.placa || "ASIGNADO"}</span>`
+                                    : type === "pending"
+                                      ? `<span class="sedebadge bg-warning-subtle text-warning">Pendiente</span>`
+                                      : freq
+                                        ? `<span class="sedebadge bg-light text-muted">${escapeHtml(freq)}</span>`
+                                        : "";
+                            return `
+                                <div class="metric-detail-item" onclick="selectSede(${s.id_sede}); closeMetricDetail();">
+                                    <span class="sedename">${escapeHtml(s.nombre_comercial || s.empresa_razon_social || "-")}</span>
+                                    <span class="sedemeta">${dist ? escapeHtml(dist) : ""} ${badge}</span>
+                                </div>`;
+                        })
+                        .join("");
+                }
+
+                overlay.classList.add("show");
+            }
+
+            function closeMetricDetail() {
+                document
+                    .getElementById("metricDetailOverlay")
+                    .classList.remove("show");
+            }
+
+            // Cerrar modal al hacer clic fuera del panel
+            document.addEventListener("DOMContentLoaded", function () {
+                const overlay = document.getElementById("metricDetailOverlay");
+                if (overlay) {
+                    overlay.addEventListener("click", function (e) {
+                        if (e.target === this) closeMetricDetail();
+                    });
+                }
+            });
+
+            // Asignar clicks a las tarjetas de metricas
+            function setupMetricCardClicks() {
+                const cards = [
+                    { id: "metricCardTotal", type: "total" },
+                    { id: "metricCardAssigned", type: "assigned" },
+                    { id: "metricCardPending", type: "pending" },
+                    { id: "metricCardCompliance", type: "assigned" },
+                    { id: "todayAssignedPill", type: "today" },
+                ];
+                cards.forEach(({ id, type }) => {
+                    const el = document.getElementById(id);
+                    if (el) el.onclick = () => openMetricDetail(type);
+                });
+            }
+
+            // Hook into renderMetrics to also setup card clicks (first time)
+            const _origRenderMetrics = renderMetrics;
+            renderMetrics = function (filtered) {
+                _origRenderMetrics(filtered);
+                setupMetricCardClicks();
+            };
+
+            // ESC key to close
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") closeMetricDetail();
+            });
 
             function updateVehicleLegend() {
                 const el = document.getElementById("vehicleLegend");
