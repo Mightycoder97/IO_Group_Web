@@ -112,9 +112,12 @@
                 <div class="row mb-3" id="panelDiseno" style="display: none;">
                     <div class="col-12">
                         <div class="alert alert-info py-2 mb-0 d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-info-circle-fill me-2"></i><strong>Modo Diseño:</strong> Clic para seleccionar, arrastra o usa flechas. <kbd>Shift+Flecha</kbd> = rápido.</span>
+                            <span><i class="bi bi-info-circle-fill me-2"></i><strong>Modo Diseño:</strong> Arrastra o usa flechas. <kbd>Shift+Flecha</kbd> = rápido.</span>
                             <div class="d-flex align-items-center gap-3">
                                 <span class="badge bg-secondary" id="coordenadasActuales">X: 0pt | Y: 0pt</span>
+                                <button class="btn btn-outline-warning btn-sm" onclick="toggleModoMultiSelect()" id="btnMultiSelect" title="Activar para seleccionar varios campos, desactivar para moverlos en grupo">
+                                    <i class="bi bi-ui-checks-grid"></i> Selección Múltiple
+                                </button>
                                 <button class="btn btn-outline-primary btn-sm" onclick="duplicarCampoSeleccionado()" id="btnDuplicar" disabled title="Selecciona un campo primero">
                                     <i class="bi bi-copy"></i> Duplicar
                                 </button>
@@ -565,10 +568,12 @@
 
         // --- CALIBRATION (MODO DISEÑO) LOGIC ---
         let modoDiseno = false;
-        let elementoSeleccionado = null;
+        let modoMultiSelect = false; // true = seleccionando, false = moviendo
+        let elementoSeleccionado = null; // último seleccionado (para coords display)
+        let elementosSeleccionados = []; // array multi-selección
         let isDragging = false;
         let startX, startY;
-        let startLeft, startTop;
+        let dragStartPositions = {}; // posiciones iniciales de TODOS los seleccionados al empezar drag
         let customPositions = {}; // Store custom overrides
         
         // Cargar calibraciones desde la BD
@@ -641,6 +646,20 @@
             }
         }
 
+        function toggleModoMultiSelect() {
+            modoMultiSelect = !modoMultiSelect;
+            const btn = document.getElementById('btnMultiSelect');
+            if (modoMultiSelect) {
+                btn.classList.remove('btn-outline-warning');
+                btn.classList.add('btn-warning');
+                btn.innerHTML = '<i class="bi bi-ui-checks-grid"></i> Seleccionando...';
+            } else {
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-outline-warning');
+                btn.innerHTML = '<i class="bi bi-ui-checks-grid"></i> Selección Múltiple';
+            }
+        }
+
         function initDragAndDrop() {
             const switchDiseno = document.getElementById('modoDisenoSwitch');
             const panelDiseno = document.getElementById('panelDiseno');
@@ -654,98 +673,163 @@
                         c.classList.add('modo-diseno-activo');
                     } else {
                         c.classList.remove('modo-diseno-activo');
-                        deseleccionarElemento();
+                        deseleccionarTodo();
+                        if (modoMultiSelect) toggleModoMultiSelect();
                     }
                 });
             });
 
-            // Usamos event delegation para capturar clics en los campos de impresión
+            // Mousedown
             document.addEventListener('mousedown', (e) => {
                 if (!modoDiseno) return;
                 
                 if (e.target.classList.contains('print-field')) {
                     e.preventDefault();
-                    seleccionarElemento(e.target);
                     
+                    if (modoMultiSelect) {
+                        // MODO MULTI-SELECT: solo toggle selección, NO iniciar drag
+                        toggleSeleccion(e.target);
+                        return;
+                    }
+                    
+                    // MODO NORMAL: seleccionar si no está ya seleccionado
+                    if (!elementosSeleccionados.includes(e.target)) {
+                        seleccionarElemento(e.target);
+                    }
+                    
+                    // Iniciar drag de TODOS los seleccionados
                     isDragging = true;
                     startX = e.clientX;
                     startY = e.clientY;
                     
-                    const computed = window.getComputedStyle(e.target);
-                    const posKey = getPositionKey(e.target);
-                    
-                    if (customPositions[posKey]) {
-                        startLeft = customPositions[posKey].left;
-                        startTop = customPositions[posKey].top;
-                    } else {
-                        startLeft = parseFloat(computed.left) * 0.75;
-                        startTop = parseFloat(computed.top) * 0.75;
-                    }
+                    dragStartPositions = {};
+                    elementosSeleccionados.forEach(el => {
+                        const key = getPositionKey(el);
+                        if (customPositions[key]) {
+                            dragStartPositions[key] = { left: customPositions[key].left, top: customPositions[key].top };
+                        } else {
+                            dragStartPositions[key] = {
+                                left: parseFloat(window.getComputedStyle(el).left) * 0.75,
+                                top: parseFloat(window.getComputedStyle(el).top) * 0.75
+                            };
+                        }
+                    });
                 } else if (!e.target.closest('#panelDiseno') && !e.target.closest('.print-field')) {
-                    // Clic fuera, deseleccionar
-                    deseleccionarElemento();
+                    if (!modoMultiSelect) deseleccionarTodo();
                 }
             });
 
+            // Mousemove
             document.addEventListener('mousemove', (e) => {
-                if (!isDragging || !elementoSeleccionado) return;
+                if (modoMultiSelect || !isDragging || elementosSeleccionados.length === 0) return;
                 
-                const dx = (e.clientX - startX) * 0.75; // Convertir px movidos a pt
+                const dx = (e.clientX - startX) * 0.75;
                 const dy = (e.clientY - startY) * 0.75;
                 
-                let newLeft = Math.round((startLeft + dx) * 100) / 100;
-                let newTop = Math.round((startTop + dy) * 100) / 100;
+                elementosSeleccionados.forEach(el => {
+                    const key = getPositionKey(el);
+                    const start = dragStartPositions[key];
+                    if (!start) return;
+                    customPositions[key] = {
+                        left: Math.round((start.left + dx) * 100) / 100,
+                        top: Math.round((start.top + dy) * 100) / 100
+                    };
+                });
                 
-                aplicarPosicionAElemento(elementoSeleccionado, newLeft, newTop);
+                aplicarCalibracionesUI();
+                if (elementoSeleccionado) {
+                    const key = getPositionKey(elementoSeleccionado);
+                    if (customPositions[key]) {
+                        actualizarIndicadorCoords(customPositions[key].left, customPositions[key].top);
+                    }
+                }
             });
 
             document.addEventListener('mouseup', () => {
                 isDragging = false;
             });
             
-            // Teclado
+            // Teclado: mover todos los seleccionados (solo si NO estamos en modo multi-select)
             document.addEventListener('keydown', (e) => {
-                if (!modoDiseno || !elementoSeleccionado) return;
+                if (!modoDiseno || modoMultiSelect || elementosSeleccionados.length === 0) return;
                 
                 let step = e.shiftKey ? 5 : 0.5;
-                let changed = false;
+                let dx = 0, dy = 0;
                 
-                const posKey = getPositionKey(elementoSeleccionado);
-                let currLeft = customPositions[posKey] ? customPositions[posKey].left : parseFloat(window.getComputedStyle(elementoSeleccionado).left) * 0.75;
-                let currTop = customPositions[posKey] ? customPositions[posKey].top : parseFloat(window.getComputedStyle(elementoSeleccionado).top) * 0.75;
+                if (e.key === 'ArrowUp') dy = -step;
+                else if (e.key === 'ArrowDown') dy = step;
+                else if (e.key === 'ArrowLeft') dx = -step;
+                else if (e.key === 'ArrowRight') dx = step;
+                else return;
                 
-                if (e.key === 'ArrowUp') { currTop -= step; changed = true; }
-                else if (e.key === 'ArrowDown') { currTop += step; changed = true; }
-                else if (e.key === 'ArrowLeft') { currLeft -= step; changed = true; }
-                else if (e.key === 'ArrowRight') { currLeft += step; changed = true; }
+                e.preventDefault();
                 
-                if (changed) {
-                    e.preventDefault();
-                    currLeft = Math.round(currLeft * 100) / 100;
-                    currTop = Math.round(currTop * 100) / 100;
-                    aplicarPosicionAElemento(elementoSeleccionado, currLeft, currTop);
+                elementosSeleccionados.forEach(el => {
+                    const key = getPositionKey(el);
+                    let currLeft = customPositions[key] ? customPositions[key].left : parseFloat(window.getComputedStyle(el).left) * 0.75;
+                    let currTop = customPositions[key] ? customPositions[key].top : parseFloat(window.getComputedStyle(el).top) * 0.75;
+                    customPositions[key] = {
+                        left: Math.round((currLeft + dx) * 100) / 100,
+                        top: Math.round((currTop + dy) * 100) / 100
+                    };
+                });
+                
+                aplicarCalibracionesUI();
+                if (elementoSeleccionado) {
+                    const key = getPositionKey(elementoSeleccionado);
+                    if (customPositions[key]) {
+                        actualizarIndicadorCoords(customPositions[key].left, customPositions[key].top);
+                    }
                 }
             });
         }
         
         function seleccionarElemento(el) {
-            deseleccionarElemento();
+            // Single-click: reemplaza toda la selección
+            deseleccionarTodo();
             elementoSeleccionado = el;
+            elementosSeleccionados = [el];
             el.classList.add('selected-field');
             actualizarIndicadorCoords();
-            // Toggle buttons
-            document.getElementById('btnDuplicar').disabled = false;
-            document.getElementById('btnEliminarClon').style.display = el.dataset.clone ? 'inline-block' : 'none';
+            actualizarBotonesSeleccion();
         }
         
-        function deseleccionarElemento() {
-            if (elementoSeleccionado) {
-                elementoSeleccionado.classList.remove('selected-field');
-                elementoSeleccionado = null;
+        function toggleSeleccion(el) {
+            // Ctrl+Click: añadir o quitar
+            const idx = elementosSeleccionados.indexOf(el);
+            if (idx >= 0) {
+                // Quitar
+                elementosSeleccionados.splice(idx, 1);
+                el.classList.remove('selected-field');
+                elementoSeleccionado = elementosSeleccionados[elementosSeleccionados.length - 1] || null;
+            } else {
+                // Añadir
+                elementosSeleccionados.push(el);
+                el.classList.add('selected-field');
+                elementoSeleccionado = el;
             }
+            actualizarIndicadorCoords();
+            actualizarBotonesSeleccion();
+        }
+        
+        function deseleccionarTodo() {
+            elementosSeleccionados.forEach(el => el.classList.remove('selected-field'));
+            elementosSeleccionados = [];
+            elementoSeleccionado = null;
             document.getElementById('coordenadasActuales').textContent = 'X: 0pt | Y: 0pt';
-            document.getElementById('btnDuplicar').disabled = true;
-            document.getElementById('btnEliminarClon').style.display = 'none';
+            actualizarBotonesSeleccion();
+        }
+        
+        function actualizarBotonesSeleccion() {
+            const n = elementosSeleccionados.length;
+            document.getElementById('btnDuplicar').disabled = n === 0;
+            // Mostrar "Borrar copia" solo si hay exactamente 1 clon seleccionado
+            const soloUnClon = n === 1 && elementosSeleccionados[0].dataset.clone;
+            document.getElementById('btnEliminarClon').style.display = soloUnClon ? 'inline-block' : 'none';
+            // Actualizar badge de selección en coordenadas
+            if (n > 1) {
+                document.getElementById('coordenadasActuales').textContent += ` (${n} campos)`;
+            }
         }
         
         function getPositionKey(el) {
