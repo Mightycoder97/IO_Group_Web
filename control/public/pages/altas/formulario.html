@@ -1,1231 +1,2026 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Nueva Alta - IO Group</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+            rel="stylesheet"
+        />
+        <link href="../../css/global.css?v=2.5" rel="stylesheet" />
+        <style>
+            .step-indicator {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 30px;
+                position: relative;
+            }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nueva Alta - IO Group</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../css/global.css?v=2.5" rel="stylesheet">
-    <style>
-        .step-indicator {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            position: relative;
-        }
+            .step-indicator::before {
+                content: "";
+                position: absolute;
+                top: 20px;
+                left: 50px;
+                right: 50px;
+                height: 3px;
+                background: #e9ecef;
+                z-index: 1;
+            }
 
-        .step-indicator::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 50px;
-            right: 50px;
-            height: 3px;
-            background: #e9ecef;
-            z-index: 1;
-        }
+            .step {
+                position: relative;
+                z-index: 2;
+                text-align: center;
+                width: 33%;
+            }
 
-        .step {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-            width: 33%;
-        }
+            .step-circle {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #e9ecef;
+                color: #6c757d;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 10px;
+                font-weight: bold;
+                font-size: 1.2rem;
+                transition: all 0.3s;
+            }
 
-        .step-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #e9ecef;
-            color: #6c757d;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            transition: all 0.3s;
-        }
+            .step.active .step-circle,
+            .step.completed .step-circle {
+                background: #1b5e20;
+                color: white;
+                box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.2);
+            }
 
-        .step.active .step-circle,
-        .step.completed .step-circle {
-            background: #1B5E20;
-            color: white;
-            box-shadow: 0 0 0 4px rgba(27, 94, 32, 0.2);
-        }
+            .step.completed .step-circle {
+                background: #2e7d32;
+            }
 
-        .step.completed .step-circle {
-            background: #2e7d32;
-        }
+            .step.active .step-label {
+                font-weight: bold;
+                color: #1b5e20;
+            }
 
-        .step.active .step-label {
-            font-weight: bold;
-            color: #1B5E20;
-        }
+            .btn-check:checked + .btn-outline-primary {
+                background-color: #1b5e20;
+                border-color: #1b5e20;
+            }
 
-        .btn-check:checked+.btn-outline-primary {
-            background-color: #1B5E20;
-            border-color: #1B5E20;
-        }
+            #map {
+                height: 300px;
+                width: 100%;
+                border-radius: 8px;
+                border: 1px solid #dee2e6;
+            }
 
-        #map {
-            height: 300px;
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-        }
+            /* Contract Preview */
+            .contract-preview-container {
+                border: 1px solid #dee2e6;
+                border-radius: 12px;
+                overflow: hidden;
+                background: #f0f0f0;
+            }
 
-        /* Contract Preview */
-        .contract-preview-container {
-            border: 1px solid #dee2e6;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #f0f0f0;
-        }
+            .contract-preview-toolbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 20px;
+                background: linear-gradient(135deg, #1b5e20, #2e7d32);
+                color: white;
+            }
 
-        .contract-preview-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #1B5E20, #2e7d32);
-            color: white;
-        }
+            .contract-preview-toolbar .toolbar-title {
+                font-weight: 600;
+                font-size: 0.95rem;
+            }
 
-        .contract-preview-toolbar .toolbar-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .contract-preview-toolbar .toolbar-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .contract-preview-frame {
-            width: 100%;
-            height: 75vh;
-            min-height: 600px;
-            border: none;
-            background: white;
-        }
-
-        /* Print: only show the iframe content */
-        @media print {
-            body * {
-                visibility: hidden !important;
+            .contract-preview-toolbar .toolbar-actions {
+                display: flex;
+                gap: 8px;
             }
 
             .contract-preview-frame {
-                visibility: visible !important;
-                position: fixed;
-                top: 0;
-                left: 0;
                 width: 100%;
-                height: 100%;
+                height: 75vh;
+                min-height: 600px;
                 border: none;
+                background: white;
             }
-        }
-    </style>
-</head>
 
-<body class="control-app">
-    <div class="app-container">
-        <aside class="sidebar" id="sidebar"></aside>
+            /* Print: only show the iframe content */
+            @media print {
+                body * {
+                    visibility: hidden !important;
+                }
 
-        <main class="main-content">
-            <nav class="top-nav">
-                <div class="breadcrumb-container">
-                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="../dashboard.html">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="index.html">Gestión de Altas</a></li>
-                            <li class="breadcrumb-item active" id="pageTitle">Proceso de Alta</li>
-                        </ol>
-                    </nav>
-                </div>
-            </nav>
+                .contract-preview-frame {
+                    visibility: visible !important;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                }
+            }
+        </style>
+    </head>
 
-            <div class="content-area">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
+    <body class="control-app">
+        <div class="app-container">
+            <aside class="sidebar" id="sidebar"></aside>
 
-                        <!-- Stepper -->
-                        <div class="step-indicator" id="stepper">
-                            <div class="step active" id="indicator1">
-                                <div class="step-circle">1</div>
-                                <div class="step-label">Captura de Datos</div>
-                            </div>
-                            <div class="step" id="indicator2">
-                                <div class="step-circle">2</div>
-                                <div class="step-label">Generación de Contrato</div>
-                            </div>
-                            <div class="step" id="indicator3">
-                                <div class="step-circle">3</div>
-                                <div class="step-label">Validación y Activación</div>
-                            </div>
-                        </div>
+            <main class="main-content">
+                <nav class="top-nav">
+                    <div class="breadcrumb-container">
+                        <button
+                            class="toggle-sidebar"
+                            onclick="toggleSidebar()"
+                        >
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item">
+                                    <a href="../dashboard.html">Dashboard</a>
+                                </li>
+                                <li class="breadcrumb-item">
+                                    <a href="index.html">Gestión de Altas</a>
+                                </li>
+                                <li
+                                    class="breadcrumb-item active"
+                                    id="pageTitle"
+                                >
+                                    Proceso de Alta
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                </nav>
 
-                        <!-- Audit Info Banner (visible only for existing processes) -->
-                        <div id="auditInfoBanner" class="alert alert-light border d-none mb-3"
-                            style="font-size: 0.85rem;">
-                            <i class="bi bi-clock-history text-muted"></i>
-                            <span id="auditInfoText"></span>
-                        </div>
-
-                        <!-- Stage 1 -->
-                        <div id="stage1" style="display: none;">
-                            <form id="formStage1">
-                                <!-- CLIENTE -->
-                                <h5 class="text-primary border-bottom pb-2"><i class="bi bi-person"></i> Datos del
-                                    Titular / Cliente</h5>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Nombre Completo *</label>
-                                        <input type="text" class="form-control" id="cliente_nombre" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Tipo Documento</label>
-                                        <select class="form-select" id="cliente_tipo_doc">
-                                            <option value="DNI">DNI</option>
-                                            <option value="Carnet de Extranjeria">Carnet Extranjería</option>
-                                            <option value="RUC">RUC</option>
-                                            <option value="Otro">Otro</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Número Documento *</label>
-                                        <input type="text" class="form-control" id="cliente_dni" required>
+                <div class="content-area">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <!-- Stepper -->
+                            <div class="step-indicator" id="stepper">
+                                <div class="step active" id="indicator1">
+                                    <div class="step-circle">1</div>
+                                    <div class="step-label">
+                                        Captura de Datos
                                     </div>
                                 </div>
-
-                                <!-- EMPRESA -->
-                                <h5 class="text-primary border-bottom pb-2"><i class="bi bi-building"></i> Datos de la
-                                    Empresa</h5>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Razón Social *</label>
-                                        <input type="text" class="form-control" id="empresa_razon_social" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">RUC *</label>
-                                        <input type="text" class="form-control" id="empresa_ruc" maxlength="11"
-                                            required>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label">Dirección Fiscal</label>
-                                        <input type="text" class="form-control" id="empresa_direccion">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Rubro</label>
-                                        <input type="text" class="form-control" id="empresa_rubro">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Distrito Fiscal</label>
-                                        <input type="text" class="form-control" id="empresa_distrito">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Provincia Fiscal</label>
-                                        <input type="text" class="form-control" id="empresa_provincia">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Departamento Fiscal</label>
-                                        <input type="text" class="form-control" id="empresa_departamento">
+                                <div class="step" id="indicator2">
+                                    <div class="step-circle">2</div>
+                                    <div class="step-label">
+                                        Generación de Contrato
                                     </div>
                                 </div>
-
-                                <!-- SEDE -->
-                                <h5 class="text-primary border-bottom pb-2"><i class="bi bi-geo-alt"></i> Datos de la
-                                    Sede Operativa</h5>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Nombre Comercial de Sede *</label>
-                                        <input type="text" class="form-control" id="sede_nombre_comercial" required
-                                            placeholder="Ej. Local Miraflores">
+                                <div class="step" id="indicator3">
+                                    <div class="step-circle">3</div>
+                                    <div class="step-label">
+                                        Validación y Activación
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label"><i class="bi bi-search"></i> Buscar Dirección</label>
-                                        <input type="text" class="form-control" id="sede_buscar_direccion"
-                                            placeholder="Escriba para buscar una dirección en el mapa...">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Dirección Operativa *</label>
-                                        <input type="text" class="form-control" id="sede_direccion" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Distrito</label>
-                                        <input type="text" class="form-control" id="sede_distrito">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Provincia</label>
-                                        <input type="text" class="form-control" id="sede_provincia">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Departamento</label>
-                                        <input type="text" class="form-control" id="sede_departamento">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Contacto Sede</label>
-                                        <input type="text" class="form-control" id="sede_contacto_nombre">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Teléfono de Contacto Sede</label>
-                                        <input type="text" class="form-control" id="sede_telefono">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Telefono Alterno</label>
-                                        <input type="text" class="form-control" id="sede_telefono_2">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Email Contacto</label>
-                                        <input type="email" class="form-control" id="sede_contacto_email">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Referencia</label>
-                                        <input type="text" class="form-control" id="sede_referencia">
-                                    </div>
-                                    <div class="col-12 mt-3">
-                                        <label class="form-label">Ubicación en el Mapa *</label>
-                                        <div id="map"></div>
-                                        <input type="hidden" id="sede_coordenadas" required>
-                                        <div class="form-text text-danger" id="mapError" style="display: none;">Debe
-                                            seleccionar una ubicación en el mapa.</div>
-                                    </div>
-                                </div>
-
-                                <!-- CONTRATO -->
-                                <h5 class="text-primary border-bottom pb-2"><i class="bi bi-file-earmark-text"></i>
-                                    Condiciones del Contrato</h5>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Fecha Inicio *</label>
-                                        <input type="date" class="form-control" id="contrato_fecha_inicio" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Fecha Fin</label>
-                                        <input type="date" class="form-control" id="contrato_fecha_fin">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Frecuencia *</label>
-                                        <select class="form-select" id="contrato_frecuencia" required>
-                                            <option value="diario">Diario</option>
-                                            <option value="interdiario">Interdiario</option>
-                                            <option value="semanal">Semanal</option>
-                                            <option value="quincenal">Quincenal</option>
-                                            <option value="mensual">Mensual</option>
-                                            <option value="bimestral">Bimestral</option>
-                                            <option value="trimestral">Trimestral</option>
-                                            <option value="eventual">Eventual</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Modalidad de Cobro *</label>
-                                        <select class="form-select" id="contrato_tipo_tarifa" required
-                                            onchange="toggleTarifaFields()">
-                                            <option value="por_servicio">Por Recojo (Tarifa Plana)</option>
-                                            <option value="por_kg">Por Kilo Recogido</option>
-                                            <option value="mensual_fijo">Mensual Fijo</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Costo Base o Flat (S/.) *</label>
-                                        <input type="number" step="0.01" class="form-control" id="contrato_tarifa"
-                                            required>
-                                    </div>
-                                    <div class="col-md-4 tarifa-exceso" style="display: none;">
-                                        <label class="form-label">Límite de Peso (Kg) *</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            id="contrato_peso_limite_kg">
-                                    </div>
-                                    <div class="col-md-4 tarifa-exceso" style="display: none;">
-                                        <label class="form-label">Costo por Kg Excedente (S/.) *</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            id="contrato_tarifa_adicional_kg">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label">Observaciones del Contrato</label>
-                                        <textarea class="form-control" id="contrato_observaciones" rows="2"></textarea>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-between">
-                                    <a href="index.html" class="btn btn-outline-secondary py-2">
-                                        <i class="bi bi-arrow-left"></i> Volver a Lista
-                                    </a>
-                                    <div>
-                                        <button type="button" class="btn btn-secondary px-3 py-2 me-2"
-                                            onclick="guardarYVolver()">
-                                            <i class="bi bi-save"></i> Guardar y Volver a Lista
-                                        </button>
-                                        <button type="submit" class="btn btn-primary px-4 py-2">Guardar y Continuar a
-                                            Etapa
-                                            2 <i class="bi bi-arrow-right"></i></button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-
-                        <!-- Stage 2 -->
-                        <div id="stage2" style="display: none;">
-                            <!-- Initial state: generate button -->
-                            <div id="stage2Buttons" class="text-center py-5">
-                                <i class="bi bi-file-earmark-text text-primary mb-3" style="font-size: 4rem;"></i>
-                                <h3 class="mb-3">Generación de Contrato</h3>
-                                <p class="text-muted mb-4">Los datos han sido guardados correctamente. Generaremos el
-                                    contrato en formato HTML para que puedas revisarlo e imprimirlo.</p>
-                                <button type="button" class="btn btn-success btn-lg px-4" id="btnGenerarContrato"
-                                    onclick="generarContrato()">
-                                    <i class="bi bi-gear"></i> Generar Contrato
-                                </button>
-                                <div class="mt-3">
-                                    <a href="index.html" class="btn btn-outline-secondary">
-                                        <i class="bi bi-arrow-left"></i> Volver a Lista
-                                    </a>
                                 </div>
                             </div>
 
-                            <!-- Preview state: shows generated contract -->
-                            <div id="stage2Preview" style="display: none;">
-                                <div class="contract-preview-container">
-                                    <div class="contract-preview-toolbar">
-                                        <div class="toolbar-title">
-                                            <i class="bi bi-file-earmark-check"></i>
-                                            Vista Previa del Contrato
-                                            <span id="contractNumber" class="ms-2 opacity-75"
-                                                style="font-size: 0.85rem;"></span>
+                            <!-- Audit Info Banner (visible only for existing processes) -->
+                            <div
+                                id="auditInfoBanner"
+                                class="alert alert-light border d-none mb-3"
+                                style="font-size: 0.85rem"
+                            >
+                                <i class="bi bi-clock-history text-muted"></i>
+                                <span id="auditInfoText"></span>
+                            </div>
+
+                            <!-- Stage 1 -->
+                            <div id="stage1" style="display: none">
+                                <form id="formStage1">
+                                    <!-- CLIENTE -->
+                                    <h5 class="text-primary border-bottom pb-2">
+                                        <i class="bi bi-person"></i> Datos del
+                                        Titular / Cliente
+                                    </h5>
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Nombre Completo *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="cliente_nombre"
+                                                required
+                                            />
                                         </div>
-                                        <div class="toolbar-actions">
-                                            <button type="button" class="btn btn-sm btn-outline-light"
-                                                onclick="imprimirContrato()">
-                                                <i class="bi bi-printer"></i> Imprimir
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-warning"
-                                                onclick="generarContrato()">
-                                                <i class="bi bi-arrow-repeat"></i> Regenerar
-                                            </button>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Tipo Documento</label
+                                            >
+                                            <select
+                                                class="form-select"
+                                                id="cliente_tipo_doc"
+                                            >
+                                                <option value="DNI">DNI</option>
+                                                <option
+                                                    value="Carnet de Extranjeria"
+                                                >
+                                                    Carnet Extranjería
+                                                </option>
+                                                <option value="RUC">RUC</option>
+                                                <option value="Otro">
+                                                    Otro
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Número Documento *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="cliente_dni"
+                                                required
+                                            />
                                         </div>
                                     </div>
-                                    <iframe id="contractPreviewFrame" class="contract-preview-frame"></iframe>
-                                </div>
 
-                                <!-- Firma Digital Link -->
-                                <div id="firmaDigitalCard" class="card mt-3 border-0 shadow-sm" style="display:none;">
-                                    <div class="card-body">
-                                        <h5 class="card-title mb-3"><i class="bi bi-vector-pen text-primary"></i> Firma
-                                            Digital</h5>
-                                        <div id="firmaEstadoPendiente">
-                                            <p class="text-muted small mb-2">Envíe este enlace al cliente para que firme
-                                                el contrato digitalmente desde su celular:</p>
-                                            <div class="input-group mb-2">
-                                                <input type="text" class="form-control form-control-sm"
-                                                    id="firmaLinkInput" readonly>
-                                                <button class="btn btn-outline-primary btn-sm" type="button"
-                                                    onclick="copiarLinkFirma()" title="Copiar enlace">
-                                                    <i class="bi bi-clipboard"></i>
-                                                </button>
+                                    <!-- EMPRESA -->
+                                    <h5 class="text-primary border-bottom pb-2">
+                                        <i class="bi bi-building"></i> Datos de
+                                        la Empresa
+                                    </h5>
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label"
+                                                >Razón Social *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="empresa_razon_social"
+                                                required
+                                            />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label"
+                                                >RUC *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="empresa_ruc"
+                                                maxlength="11"
+                                                required
+                                            />
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label"
+                                                >Dirección Fiscal</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="empresa_direccion"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Rubro</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="empresa_rubro"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Distrito Fiscal</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="empresa_distrito"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Provincia Fiscal</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="empresa_provincia"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Departamento Fiscal</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="empresa_departamento"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <!-- SEDE -->
+                                    <h5 class="text-primary border-bottom pb-2">
+                                        <i class="bi bi-geo-alt"></i> Datos de
+                                        la Sede Operativa
+                                    </h5>
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label"
+                                                >Nombre Comercial de Sede
+                                                *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_nombre_comercial"
+                                                required
+                                                placeholder="Ej. Local Miraflores"
+                                            />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label"
+                                                ><i class="bi bi-search"></i>
+                                                Buscar Dirección</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_buscar_direccion"
+                                                placeholder="Escriba para buscar una dirección en el mapa..."
+                                            />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label"
+                                                >Dirección Operativa *</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_direccion"
+                                                required
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Distrito</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_distrito"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Provincia</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_provincia"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Departamento</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_departamento"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Contacto Sede</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_contacto_nombre"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Teléfono de Contacto
+                                                Sede</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_telefono"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Telefono Alterno</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_telefono_2"
+                                            />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label"
+                                                >Email Contacto</label
+                                            >
+                                            <input
+                                                type="email"
+                                                class="form-control"
+                                                id="sede_contacto_email"
+                                            />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label"
+                                                >Referencia</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_referencia"
+                                            />
+                                        </div>
+                                        <div class="col-12 mt-3">
+                                            <label class="form-label"
+                                                >Ubicación en el Mapa *</label
+                                            >
+                                            <div id="map"></div>
+                                            <input
+                                                type="hidden"
+                                                id="sede_coordenadas"
+                                                required
+                                            />
+                                            <div
+                                                class="form-text text-danger"
+                                                id="mapError"
+                                                style="display: none"
+                                            >
+                                                Debe seleccionar una ubicación
+                                                en el mapa.
                                             </div>
-                                            <div class="d-flex gap-2">
-                                                <button class="btn btn-success btn-sm" onclick="enviarWhatsApp()">
-                                                    <i class="bi bi-whatsapp"></i> Enviar por WhatsApp
-                                                </button>
-                                                <span class="badge bg-warning text-dark d-flex align-items-center"
-                                                    id="firmaEstadoBadge">
-                                                    <i class="bi bi-clock me-1"></i> Pendiente de firma
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div id="firmaEstadoFirmado" style="display:none;">
-                                            <div class="alert alert-success mb-0 d-flex align-items-center gap-2">
-                                                <i class="bi bi-check-circle-fill fs-4"></i>
-                                                <div>
-                                                    <strong>Contrato firmado digitalmente</strong><br>
-                                                    <small id="firmaFechaTexto"></small>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="d-flex justify-content-between mt-3">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="avanzarEtapa(1)">
-                                        <i class="bi bi-arrow-left"></i> Volver a Etapa 1
-                                    </button>
-                                    <button type="button" class="btn btn-primary px-4" onclick="avanzarEtapa(3)">
-                                        Continuar a Etapa 3 <i class="bi bi-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                                    <!-- CONTRATO -->
+                                    <h5 class="text-primary border-bottom pb-2">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                        Condiciones del Contrato
+                                    </h5>
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Fecha Inicio *</label
+                                            >
+                                            <input
+                                                type="date"
+                                                class="form-control"
+                                                id="contrato_fecha_inicio"
+                                                required
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Fecha Fin</label
+                                            >
+                                            <input
+                                                type="date"
+                                                class="form-control"
+                                                id="contrato_fecha_fin"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Frecuencia *</label
+                                            >
+                                            <select
+                                                class="form-select"
+                                                id="contrato_frecuencia"
+                                                required
+                                            >
+                                                <option value="diario">
+                                                    Diario
+                                                </option>
+                                                <option value="interdiario">
+                                                    Interdiario
+                                                </option>
+                                                <option value="semanal">
+                                                    Semanal
+                                                </option>
+                                                <option value="quincenal">
+                                                    Quincenal
+                                                </option>
+                                                <option value="mensual">
+                                                    Mensual
+                                                </option>
+                                                <option value="bimestral">
+                                                    Bimestral
+                                                </option>
+                                                <option value="trimestral">
+                                                    Trimestral
+                                                </option>
+                                                <option value="eventual">
+                                                    Eventual
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Modalidad de Cobro *</label
+                                            >
+                                            <select
+                                                class="form-select"
+                                                id="contrato_tipo_tarifa"
+                                                required
+                                                onchange="toggleTarifaFields()"
+                                            >
+                                                <option value="por_servicio">
+                                                    Por Recojo (Tarifa Plana)
+                                                </option>
+                                                <option value="por_kg">
+                                                    Por Kilo Recogido
+                                                </option>
+                                                <option value="mensual_fijo">
+                                                    Mensual Fijo
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label"
+                                                >Costo Base o Flat (S/.)
+                                                *</label
+                                            >
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                class="form-control"
+                                                id="contrato_tarifa"
+                                                required
+                                            />
+                                        </div>
+                                        <div
+                                            class="col-md-4 tarifa-exceso"
+                                            style="display: none"
+                                        >
+                                            <label class="form-label"
+                                                >Límite de Peso (Kg) *</label
+                                            >
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                class="form-control"
+                                                id="contrato_peso_limite_kg"
+                                            />
+                                        </div>
+                                        <div
+                                            class="col-md-4 tarifa-exceso"
+                                            style="display: none"
+                                        >
+                                            <label class="form-label"
+                                                >Costo por Kg Excedente (S/.)
+                                                *</label
+                                            >
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                class="form-control"
+                                                id="contrato_tarifa_adicional_kg"
+                                            />
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label"
+                                                >Observaciones del
+                                                Contrato</label
+                                            >
+                                            <textarea
+                                                class="form-control"
+                                                id="contrato_observaciones"
+                                                rows="2"
+                                            ></textarea>
+                                        </div>
+                                    </div>
 
-                        <!-- Stage 3 -->
-                        <div id="stage3" style="display: none;" class="py-3">
-                            <form id="formStage3">
-                                <h4 class="mb-4"><i class="bi bi-cloud-arrow-up text-primary"></i> Validación y Subida
-                                    de Documentos</h4>
-
-                                <!-- Digital signature notice -->
-                                <div id="firmaDigitalStage3" class="alert alert-success d-none mb-4">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-patch-check-fill fs-4"></i>
+                                    <div class="d-flex justify-content-between">
+                                        <a
+                                            href="index.html"
+                                            class="btn btn-outline-secondary py-2"
+                                        >
+                                            <i class="bi bi-arrow-left"></i>
+                                            Volver a Lista
+                                        </a>
                                         <div>
-                                            <strong>Contrato firmado digitalmente</strong><br>
-                                            <small id="firmaDigitalStage3Fecha"></small>
+                                            <button
+                                                type="button"
+                                                class="btn btn-secondary px-3 py-2 me-2"
+                                                onclick="guardarYVolver()"
+                                            >
+                                                <i class="bi bi-save"></i>
+                                                Guardar y Volver a Lista
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                class="btn btn-primary px-4 py-2"
+                                            >
+                                                Guardar y Continuar a Etapa 2
+                                                <i
+                                                    class="bi bi-arrow-right"
+                                                ></i>
+                                            </button>
                                         </div>
-                                        <a href="#" target="_blank" id="firmaDigitalStage3Link"
-                                            class="btn btn-outline-success btn-sm ms-auto">
-                                            <i class="bi bi-file-earmark-check"></i> Ver Contrato Firmado
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Stage 2 -->
+                            <div id="stage2" style="display: none">
+                                <!-- Initial state: generate button -->
+                                <div
+                                    id="stage2Buttons"
+                                    class="text-center py-5"
+                                >
+                                    <i
+                                        class="bi bi-file-earmark-text text-primary mb-3"
+                                        style="font-size: 4rem"
+                                    ></i>
+                                    <h3 class="mb-3">Generación de Contrato</h3>
+                                    <p class="text-muted mb-4">
+                                        Los datos han sido guardados
+                                        correctamente. Generaremos el contrato
+                                        en formato HTML para que puedas
+                                        revisarlo e imprimirlo.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        class="btn btn-success btn-lg px-4"
+                                        id="btnGenerarContrato"
+                                        onclick="generarContrato()"
+                                    >
+                                        <i class="bi bi-gear"></i> Generar
+                                        Contrato
+                                    </button>
+                                    <div class="mt-3">
+                                        <a
+                                            href="index.html"
+                                            class="btn btn-outline-secondary"
+                                        >
+                                            <i class="bi bi-arrow-left"></i>
+                                            Volver a Lista
                                         </a>
                                     </div>
                                 </div>
 
-                                <div class="row g-4 mb-4">
-                                    <div class="col-md-6">
-                                        <div class="card bg-light border-0 h-100">
-                                            <div class="card-body">
-                                                <h5><i class="bi bi-file-earmark-pdf text-danger"></i> Contrato Firmado
-                                                </h5>
-                                                <p class="text-muted small">Sube el documento Word o PDF previamente
-                                                    descargado y firmado por ambas partes.</p>
-                                                <input type="file" class="form-control" id="fileContrato"
-                                                    accept=".pdf,.doc,.docx" required>
-                                                <div id="docFirmadoPreview" class="mt-2 text-success small d-none">
-                                                    <a href="#" target="_blank" id="linkDocFirmadoPreview">Ver archivo
-                                                        actual subido</a>
+                                <!-- Preview state: shows generated contract -->
+                                <div id="stage2Preview" style="display: none">
+                                    <div class="contract-preview-container">
+                                        <div class="contract-preview-toolbar">
+                                            <div class="toolbar-title">
+                                                <i
+                                                    class="bi bi-file-earmark-check"
+                                                ></i>
+                                                Vista Previa del Contrato
+                                                <span
+                                                    id="contractNumber"
+                                                    class="ms-2 opacity-75"
+                                                    style="font-size: 0.85rem"
+                                                ></span>
+                                            </div>
+                                            <div class="toolbar-actions">
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-light"
+                                                    onclick="imprimirContrato()"
+                                                >
+                                                    <i
+                                                        class="bi bi-printer"
+                                                    ></i>
+                                                    Imprimir
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-warning"
+                                                    onclick="generarContrato()"
+                                                >
+                                                    <i
+                                                        class="bi bi-arrow-repeat"
+                                                    ></i>
+                                                    Regenerar
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <iframe
+                                            id="contractPreviewFrame"
+                                            class="contract-preview-frame"
+                                        ></iframe>
+                                    </div>
+
+                                    <!-- Firma Digital Link -->
+                                    <div
+                                        id="firmaDigitalCard"
+                                        class="card mt-3 border-0 shadow-sm"
+                                        style="display: none"
+                                    >
+                                        <div class="card-body">
+                                            <h5 class="card-title mb-3">
+                                                <i
+                                                    class="bi bi-vector-pen text-primary"
+                                                ></i>
+                                                Firma Digital
+                                            </h5>
+                                            <div id="firmaEstadoPendiente">
+                                                <p
+                                                    class="text-muted small mb-2"
+                                                >
+                                                    Envíe este enlace al cliente
+                                                    para que firme el contrato
+                                                    digitalmente desde su
+                                                    celular:
+                                                </p>
+                                                <div class="input-group mb-2">
+                                                    <input
+                                                        type="text"
+                                                        class="form-control form-control-sm"
+                                                        id="firmaLinkInput"
+                                                        readonly
+                                                    />
+                                                    <button
+                                                        class="btn btn-outline-primary btn-sm"
+                                                        type="button"
+                                                        onclick="
+                                                            copiarLinkFirma()
+                                                        "
+                                                        title="Copiar enlace"
+                                                    >
+                                                        <i
+                                                            class="bi bi-clipboard"
+                                                        ></i>
+                                                    </button>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button
+                                                        class="btn btn-success btn-sm"
+                                                        onclick="
+                                                            enviarWhatsApp()
+                                                        "
+                                                    >
+                                                        <i
+                                                            class="bi bi-whatsapp"
+                                                        ></i>
+                                                        Enviar por WhatsApp
+                                                    </button>
+                                                    <span
+                                                        class="badge bg-warning text-dark d-flex align-items-center"
+                                                        id="firmaEstadoBadge"
+                                                    >
+                                                        <i
+                                                            class="bi bi-clock me-1"
+                                                        ></i>
+                                                        Pendiente de firma
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div
+                                                id="firmaEstadoFirmado"
+                                                style="display: none"
+                                            >
+                                                <div
+                                                    class="alert alert-success mb-0 d-flex align-items-center gap-2"
+                                                >
+                                                    <i
+                                                        class="bi bi-check-circle-fill fs-4"
+                                                    ></i>
+                                                    <div>
+                                                        <strong
+                                                            >Contrato firmado
+                                                            digitalmente</strong
+                                                        ><br />
+                                                        <small
+                                                            id="firmaFechaTexto"
+                                                        ></small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="card bg-light border-0 h-100">
-                                            <div class="card-body">
-                                                <h5><i class="bi bi-receipt text-success"></i> Comprobante de Pago
-                                                    Adelantado</h5>
-                                                <p class="text-muted small">Evidencia del pago por el servicio. Puedes
-                                                    subir imagen o PDF.</p>
-                                                <input type="file" class="form-control" id="fileComprobante"
-                                                    accept="image/*,.pdf" required>
-                                                <div id="comprobantePreview" class="mt-2 text-success small d-none">
-                                                    <a href="#" target="_blank" id="linkComprobantePreview">Ver archivo
-                                                        actual subido</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <!-- Warning info -->
-                                <div class="alert alert-warning">
-                                    <i class="bi bi-exclamation-triangle-fill"></i> Al finalizar este proceso, la Sede y
-                                    el Cliente serán inyectados oficialmente a la vista general operativa del sistema de
-                                    Sedes.
-                                </div>
-
-                                <div class="d-flex justify-content-between">
-                                    <a href="index.html" class="btn btn-outline-secondary">
-                                        <i class="bi bi-arrow-left"></i> Volver a Lista
-                                    </a>
-                                    <div>
-                                        <button type="button" class="btn btn-secondary me-2"
-                                            onclick="guardarTemporalStage3()">Guardar Archivos sin Finalizar</button>
-                                        <button type="submit" class="btn btn-success px-4" id="btnFinalizarAlta">
-                                            <i class="bi bi-check2-all"></i> Finalizar y Activar Sede
+                                    <div
+                                        class="d-flex justify-content-between mt-3"
+                                    >
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary"
+                                            onclick="avanzarEtapa(1)"
+                                        >
+                                            <i class="bi bi-arrow-left"></i>
+                                            Volver a Etapa 1
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary px-4"
+                                            onclick="avanzarEtapa(3)"
+                                        >
+                                            Continuar a Etapa 3
+                                            <i class="bi bi-arrow-right"></i>
                                         </button>
                                     </div>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
 
-                        <!-- Completed Mode -->
-                        <div id="stageCompleted" style="display: none;" class="text-center py-5">
-                            <i class="bi bi-check-circle text-success mb-3" style="font-size: 5rem;"></i>
-                            <h2 class="mb-3">¡Alta Completada!</h2>
-                            <p class="text-muted mb-4">Esta sede ha sido inyectada al sistema general y ya se encuentra
-                                activa.</p>
-                            <a href="../sedes/listar.html" class="btn btn-primary px-4"><i class="bi bi-list-task"></i>
-                                Ver Sedes Activas</a>
-                        </div>
+                            <!-- Stage 3 -->
+                            <div id="stage3" style="display: none" class="py-3">
+                                <form id="formStage3">
+                                    <h4 class="mb-4">
+                                        <i
+                                            class="bi bi-cloud-arrow-up text-primary"
+                                        ></i>
+                                        Validación y Subida de Documentos
+                                    </h4>
 
+                                    <!-- Digital signature notice -->
+                                    <div
+                                        id="firmaDigitalStage3"
+                                        class="alert alert-success d-none mb-4"
+                                    >
+                                        <div
+                                            class="d-flex align-items-center gap-2"
+                                        >
+                                            <i
+                                                class="bi bi-patch-check-fill fs-4"
+                                            ></i>
+                                            <div>
+                                                <strong
+                                                    >Contrato firmado
+                                                    digitalmente</strong
+                                                ><br />
+                                                <small
+                                                    id="firmaDigitalStage3Fecha"
+                                                ></small>
+                                            </div>
+                                            <a
+                                                href="#"
+                                                target="_blank"
+                                                id="firmaDigitalStage3Link"
+                                                class="btn btn-outline-success btn-sm ms-auto"
+                                            >
+                                                <i
+                                                    class="bi bi-file-earmark-check"
+                                                ></i>
+                                                Ver Contrato Firmado
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-4 mb-4">
+                                        <div class="col-md-6">
+                                            <div
+                                                class="card bg-light border-0 h-100"
+                                            >
+                                                <div class="card-body">
+                                                    <h5>
+                                                        <i
+                                                            class="bi bi-file-earmark-pdf text-danger"
+                                                        ></i>
+                                                        Contrato Firmado
+                                                    </h5>
+                                                    <p class="text-muted small">
+                                                        Sube el documento Word o
+                                                        PDF previamente
+                                                        descargado y firmado por
+                                                        ambas partes.
+                                                    </p>
+                                                    <input
+                                                        type="file"
+                                                        class="form-control"
+                                                        id="fileContrato"
+                                                        accept=".pdf,.doc,.docx"
+                                                        required
+                                                    />
+                                                    <div
+                                                        id="docFirmadoPreview"
+                                                        class="mt-2 text-success small d-none"
+                                                    >
+                                                        <a
+                                                            href="#"
+                                                            target="_blank"
+                                                            id="linkDocFirmadoPreview"
+                                                            >Ver archivo actual
+                                                            subido</a
+                                                        >
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div
+                                                class="card bg-light border-0 h-100"
+                                            >
+                                                <div class="card-body">
+                                                    <h5>
+                                                        <i
+                                                            class="bi bi-receipt text-success"
+                                                        ></i>
+                                                        Comprobante de Pago
+                                                        Adelantado
+                                                    </h5>
+                                                    <p class="text-muted small">
+                                                        Evidencia del pago por
+                                                        el servicio. Puedes
+                                                        subir imagen o PDF.
+                                                    </p>
+                                                    <input
+                                                        type="file"
+                                                        class="form-control"
+                                                        id="fileComprobante"
+                                                        accept="image/*,.pdf"
+                                                        required
+                                                    />
+                                                    <div
+                                                        id="comprobantePreview"
+                                                        class="mt-2 text-success small d-none"
+                                                    >
+                                                        <a
+                                                            href="#"
+                                                            target="_blank"
+                                                            id="linkComprobantePreview"
+                                                            >Ver archivo actual
+                                                            subido</a
+                                                        >
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Warning info -->
+                                    <div class="alert alert-warning">
+                                        <i
+                                            class="bi bi-exclamation-triangle-fill"
+                                        ></i>
+                                        Al finalizar este proceso, la Sede y el
+                                        Cliente serán inyectados oficialmente a
+                                        la vista general operativa del sistema
+                                        de Sedes.
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <a
+                                            href="index.html"
+                                            class="btn btn-outline-secondary"
+                                        >
+                                            <i class="bi bi-arrow-left"></i>
+                                            Volver a Lista
+                                        </a>
+                                        <div>
+                                            <button
+                                                type="button"
+                                                class="btn btn-secondary me-2"
+                                                onclick="
+                                                    guardarTemporalStage3()
+                                                "
+                                            >
+                                                Guardar Archivos sin Finalizar
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                class="btn btn-success px-4"
+                                                id="btnFinalizarAlta"
+                                            >
+                                                <i class="bi bi-check2-all"></i>
+                                                Finalizar y Activar Sede
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Completed Mode -->
+                            <div
+                                id="stageCompleted"
+                                style="display: none"
+                                class="text-center py-5"
+                            >
+                                <i
+                                    class="bi bi-check-circle text-success mb-3"
+                                    style="font-size: 5rem"
+                                ></i>
+                                <h2 class="mb-3">¡Alta Completada!</h2>
+                                <p class="text-muted mb-4">
+                                    Esta sede ha sido inyectada al sistema
+                                    general y ya se encuentra activa.
+                                </p>
+                                <a
+                                    href="../sedes/listar.html"
+                                    class="btn btn-primary px-4"
+                                    ><i class="bi bi-list-task"></i> Ver Sedes
+                                    Activas</a
+                                >
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </main>
-    </div>
+            </main>
+        </div>
 
-    <!-- Modals and Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../js/config.js"></script>
-    <script src="../../js/api.js"></script>
-    <script src="../../js/app.js?v=2.5"></script>
-    <script>
-        bootControlPage('sedes');
+        <!-- Modals and Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="../../js/config.js"></script>
+        <script src="../../js/api.js"></script>
+        <script src="../../js/app.js?v=2.5"></script>
+        <script>
+            bootControlPage("sedes");
 
-        let currentIdProceso = getUrlParam('id');
-        let currentProcesoData = null;
-        let isRenovacionProceso = getUrlParam('modo') === 'renovacion';
+            let currentIdProceso = getUrlParam("id");
+            let currentProcesoData = null;
+            let isRenovacionProceso = getUrlParam("modo") === "renovacion";
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (currentIdProceso) {
-                cargarProceso(currentIdProceso);
-            } else {
-                avanzarEtapa(1);
-            }
-        });
-
-        function setIfExists(id, value) {
-            const el = document.getElementById(id);
-            if (el) el.value = value || '';
-        }
-
-        function getStage1SubmitText() {
-            return isRenovacionProceso
-                ? 'Guardar y Continuar a Generar Renovacion <i class="bi bi-arrow-right"></i>'
-                : 'Guardar y Continuar a Etapa 2 <i class="bi bi-arrow-right"></i>';
-        }
-
-        function applyProcessMode(parsed = null) {
-            if (parsed?.tipo_proceso === 'renovacion_contrato') {
-                isRenovacionProceso = true;
-            }
-
-            if (!isRenovacionProceso) return;
-
-            const idSede = parsed?.sede?.id_sede;
-            const backUrl = idSede ? `../contratos/listar.html?sede=${idSede}` : '../contratos/listar.html';
-
-            document.title = 'Renovacion de Contrato - IO Group';
-            document.getElementById('pageTitle').textContent = 'Renovacion de Contrato';
-            document.querySelectorAll('a[href="index.html"]').forEach(link => {
-                link.href = backUrl;
-            });
-
-            const breadcrumbLink = document.querySelector('.breadcrumb .breadcrumb-item:nth-child(2) a');
-            if (breadcrumbLink) {
-                breadcrumbLink.href = backUrl;
-                breadcrumbLink.textContent = 'Contratos';
-            }
-
-            const stepLabels = document.querySelectorAll('.step-label');
-            if (stepLabels[0]) stepLabels[0].textContent = 'Revision de Datos';
-            if (stepLabels[1]) stepLabels[1].textContent = 'Generacion de Contrato';
-            if (stepLabels[2]) stepLabels[2].textContent = 'Validacion y Renovacion';
-
-            const stage2Title = document.querySelector('#stage2Buttons h3');
-            if (stage2Title) stage2Title.textContent = 'Generacion de Renovacion';
-
-            const stage2Text = document.querySelector('#stage2Buttons p');
-            if (stage2Text) {
-                stage2Text.textContent = 'Los datos actualizados se usaran para generar el nuevo contrato de renovacion.';
-            }
-
-            const submitBtn = document.querySelector('#formStage1 button[type="submit"]');
-            if (submitBtn) submitBtn.innerHTML = getStage1SubmitText();
-
-            const warning = document.querySelector('#stage3 .alert-warning');
-            if (warning) {
-                warning.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Al finalizar esta renovacion, se actualizaran Cliente, Empresa y Sede, se creara un contrato nuevo activo y el contrato vencido anterior quedara inactivo como historico.';
-            }
-
-            const finalBtn = document.getElementById('btnFinalizarAlta');
-            if (finalBtn) finalBtn.innerHTML = '<i class="bi bi-check2-all"></i> Finalizar Renovacion';
-
-            const fileComprobante = document.getElementById('fileComprobante');
-            if (fileComprobante) fileComprobante.removeAttribute('required');
-
-            const completedTitle = document.querySelector('#stageCompleted h2');
-            if (completedTitle) completedTitle.textContent = 'Renovacion Completada';
-
-            const completedText = document.querySelector('#stageCompleted p');
-            if (completedText) {
-                completedText.textContent = 'El nuevo contrato quedo activo y el contrato vencido anterior quedo como historico.';
-            }
-
-            const completedLink = document.querySelector('#stageCompleted a');
-            if (completedLink) {
-                completedLink.href = idSede ? `../sedes/cartilla.html?id=${idSede}` : backUrl;
-                completedLink.innerHTML = '<i class="bi bi-file-earmark-text"></i> Ver Cartilla';
-            }
-        }
-
-        // Stage 1 Auto-fill Date mapping
-        document.getElementById('contrato_fecha_inicio').addEventListener('change', function () {
-            const startDate = this.value;
-            if (startDate) {
-                const date = new Date(startDate);
-                date.setFullYear(date.getFullYear() + 1);
-                document.getElementById('contrato_fecha_fin').value = date.toISOString().split('T')[0];
-            }
-        });
-
-        async function cargarProceso(id) {
-            try {
-                const res = await api.get(`/altas?action=obtener&id=${id}`);
-                if (res.success) {
-                    currentProcesoData = res.data;
-                    const parsed = currentProcesoData.datos_parsed;
-                    applyProcessMode(parsed);
-
-                    // Fill form 1
-                    document.getElementById('cliente_nombre').value = parsed.cliente.nombre || '';
-                    document.getElementById('cliente_tipo_doc').value = parsed.cliente.tipo_documento || 'DNI';
-                    document.getElementById('cliente_dni').value = parsed.cliente.dni || '';
-
-                    document.getElementById('empresa_razon_social').value = parsed.empresa.razon_social || '';
-                    document.getElementById('empresa_ruc').value = parsed.empresa.ruc || '';
-                    document.getElementById('empresa_direccion').value = parsed.empresa.direccion_fiscal || '';
-                    setIfExists('empresa_rubro', parsed.empresa.rubro);
-                    setIfExists('empresa_distrito', parsed.empresa.distrito);
-                    setIfExists('empresa_provincia', parsed.empresa.provincia);
-                    setIfExists('empresa_departamento', parsed.empresa.departamento);
-
-                    document.getElementById('sede_nombre_comercial').value = parsed.sede.nombre_comercial || '';
-                    document.getElementById('sede_direccion').value = parsed.sede.direccion || '';
-                    document.getElementById('sede_distrito').value = parsed.sede.distrito || '';
-                    document.getElementById('sede_provincia').value = parsed.sede.provincia || '';
-                    document.getElementById('sede_telefono').value = parsed.sede.contacto_telefono || '';
-                    setIfExists('sede_departamento', parsed.sede.departamento);
-                    setIfExists('sede_referencia', parsed.sede.referencia);
-                    setIfExists('sede_contacto_nombre', parsed.sede.contacto_nombre);
-                    setIfExists('sede_telefono_2', parsed.sede.contacto_telefono_2);
-                    setIfExists('sede_contacto_email', parsed.sede.contacto_email);
-
-                    if (parsed.sede.coordenadas_gps) {
-                        document.getElementById('sede_coordenadas').value = parsed.sede.coordenadas_gps;
-                        if (marker && map) {
-                            const [lat, lng] = parsed.sede.coordenadas_gps.split(',').map(Number);
-                            const pos = { lat, lng };
-                            marker.position = pos;
-                            map.setCenter(pos);
-                        }
-                    }
-
-                    document.getElementById('contrato_fecha_inicio').value = parsed.contrato.fecha_inicio || '';
-                    document.getElementById('contrato_fecha_fin').value = parsed.contrato.fecha_fin || '';
-                    document.getElementById('contrato_frecuencia').value = parsed.contrato.frecuencia || 'diario';
-                    document.getElementById('contrato_tarifa').value = parsed.contrato.tarifa || '';
-                    document.getElementById('contrato_tipo_tarifa').value = parsed.contrato.tipo_tarifa || 'por_servicio';
-                    document.getElementById('contrato_peso_limite_kg').value = parsed.contrato.peso_limite_kg || '';
-                    document.getElementById('contrato_tarifa_adicional_kg').value = parsed.contrato.tarifa_adicional_kg || '';
-                    setIfExists('contrato_observaciones', parsed.contrato.observaciones);
-
-                    toggleTarifaFields();
-
-                    // Advance to actual stage
-                    avanzarEtapa(parseInt(currentProcesoData.etapa_actual));
-
-                    // Show audit info
-                    showAuditInfo(currentProcesoData);
-
-                    // If doc generated, show it
-                    if (currentProcesoData.doc_generado && currentProcesoData.etapa_actual >= 2) {
-                        mostrarDescargaContrato(currentProcesoData.doc_generado);
-                    }
-
-                    // Show firma digital state
-                    if (currentProcesoData.firma_url) {
-                        mostrarFirmaDigital(currentProcesoData.firma_url, currentProcesoData.firma_firmado, currentProcesoData.firma_fecha);
-                    }
-
-                    // If digitally signed, show notice in Stage 3 and skip contract upload
-                    if (currentProcesoData.firma_firmado && currentProcesoData.doc_firmado) {
-                        const uploadBase = API_BASE.replace('/api', '/');
-                        document.getElementById('firmaDigitalStage3').classList.remove('d-none');
-                        document.getElementById('firmaDigitalStage3Link').href = uploadBase + currentProcesoData.doc_firmado;
-                        if (currentProcesoData.firma_fecha) {
-                            const d = new Date(currentProcesoData.firma_fecha);
-                            document.getElementById('firmaDigitalStage3Fecha').textContent =
-                                `Firmado el ${d.toLocaleDateString('es-PE')} a las ${d.toLocaleTimeString('es-PE')}`;
-                        }
-                        document.getElementById('fileContrato').removeAttribute('required');
-                        document.getElementById('fileContrato').closest('.card').querySelector('p').innerHTML =
-                            '<span class="text-success"><i class="bi bi-check-circle"></i> Firmado digitalmente.</span> Opcionalmente suba una copia física.';
-                    }
-
-                    // If documents already uploaded occasionally
-                    if (currentProcesoData.doc_firmado) {
-                        const link = document.getElementById('linkDocFirmadoPreview');
-                        link.href = API_BASE.replace('/api', '/') + currentProcesoData.doc_firmado;
-                        document.getElementById('docFirmadoPreview').classList.remove('d-none');
-                        document.getElementById('fileContrato').removeAttribute('required'); // No need if exists
-                    }
-                    if (currentProcesoData.comprobante_pago) {
-                        const link = document.getElementById('linkComprobantePreview');
-                        link.href = API_BASE.replace('/api', '/') + currentProcesoData.comprobante_pago;
-                        document.getElementById('comprobantePreview').classList.remove('d-none');
-                        document.getElementById('fileComprobante').removeAttribute('required'); // No need if exists
-                    }
-
+            document.addEventListener("DOMContentLoaded", () => {
+                if (currentIdProceso) {
+                    cargarProceso(currentIdProceso);
                 } else {
-                    showToast('Proceso no encontrado', 'danger');
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function avanzarEtapa(etapa) {
-            document.getElementById('stage1').style.display = 'none';
-            document.getElementById('stage2').style.display = 'none';
-            document.getElementById('stage3').style.display = 'none';
-            document.getElementById('stageCompleted').style.display = 'none';
-
-            // Mark indicators
-            const indicators = [
-                document.getElementById('indicator1'),
-                document.getElementById('indicator2'),
-                document.getElementById('indicator3')
-            ];
-
-            indicators.forEach((ind, index) => {
-                if (ind) {
-                    ind.classList.remove('active', 'completed');
-                    if (index + 1 < etapa) {
-                        ind.classList.add('completed');
-                    } else if (index + 1 === etapa && etapa < 4) {
-                        ind.classList.add('active');
-                    }
+                    avanzarEtapa(1);
                 }
             });
 
-            if (etapa === 1) document.getElementById('stage1').style.display = 'block';
-            if (etapa === 2) document.getElementById('stage2').style.display = 'block';
-            if (etapa === 3) document.getElementById('stage3').style.display = 'block';
-            if (etapa === 4) {
-                document.getElementById('stageCompleted').style.display = 'block';
-                indicators[2].classList.add('completed');
-                indicators[2].classList.remove('active');
+            function setIfExists(id, value) {
+                const el = document.getElementById(id);
+                if (el) el.value = value || "";
             }
-        }
 
-        // Submitting Stage 1
-        function buildPayloadEtapa1() {
-            const existing = currentProcesoData?.datos_parsed || {};
-            return {
-                id_proceso: currentIdProceso || undefined,
-                tipo_proceso: existing.tipo_proceso,
-                renovacion: existing.renovacion,
-                cliente: {
-                    id_cliente: existing.cliente?.id_cliente,
-                    nombre: document.getElementById('cliente_nombre').value,
-                    tipo_documento: document.getElementById('cliente_tipo_doc').value,
-                    dni: document.getElementById('cliente_dni').value
-                },
-                empresa: {
-                    id_empresa: existing.empresa?.id_empresa,
-                    razon_social: document.getElementById('empresa_razon_social').value,
-                    ruc: document.getElementById('empresa_ruc').value,
-                    direccion_fiscal: document.getElementById('empresa_direccion').value,
-                    rubro: document.getElementById('empresa_rubro').value || null,
-                    distrito: document.getElementById('empresa_distrito').value || null,
-                    provincia: document.getElementById('empresa_provincia').value || null,
-                    departamento: document.getElementById('empresa_departamento').value || null
-                },
-                sede: {
-                    id_sede: existing.sede?.id_sede,
-                    nombre_comercial: document.getElementById('sede_nombre_comercial').value,
-                    direccion: document.getElementById('sede_direccion').value,
-                    distrito: document.getElementById('sede_distrito').value,
-                    provincia: document.getElementById('sede_provincia').value,
-                    departamento: document.getElementById('sede_departamento').value || null,
-                    referencia: document.getElementById('sede_referencia').value || null,
-                    contacto_nombre: document.getElementById('sede_contacto_nombre').value || null,
-                    contacto_telefono: document.getElementById('sede_telefono').value,
-                    contacto_telefono_2: document.getElementById('sede_telefono_2').value || null,
-                    contacto_email: document.getElementById('sede_contacto_email').value || null,
-                    coordenadas_gps: document.getElementById('sede_coordenadas').value
-                },
-                contrato: {
-                    fecha_inicio: document.getElementById('contrato_fecha_inicio').value,
-                    fecha_fin: document.getElementById('contrato_fecha_fin').value,
-                    frecuencia: document.getElementById('contrato_frecuencia').value,
-                    tarifa: document.getElementById('contrato_tarifa').value,
-                    tipo_tarifa: document.getElementById('contrato_tipo_tarifa').value,
-                    peso_limite_kg: document.getElementById('contrato_peso_limite_kg').value || null,
-                    tarifa_adicional_kg: document.getElementById('contrato_tarifa_adicional_kg').value || null,
-                    observaciones: document.getElementById('contrato_observaciones').value || null
+            function getStage1SubmitText() {
+                return isRenovacionProceso
+                    ? 'Guardar y Continuar a Generar Renovacion <i class="bi bi-arrow-right"></i>'
+                    : 'Guardar y Continuar a Etapa 2 <i class="bi bi-arrow-right"></i>';
+            }
+
+            function applyProcessMode(parsed = null) {
+                if (parsed?.tipo_proceso === "renovacion_contrato") {
+                    isRenovacionProceso = true;
                 }
-            };
-        }
 
-        document.getElementById('formStage1').addEventListener('submit', async function (e) {
-            e.preventDefault();
+                if (!isRenovacionProceso) return;
 
-            const payload = buildPayloadEtapa1();
+                const idSede = parsed?.sede?.id_sede;
+                const backUrl = idSede
+                    ? `../contratos/listar.html?sede=${idSede}`
+                    : "../contratos/listar.html";
 
-            const coords = document.getElementById('sede_coordenadas').value;
-            if (!coords) {
-                document.getElementById('mapError').style.display = 'block';
-                return;
+                document.title = "Renovacion de Contrato - IO Group";
+                document.getElementById("pageTitle").textContent =
+                    "Renovacion de Contrato";
+                document
+                    .querySelectorAll('a[href="index.html"]')
+                    .forEach((link) => {
+                        link.href = backUrl;
+                    });
+
+                const breadcrumbLink = document.querySelector(
+                    ".breadcrumb .breadcrumb-item:nth-child(2) a",
+                );
+                if (breadcrumbLink) {
+                    breadcrumbLink.href = backUrl;
+                    breadcrumbLink.textContent = "Contratos";
+                }
+
+                const stepLabels = document.querySelectorAll(".step-label");
+                if (stepLabels[0])
+                    stepLabels[0].textContent = "Revision de Datos";
+                if (stepLabels[1])
+                    stepLabels[1].textContent = "Generacion de Contrato";
+                if (stepLabels[2])
+                    stepLabels[2].textContent = "Validacion y Renovacion";
+
+                const stage2Title = document.querySelector("#stage2Buttons h3");
+                if (stage2Title)
+                    stage2Title.textContent = "Generacion de Renovacion";
+
+                const stage2Text = document.querySelector("#stage2Buttons p");
+                if (stage2Text) {
+                    stage2Text.textContent =
+                        "Los datos actualizados se usaran para generar el nuevo contrato de renovacion.";
+                }
+
+                const submitBtn = document.querySelector(
+                    '#formStage1 button[type="submit"]',
+                );
+                if (submitBtn) submitBtn.innerHTML = getStage1SubmitText();
+
+                const warning = document.querySelector(
+                    "#stage3 .alert-warning",
+                );
+                if (warning) {
+                    warning.innerHTML =
+                        '<i class="bi bi-exclamation-triangle-fill"></i> Al finalizar esta renovacion, se actualizaran Cliente, Empresa y Sede, se creara un contrato nuevo activo y el contrato vencido anterior quedara inactivo como historico.';
+                }
+
+                const finalBtn = document.getElementById("btnFinalizarAlta");
+                if (finalBtn)
+                    finalBtn.innerHTML =
+                        '<i class="bi bi-check2-all"></i> Finalizar Renovacion';
+
+                const fileComprobante =
+                    document.getElementById("fileComprobante");
+                if (fileComprobante)
+                    fileComprobante.removeAttribute("required");
+
+                const completedTitle =
+                    document.querySelector("#stageCompleted h2");
+                if (completedTitle)
+                    completedTitle.textContent = "Renovacion Completada";
+
+                const completedText =
+                    document.querySelector("#stageCompleted p");
+                if (completedText) {
+                    completedText.textContent =
+                        "El nuevo contrato quedo activo y el contrato vencido anterior quedo como historico.";
+                }
+
+                const completedLink =
+                    document.querySelector("#stageCompleted a");
+                if (completedLink) {
+                    completedLink.href = idSede
+                        ? `../sedes/cartilla.html?id=${idSede}`
+                        : backUrl;
+                    completedLink.innerHTML =
+                        '<i class="bi bi-file-earmark-text"></i> Ver Cartilla';
+                }
             }
-            document.getElementById('mapError').style.display = 'none';
 
-            const btn = this.querySelector('button[type="submit"]');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
-            btn.disabled = true;
-
-            try {
-                const res = await api.post('/altas?action=guardar_etapa1', payload);
-                if (res.success) {
-                    showToast('Datos guardados exitosamente', 'success');
-                    if (!currentIdProceso) {
-                        // Update URL with ID without reloading
-                        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?id=' + res.id_proceso;
-                        window.history.pushState({ path: newUrl }, '', newUrl);
-                        currentIdProceso = res.id_proceso;
+            // Stage 1 Auto-fill Date mapping
+            document
+                .getElementById("contrato_fecha_inicio")
+                .addEventListener("change", function () {
+                    const startDate = this.value;
+                    if (startDate) {
+                        const date = new Date(startDate);
+                        date.setFullYear(date.getFullYear() + 1);
+                        document.getElementById("contrato_fecha_fin").value =
+                            date.toISOString().split("T")[0];
                     }
-                    currentProcesoData = {
-                        ...(currentProcesoData || {}),
-                        datos_parsed: payload,
-                        etapa_actual: Math.max(parseInt(currentProcesoData?.etapa_actual || 1), 2)
-                    };
-                    applyProcessMode(payload);
-                    avanzarEtapa(2);
-                } else {
-                    showToast(res.message || 'Error guardando datos', 'danger');
-                }
-            } catch (err) {
-                showToast('Error en el servidor', 'danger');
-            } finally {
-                btn.innerHTML = getStage1SubmitText();
-                btn.disabled = false;
-            }
-        });
-
-        // Save and go back to the list
-        async function guardarYVolver() {
-            const payload = buildPayloadEtapa1();
-
-            try {
-                const res = await api.post('/altas?action=guardar_etapa1', payload);
-                if (res.success) {
-                    showToast('Datos guardados', 'success');
-                    setTimeout(() => {
-                        const backUrl = isRenovacionProceso
-                            ? (payload.sede?.id_sede ? `../contratos/listar.html?sede=${payload.sede.id_sede}` : '../contratos/listar.html')
-                            : 'index.html';
-                        window.location.href = backUrl;
-                    }, 500);
-                } else {
-                    showToast(res.message || 'Error guardando datos', 'danger');
-                }
-            } catch (err) {
-                showToast('Error en el servidor', 'danger');
-            }
-        }
-
-        // Stage 2
-        async function generarContrato() {
-            if (!currentIdProceso) return;
-
-            const btn = document.getElementById('btnGenerarContrato');
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando...';
-            btn.disabled = true;
-
-            try {
-                const res = await api.post('/altas?action=generar_contrato', { id_proceso: currentIdProceso });
-                if (res.success && res.contract_html) {
-                    showToast('Contrato generado exitosamente', 'success');
-                    mostrarVistaPrevia(res.contract_html, res.numero_contrato);
-                    if (res.firma_url) {
-                        mostrarFirmaDigital(res.firma_url, false, null);
-                    }
-                } else {
-                    showToast(res.message || 'Error generando contrato', 'danger');
-                }
-            } catch (err) {
-                showToast('Error en la conexión con el servidor', 'danger');
-            } finally {
-                btn.innerHTML = '<i class="bi bi-gear"></i> Generar Contrato';
-                btn.disabled = false;
-            }
-        }
-
-        function mostrarVistaPrevia(html, numContrato) {
-            document.getElementById('stage2Buttons').style.display = 'none';
-            document.getElementById('stage2Preview').style.display = 'block';
-
-            if (numContrato) {
-                document.getElementById('contractNumber').textContent = numContrato;
-            }
-
-            // Write the HTML into the iframe
-            const iframe = document.getElementById('contractPreviewFrame');
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            iframeDoc.open();
-            iframeDoc.write(html);
-            iframeDoc.close();
-        }
-
-        function imprimirContrato() {
-            const iframe = document.getElementById('contractPreviewFrame');
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-        }
-
-        // Backward compatibility: if doc was already generated, load it from URL
-        function mostrarDescargaContrato(path) {
-            document.getElementById('stage2Buttons').style.display = 'none';
-            document.getElementById('stage2Preview').style.display = 'block';
-
-            const baseUrl = API_BASE.replace('/api', '/');
-            const iframe = document.getElementById('contractPreviewFrame');
-            iframe.src = baseUrl + path;
-        }
-
-        // Show the digital signing link and state
-        function mostrarFirmaDigital(url, firmado, fechaFirma) {
-            document.getElementById('firmaDigitalCard').style.display = 'block';
-            document.getElementById('firmaLinkInput').value = url;
-
-            if (firmado) {
-                document.getElementById('firmaEstadoPendiente').style.display = 'none';
-                document.getElementById('firmaEstadoFirmado').style.display = 'block';
-                if (fechaFirma) {
-                    const d = new Date(fechaFirma);
-                    document.getElementById('firmaFechaTexto').textContent =
-                        `Firmado el ${d.toLocaleDateString('es-PE')} a las ${d.toLocaleTimeString('es-PE')}`;
-                }
-            } else {
-                document.getElementById('firmaEstadoPendiente').style.display = 'block';
-                document.getElementById('firmaEstadoFirmado').style.display = 'none';
-            }
-        }
-
-        function copiarLinkFirma() {
-            const input = document.getElementById('firmaLinkInput');
-            input.select();
-            navigator.clipboard.writeText(input.value).then(() => {
-                showToast('Enlace copiado al portapapeles', 'success');
-            }).catch(() => {
-                document.execCommand('copy');
-                showToast('Enlace copiado', 'success');
-            });
-        }
-
-        function enviarWhatsApp() {
-            const link = document.getElementById('firmaLinkInput').value;
-            const datos = currentProcesoData?.datos_parsed;
-            const telefono = document.getElementById('sede_telefono').value || datos?.sede?.contacto_telefono || '';
-            const nombre = document.getElementById('cliente_nombre').value || datos?.cliente?.nombre || 'Cliente';
-            const msg = `Estimado(a) ${nombre}, le enviamos el enlace para firmar digitalmente su contrato de servicio con IO Group:\n\n${link}\n\nPor favor ábralo y siga las instrucciones. Gracias.`;
-            const phone = telefono.replace(/\D/g, '');
-            const waUrl = phone
-                ? `https://wa.me/51${phone}?text=${encodeURIComponent(msg)}`
-                : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-            window.open(waUrl, '_blank');
-        }
-
-        // Stage 3 Handling File Uploads
-        async function submitStage3(isFinalizing) {
-            const fileContrato = document.getElementById('fileContrato').files[0];
-            const fileComprobante = document.getElementById('fileComprobante').files[0];
-
-            const formData = new FormData();
-            formData.append('id_proceso', currentIdProceso);
-            if (fileContrato) formData.append('doc_firmado', fileContrato);
-            if (fileComprobante) formData.append('comprobante_pago', fileComprobante);
-
-            if (isFinalizing) {
-                formData.append('finalizar', 'true');
-            }
-
-            const url = API_BASE + '/altas.php?action=subir_documentos';
-            const token = localStorage.getItem('token');
-
-            let btnToLock = isFinalizing ? document.getElementById('btnFinalizarAlta') : document.querySelector('#formStage3 .btn-secondary');
-            const originalText = btnToLock.innerHTML;
-            btnToLock.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Subiendo...';
-            btnToLock.disabled = true;
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
                 });
-                const result = await response.json();
 
-                if (result.success) {
-                    if (isFinalizing) {
-                        showToast(isRenovacionProceso ? 'Renovacion completada con exito' : 'Proceso Finalizado y Sede Inyectada con exito', 'success');
-                        if (result.id_sede && currentProcesoData?.datos_parsed?.sede) {
-                            currentProcesoData.datos_parsed.sede.id_sede = result.id_sede;
-                            applyProcessMode(currentProcesoData.datos_parsed);
+            async function cargarProceso(id) {
+                try {
+                    const res = await api.get(`/altas?action=obtener&id=${id}`);
+                    if (res.success) {
+                        currentProcesoData = res.data;
+                        const parsed = currentProcesoData.datos_parsed;
+                        applyProcessMode(parsed);
+
+                        // Fill form 1
+                        document.getElementById("cliente_nombre").value =
+                            parsed.cliente.nombre || "";
+                        document.getElementById("cliente_tipo_doc").value =
+                            parsed.cliente.tipo_documento || "DNI";
+                        document.getElementById("cliente_dni").value =
+                            parsed.cliente.dni || "";
+
+                        document.getElementById("empresa_razon_social").value =
+                            parsed.empresa.razon_social || "";
+                        document.getElementById("empresa_ruc").value =
+                            parsed.empresa.ruc || "";
+                        document.getElementById("empresa_direccion").value =
+                            parsed.empresa.direccion_fiscal || "";
+                        setIfExists("empresa_rubro", parsed.empresa.rubro);
+                        setIfExists(
+                            "empresa_distrito",
+                            parsed.empresa.distrito,
+                        );
+                        setIfExists(
+                            "empresa_provincia",
+                            parsed.empresa.provincia,
+                        );
+                        setIfExists(
+                            "empresa_departamento",
+                            parsed.empresa.departamento,
+                        );
+
+                        document.getElementById("sede_nombre_comercial").value =
+                            parsed.sede.nombre_comercial || "";
+                        document.getElementById("sede_direccion").value =
+                            parsed.sede.direccion || "";
+                        document.getElementById("sede_distrito").value =
+                            parsed.sede.distrito || "";
+                        document.getElementById("sede_provincia").value =
+                            parsed.sede.provincia || "";
+                        document.getElementById("sede_telefono").value =
+                            parsed.sede.contacto_telefono || "";
+                        setIfExists(
+                            "sede_departamento",
+                            parsed.sede.departamento,
+                        );
+                        setIfExists("sede_referencia", parsed.sede.referencia);
+                        setIfExists(
+                            "sede_contacto_nombre",
+                            parsed.sede.contacto_nombre,
+                        );
+                        setIfExists(
+                            "sede_telefono_2",
+                            parsed.sede.contacto_telefono_2,
+                        );
+                        setIfExists(
+                            "sede_contacto_email",
+                            parsed.sede.contacto_email,
+                        );
+
+                        if (parsed.sede.coordenadas_gps) {
+                            document.getElementById("sede_coordenadas").value =
+                                parsed.sede.coordenadas_gps;
+                            if (marker && map) {
+                                const [lat, lng] = parsed.sede.coordenadas_gps
+                                    .split(",")
+                                    .map(Number);
+                                const pos = { lat, lng };
+                                marker.setPosition(pos);
+                                map.setCenter(pos);
+                            }
                         }
-                        avanzarEtapa(4);
+
+                        document.getElementById("contrato_fecha_inicio").value =
+                            parsed.contrato.fecha_inicio || "";
+                        document.getElementById("contrato_fecha_fin").value =
+                            parsed.contrato.fecha_fin || "";
+                        document.getElementById("contrato_frecuencia").value =
+                            parsed.contrato.frecuencia || "diario";
+                        document.getElementById("contrato_tarifa").value =
+                            parsed.contrato.tarifa || "";
+                        document.getElementById("contrato_tipo_tarifa").value =
+                            parsed.contrato.tipo_tarifa || "por_servicio";
+                        document.getElementById(
+                            "contrato_peso_limite_kg",
+                        ).value = parsed.contrato.peso_limite_kg || "";
+                        document.getElementById(
+                            "contrato_tarifa_adicional_kg",
+                        ).value = parsed.contrato.tarifa_adicional_kg || "";
+                        setIfExists(
+                            "contrato_observaciones",
+                            parsed.contrato.observaciones,
+                        );
+
+                        toggleTarifaFields();
+
+                        // Advance to actual stage
+                        avanzarEtapa(parseInt(currentProcesoData.etapa_actual));
+
+                        // Show audit info
+                        showAuditInfo(currentProcesoData);
+
+                        // If doc generated, show it
+                        if (
+                            currentProcesoData.doc_generado &&
+                            currentProcesoData.etapa_actual >= 2
+                        ) {
+                            mostrarDescargaContrato(
+                                currentProcesoData.doc_generado,
+                            );
+                        }
+
+                        // Show firma digital state
+                        if (currentProcesoData.firma_url) {
+                            mostrarFirmaDigital(
+                                currentProcesoData.firma_url,
+                                currentProcesoData.firma_firmado,
+                                currentProcesoData.firma_fecha,
+                            );
+                        }
+
+                        // If digitally signed, show notice in Stage 3 and skip contract upload
+                        if (
+                            currentProcesoData.firma_firmado &&
+                            currentProcesoData.doc_firmado
+                        ) {
+                            const uploadBase = API_BASE.replace("/api", "/");
+                            document
+                                .getElementById("firmaDigitalStage3")
+                                .classList.remove("d-none");
+                            document.getElementById(
+                                "firmaDigitalStage3Link",
+                            ).href =
+                                uploadBase + currentProcesoData.doc_firmado;
+                            if (currentProcesoData.firma_fecha) {
+                                const d = new Date(
+                                    currentProcesoData.firma_fecha,
+                                );
+                                document.getElementById(
+                                    "firmaDigitalStage3Fecha",
+                                ).textContent =
+                                    `Firmado el ${d.toLocaleDateString("es-PE")} a las ${d.toLocaleTimeString("es-PE")}`;
+                            }
+                            document
+                                .getElementById("fileContrato")
+                                .removeAttribute("required");
+                            document
+                                .getElementById("fileContrato")
+                                .closest(".card")
+                                .querySelector("p").innerHTML =
+                                '<span class="text-success"><i class="bi bi-check-circle"></i> Firmado digitalmente.</span> Opcionalmente suba una copia física.';
+                        }
+
+                        // If documents already uploaded occasionally
+                        if (currentProcesoData.doc_firmado) {
+                            const link = document.getElementById(
+                                "linkDocFirmadoPreview",
+                            );
+                            link.href =
+                                API_BASE.replace("/api", "/") +
+                                currentProcesoData.doc_firmado;
+                            document
+                                .getElementById("docFirmadoPreview")
+                                .classList.remove("d-none");
+                            document
+                                .getElementById("fileContrato")
+                                .removeAttribute("required"); // No need if exists
+                        }
+                        if (currentProcesoData.comprobante_pago) {
+                            const link = document.getElementById(
+                                "linkComprobantePreview",
+                            );
+                            link.href =
+                                API_BASE.replace("/api", "/") +
+                                currentProcesoData.comprobante_pago;
+                            document
+                                .getElementById("comprobantePreview")
+                                .classList.remove("d-none");
+                            document
+                                .getElementById("fileComprobante")
+                                .removeAttribute("required"); // No need if exists
+                        }
                     } else {
-                        showToast('Documentos resguardados correctamente.', 'success');
-                        // Reload data to get preview links
-                        cargarProceso(currentIdProceso);
+                        showToast("Proceso no encontrado", "danger");
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+            function avanzarEtapa(etapa) {
+                document.getElementById("stage1").style.display = "none";
+                document.getElementById("stage2").style.display = "none";
+                document.getElementById("stage3").style.display = "none";
+                document.getElementById("stageCompleted").style.display =
+                    "none";
+
+                // Mark indicators
+                const indicators = [
+                    document.getElementById("indicator1"),
+                    document.getElementById("indicator2"),
+                    document.getElementById("indicator3"),
+                ];
+
+                indicators.forEach((ind, index) => {
+                    if (ind) {
+                        ind.classList.remove("active", "completed");
+                        if (index + 1 < etapa) {
+                            ind.classList.add("completed");
+                        } else if (index + 1 === etapa && etapa < 4) {
+                            ind.classList.add("active");
+                        }
+                    }
+                });
+
+                if (etapa === 1)
+                    document.getElementById("stage1").style.display = "block";
+                if (etapa === 2)
+                    document.getElementById("stage2").style.display = "block";
+                if (etapa === 3)
+                    document.getElementById("stage3").style.display = "block";
+                if (etapa === 4) {
+                    document.getElementById("stageCompleted").style.display =
+                        "block";
+                    indicators[2].classList.add("completed");
+                    indicators[2].classList.remove("active");
+                }
+            }
+
+            // Submitting Stage 1
+            function buildPayloadEtapa1() {
+                const existing = currentProcesoData?.datos_parsed || {};
+                return {
+                    id_proceso: currentIdProceso || undefined,
+                    tipo_proceso: existing.tipo_proceso,
+                    renovacion: existing.renovacion,
+                    cliente: {
+                        id_cliente: existing.cliente?.id_cliente,
+                        nombre: document.getElementById("cliente_nombre").value,
+                        tipo_documento:
+                            document.getElementById("cliente_tipo_doc").value,
+                        dni: document.getElementById("cliente_dni").value,
+                    },
+                    empresa: {
+                        id_empresa: existing.empresa?.id_empresa,
+                        razon_social: document.getElementById(
+                            "empresa_razon_social",
+                        ).value,
+                        ruc: document.getElementById("empresa_ruc").value,
+                        direccion_fiscal:
+                            document.getElementById("empresa_direccion").value,
+                        rubro:
+                            document.getElementById("empresa_rubro").value ||
+                            null,
+                        distrito:
+                            document.getElementById("empresa_distrito").value ||
+                            null,
+                        provincia:
+                            document.getElementById("empresa_provincia")
+                                .value || null,
+                        departamento:
+                            document.getElementById("empresa_departamento")
+                                .value || null,
+                    },
+                    sede: {
+                        id_sede: existing.sede?.id_sede,
+                        nombre_comercial: document.getElementById(
+                            "sede_nombre_comercial",
+                        ).value,
+                        direccion:
+                            document.getElementById("sede_direccion").value,
+                        distrito:
+                            document.getElementById("sede_distrito").value,
+                        provincia:
+                            document.getElementById("sede_provincia").value,
+                        departamento:
+                            document.getElementById("sede_departamento")
+                                .value || null,
+                        referencia:
+                            document.getElementById("sede_referencia").value ||
+                            null,
+                        contacto_nombre:
+                            document.getElementById("sede_contacto_nombre")
+                                .value || null,
+                        contacto_telefono:
+                            document.getElementById("sede_telefono").value,
+                        contacto_telefono_2:
+                            document.getElementById("sede_telefono_2").value ||
+                            null,
+                        contacto_email:
+                            document.getElementById("sede_contacto_email")
+                                .value || null,
+                        coordenadas_gps:
+                            document.getElementById("sede_coordenadas").value,
+                    },
+                    contrato: {
+                        fecha_inicio: document.getElementById(
+                            "contrato_fecha_inicio",
+                        ).value,
+                        fecha_fin:
+                            document.getElementById("contrato_fecha_fin").value,
+                        frecuencia: document.getElementById(
+                            "contrato_frecuencia",
+                        ).value,
+                        tarifa: document.getElementById("contrato_tarifa")
+                            .value,
+                        tipo_tarifa: document.getElementById(
+                            "contrato_tipo_tarifa",
+                        ).value,
+                        peso_limite_kg:
+                            document.getElementById("contrato_peso_limite_kg")
+                                .value || null,
+                        tarifa_adicional_kg:
+                            document.getElementById(
+                                "contrato_tarifa_adicional_kg",
+                            ).value || null,
+                        observaciones:
+                            document.getElementById("contrato_observaciones")
+                                .value || null,
+                    },
+                };
+            }
+
+            document
+                .getElementById("formStage1")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+
+                    const payload = buildPayloadEtapa1();
+
+                    const coords =
+                        document.getElementById("sede_coordenadas").value;
+                    if (!coords) {
+                        document.getElementById("mapError").style.display =
+                            "block";
+                        return;
+                    }
+                    document.getElementById("mapError").style.display = "none";
+
+                    const btn = this.querySelector('button[type="submit"]');
+                    btn.innerHTML =
+                        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+                    btn.disabled = true;
+
+                    try {
+                        const res = await api.post(
+                            "/altas?action=guardar_etapa1",
+                            payload,
+                        );
+                        if (res.success) {
+                            showToast(
+                                "Datos guardados exitosamente",
+                                "success",
+                            );
+                            if (!currentIdProceso) {
+                                // Update URL with ID without reloading
+                                const newUrl =
+                                    window.location.protocol +
+                                    "//" +
+                                    window.location.host +
+                                    window.location.pathname +
+                                    "?id=" +
+                                    res.id_proceso;
+                                window.history.pushState(
+                                    { path: newUrl },
+                                    "",
+                                    newUrl,
+                                );
+                                currentIdProceso = res.id_proceso;
+                            }
+                            currentProcesoData = {
+                                ...(currentProcesoData || {}),
+                                datos_parsed: payload,
+                                etapa_actual: Math.max(
+                                    parseInt(
+                                        currentProcesoData?.etapa_actual || 1,
+                                    ),
+                                    2,
+                                ),
+                            };
+                            applyProcessMode(payload);
+                            avanzarEtapa(2);
+                        } else {
+                            showToast(
+                                res.message || "Error guardando datos",
+                                "danger",
+                            );
+                        }
+                    } catch (err) {
+                        showToast("Error en el servidor", "danger");
+                    } finally {
+                        btn.innerHTML = getStage1SubmitText();
+                        btn.disabled = false;
+                    }
+                });
+
+            // Save and go back to the list
+            async function guardarYVolver() {
+                const payload = buildPayloadEtapa1();
+
+                try {
+                    const res = await api.post(
+                        "/altas?action=guardar_etapa1",
+                        payload,
+                    );
+                    if (res.success) {
+                        showToast("Datos guardados", "success");
+                        setTimeout(() => {
+                            const backUrl = isRenovacionProceso
+                                ? payload.sede?.id_sede
+                                    ? `../contratos/listar.html?sede=${payload.sede.id_sede}`
+                                    : "../contratos/listar.html"
+                                : "index.html";
+                            window.location.href = backUrl;
+                        }, 500);
+                    } else {
+                        showToast(
+                            res.message || "Error guardando datos",
+                            "danger",
+                        );
+                    }
+                } catch (err) {
+                    showToast("Error en el servidor", "danger");
+                }
+            }
+
+            // Stage 2
+            async function generarContrato() {
+                if (!currentIdProceso) return;
+
+                const btn = document.getElementById("btnGenerarContrato");
+                btn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generando...';
+                btn.disabled = true;
+
+                try {
+                    const res = await api.post(
+                        "/altas?action=generar_contrato",
+                        { id_proceso: currentIdProceso },
+                    );
+                    if (res.success && res.contract_html) {
+                        showToast("Contrato generado exitosamente", "success");
+                        mostrarVistaPrevia(
+                            res.contract_html,
+                            res.numero_contrato,
+                        );
+                        if (res.firma_url) {
+                            mostrarFirmaDigital(res.firma_url, false, null);
+                        }
+                    } else {
+                        showToast(
+                            res.message || "Error generando contrato",
+                            "danger",
+                        );
+                    }
+                } catch (err) {
+                    showToast("Error en la conexión con el servidor", "danger");
+                } finally {
+                    btn.innerHTML =
+                        '<i class="bi bi-gear"></i> Generar Contrato';
+                    btn.disabled = false;
+                }
+            }
+
+            function mostrarVistaPrevia(html, numContrato) {
+                document.getElementById("stage2Buttons").style.display = "none";
+                document.getElementById("stage2Preview").style.display =
+                    "block";
+
+                if (numContrato) {
+                    document.getElementById("contractNumber").textContent =
+                        numContrato;
+                }
+
+                // Write the HTML into the iframe
+                const iframe = document.getElementById("contractPreviewFrame");
+                const iframeDoc =
+                    iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write(html);
+                iframeDoc.close();
+            }
+
+            function imprimirContrato() {
+                const iframe = document.getElementById("contractPreviewFrame");
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }
+
+            // Backward compatibility: if doc was already generated, load it from URL
+            function mostrarDescargaContrato(path) {
+                document.getElementById("stage2Buttons").style.display = "none";
+                document.getElementById("stage2Preview").style.display =
+                    "block";
+
+                const baseUrl = API_BASE.replace("/api", "/");
+                const iframe = document.getElementById("contractPreviewFrame");
+                iframe.src = baseUrl + path;
+            }
+
+            // Show the digital signing link and state
+            function mostrarFirmaDigital(url, firmado, fechaFirma) {
+                document.getElementById("firmaDigitalCard").style.display =
+                    "block";
+                document.getElementById("firmaLinkInput").value = url;
+
+                if (firmado) {
+                    document.getElementById(
+                        "firmaEstadoPendiente",
+                    ).style.display = "none";
+                    document.getElementById(
+                        "firmaEstadoFirmado",
+                    ).style.display = "block";
+                    if (fechaFirma) {
+                        const d = new Date(fechaFirma);
+                        document.getElementById("firmaFechaTexto").textContent =
+                            `Firmado el ${d.toLocaleDateString("es-PE")} a las ${d.toLocaleTimeString("es-PE")}`;
                     }
                 } else {
-                    showToast(result.message || 'Error subiendo documentos', 'danger');
+                    document.getElementById(
+                        "firmaEstadoPendiente",
+                    ).style.display = "block";
+                    document.getElementById(
+                        "firmaEstadoFirmado",
+                    ).style.display = "none";
                 }
-            } catch (err) {
-                showToast('Error subiendo documentos', 'danger');
-            } finally {
-                btnToLock.innerHTML = originalText;
-                btnToLock.disabled = false;
             }
-        }
 
-        document.getElementById('formStage3').addEventListener('submit', function (e) {
-            e.preventDefault();
-            // Ask for confirmation
-            const message = isRenovacionProceso
-                ? 'Esta seguro de finalizar la renovacion? Se actualizara Cliente, Empresa y Sede, se creara un contrato nuevo y el contrato anterior quedara inactivo.'
-                : 'Esta seguro de querer finalizar el proceso? Esto inyectara los datos automaticamente a las tablas de Clientes y Sedes Activas.';
-            if (confirm(message)) {
-                submitStage3(true);
+            function copiarLinkFirma() {
+                const input = document.getElementById("firmaLinkInput");
+                input.select();
+                navigator.clipboard
+                    .writeText(input.value)
+                    .then(() => {
+                        showToast("Enlace copiado al portapapeles", "success");
+                    })
+                    .catch(() => {
+                        document.execCommand("copy");
+                        showToast("Enlace copiado", "success");
+                    });
             }
-        });
 
-        function guardarTemporalStage3() {
-            submitStage3(false);
-        }
+            function enviarWhatsApp() {
+                const link = document.getElementById("firmaLinkInput").value;
+                const datos = currentProcesoData?.datos_parsed;
+                const telefono =
+                    document.getElementById("sede_telefono").value ||
+                    datos?.sede?.contacto_telefono ||
+                    "";
+                const nombre =
+                    document.getElementById("cliente_nombre").value ||
+                    datos?.cliente?.nombre ||
+                    "Cliente";
+                const msg = `Estimado(a) ${nombre}, le enviamos el enlace para firmar digitalmente su contrato de servicio con IO Group:\n\n${link}\n\nPor favor ábralo y siga las instrucciones. Gracias.`;
+                const phone = telefono.replace(/\D/g, "");
+                const waUrl = phone
+                    ? `https://wa.me/51${phone}?text=${encodeURIComponent(msg)}`
+                    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                window.open(waUrl, "_blank");
+            }
 
-        // Pricing Rules Toggle
-        function toggleTarifaFields() {
-            const tipo = document.getElementById('contrato_tipo_tarifa').value;
-            const extras = document.querySelectorAll('.tarifa-exceso');
-            const reqInputs = [document.getElementById('contrato_peso_limite_kg'), document.getElementById('contrato_tarifa_adicional_kg')];
+            // Stage 3 Handling File Uploads
+            async function submitStage3(isFinalizing) {
+                const fileContrato =
+                    document.getElementById("fileContrato").files[0];
+                const fileComprobante =
+                    document.getElementById("fileComprobante").files[0];
 
-            if (tipo === 'por_kg') {
-                extras.forEach(el => el.style.display = 'block');
-                reqInputs.forEach(el => el.setAttribute('required', 'true'));
-            } else {
-                extras.forEach(el => el.style.display = 'none');
-                reqInputs.forEach(el => {
-                    el.removeAttribute('required');
-                    el.value = '';
+                const formData = new FormData();
+                formData.append("id_proceso", currentIdProceso);
+                if (fileContrato) formData.append("doc_firmado", fileContrato);
+                if (fileComprobante)
+                    formData.append("comprobante_pago", fileComprobante);
+
+                if (isFinalizing) {
+                    formData.append("finalizar", "true");
+                }
+
+                const url = API_BASE + "/altas.php?action=subir_documentos";
+                const token = localStorage.getItem("token");
+
+                let btnToLock = isFinalizing
+                    ? document.getElementById("btnFinalizarAlta")
+                    : document.querySelector("#formStage3 .btn-secondary");
+                const originalText = btnToLock.innerHTML;
+                btnToLock.innerHTML =
+                    '<span class="spinner-border spinner-border-sm"></span> Subiendo...';
+                btnToLock.disabled = true;
+
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${token}` },
+                        body: formData,
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        if (isFinalizing) {
+                            showToast(
+                                isRenovacionProceso
+                                    ? "Renovacion completada con exito"
+                                    : "Proceso Finalizado y Sede Inyectada con exito",
+                                "success",
+                            );
+                            if (
+                                result.id_sede &&
+                                currentProcesoData?.datos_parsed?.sede
+                            ) {
+                                currentProcesoData.datos_parsed.sede.id_sede =
+                                    result.id_sede;
+                                applyProcessMode(
+                                    currentProcesoData.datos_parsed,
+                                );
+                            }
+                            avanzarEtapa(4);
+                        } else {
+                            showToast(
+                                "Documentos resguardados correctamente.",
+                                "success",
+                            );
+                            // Reload data to get preview links
+                            cargarProceso(currentIdProceso);
+                        }
+                    } else {
+                        showToast(
+                            result.message || "Error subiendo documentos",
+                            "danger",
+                        );
+                    }
+                } catch (err) {
+                    showToast("Error subiendo documentos", "danger");
+                } finally {
+                    btnToLock.innerHTML = originalText;
+                    btnToLock.disabled = false;
+                }
+            }
+
+            document
+                .getElementById("formStage3")
+                .addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    // Ask for confirmation
+                    const message = isRenovacionProceso
+                        ? "Esta seguro de finalizar la renovacion? Se actualizara Cliente, Empresa y Sede, se creara un contrato nuevo y el contrato anterior quedara inactivo."
+                        : "Esta seguro de querer finalizar el proceso? Esto inyectara los datos automaticamente a las tablas de Clientes y Sedes Activas.";
+                    if (confirm(message)) {
+                        submitStage3(true);
+                    }
+                });
+
+            function guardarTemporalStage3() {
+                submitStage3(false);
+            }
+
+            // Pricing Rules Toggle
+            function toggleTarifaFields() {
+                const tipo = document.getElementById(
+                    "contrato_tipo_tarifa",
+                ).value;
+                const extras = document.querySelectorAll(".tarifa-exceso");
+                const reqInputs = [
+                    document.getElementById("contrato_peso_limite_kg"),
+                    document.getElementById("contrato_tarifa_adicional_kg"),
+                ];
+
+                if (tipo === "por_kg") {
+                    extras.forEach((el) => (el.style.display = "block"));
+                    reqInputs.forEach((el) =>
+                        el.setAttribute("required", "true"),
+                    );
+                } else {
+                    extras.forEach((el) => (el.style.display = "none"));
+                    reqInputs.forEach((el) => {
+                        el.removeAttribute("required");
+                        el.value = "";
+                    });
+                }
+            }
+
+            // Map logic
+            let map;
+            let marker;
+            let autocomplete;
+            function initMap() {
+                const defaultPos = { lat: -12.046374, lng: -77.042793 }; // Lima, Peru
+                map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 12,
+                    center: defaultPos,
+                });
+
+                marker = new google.maps.Marker({
+                    map: map,
+                    draggable: true,
+                    position: defaultPos,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 9,
+                        fillColor: "#1B5E20",
+                        fillOpacity: 1,
+                        strokeColor: "#fff",
+                        strokeWeight: 2,
+                    },
+                });
+
+                // Update coords on drag
+                marker.addListener("dragend", function () {
+                    const pos = marker.getPosition();
+                    document.getElementById("sede_coordenadas").value =
+                        pos.lat().toFixed(6) + "," + pos.lng().toFixed(6);
+                    document.getElementById("mapError").style.display = "none";
+                });
+
+                // Place marker on click
+                map.addListener("click", function (e) {
+                    marker.setPosition(e.latLng);
+                    document.getElementById("sede_coordenadas").value =
+                        e.latLng.lat().toFixed(6) +
+                        "," +
+                        e.latLng.lng().toFixed(6);
+                    document.getElementById("mapError").style.display = "none";
+                });
+
+                // Google Places Autocomplete
+                const searchInput = document.getElementById(
+                    "sede_buscar_direccion",
+                );
+                autocomplete = new google.maps.places.Autocomplete(
+                    searchInput,
+                    {
+                        componentRestrictions: { country: "pe" },
+                        fields: [
+                            "address_components",
+                            "formatted_address",
+                            "geometry",
+                        ],
+                    },
+                );
+
+                autocomplete.addListener("place_changed", function () {
+                    const place = autocomplete.getPlace();
+                    if (!place.geometry || !place.geometry.location) {
+                        return;
+                    }
+
+                    // Move map and marker
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(16);
+                    marker.setPosition(place.geometry.location);
+
+                    // Update coordinates
+                    const lat = place.geometry.location.lat().toFixed(6);
+                    const lng = place.geometry.location.lng().toFixed(6);
+                    document.getElementById("sede_coordenadas").value =
+                        lat + "," + lng;
+                    document.getElementById("mapError").style.display = "none";
+
+                    // Fill address field
+                    document.getElementById("sede_direccion").value =
+                        place.formatted_address || "";
+
+                    // Extract address components
+                    if (place.address_components) {
+                        let distrito = "";
+                        let provincia = "";
+                        for (const comp of place.address_components) {
+                            if (comp.types.includes("locality")) {
+                                distrito = comp.long_name;
+                            }
+                            if (
+                                comp.types.includes(
+                                    "administrative_area_level_2",
+                                )
+                            ) {
+                                provincia = comp.long_name;
+                            }
+                            // Fallback: sublocality for distrito
+                            if (
+                                !distrito &&
+                                comp.types.includes("sublocality_level_1")
+                            ) {
+                                distrito = comp.long_name;
+                            }
+                        }
+                        if (distrito)
+                            document.getElementById("sede_distrito").value =
+                                distrito;
+                        if (provincia)
+                            document.getElementById("sede_provincia").value =
+                                provincia;
+                    }
                 });
             }
-        }
 
-        // Map logic
-        let map;
-        let marker;
-        let autocomplete;
-        function initMap() {
-            const defaultPos = { lat: -12.046374, lng: -77.042793 }; // Lima, Peru
-            map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 12,
-                center: defaultPos,
-                mapId: '6870580f73bb949b9f7210ff',
-            });
+            function showAuditInfo(data) {
+                const banner = document.getElementById("auditInfoBanner");
+                if (!banner) return;
 
-            const pinEl = document.createElement('div');
-            pinEl.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#1B5E20;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:grab;';
-            marker = new google.maps.marker.AdvancedMarkerElement({
-                map: map,
-                gmpDraggable: true,
-                position: defaultPos,
-                content: pinEl,
-            });
-
-            // Update coords on drag
-            marker.addListener('gmp-dragend', function () {
-                const pos = marker.position;
-                document.getElementById('sede_coordenadas').value = pos.lat.toFixed(6) + ',' + pos.lng.toFixed(6);
-                document.getElementById('mapError').style.display = 'none';
-            });
-
-            // Place marker on click
-            map.addListener('click', function (e) {
-                marker.position = e.latLng;
-                document.getElementById('sede_coordenadas').value = e.latLng.lat().toFixed(6) + ',' + e.latLng.lng().toFixed(6);
-                document.getElementById('mapError').style.display = 'none';
-            });
-
-            // Google Places Autocomplete
-            const searchInput = document.getElementById('sede_buscar_direccion');
-            autocomplete = new google.maps.places.Autocomplete(searchInput, {
-                componentRestrictions: { country: 'pe' },
-                fields: ['address_components', 'formatted_address', 'geometry']
-            });
-
-            autocomplete.addListener('place_changed', function () {
-                const place = autocomplete.getPlace();
-                if (!place.geometry || !place.geometry.location) {
-                    return;
+                let parts = [];
+                if (data.usuario_creador && data.fecha_creacion) {
+                    const fc = new Date(data.fecha_creacion);
+                    parts.push(
+                        `Creado por <strong>${data.usuario_creador}</strong> el ${fc.toLocaleDateString("es-PE")} ${fc.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`,
+                    );
+                }
+                if (data.usuario_modificador && data.fecha_modificacion) {
+                    const fm = new Date(data.fecha_modificacion);
+                    parts.push(
+                        `Últ. modificación por <strong>${data.usuario_modificador}</strong> el ${fm.toLocaleDateString("es-PE")} ${fm.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`,
+                    );
                 }
 
-                // Move map and marker
-                map.setCenter(place.geometry.location);
-                map.setZoom(16);
-                marker.position = place.geometry.location;
+                if (parts.length > 0) {
+                    document.getElementById("auditInfoText").innerHTML =
+                        parts.join(" — ");
+                    banner.classList.remove("d-none");
+                }
+            }
 
-                // Update coordinates
-                const lat = place.geometry.location.lat().toFixed(6);
-                const lng = place.geometry.location.lng().toFixed(6);
-                document.getElementById('sede_coordenadas').value = lat + ',' + lng;
-                document.getElementById('mapError').style.display = 'none';
-
-                // Fill address field
-                document.getElementById('sede_direccion').value = place.formatted_address || '';
-
-                // Extract address components
-                if (place.address_components) {
-                    let distrito = '';
-                    let provincia = '';
-                    for (const comp of place.address_components) {
-                        if (comp.types.includes('locality')) {
-                            distrito = comp.long_name;
-                        }
-                        if (comp.types.includes('administrative_area_level_2')) {
-                            provincia = comp.long_name;
-                        }
-                        // Fallback: sublocality for distrito
-                        if (!distrito && comp.types.includes('sublocality_level_1')) {
-                            distrito = comp.long_name;
-                        }
+            function loadGoogleMaps() {
+                try {
+                    if (
+                        typeof API_CONFIG !== "undefined" &&
+                        API_CONFIG.GOOGLE_MAPS_API_KEY
+                    ) {
+                        const script = document.createElement("script");
+                        script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&libraries=places,marker`;
+                        script.async = true;
+                        script.defer = true;
+                        document.head.appendChild(script);
+                    } else {
+                        console.error(
+                            "No Google Maps API Key found in API_CONFIG.",
+                        );
                     }
-                    if (distrito) document.getElementById('sede_distrito').value = distrito;
-                    if (provincia) document.getElementById('sede_provincia').value = provincia;
+                } catch (err) {
+                    console.error("Error loading config:", err);
                 }
-            });
-        }
-
-        function showAuditInfo(data) {
-            const banner = document.getElementById('auditInfoBanner');
-            if (!banner) return;
-
-            let parts = [];
-            if (data.usuario_creador && data.fecha_creacion) {
-                const fc = new Date(data.fecha_creacion);
-                parts.push(`Creado por <strong>${data.usuario_creador}</strong> el ${fc.toLocaleDateString('es-PE')} ${fc.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`);
-            }
-            if (data.usuario_modificador && data.fecha_modificacion) {
-                const fm = new Date(data.fecha_modificacion);
-                parts.push(`Últ. modificación por <strong>${data.usuario_modificador}</strong> el ${fm.toLocaleDateString('es-PE')} ${fm.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`);
             }
 
-            if (parts.length > 0) {
-                document.getElementById('auditInfoText').innerHTML = parts.join(' — ');
-                banner.classList.remove('d-none');
-            }
-        }
-
-        function loadGoogleMaps() {
-            try {
-                if (typeof API_CONFIG !== 'undefined' && API_CONFIG.GOOGLE_MAPS_API_KEY) {
-                    const script = document.createElement('script');
-                    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&libraries=places,marker`;
-                    script.async = true;
-                    script.defer = true;
-                    document.head.appendChild(script);
-                } else {
-                    console.error('No Google Maps API Key found in API_CONFIG.');
-                }
-            } catch (err) {
-                console.error('Error loading config:', err);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', loadGoogleMaps);
-    </script>
-</body>
-
+            document.addEventListener("DOMContentLoaded", loadGoogleMaps);
+        </script>
+    </body>
 </html>
