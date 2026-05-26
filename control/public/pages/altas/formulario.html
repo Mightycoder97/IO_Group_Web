@@ -696,7 +696,7 @@
                         if (marker && map) {
                             const [lat, lng] = parsed.sede.coordenadas_gps.split(',').map(Number);
                             const pos = { lat, lng };
-                            marker.setPosition(pos);
+                            marker.position = pos;
                             map.setCenter(pos);
                         }
                     }
@@ -1113,24 +1113,28 @@
             map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 12,
                 center: defaultPos,
+                mapId: 'f3ae60bf3884d08218e37d43',
             });
 
-            marker = new google.maps.Marker({
+            const pinEl = document.createElement('div');
+            pinEl.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#1B5E20;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:grab;';
+            marker = new google.maps.marker.AdvancedMarkerElement({
                 map: map,
-                draggable: true,
-                animation: google.maps.Animation.DROP,
-                position: defaultPos
+                gmpDraggable: true,
+                position: defaultPos,
+                content: pinEl,
             });
 
             // Update coords on drag
-            google.maps.event.addListener(marker, 'dragend', function (evt) {
-                document.getElementById('sede_coordenadas').value = evt.latLng.lat().toFixed(6) + ',' + evt.latLng.lng().toFixed(6);
+            marker.addListener('gmp-dragend', function () {
+                const pos = marker.position;
+                document.getElementById('sede_coordenadas').value = pos.lat.toFixed(6) + ',' + pos.lng.toFixed(6);
                 document.getElementById('mapError').style.display = 'none';
             });
 
             // Place marker on click
             map.addListener('click', function (e) {
-                marker.setPosition(e.latLng);
+                marker.position = e.latLng;
                 document.getElementById('sede_coordenadas').value = e.latLng.lat().toFixed(6) + ',' + e.latLng.lng().toFixed(6);
                 document.getElementById('mapError').style.display = 'none';
             });
@@ -1151,7 +1155,7 @@
                 // Move map and marker
                 map.setCenter(place.geometry.location);
                 map.setZoom(16);
-                marker.setPosition(place.geometry.location);
+                marker.position = place.geometry.location;
 
                 // Update coordinates
                 const lat = place.geometry.location.lat().toFixed(6);
@@ -1208,7 +1212,7 @@
             try {
                 if (typeof API_CONFIG !== 'undefined' && API_CONFIG.GOOGLE_MAPS_API_KEY) {
                     const script = document.createElement('script');
-                    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&libraries=places`;
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&libraries=places,marker`;
                     script.async = true;
                     script.defer = true;
                     document.head.appendChild(script);

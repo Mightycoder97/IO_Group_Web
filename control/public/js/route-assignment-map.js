@@ -48,14 +48,12 @@ class RouteAssignmentMap {
     this.map = new google.maps.Map(container, {
       center: this.defaultCenter,
       zoom: 11,
-      styles: this.mapStyles,
       backgroundColor: "#f8fafc",
       disableDefaultUI: true,
       clickableIcons: false,
       gestureHandling: "greedy",
       keyboardShortcuts: false,
-      // mapId intentionally omitted because custom styles are in use
-      // When using a mapId, styles must be configured in Cloud Console.
+      mapId: 'f3ae60bf3884d08218e37d43',
       colorScheme: "LIGHT",
       restriction: {
         latLngBounds: {
@@ -551,7 +549,7 @@ class RouteAssignmentMap {
       this.routePolyline = null;
     }
     if (this.routeArrows) {
-      this.routeArrows.forEach((a) => a.setMap(null));
+      this.routeArrows.forEach((a) => { a.map = null; });
       this.routeArrows = [];
     }
 
@@ -583,21 +581,19 @@ class RouteAssignmentMap {
         lng: (path[i].lng + path[i + 1].lng) / 2,
       };
       const angle = this.computeHeading(path[i], path[i + 1]);
-      const arrow = new google.maps.Marker({
+      const arrowSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      arrowSvg.setAttribute('width', '16');
+      arrowSvg.setAttribute('height', '16');
+      arrowSvg.setAttribute('viewBox', '0 0 16 16');
+      arrowSvg.style.transform = `rotate(${angle}deg)`;
+      arrowSvg.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))';
+      arrowSvg.innerHTML = `<path d="M8 1l6 14H2z" fill="${color}" fill-opacity="0.8" stroke="#fff" stroke-width="1"/>`;
+      const arrow = new google.maps.marker.AdvancedMarkerElement({
         position: mid,
-        icon: {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 2.5,
-          fillColor: color,
-          fillOpacity: 0.8,
-          strokeColor: "#fff",
-          strokeWeight: 1,
-          rotation: angle,
-        },
-        clickable: false,
+        content: arrowSvg,
         zIndex: 6,
       });
-      arrow.setMap(this.map);
+      arrow.map = this.map;
       this.routeArrows.push(arrow);
     }
   }
@@ -619,7 +615,7 @@ class RouteAssignmentMap {
       this.routePolyline = null;
     }
     if (this.routeArrows) {
-      this.routeArrows.forEach((a) => a.setMap(null));
+      this.routeArrows.forEach((a) => { a.map = null; });
       this.routeArrows = [];
     }
   }
@@ -1978,44 +1974,27 @@ class RouteAssignmentMap {
 
       // Cluster markers with vehicle color
       for (const p of cluster) {
-        const marker = new google.maps.Marker({
+        const dotEl = document.createElement('div');
+        dotEl.style.cssText = `width:14px;height:14px;border-radius:50%;background:${color};opacity:0.9;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);`;
+        const marker = new google.maps.marker.AdvancedMarkerElement({
           position: { lat: p.lat, lng: p.lng },
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 7,
-            fillColor: color,
-            fillOpacity: 0.9,
-            strokeColor: "#fff",
-            strokeWeight: 1.5,
-          },
-          clickable: false,
+          content: dotEl,
           zIndex: 5,
         });
-        marker.setMap(this.map);
+        marker.map = this.map;
         this.kmeansMarkers.push(marker);
       }
 
       // Label with count
-      const label = new google.maps.Marker({
+      const labelEl = document.createElement('div');
+      labelEl.style.cssText = `width:28px;height:28px;border-radius:50%;background:${color};opacity:0.95;border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:bold;`;
+      labelEl.textContent = String(cluster.length);
+      const label = new google.maps.marker.AdvancedMarkerElement({
         position: { lat: avgLat, lng: avgLng },
-        label: {
-          text: String(cluster.length),
-          color: "#fff",
-          fontSize: "13px",
-          fontWeight: "bold",
-        },
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 14,
-          fillColor: color,
-          fillOpacity: 0.95,
-          strokeColor: "#fff",
-          strokeWeight: 2.5,
-        },
-        clickable: false,
+        content: labelEl,
         zIndex: 10,
       });
-      label.setMap(this.map);
+      label.map = this.map;
       this.kmeansMarkers.push(label);
     }
 
@@ -2036,7 +2015,7 @@ class RouteAssignmentMap {
       this.kmeansCircles = [];
     }
     if (this.kmeansMarkers) {
-      this.kmeansMarkers.forEach((m) => m.setMap(null));
+      this.kmeansMarkers.forEach((m) => { m.map = null; });
       this.kmeansMarkers = [];
     }
   }

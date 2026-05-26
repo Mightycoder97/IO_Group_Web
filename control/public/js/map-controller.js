@@ -86,7 +86,6 @@ class MapController {
             google.maps.importLibrary('places')
         ]);
 
-        this.Marker = markerLibrary.Marker || google.maps.Marker;
         this.AdvancedMarkerElement = markerLibrary.AdvancedMarkerElement;
         this.PinElement = markerLibrary.PinElement;
         this.Autocomplete = Autocomplete;
@@ -108,7 +107,7 @@ class MapController {
                 },
                 strictBounds: false
             },
-            mapId: 'DEMO_MAP_ID'
+            mapId: 'f3ae60bf3884d08218e37d43'
         });
         this.infoWindow = new google.maps.InfoWindow();
 
@@ -688,32 +687,19 @@ class MapController {
         if (cached) return cached;
 
         const color = this.isActive(sede) ? (this.frequencyColors[sede._frequency] || '#198754') : '#6c757d';
-        let marker = null;
+        const pin = new this.PinElement({
+            scale: 0.85,
+            background: color,
+            borderColor: '#ffffff',
+            glyphColor: '#ffffff'
+        });
 
-        if (this.Marker) {
-            marker = new this.Marker({
-                position: sede._position,
-                title: sede.nombre_comercial || '',
-                icon: this.getMarkerIcon(color),
-                optimized: true,
-                clickable: true
-            });
-            marker.addListener('click', () => this.showInfoWindow(marker, sede));
-        } else if (this.AdvancedMarkerElement && this.PinElement) {
-            const pin = new this.PinElement({
-                scale: 0.85,
-                background: color,
-                borderColor: '#ffffff',
-                glyphColor: '#ffffff'
-            });
-
-            marker = new this.AdvancedMarkerElement({
-                position: sede._position,
-                title: sede.nombre_comercial || '',
-                content: pin.element
-            });
-            marker.addListener('gmp-click', () => this.showInfoWindow(marker, sede));
-        }
+        let marker = new this.AdvancedMarkerElement({
+            position: sede._position,
+            title: sede.nombre_comercial || '',
+            content: pin.element
+        });
+        marker.addListener('gmp-click', () => this.showInfoWindow(marker, sede));
 
         if (marker) this.markerById.set(sede._id, marker);
         return marker;
@@ -737,17 +723,6 @@ class MapController {
     }
 
     createUtilityMarker(position, title, color, draggable = false) {
-        if (this.Marker) {
-            return new this.Marker({
-                position,
-                map: this.map,
-                title,
-                icon: this.getMarkerIcon(color),
-                optimized: true,
-                draggable
-            });
-        }
-
         const pin = new this.PinElement({
             scale: 1,
             background: color,

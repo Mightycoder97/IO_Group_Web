@@ -580,7 +580,7 @@
             await loadGoogleMapsApi(key);
             if (window.__sedesGoogleMapsAuthFailed) throw new Error('Google Maps rechazo la API key configurada');
             MapClass = (await google.maps.importLibrary("maps")).Map;
-            MarkerClass = (await google.maps.importLibrary("marker")).Marker || google.maps.Marker;
+            const { AdvancedMarkerElement: MarkerClass } = await google.maps.importLibrary("marker");
             if (window.__sedesGoogleMapsAuthFailed) throw new Error('Google Maps rechazo la API key configurada');
 
             mapProvider = 'google';
@@ -589,6 +589,7 @@
             map = new MapClass(mapEl, {
                 center: { lat: defaultLat, lng: defaultLng },
                 zoom: 12,
+                mapId: 'f3ae60bf3884d08218e37d43',
                 mapTypeControl: true,
                 streetViewControl: false,
                 fullscreenControl: true
@@ -713,25 +714,20 @@
             }
 
             if (marker) {
-                marker.setPosition({ lat, lng });
+                marker.position = { lat, lng };
             } else {
+                const pinEl = document.createElement('div');
+                pinEl.style.cssText = 'width:20px;height:20px;border-radius:50%;background:#1B5E20;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:grab;';
                 marker = new MarkerClass({
                     position: { lat, lng },
                     map: map,
-                    draggable: true,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
-                        fillColor: '#1B5E20',
-                        fillOpacity: 1,
-                        strokeColor: '#fff',
-                        strokeWeight: 2
-                    }
+                    gmpDraggable: true,
+                    content: pinEl,
                 });
 
-                marker.addListener('dragend', function () {
-                    const pos = marker.getPosition();
-                    updateCoordinates(pos.lat(), pos.lng());
+                marker.addListener('gmp-dragend', function () {
+                    const pos = marker.position;
+                    updateCoordinates(pos.lat, pos.lng);
                 });
             }
             map.panTo({ lat, lng });
