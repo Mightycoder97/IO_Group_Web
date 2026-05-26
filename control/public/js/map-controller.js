@@ -107,7 +107,7 @@ class MapController {
                 },
                 strictBounds: false
             },
-            mapId: 'f3ae60bf3884d08218e37d43'
+            mapId: '6870580f73bb949b9f7210ff'
         });
         this.infoWindow = new google.maps.InfoWindow();
 

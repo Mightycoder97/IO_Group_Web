@@ -53,7 +53,7 @@ class RouteAssignmentMap {
       clickableIcons: false,
       gestureHandling: "greedy",
       keyboardShortcuts: false,
-      mapId: 'f3ae60bf3884d08218e37d43',
+      mapId: '6870580f73bb949b9f7210ff',
       colorScheme: "LIGHT",
       restriction: {
         latLngBounds: {
