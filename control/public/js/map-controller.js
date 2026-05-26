@@ -109,10 +109,10 @@ class MapController {
       keyboardShortcuts: false,
       restriction: {
         latLngBounds: {
-          north: -10.1,
-          south: -15.6,
-          west: -78.2,
-          east: -74.4,
+          north: -9.8,
+          south: -15.9,
+          west: -78.5,
+          east: -74.1,
         },
         strictBounds: false,
       },
