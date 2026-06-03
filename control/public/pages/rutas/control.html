@@ -1092,7 +1092,7 @@
                 else if (r.estado === 'en_curso') { pillClass = 'warn'; pillIcon = 'clock'; }
 
                 // Pendiente de Liquidación badge
-                const liquidacionBadge = (r.estado === 'procesada' || (pendientesPago > 0 && r.estado !== 'programada'))
+                const liquidacionBadge = (pendientesPago > 0 && r.estado !== 'programada' && r.estado !== 'completada')
                     ? `<span class="badge bg-warning text-dark badge-liquidacion mt-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Pendiente de Liquidación (${pendientesPago})</span>`
                     : '';
 
@@ -1822,8 +1822,8 @@
                 if (!edit) return;
                 // Service verified = estado set to completado or cancelado (not programado)
                 if (edit.estado !== 'programado') estadoOk++;
-                // Payment confirmed (optional for save)
-                if (edit.estado_pago === 'pagado') pagoOk++;
+                // Payment confirmed (optional for save) - cancelled services do not require payment
+                if (edit.estado_pago === 'pagado' || edit.estado === 'cancelado') pagoOk++;
             });
 
             const total = currentServicios.length;

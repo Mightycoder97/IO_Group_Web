@@ -160,7 +160,7 @@ function getRouteServices($id_ruta) {
 
         // Count services with pending payment for badge rendering
         $pendientesPago = db()->queryOne(
-            "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND (estado_pago IS NULL OR estado_pago = 'pendiente')",
+            "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND estado != 'cancelado' AND (estado_pago IS NULL OR estado_pago = 'pendiente')",
             [$id_ruta]
         );
         $ruta['pendientes_pago'] = intval($pendientesPago['cnt'] ?? 0);
@@ -782,7 +782,7 @@ function batchUpdate() {
         $todosEstadoOk = (intval($totalServicios['cnt'] ?? 0) > 0 && intval($pendientesEstado['cnt'] ?? 0) === 0);
 
         $pendientesPago = db()->queryOne(
-            "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND (estado_pago IS NULL OR estado_pago = 'pendiente')",
+            "SELECT COUNT(*) as cnt FROM Servicio WHERE id_ruta = ? AND estado != 'cancelado' AND (estado_pago IS NULL OR estado_pago = 'pendiente')",
             [$id_ruta]
         );
         $todosPagados = (intval($pendientesPago['cnt'] ?? 0) === 0);

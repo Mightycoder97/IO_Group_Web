@@ -45,7 +45,7 @@ function getAll() {
     $sql = "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca, v.modelo as vehiculo_modelo,
             COUNT(DISTINCT s.id_servicio) as total_servicios,
             COUNT(DISTINCT s.id_sede) as sedes_count,
-            SUM(CASE WHEN s.id_servicio IS NOT NULL AND (s.estado_pago IS NULL OR s.estado_pago = 'pendiente') THEN 1 ELSE 0 END) as pendientes_pago,
+            SUM(CASE WHEN s.id_servicio IS NOT NULL AND s.estado != 'cancelado' AND (s.estado_pago IS NULL OR s.estado_pago = 'pendiente') THEN 1 ELSE 0 END) as pendientes_pago,
             CONCAT(ch.nombres, ' ', ch.apellidos) as chofer_nombre,
             CONCAT(ay.nombres, ' ', ay.apellidos) as ayudante_nombre
             FROM Ruta r

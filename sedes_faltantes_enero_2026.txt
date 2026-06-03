@@ -1,0 +1,132 @@
+================================================================================
+LISTADO DE SEDES FALTANTES - HOJA DE RUTA ENERO 2026
+================================================================================
+
+Por favor complete los datos para cada cliente y regístrelos en el sistema.
+
+CLIENTE 1:
+  RUC:               10060143370
+  Razón Social:      SILVERIO NOVATO SIERRA SERRANO
+  Nombre Comercial:  VETERINARIA LOS EUCALIPTUS
+  Dirección:         AV LOS EUCALIPTUS 767 COOP. UNIVERSAL
+  Distrito:          SANTA ANITA
+  Contacto:          SILVERIO | Teléfono: 967 153 700
+  Horario:           10 am a 1 pm y de 2 pm a 6pm
+  Tarifa sugerida:   59
+  Método de Pago:    EFECTIVO
+  Observación:       
+  (Encontrado en:    Hoja 'OBES MARTES 06', Fila 25)
+--------------------------------------------------------------------------------
+
+CLIENTE 2:
+  RUC:               10100913301
+  Razón Social:      MILAGROS UZURIAGA SANCHEZ
+  Nombre Comercial:  COPITOS PETS
+  Dirección:         Av Alfonso ugarte 2098 Paradero 12 Jose Galvez vmt
+  Distrito:          VILLA MARIA DEL TRIUNFO
+  Contacto:          MILAGROS UZURIAGA | Teléfono: 997138609 VES
+  Horario:           9AM A 6PM
+  Tarifa sugerida:   60
+  Método de Pago:    EFECTIVO
+  Observación:       
+  (Encontrado en:    Hoja 'luis lunes 12', Fila 22)
+--------------------------------------------------------------------------------
+
+CLIENTE 3:
+  RUC:               10454432962
+  Razón Social:      BERNAL MUNAILLA BRIGITTE
+  Nombre Comercial:  SMILE DENTAL CARE
+  Dirección:         Prolongación av Miguel iglesias MZ I 1 lote 18 héroes de San Juan - San Juan de Miraflores
+  Distrito:          SAN JUAN DE MIRAFLORES
+  Contacto:          BRIGITTE | Teléfono: 987347231  , 932 427 602
+  Horario:           9am a 6pm
+  Tarifa sugerida:   55
+  Método de Pago:    CANCELADO
+  Observación:       
+  (Encontrado en:    Hoja 'LUIS FLORES JUEVES 08', Fila 12)
+--------------------------------------------------------------------------------
+
+CLIENTE 4:
+  RUC:               10463215931
+  Razón Social:      Leslie Villanueva García
+  Nombre Comercial:  Veterinaria Motitas
+  Dirección:         Jiron Manuel Villar 243 SMP
+  Distrito:          SAN MARTIN DE PORRES
+  Contacto:           | Teléfono: Kevin Torres Reyes 935136863 (coordinación de servicios y pagos)
+  Horario:           11 am a 2 pm y 3 pm a 5 pm
+  Tarifa sugerida:   65
+  Método de Pago:    EFECTIVO
+  Observación:       
+  (Encontrado en:    Hoja 'GIANFRANCO LUNES 26', Fila 9)
+--------------------------------------------------------------------------------
+
+CLIENTE 5:
+  RUC:               10703493667
+  Razón Social:      Ivanna Door
+  Nombre Comercial:  domivet
+  Dirección:         Jr. El Greco 206
+  Distrito:          SAN BORJA
+  Contacto:          Ivanna Door | Teléfono: 940149279
+  Horario:           9AM A 1 PM
+  Tarifa sugerida:   90
+  Método de Pago:    CANCELADO ORDEN DE SERVICIO NO ENTREGAR CONTENEDOR
+  Observación:       
+  (Encontrado en:    Hoja 'LUIS SABADO 03', Fila 20)
+--------------------------------------------------------------------------------
+
+CLIENTE 6:
+  RUC:               10776604262
+  Razón Social:      JESSICA  CARTAGENA MEZA
+  Nombre Comercial:  CLINICA VETERINARIA ARAVET
+  Dirección:         AV CHIMPU OCLLO MZ R LOTE 15 URB VILLA CORPAC - CARABAYLLO
+  Distrito:          CARABAYLLO
+  Contacto:          JESSICA CARTAGENA | Teléfono: 992367337
+  Horario:           9am a 6pm
+  Tarifa sugerida:   59
+  Método de Pago:    EFECT.TRANS
+  Observación:       
+  (Encontrado en:    Hoja 'LUIS VIERNES 30', Fila 6)
+--------------------------------------------------------------------------------
+
+CLIENTE 7:
+  RUC:               20507522328
+  Razón Social:      CLINICA DENTAL SALCEDO SRL
+  Nombre Comercial:  
+  Dirección:         AV PERU 3760 - SMP
+  Distrito:          SAN MARTIN DE PORRES
+  Contacto:          MARGELIS -SECRET | Teléfono: 990 020 904 / 015681062
+  Horario:           9AM A 6PM
+  Tarifa sugerida:   55
+  Método de Pago:    EFECTIVO
+  Observación:       
+  (Encontrado en:    Hoja 'LUIS LUNES 26', Fila 15)
+--------------------------------------------------------------------------------
+
+CLIENTE 8:
+  RUC:               20613212893
+  Razón Social:      RISUS DENTAL E.I.R.L
+  Nombre Comercial:  RISUS DENTAL
+  Dirección:         sector 6 grupo 7 manzana N lote 4
+  Distrito:          VILLA EL SALVADOR
+  Contacto:           | Teléfono: 994092228‬
+  Horario:           9AM A 6PM
+  Tarifa sugerida:   65
+  Método de Pago:    EFECTIVO
+  Observación:       
+  (Encontrado en:    Hoja 'luis lunes 12', Fila 18)
+--------------------------------------------------------------------------------
+
+CLIENTE 9:
+  RUC:               20613242776
+  Razón Social:      Linares Clinica Veterinaria EIRL
+  Nombre Comercial:  Linares Veterinaria & Spa
+  Dirección:         Av san Luis nro 2753. San Borja
+  Distrito:          SAN BORJA
+  Contacto:           | Teléfono: 945156862
+  Horario:           9am a 6 pm
+  Tarifa sugerida:   60
+  Método de Pago:    EFECTIVO
+  Observación:       
+  (Encontrado en:    Hoja 'OBED MARTESZ 13', Fila 10)
+--------------------------------------------------------------------------------
+
