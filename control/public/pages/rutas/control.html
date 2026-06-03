@@ -233,6 +233,23 @@
             color: #888;
         }
 
+        /* Document badges */
+        .doc-badge-missing {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+        }
+        .doc-badge-missing.m { background-color: #efebe9; color: #5d4037; border: 1px solid #d7ccc8; }
+        .doc-badge-missing.g { background-color: #e0f2f1; color: #004d40; border: 1px solid #b2dfdb; }
+        .doc-badge-missing.f { background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
+
         /* Sede card */
         .sede-card {
             border: 1px solid #e0e0e0;
@@ -1093,6 +1110,22 @@
                 // Pendiente de Liquidación badge - removed as payment statuses are handled only in Cobranzas page
                 const liquidacionBadge = '';
 
+                // Document alerts
+                let docsAlert = '';
+                const missingDocs = [];
+                if (parseInt(r.faltan_manifiestos || 0) > 0) missingDocs.push('<span class="doc-badge-missing m" title="Falta Manifiesto">M</span>');
+                if (parseInt(r.faltan_guias || 0) > 0) missingDocs.push('<span class="doc-badge-missing g" title="Falta Guía de Remisión">G</span>');
+                if (parseInt(r.faltan_facturas || 0) > 0) missingDocs.push('<span class="doc-badge-missing f" title="Falta Factura">F</span>');
+
+                if (missingDocs.length > 0) {
+                    docsAlert = `
+                        <div class="ruta-meta d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                            <span class="text-muted"><i class="bi bi-file-earmark-arrow-up me-1"></i>Falta:</span>
+                            ${missingDocs.join(' ')}
+                        </div>
+                    `;
+                }
+
                 return `
             <div class="ruta-item${isSelected ? ' active' : ''}" onclick="selectRuta(${r.id_ruta})" id="ritem-${r.id_ruta}">
                 <div class="d-flex justify-content-between align-items-start">
@@ -1106,6 +1139,7 @@
                     </span>
                 </div>
                 ${r.chofer_nombre ? `<div class="ruta-meta" style="margin-top:2px;"><i class="bi bi-person me-1"></i>${r.chofer_nombre}</div>` : ''}
+                ${docsAlert}
                 ${liquidacionBadge}
             </div>`;
             }).join('');

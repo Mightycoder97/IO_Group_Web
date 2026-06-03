@@ -47,7 +47,22 @@ function getAll() {
             COUNT(DISTINCT s.id_sede) as sedes_count,
             SUM(CASE WHEN s.id_servicio IS NOT NULL AND s.estado != 'cancelado' AND (s.estado_pago IS NULL OR s.estado_pago = 'pendiente') THEN 1 ELSE 0 END) as pendientes_pago,
             CONCAT(ch.nombres, ' ', ch.apellidos) as chofer_nombre,
-            CONCAT(ay.nombres, ' ', ay.apellidos) as ayudante_nombre
+            CONCAT(ay.nombres, ' ', ay.apellidos) as ayudante_nombre,
+            (
+                SELECT COUNT(*) FROM Servicio s2
+                LEFT JOIN Manifiesto m ON s2.id_servicio = m.id_servicio
+                WHERE s2.id_ruta = r.id_ruta AND s2.estado = 'completado' AND (m.doc_escaneado IS NULL OR m.doc_escaneado = '')
+            ) as faltan_manifiestos,
+            (
+                SELECT COUNT(*) FROM Servicio s2
+                LEFT JOIN Guia g ON s2.id_servicio = g.id_servicio
+                WHERE s2.id_ruta = r.id_ruta AND s2.estado = 'completado' AND (g.doc_escaneado IS NULL OR g.doc_escaneado = '')
+            ) as faltan_guias,
+            (
+                SELECT COUNT(*) FROM Servicio s2
+                LEFT JOIN Factura f ON s2.id_servicio = f.id_servicio
+                WHERE s2.id_ruta = r.id_ruta AND s2.estado = 'completado' AND (f.doc_escaneado IS NULL OR f.doc_escaneado = '')
+            ) as faltan_facturas
             FROM Ruta r
             INNER JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
             LEFT JOIN Servicio s ON s.id_ruta = r.id_ruta
