@@ -999,7 +999,7 @@
                 'completado': ['success', 'check-circle-fill'],
                 'completada': ['success', 'check-circle-fill'],
                 'cancelado': ['danger', 'x-circle-fill'],
-                'procesada': ['warning text-dark', 'exclamation-triangle-fill'],
+                'procesada': ['success', 'check-circle-fill'],
             };
             const [bg, icon] = map[estado] || map['programado'];
             const label = estado ? (estado.charAt(0).toUpperCase() + estado.slice(1)) : '-';
@@ -1087,14 +1087,11 @@
 
                 // Determine progress pill color based on route state
                 let pillClass = 'none', pillIcon = 'list';
-                if (r.estado === 'completada') { pillClass = 'done'; pillIcon = 'check-all'; }
-                else if (r.estado === 'procesada') { pillClass = 'procesada'; pillIcon = 'exclamation-triangle'; }
+                if (r.estado === 'completada' || r.estado === 'procesada') { pillClass = 'done'; pillIcon = 'check-all'; }
                 else if (r.estado === 'en_curso') { pillClass = 'warn'; pillIcon = 'clock'; }
 
-                // Pendiente de Liquidación badge
-                const liquidacionBadge = (pendientesPago > 0 && r.estado !== 'programada' && r.estado !== 'completada')
-                    ? `<span class="badge bg-warning text-dark badge-liquidacion mt-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Pendiente de Liquidación (${pendientesPago})</span>`
-                    : '';
+                // Pendiente de Liquidación badge - removed as payment statuses are handled only in Cobranzas page
+                const liquidacionBadge = '';
 
                 return `
             <div class="ruta-item${isSelected ? ' active' : ''}" onclick="selectRuta(${r.id_ruta})" id="ritem-${r.id_ruta}">
@@ -1834,13 +1831,9 @@
 
             // Save enabled when ALL services have estado set (payment is optional)
             const canSave = (estadoOk === total);
-            const pendingPago = total - pagoOk;
             document.getElementById('btnGuardar').disabled = !canSave;
 
-            if (canSave && pendingPago > 0) {
-                document.getElementById('saveHint').innerHTML =
-                    `<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>${pendingPago} sede(s) sin datos de pago — se guardará con alerta</span>`;
-            } else if (canSave) {
+            if (canSave) {
                 document.getElementById('saveHint').textContent = '✅ Todas las sedes verificadas — listo para guardar';
             } else {
                 document.getElementById('saveHint').textContent = `${total - estadoOk} sede(s) pendiente(s) de verificar estado del servicio`;
@@ -1851,12 +1844,9 @@
             if (ruta) {
                 const pill = document.querySelector(`#ritem-${currentRutaId} .prog-pill`);
                 if (pill) {
-                    if (canSave && pendingPago === 0) {
+                    if (canSave) {
                         pill.className = 'prog-pill done';
                         pill.innerHTML = `<i class="bi bi-check-all"></i>${total} sedes ✓`;
-                    } else if (canSave) {
-                        pill.className = 'prog-pill procesada';
-                        pill.innerHTML = `<i class="bi bi-exclamation-triangle"></i>${estadoOk}/${total} ⚠`;
                     } else {
                         pill.className = 'prog-pill warn';
                         pill.innerHTML = `<i class="bi bi-clock"></i>${estadoOk}/${total}`;
@@ -2162,7 +2152,7 @@
                     const ruta = allRutas.find(r => r.id_ruta == currentRutaId);
 
                     if (result.pendiente_liquidacion) {
-                        showToast('⚠ Ruta procesada — pendiente de liquidación', 'warning');
+                        showToast('✅ Ruta procesada correctamente', 'success');
                         if (ruta) {
                             ruta.estado = 'procesada';
                             ruta.pendientes_pago = result.pendientes_pago || 0;
