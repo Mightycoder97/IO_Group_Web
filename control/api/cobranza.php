@@ -76,7 +76,25 @@ function getPendientes() {
     $params = [];
     
     if ($estado) {
-        $sql .= " AND COALESCE(s.estado_pago, 'pendiente') = ?";
+        $sql .= " AND (
+            s.id_ruta IN (
+                SELECT id_ruta FROM Servicio s2 
+                WHERE s2.id_ruta IS NOT NULL AND COALESCE(s2.estado_pago, 'pendiente') = ?";
+        $params[] = $estado;
+
+        if ($fecha_inicio) {
+            $sql .= " AND s2.fecha_ejecucion >= ?";
+            $params[] = $fecha_inicio;
+        }
+        if ($fecha_fin) {
+            $sql .= " AND s2.fecha_ejecucion <= ?";
+            $params[] = $fecha_fin;
+        }
+
+        $sql .= "
+            ) 
+            OR (s.id_ruta IS NULL AND COALESCE(s.estado_pago, 'pendiente') = ?)
+        )";
         $params[] = $estado;
     }
 

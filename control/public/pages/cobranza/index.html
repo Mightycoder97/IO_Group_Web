@@ -590,9 +590,10 @@
                                         const isLate = getDaysLate(item.fecha_servicio) > 30 && item.estado_pago !== 'pagado';
                                         const statusClass = item.estado_pago === 'pagado' ? 'paid' : (isLate ? 'overdue' : 'pending');
                                         const statusLabel = item.estado_pago === 'pagado' ? 'Pagado' : (isLate ? 'Vencido' : 'Pendiente');
+                                        const rowClass = item.estado_pago === 'pagado' ? 'opacity-75 bg-light' : '';
                                         
                                         return `
-                                        <tr>
+                                        <tr class="${rowClass}">
                                             <td class="text-nowrap text-muted">${formatDate(item.fecha_servicio)}</td>
                                             <td>
                                                 <div class="fw-semibold text-dark">${item.empresa_razon_social || item.sede_nombre}</div>
