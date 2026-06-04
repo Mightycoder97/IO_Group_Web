@@ -581,6 +581,7 @@
                                         <th>RUC</th>
                                         <th>Factura</th>
                                         <th>Estado</th>
+                                        <th>Tipo de Pago</th>
                                         <th class="text-end">Monto</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
@@ -602,6 +603,7 @@
                                             <td class="text-muted small">${item.empresa_ruc || '-'}</td>
                                             <td><span class="badge bg-light text-dark border">${item.numero_factura || 'S/F'}</span></td>
                                             <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                                            <td class="text-muted small text-capitalize">${item.forma_pago || '-'}</td>
                                             <td class="text-end fw-bold">S/ ${parseFloat(item.tarifa_servicio).toFixed(2)}</td>
                                             <td class="text-center">
                                                 <div class="d-flex justify-content-center gap-2">
