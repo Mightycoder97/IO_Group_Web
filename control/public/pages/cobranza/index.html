@@ -281,7 +281,7 @@
                 <!-- Filters -->
                 <div class="filters-card">
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label small text-muted fw-semibold">Buscador Inteligente</label>
                             <div class="input-group">
                                 <span class="input-group-text border-end-0 bg-transparent"><i class="bi bi-search text-primary"></i></span>
@@ -305,10 +305,16 @@
                                 <option value="">Todos</option>
                             </select>
                         </div>
-                        <div class="col-md-1">
-                            <button class="btn btn-primary w-100" onclick="loadData()" style="height: 42px; border-radius: 8px;">
-                                <i class="bi bi-arrow-clockwise"></i>
-                            </button>
+                        <div class="col-md-2">
+                            <label class="form-label d-none d-md-block">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-light w-100 border shadow-sm" onclick="clearFilters()" title="Limpiar Filtros" style="height: 42px; border-radius: 8px;">
+                                    <i class="bi bi-eraser"></i>
+                                </button>
+                                <button class="btn btn-primary w-100 shadow-sm" onclick="loadData()" title="Actualizar" style="height: 42px; border-radius: 8px;">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -455,6 +461,14 @@
         });
 
         // Load Data
+        function clearFilters() {
+            document.getElementById('search').value = '';
+            document.getElementById('statusFilter').value = 'pendiente';
+            document.getElementById('dateStart').value = '';
+            document.getElementById('dateEnd').valueAsDate = today;
+            loadData();
+        }
+
         async function loadData() {
             setLoading(true);
             const searchTerm = document.getElementById('search').value;

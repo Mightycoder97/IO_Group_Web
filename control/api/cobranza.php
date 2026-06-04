@@ -57,8 +57,8 @@ function getPendientes() {
             gc_stats.ultima_gestion,
             r.id_ruta, r.fecha as fecha_ruta,
             v.placa as vehiculo_placa,
-            COALESCE(deuda_antigua.cantidad_deuda, 0) as deuda_cantidad,
-            COALESCE(deuda_antigua.monto_deuda, 0) as deuda_monto
+            (COALESCE(deuda_total.cantidad_deuda_total, 0) - CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN 1 ELSE 0 END) as deuda_cantidad,
+            (COALESCE(deuda_total.monto_deuda_total, 0) - CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END) as deuda_monto
             FROM Servicio s
             LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
             LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
@@ -75,14 +75,13 @@ function getPendientes() {
             ) gc_stats ON gc_stats.id_servicio = s.id_servicio
             LEFT JOIN (
                 SELECT s_deuda.id_sede, 
-                       COUNT(s_deuda.id_servicio) as cantidad_deuda,
-                       SUM(COALESCE(s_deuda.monto_cobrado, cs_deuda.tarifa, 0)) as monto_deuda
+                       COUNT(s_deuda.id_servicio) as cantidad_deuda_total,
+                       SUM(COALESCE(s_deuda.monto_cobrado, cs_deuda.tarifa, 0)) as monto_deuda_total
                 FROM Servicio s_deuda
                 LEFT JOIN ContratoServicio cs_deuda ON s_deuda.id_contrato = cs_deuda.id_contrato
                 WHERE COALESCE(s_deuda.estado_pago, 'pendiente') = 'pendiente' 
-                AND s_deuda.fecha_ejecucion < DATE_FORMAT(CURDATE(), '%Y-%m-01')
                 GROUP BY s_deuda.id_sede
-            ) deuda_antigua ON deuda_antigua.id_sede = s.id_sede
+            ) deuda_total ON deuda_total.id_sede = s.id_sede
             WHERE 1=1";
     
     $params = [];
