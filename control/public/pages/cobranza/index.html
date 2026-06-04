@@ -515,7 +515,7 @@
                 if (!acc[key]) {
                     acc[key] = { 
                         id_ruta: item.id_ruta, 
-                        fecha: item.fecha_ruta, 
+                        fecha_ruta: item.fecha_ruta || item.fecha_servicio, 
                         placa: item.vehiculo_placa,
                         distritos: new Set(),
                         items: [], 
@@ -552,7 +552,8 @@
             // Group routes by month
             const routesByMonth = {};
             filteredGroups.forEach(group => {
-                const [y, m, d] = group.fecha_ruta.split('-').map(Number);
+                const dateStr = group.fecha_ruta ? group.fecha_ruta.split(' ')[0] : new Date().toISOString().split('T')[0];
+                const [y, m, d] = dateStr.split('-').map(Number);
                 const localDate = new Date(y, m - 1, d);
                 const monthYear = localDate.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
                 const capitalizedMonth = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
