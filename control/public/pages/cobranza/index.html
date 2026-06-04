@@ -565,26 +565,60 @@
                 return `
                 <div class="route-group">
                     <div class="route-header" data-bs-toggle="collapse" data-bs-target="#collapseRoute${index}">
-                        <div class="route-title-section">
-                            <div class="route-icon">
-                                <i class="bi ${group.id_ruta ? 'bi-truck' : 'bi-question-circle'}"></i>
-                            </div>
-                            <div>
-                                <h3 class="route-name">${group.title}</h3>
-                                <div class="route-meta mt-1">
-                                    <span class="me-3"><i class="bi bi-receipt me-1"></i>${group.items.length} servicios</span>
-                                    <span class="text-success"><i class="bi bi-check-circle me-1"></i>S/ ${group.cobrado.toFixed(2)} cobrado</span>
+            const filteredGroups = Object.values(groups).sort((a, b) => new Date(b.fecha_ruta) - new Date(a.fecha_ruta));
+
+            if (filteredGroups.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3 mb-0">No se encontraron rutas con los filtros actuales</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group routes by month
+            const routesByMonth = {};
+            filteredGroups.forEach(group => {
+                const [y, m, d] = group.fecha_ruta.split('-').map(Number);
+                const localDate = new Date(y, m - 1, d);
+                const monthYear = localDate.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' });
+                const capitalizedMonth = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
+                
+                if (!routesByMonth[capitalizedMonth]) {
+                    routesByMonth[capitalizedMonth] = [];
+                }
+                routesByMonth[capitalizedMonth].push(group);
+            });
+
+            let html = '';
+            
+            Object.entries(routesByMonth).forEach(([monthYear, monthGroups]) => {
+                html += `<h5 class="mb-3 mt-4 fw-bold text-secondary border-bottom pb-2"><i class="bi bi-calendar3 me-2"></i>${monthYear}</h5>`;
+                
+                monthGroups.forEach(group => {
+                    const isFullyPaid = group.items.every(item => item.estado_pago === 'pagado');
+                    const badgeClass = isFullyPaid ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary';
+                    const badgeText = isFullyPaid ? 'Completada' : `S/ ${(group.totalMonto - group.totalCobrado).toFixed(2)} pendiente`;
+                    const distritosStr = Array.from(group.distritos).join(', ');
+                    const distritosBadge = distritosStr ? ` <span class="text-muted fw-normal ms-1">| ${distritosStr}</span>` : '';
+
+                    html += `
+                    <div class="card shadow-sm border-0 mb-4 overflow-hidden" style="border-radius: 12px;">
+                        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center" style="border-top: 3px solid ${isFullyPaid ? '#198754' : '#0d6efd'};">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-light p-2 rounded-3">
+                                    <i class="bi bi-truck text-primary fs-5"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1 fw-bold text-dark">Ruta ${group.vehiculo_placa || 'Sin Vehículo'}${distritosBadge}</h5>
+                                    <div class="small text-muted d-flex align-items-center gap-3">
+                                        <span><i class="bi bi-receipt me-1"></i>${group.items.length} servicios</span>
+                                        <span class="text-success fw-medium"><i class="bi bi-check-circle me-1"></i>S/ ${group.totalCobrado.toFixed(2)} cobrado</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="text-end">
-                            <div class="route-total">S/ ${pending.toFixed(2)} pendiente</div>
-                        </div>
-                    </div>
-                    
-                    <div id="collapseRoute${index}" class="collapse ${index === 0 ? 'show' : ''}">
-                        <div class="progress" style="height: 4px; border-radius: 0; background-color: #f1f5f9;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: ${progress}%;"></div>
+                            <span class="badge ${badgeClass} fs-6 px-3 py-2 rounded-pill">${badgeText}</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -644,20 +678,20 @@
                                                     </button>
                                                     ${item.estado_pago !== 'pagado' ? `
                                                     <button class="btn-action pago" onclick="openPago(${item.id_servicio})" title="Registrar Pago">
-                                                        <i class="bi bi-cash"></i>
+                                                        <i class="bi bi-currency-dollar"></i>
                                                     </button>` : ''}
                                                 </div>
                                             </td>
-                                        </tr>
-                                        `;
+                                        </tr>`;
                                     }).join('')}
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-                `;
-            }).join('');
+                    </div>`;
+                });
+            });
+
+            container.innerHTML = html;
         }
 
         function setLoading(isLoading) {
