@@ -537,34 +537,6 @@
                 return acc;
             }, {});
 
-            // Sort routes by date descending
-            const sortedGroups = Object.values(groups).map(group => {
-                if (group.id_ruta) {
-                    const placa = group.placa || 'Sin Placa';
-                    const distritosArr = Array.from(group.distritos);
-                    let distritosStr = distritosArr.length > 0 ? distritosArr.join(', ') : 'Varios distritos';
-                    // truncate if too long
-                    if (distritosStr.length > 50) {
-                        distritosStr = distritosStr.substring(0, 47) + '...';
-                    }
-                    group.title = `Ruta ${placa} | ${distritosStr}`;
-                } else {
-                    group.title = 'Servicios sin Ruta';
-                }
-                return group;
-            }).sort((a, b) => {
-                if (!a.fecha) return 1;
-                if (!b.fecha) return -1;
-                return new Date(b.fecha) - new Date(a.fecha);
-            });
-
-            container.innerHTML = sortedGroups.map((group, index) => {
-                const pending = group.total - group.cobrado;
-                const progress = group.total > 0 ? (group.cobrado / group.total) * 100 : 0;
-                
-                return `
-                <div class="route-group">
-                    <div class="route-header" data-bs-toggle="collapse" data-bs-target="#collapseRoute${index}">
             const filteredGroups = Object.values(groups).sort((a, b) => new Date(b.fecha_ruta) - new Date(a.fecha_ruta));
 
             if (filteredGroups.length === 0) {
