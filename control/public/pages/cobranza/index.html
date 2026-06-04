@@ -496,21 +496,23 @@
 
             // Group by Ruta
             const groups = data.reduce((acc, item) => {
-                const rutaId = item.id_ruta ? `Ruta #${item.id_ruta}` : 'Sin Ruta';
-                const fechaRuta = item.fecha_ruta ? formatDate(item.fecha_ruta) : '';
-                const key = item.id_ruta ? `${rutaId} (${fechaRuta})` : rutaId;
+                const key = item.id_ruta || 'sin_ruta';
                 
                 if (!acc[key]) {
                     acc[key] = { 
                         id_ruta: item.id_ruta, 
                         fecha: item.fecha_ruta, 
-                        title: key, 
+                        placa: item.vehiculo_placa,
+                        distritos: new Set(),
                         items: [], 
                         total: 0,
                         cobrado: 0 
                     };
                 }
                 
+                if (item.distrito) {
+                    acc[key].distritos.add(item.distrito);
+                }
                 acc[key].items.push(item);
                 const monto = parseFloat(item.tarifa_servicio || 0);
                 acc[key].total += monto;
@@ -522,7 +524,21 @@
             }, {});
 
             // Sort routes by date descending
-            const sortedGroups = Object.values(groups).sort((a, b) => {
+            const sortedGroups = Object.values(groups).map(group => {
+                if (group.id_ruta) {
+                    const placa = group.placa || 'Sin Placa';
+                    const distritosArr = Array.from(group.distritos);
+                    let distritosStr = distritosArr.length > 0 ? distritosArr.join(', ') : 'Varios distritos';
+                    // truncate if too long
+                    if (distritosStr.length > 50) {
+                        distritosStr = distritosStr.substring(0, 47) + '...';
+                    }
+                    group.title = `Ruta ${placa} | ${distritosStr}`;
+                } else {
+                    group.title = 'Servicios sin Ruta';
+                }
+                return group;
+            }).sort((a, b) => {
                 if (!a.fecha) return 1;
                 if (!b.fecha) return -1;
                 return new Date(b.fecha) - new Date(a.fecha);
