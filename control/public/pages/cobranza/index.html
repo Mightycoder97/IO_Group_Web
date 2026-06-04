@@ -572,7 +572,7 @@
                 monthGroups.forEach(group => {
                     const isFullyPaid = group.items.every(item => item.estado_pago === 'pagado');
                     const badgeClass = isFullyPaid ? 'bg-success-subtle text-success' : 'bg-primary-subtle text-primary';
-                    const badgeText = isFullyPaid ? 'Completada' : `S/ ${(group.totalMonto - group.totalCobrado).toFixed(2)} pendiente`;
+                    const badgeText = isFullyPaid ? 'Completada' : `S/ ${(group.total - group.cobrado).toFixed(2)} pendiente`;
                     const distritosStr = Array.from(group.distritos).join(', ');
                     const distritosBadge = distritosStr ? ` <span class="text-muted fw-normal ms-1">| ${distritosStr}</span>` : '';
 
@@ -587,7 +587,7 @@
                                     <h5 class="mb-1 fw-bold text-dark">Ruta ${group.vehiculo_placa || 'Sin Vehículo'}${distritosBadge}</h5>
                                     <div class="small text-muted d-flex align-items-center gap-3">
                                         <span><i class="bi bi-receipt me-1"></i>${group.items.length} servicios</span>
-                                        <span class="text-success fw-medium"><i class="bi bi-check-circle me-1"></i>S/ ${group.totalCobrado.toFixed(2)} cobrado</span>
+                                        <span class="text-success fw-medium"><i class="bi bi-check-circle me-1"></i>S/ ${group.cobrado.toFixed(2)} cobrado</span>
                                     </div>
                                 </div>
                             </div>
