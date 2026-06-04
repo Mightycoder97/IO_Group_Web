@@ -56,7 +56,9 @@ function getPendientes() {
             COALESCE(gc_stats.num_gestiones, 0) as num_gestiones,
             gc_stats.ultima_gestion,
             r.id_ruta, r.fecha as fecha_ruta,
-            v.placa as vehiculo_placa
+            v.placa as vehiculo_placa,
+            COALESCE(deuda_antigua.cantidad_deuda, 0) as deuda_cantidad,
+            COALESCE(deuda_antigua.monto_deuda, 0) as deuda_monto
             FROM Servicio s
             LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
             LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
@@ -71,6 +73,16 @@ function getPendientes() {
                 FROM GestionCobranza 
                 GROUP BY id_servicio
             ) gc_stats ON gc_stats.id_servicio = s.id_servicio
+            LEFT JOIN (
+                SELECT s_deuda.id_sede, 
+                       COUNT(s_deuda.id_servicio) as cantidad_deuda,
+                       SUM(COALESCE(s_deuda.monto_cobrado, cs_deuda.tarifa, 0)) as monto_deuda
+                FROM Servicio s_deuda
+                LEFT JOIN ContratoServicio cs_deuda ON s_deuda.id_contrato = cs_deuda.id_contrato
+                WHERE COALESCE(s_deuda.estado_pago, 'pendiente') = 'pendiente' 
+                AND s_deuda.fecha_ejecucion < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                GROUP BY s_deuda.id_sede
+            ) deuda_antigua ON deuda_antigua.id_sede = s.id_sede
             WHERE 1=1";
     
     $params = [];

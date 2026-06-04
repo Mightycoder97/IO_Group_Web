@@ -582,7 +582,8 @@
                                         <th>Factura</th>
                                         <th>Estado</th>
                                         <th>Tipo de Pago</th>
-                                        <th class="text-end">Monto</th>
+                                        <th class="text-end">Monto Ruta</th>
+                                        <th class="text-end">Deuda Total</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
@@ -593,18 +594,32 @@
                                         const statusLabel = item.estado_pago === 'pagado' ? 'Pagado' : (isLate ? 'Vencido' : 'Pendiente');
                                         const rowClass = item.estado_pago === 'pagado' ? 'opacity-75 bg-light' : '';
                                         
+                                        const montoRuta = parseFloat(item.tarifa_servicio) || 0;
+                                        const deudaMonto = parseFloat(item.deuda_monto) || 0;
+                                        const deudaTotal = (item.estado_pago !== 'pagado' ? montoRuta : 0) + deudaMonto;
+
+                                        const debtAlert = item.deuda_cantidad > 0 
+                                            ? `<span class="badge bg-danger ms-2" title="${item.deuda_cantidad} servicio(s) atrasado(s)"><i class="bi bi-exclamation-triangle"></i> Deuda Pasada S/ ${deudaMonto.toFixed(2)}</span>`
+                                            : '';
+                                        
                                         return `
                                         <tr class="${rowClass}">
                                             <td class="text-nowrap text-muted">${formatDate(item.fecha_servicio)}</td>
                                             <td>
-                                                <div class="fw-semibold text-dark">${item.empresa_razon_social || item.sede_nombre}</div>
+                                                <div class="fw-semibold text-dark">
+                                                    <a href="../sedes/cartilla.html?id=${item.id_sede}" target="_blank" class="text-decoration-none text-primary text-hover-underline">
+                                                        ${item.empresa_razon_social || item.sede_nombre}
+                                                    </a>
+                                                    ${debtAlert}
+                                                </div>
                                                 <div class="small text-muted">${item.sede_nombre}</div>
                                             </td>
                                             <td class="text-muted small">${item.empresa_ruc || '-'}</td>
                                             <td><span class="badge bg-light text-dark border">${item.numero_factura || 'S/F'}</span></td>
                                             <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
                                             <td class="text-muted small text-capitalize">${item.forma_pago || '-'}</td>
-                                            <td class="text-end fw-bold">S/ ${parseFloat(item.tarifa_servicio).toFixed(2)}</td>
+                                            <td class="text-end fw-bold">S/ ${montoRuta.toFixed(2)}</td>
+                                            <td class="text-end fw-bold text-danger">S/ ${deudaTotal.toFixed(2)}</td>
                                             <td class="text-center">
                                                 <div class="d-flex justify-content-center gap-2">
                                                     <button class="btn-action whatsapp" onclick="openWhatsApp(${item.id_servicio})" title="Notificar WhatsApp">
@@ -672,7 +687,12 @@
             const item = rawData.find(i => i.id_servicio == id);
             if (!item.contacto_telefono) return showToast('Sin teléfono registrado', 'warning');
 
-            const msg = `Hola ${item.sede_nombre}, le informamos que tiene un servicio pendiente de pago por S/ ${item.tarifa_servicio}. Factura: ${item.numero_factura || 'Pendiente'}.`;
+            let msg = `Hola ${item.sede_nombre}, le informamos que tiene un servicio pendiente de pago por S/ ${item.tarifa_servicio}. Factura: ${item.numero_factura || 'Pendiente'}.`;
+            
+            if (item.deuda_cantidad > 0) {
+                msg += `\n\nAdicionalmente, le recordamos que presenta una deuda pendiente de meses anteriores por un total de S/ ${item.deuda_monto}. Agradeceremos regularizar sus pagos.`;
+            }
+            
             const phone = '51' + item.contacto_telefono.replace(/\D/g, '');
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
