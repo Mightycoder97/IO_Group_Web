@@ -1,5 +1,5 @@
 -- SQL Migration for IO Group - Surgical Services 2026 (Lima & Sur)
--- Generated on 2026-06-04 17:08:17
+-- Generated on 2026-06-04 17:13:01
 START TRANSACTION;
 
 SET FOREIGN_KEY_CHECKS = 0;

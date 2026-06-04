@@ -3,3 +3,22 @@ node_modules/
 control/.env
 control/public/js/config.js
 control/api/config/maps.php
+excel_data/
+extraction_tools/
+
+# Exclusiones de oficina y reportes temporales en raíz
+*.xlsx
+*.xlsm
+*.docx
+*.doc
+*.pdf
+*.txt
+# Permitir explícitamente robots.txt
+!robots.txt
+
+# Carpetas privadas de soporte y diseño
+docs/
+templates/
+archive/
+.xlsm_extract/
+.opencode/
