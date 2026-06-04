@@ -54,8 +54,10 @@ function getPendientes() {
             e.ruc as empresa_ruc,
             f.numero_factura, f.id_factura,
             COALESCE(gc_stats.num_gestiones, 0) as num_gestiones,
-            gc_stats.ultima_gestion
+            gc_stats.ultima_gestion,
+            r.id_ruta, r.fecha as fecha_ruta
             FROM Servicio s
+            LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
             LEFT JOIN Sede se ON s.id_sede = se.id_sede
             LEFT JOIN Empresa e ON se.id_empresa = e.id_empresa
             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato

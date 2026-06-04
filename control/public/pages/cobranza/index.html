@@ -5,112 +5,242 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Cobranza - IO Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../css/global.css?v=2.5" rel="stylesheet">
     <style>
+        body.control-app {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7fb;
+            color: #2b3440;
+        }
+
+        /* Glassmorphism & Modern Stats */
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .stat-card {
-            background: white;
-            padding: 1.25rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            border-left: 4px solid transparent;
-        }
-
-        .stat-card.pending {
-            border-left-color: #ffc107;
-        }
-
-        .stat-card.overdue {
-            border-left-color: #dc3545;
-        }
-
-        .stat-card.collected {
-            border-left-color: #198754;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6c757d;
-        }
-
-        .table-responsive {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
             overflow: hidden;
         }
 
-        .table thead th {
-            background: #f8f9fa;
-            font-weight: 600;
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .stat-card.pending::before { background: linear-gradient(180deg, #ffc107, #ff9800); }
+        .stat-card.overdue::before { background: linear-gradient(180deg, #ff4b4b, #d32f2f); }
+        .stat-card.collected::before { background: linear-gradient(180deg, #20c997, #0f9d58); }
+        .stat-card.total::before { background: linear-gradient(180deg, #4facfe, #00f2fe); }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #1a202c;
+            letter-spacing: -0.5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #64748b;
             text-transform: uppercase;
-            font-size: 0.75rem;
             letter-spacing: 0.5px;
-            padding: 1rem;
-            border-bottom: 2px solid #e9ecef;
+            margin-top: 0.25rem;
         }
 
-        .sortable {
+        /* Modern Filters */
+        .filters-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.04);
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1rem;
+            box-shadow: none;
+            transition: all 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.15);
+        }
+        .input-group-text {
+            border-radius: 8px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+        }
+
+        /* Route Group Accordion */
+        .route-group {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            margin-bottom: 1.25rem;
+            border: 1px solid rgba(0,0,0,0.04);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .route-group:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .route-header {
+            background: linear-gradient(to right, #ffffff, #f8fafc);
+            padding: 1.25rem 1.5rem;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #edf2f7;
             user-select: none;
-            transition: background-color 0.2s;
+            transition: background 0.2s;
+        }
+        .route-header:hover {
+            background: #f8fafc;
         }
 
-        .sortable:hover {
-            background-color: #e2e6ea !important;
+        .route-title-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .route-icon {
+            background: rgba(79, 172, 254, 0.1);
+            color: #4facfe;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .route-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .route-meta {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .route-total {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #4facfe;
+            background: rgba(79, 172, 254, 0.05);
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+        }
+
+        /* Modern Table */
+        .table-responsive {
+            background: white;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
         }
 
         .table tbody td {
+            padding: 1rem 1.5rem;
             vertical-align: middle;
-            padding: 0.75rem 1rem;
+            color: #334155;
             font-size: 0.9rem;
+            border-bottom: 1px solid #f1f5f9;
         }
 
-        .status-badge {
-            padding: 0.35em 0.65em;
-            font-size: 0.75em;
-            font-weight: 600;
-            border-radius: 50rem;
-        }
-
-        .status-badge.pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-badge.paid {
-            background: #d1e7dd;
-            color: #0f5132;
-        }
-
-        .status-badge.overdue {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .company-group-header {
-            background-color: #f1f3f5;
-            cursor: pointer;
+        .table tbody tr {
             transition: background-color 0.2s;
         }
 
-        .company-group-header:hover {
-            background-color: #e9ecef;
+        .table tbody tr:hover {
+            background-color: #f8fafc;
         }
+
+        /* Badges */
+        .status-badge {
+            padding: 0.4em 0.8em;
+            font-size: 0.75em;
+            font-weight: 600;
+            border-radius: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .status-badge.pending { background: #fef3c7; color: #b45309; }
+        .status-badge.paid { background: #dcfce7; color: #166534; }
+        .status-badge.overdue { background: #fee2e2; color: #b91c1c; }
+
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-action.whatsapp { background: rgba(37, 211, 102, 0.1); color: #25D366; }
+        .btn-action.whatsapp:hover { background: #25D366; color: white; transform: scale(1.05); }
+
+        .btn-action.gestion { background: rgba(79, 172, 254, 0.1); color: #4facfe; }
+        .btn-action.gestion:hover { background: #4facfe; color: white; transform: scale(1.05); }
+
+        .btn-action.pago { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .btn-action.pago:hover { background: #10b981; color: white; transform: scale(1.05); }
+
     </style>
 </head>
 
@@ -119,164 +249,125 @@
         <aside class="sidebar" id="sidebar"></aside>
 
         <main class="main-content">
-            <nav class="top-nav">
+            <nav class="top-nav shadow-sm" style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);">
                 <div class="d-flex align-items-center gap-3">
-                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
-                    <h5 class="m-0">Control de Cobranza</h5>
+                    <button class="toggle-sidebar btn btn-light border-0" onclick="toggleSidebar()">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+                    <h4 class="m-0 fw-bold" style="background: linear-gradient(45deg, #2b3440, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        Control de Cobranza
+                    </h4>
                 </div>
-                <div class="user-menu">
-                    <!-- User menu populated by JS -->
-                </div>
+                <div class="user-menu"></div>
             </nav>
 
             <div class="content-area p-4">
                 <!-- Stats -->
                 <div class="stats-container">
                     <div class="stat-card pending">
-                        <div class="stat-value" id="statPendiente">S/ 0</div>
+                        <div class="stat-value" id="statPendiente">S/ 0.00</div>
                         <div class="stat-label">Total Pendiente</div>
                     </div>
                     <div class="stat-card overdue">
-                        <div class="stat-value text-danger" id="statVencido">S/ 0</div>
+                        <div class="stat-value text-danger" id="statVencido">S/ 0.00</div>
                         <div class="stat-label">Vencido (+30 días)</div>
                     </div>
                     <div class="stat-card collected">
-                        <div class="stat-value text-success" id="statCobrado">S/ 0</div>
+                        <div class="stat-value text-success" id="statCobrado">S/ 0.00</div>
                         <div class="stat-label">Cobrado (Mes actual)</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="statCount">0</div>
+                    <div class="stat-card total">
+                        <div class="stat-value text-primary" id="statCount">0</div>
                         <div class="stat-label">Servicios Pendientes</div>
                     </div>
                 </div>
 
                 <!-- Filters -->
-                <div class="card mb-4 border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted">Buscar</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="search"
-                                        placeholder="Cliente, RUC o Factura...">
-                                </div>
+                <div class="filters-card">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label small text-muted fw-semibold">Buscador Inteligente</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-end-0 bg-transparent"><i class="bi bi-search text-primary"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" id="search"
+                                    placeholder="Buscar por cliente, empresa, RUC o factura...">
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label small text-muted">Rango de Fechas</label>
-                                <div class="input-group">
-                                    <input type="date" class="form-control" id="dateStart">
-                                    <span class="input-group-text bg-light">-</span>
-                                    <input type="date" class="form-control" id="dateEnd">
-                                </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted fw-semibold">Rango de Fechas</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="dateStart">
+                                <span class="input-group-text bg-transparent border-start-0 border-end-0 text-muted"><i class="bi bi-arrow-right"></i></span>
+                                <input type="date" class="form-control" id="dateEnd">
                             </div>
-                            <div class="col-md-2">
-                                <label class="form-label small text-muted">Estado</label>
-                                <select class="form-select" id="statusFilter">
-                                    <option value="pendiente">Pendientes</option>
-                                    <option value="pagado">Pagados</option>
-                                    <option value="">Todos</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 d-flex align-items-end justify-content-between">
-                                <div class="btn-group" role="group">
-                                    <input type="radio" class="btn-check" name="viewMode" id="viewList" value="list"
-                                        checked>
-                                    <label class="btn btn-outline-primary" for="viewList"><i class="bi bi-list-ul"></i>
-                                        Lista</label>
-
-                                    <input type="radio" class="btn-check" name="viewMode" id="viewGroup" value="group">
-                                    <label class="btn btn-outline-primary" for="viewGroup"><i
-                                            class="bi bi-building"></i> Por Empresa</label>
-                                </div>
-                                <button class="btn btn-outline-secondary" onclick="loadData()">
-                                    <i class="bi bi-arrow-clockwise"></i> Actualizar
-                                </button>
-                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small text-muted fw-semibold">Estado</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="pendiente">Pendientes</option>
+                                <option value="pagado">Pagados</option>
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-primary w-100" onclick="loadData()" style="height: 42px; border-radius: 8px;">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Main Content Area -->
                 <div id="mainContent">
-                    <!-- Table View -->
-                    <div class="table-responsive d-none" id="listViewContainer">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="sortable" data-sort="fecha_servicio"
-                                        onclick="handleSort('fecha_servicio')">Fecha <i
-                                            class="bi bi-arrow-down-up text-muted ms-1 sort-icon"></i></th>
-                                    <th class="sortable" data-sort="numero_factura"
-                                        onclick="handleSort('numero_factura')">Factura <i
-                                            class="bi bi-arrow-down-up text-muted ms-1 sort-icon"></i></th>
-                                    <th class="sortable" data-sort="sede_nombre" onclick="handleSort('sede_nombre')">
-                                        Cliente / Sede <i class="bi bi-arrow-down-up text-muted ms-1 sort-icon"></i>
-                                    </th>
-                                    <th class="sortable" data-sort="mes_servicio" onclick="handleSort('mes_servicio')">
-                                        Servicio <i class="bi bi-arrow-down-up text-muted ms-1 sort-icon"></i></th>
-                                    <th class="sortable" data-sort="estado_pago" onclick="handleSort('estado_pago')">
-                                        Estado <i class="bi bi-arrow-down-up text-muted ms-1 sort-icon"></i></th>
-                                    <th class="text-end sortable" data-sort="tarifa_servicio"
-                                        onclick="handleSort('tarifa_servicio')">Monto <i
-                                            class="bi bi-arrow-down-up text-muted ms-1 sort-icon"></i></th>
-                                    <th class="text-end">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody"></tbody>
-                        </table>
-                    </div>
-
-                    <!-- Grouped View -->
-                    <div class="d-none" id="groupedViewContainer">
-                        <div class="accordion" id="companiesAccordion"></div>
-                    </div>
+                    <!-- Grouped by Ruta View -->
+                    <div id="rutasContainer"></div>
 
                     <!-- Loading State -->
-                    <div id="loadingState" class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="mt-2 text-muted">Cargando información...</p>
+                    <div id="loadingState" class="text-center py-5 d-none">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                        <p class="mt-3 text-muted fw-medium">Sincronizando cobranzas...</p>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modals (Gestión, Historial, Pago) - Reusing existing structure with minor ID updates if needed -->
-    <!-- Modal: Registrar Gestión -->
+    <!-- Modals (Gestión y Pago) -->
     <div class="modal fade" id="gestionModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Registrar Gestión</h5>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Registrar Gestión</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="gestionServicioId">
                     <input type="hidden" id="gestionSedeId">
                     <div class="mb-3">
-                        <label class="form-label">Cliente</label>
+                        <label class="form-label text-muted small fw-semibold">Cliente / Sede</label>
                         <input type="text" class="form-control bg-light" id="gestionCliente" readonly>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tipo de Gestión</label>
-                        <select class="form-select" id="gestionTipo">
-                            <option value="whatsapp">WhatsApp</option>
-                            <option value="llamada">Llamada</option>
-                            <option value="visita">Visita</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Resultado</label>
-                        <select class="form-select" id="gestionResultado">
-                            <option value="contactado">Contactado</option>
-                            <option value="no_contesta">No contesta</option>
-                            <option value="promesa_pago">Promesa de pago</option>
-                            <option value="pagado">Pagado</option>
-                        </select>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-semibold">Canal</label>
+                            <select class="form-select" id="gestionTipo">
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="llamada">Llamada</option>
+                                <option value="visita">Visita</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-semibold">Resultado</label>
+                            <select class="form-select" id="gestionResultado">
+                                <option value="contactado">Contactado</option>
+                                <option value="no_contesta">No contesta</option>
+                                <option value="promesa_pago">Promesa de pago</option>
+                                <option value="pagado">Pagado</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3" id="formaPagoGroup" style="display:none;">
-                        <label class="form-label">Forma de Pago</label>
+                        <label class="form-label text-muted small fw-semibold">Forma de Pago</label>
                         <select class="form-select" id="gestionFormaPago">
                             <option value="transferencia">Transferencia</option>
                             <option value="yape">Yape</option>
@@ -284,54 +375,53 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Observaciones</label>
-                        <textarea class="form-control" id="gestionObservaciones" rows="2"></textarea>
+                        <label class="form-label text-muted small fw-semibold">Observaciones</label>
+                        <textarea class="form-control" id="gestionObservaciones" rows="3" placeholder="Detalles de la gestión..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="guardarGestion()">Guardar</button>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4" onclick="guardarGestion()">Guardar Registro</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Pago Rápido -->
     <div class="modal fade" id="pagoModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Registrar Pago</h5>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Registrar Pago Rápido</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="pagoServicioId">
                     <div class="mb-3">
-                        <label class="form-label">Monto</label>
-                        <input type="text" class="form-control bg-light" id="pagoMonto" readonly>
+                        <label class="form-label text-muted small fw-semibold">Monto a Cobrar</label>
+                        <input type="text" class="form-control bg-light fs-5 fw-bold text-primary" id="pagoMonto" readonly>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Nro. Factura (Opcional)</label>
-                        <input type="text" class="form-control" id="pagoFactura" placeholder="F001-0000...">
+                        <label class="form-label text-muted small fw-semibold">Nro. Factura Asociada (Opcional)</label>
+                        <input type="text" class="form-control" id="pagoFactura" placeholder="Ej. F001-0000...">
                     </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Forma de Pago</label>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-semibold">Método de Pago</label>
                             <select class="form-select" id="pagoMetodo">
                                 <option value="transferencia">Transferencia</option>
-                                <option value="yape">Yape</option>
+                                <option value="yape">Yape/Plin</option>
                                 <option value="efectivo">Efectivo</option>
                             </select>
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Fecha</label>
+                        <div class="col-6">
+                            <label class="form-label text-muted small fw-semibold">Fecha de Pago</label>
                             <input type="date" class="form-control" id="pagoFecha">
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-success" onclick="confirmarPago()">Confirmar Pago</button>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 shadow-sm" onclick="confirmarPago()">Confirmar Pago</button>
                 </div>
             </div>
         </div>
@@ -357,13 +447,15 @@
         document.getElementById('dateStart').addEventListener('change', loadData);
         document.getElementById('dateEnd').addEventListener('change', loadData);
         document.getElementById('statusFilter').addEventListener('change', loadData);
-        document.querySelectorAll('input[name="viewMode"]').forEach(el => {
-            el.addEventListener('change', renderView);
-        });
 
         document.getElementById('gestionResultado').addEventListener('change', function () {
             document.getElementById('formaPagoGroup').style.display =
                 this.value === 'pagado' ? 'block' : 'none';
+        });
+
+        // Initialize Auto Load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
         });
 
         // Load Data
@@ -375,7 +467,7 @@
                 estado: document.getElementById('statusFilter').value,
                 fecha_inicio: document.getElementById('dateStart').value,
                 fecha_fin: document.getElementById('dateEnd').value,
-                limit: searchTerm ? 500 : 20
+                limit: searchTerm ? 500 : 200
             });
 
             try {
@@ -383,12 +475,7 @@
                 if (res.success) {
                     rawData = res.data;
                     updateStats(res.stats);
-
-                    // Re-apply current sort automatically after fetching new data
-                    const tempDirection = currentSort.direction;
-                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc'; // invert briefly to trick handleSort into restoring it
-                    handleSort(currentSort.column);
-                    currentSort.direction = tempDirection; // in case of failure
+                    renderRutas(rawData);
                 }
             } catch (error) {
                 console.error(error);
@@ -398,185 +485,155 @@
             }
         }
 
-        function renderView() {
-            const mode = document.querySelector('input[name="viewMode"]:checked').value;
-            const listContainer = document.getElementById('listViewContainer');
-            const groupContainer = document.getElementById('groupedViewContainer');
+        function renderRutas(data) {
+            const container = document.getElementById('rutasContainer');
 
-            if (mode === 'list') {
-                listContainer.classList.remove('d-none');
-                groupContainer.classList.add('d-none');
-                renderList(rawData);
-            } else {
-                listContainer.classList.add('d-none');
-                groupContainer.classList.remove('d-none');
-                renderGrouped(rawData);
-            }
-        }
-
-        function renderList(data) {
-            const tbody = document.getElementById('tableBody');
-            if (!data.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No se encontraron registros</td></tr>';
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5 bg-white rounded-4 shadow-sm border border-light">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3 text-dark fw-semibold">No se encontraron registros</h5>
+                        <p class="text-muted">Intenta ajustar los filtros de búsqueda.</p>
+                    </div>`;
                 return;
             }
 
-            tbody.innerHTML = data.map(item => {
-                const isLate = getDaysLate(item.fecha_servicio) > 30 && item.estado_pago !== 'pagado';
-                const statusClass = item.estado_pago === 'pagado' ? 'paid' : (isLate ? 'overdue' : 'pending');
-                const statusLabel = item.estado_pago === 'pagado' ? 'Pagado' : (isLate ? 'Vencido' : 'Pendiente');
-
-                return `
-                    <tr>
-                        <td class="text-nowrap">${formatDate(item.fecha_servicio)}</td>
-                        <td><span class="badge bg-light text-dark border">${item.numero_factura || 'S/F'}</span></td>
-                        <td>
-                            <div class="fw-bold text-dark">${item.empresa_razon_social || item.sede_nombre}</div>
-                            <div class="small text-muted">${item.sede_nombre}</div>
-                        </td>
-                        <td>
-                            <div class="small text-muted">Mes: ${item.mes_servicio}</div>
-                            ${item.num_gestiones > 0 ? `<div class="badge bg-info bg-opacity-10 text-info mt-1">${item.num_gestiones} gestiones</div>` : ''}
-                        </td>
-                        <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-                        <td class="text-end fw-bold text-dark">S/ ${parseFloat(item.tarifa_servicio).toFixed(2)}</td>
-                        <td class="text-end">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-success" onclick="openWhatsApp(${item.id_servicio})" title="WhatsApp">
-                                    <i class="bi bi-whatsapp"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="openGestion(${item.id_servicio})" title="Gestionar">
-                                    <i class="bi bi-journal-plus"></i>
-                                </button>
-                                ${item.estado_pago !== 'pagado' ? `
-                                <button class="btn btn-sm btn-success" onclick="openPago(${item.id_servicio})" title="Registrar Pago">
-                                    <i class="bi bi-cash"></i>
-                                </button>` : ''}
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderGrouped(data) {
-            const container = document.getElementById('companiesAccordion');
-
-            // Group by Empresa Name
+            // Group by Ruta
             const groups = data.reduce((acc, item) => {
-                const key = item.empresa_razon_social || 'Sin Empresa';
-                if (!acc[key]) acc[key] = { items: [], total: 0 };
+                const rutaId = item.id_ruta ? \`Ruta #\${item.id_ruta}\` : 'Sin Ruta';
+                const fechaRuta = item.fecha_ruta ? formatDate(item.fecha_ruta) : '';
+                const key = item.id_ruta ? \`\${rutaId} (\${fechaRuta})\` : rutaId;
+                
+                if (!acc[key]) {
+                    acc[key] = { 
+                        id_ruta: item.id_ruta, 
+                        fecha: item.fecha_ruta, 
+                        title: key, 
+                        items: [], 
+                        total: 0,
+                        cobrado: 0 
+                    };
+                }
+                
                 acc[key].items.push(item);
-                acc[key].total += parseFloat(item.tarifa_servicio || 0);
+                const monto = parseFloat(item.tarifa_servicio || 0);
+                acc[key].total += monto;
+                if (item.estado_pago === 'pagado') {
+                    acc[key].cobrado += monto;
+                }
+                
                 return acc;
             }, {});
 
-            if (Object.keys(groups).length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-muted">No se encontraron registros</div>';
-                return;
-            }
+            // Sort routes by date descending
+            const sortedGroups = Object.values(groups).sort((a, b) => {
+                if (!a.fecha) return 1;
+                if (!b.fecha) return -1;
+                return new Date(b.fecha) - new Date(a.fecha);
+            });
 
-            container.innerHTML = Object.entries(groups).map(([name, group], index) => `
-                <div class="accordion-item border-0 mb-2 shadow-sm rounded overflow-hidden">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed company-group-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
-                            <div class="d-flex justify-content-between w-100 me-3 align-items-center">
-                                <div>
-                                    <i class="bi bi-building me-2 text-secondary"></i>
-                                    <span class="fw-bold text-dark">${name}</span>
-                                    <span class="badge bg-secondary ms-2 rounded-pill">${group.items.length} facturas</span>
-                                </div>
-                                <div class="fw-bold text-primary fs-6">
-                                    Total: S/ ${group.total.toFixed(2)}
+            container.innerHTML = sortedGroups.map((group, index) => {
+                const pending = group.total - group.cobrado;
+                const progress = group.total > 0 ? (group.cobrado / group.total) * 100 : 0;
+                
+                return \`
+                <div class="route-group">
+                    <div class="route-header" data-bs-toggle="collapse" data-bs-target="#collapseRoute\${index}">
+                        <div class="route-title-section">
+                            <div class="route-icon">
+                                <i class="bi \${group.id_ruta ? 'bi-truck' : 'bi-question-circle'}"></i>
+                            </div>
+                            <div>
+                                <h3 class="route-name">\${group.title}</h3>
+                                <div class="route-meta mt-1">
+                                    <span class="me-3"><i class="bi bi-receipt me-1"></i>\${group.items.length} servicios</span>
+                                    <span class="text-success"><i class="bi bi-check-circle me-1"></i>S/ \${group.cobrado.toFixed(2)} cobrado</span>
                                 </div>
                             </div>
-                        </button>
-                    </h2>
-                    <div id="collapse${index}" class="accordion-collapse collapse" data-bs-parent="#companiesAccordion">
-                        <div class="accordion-body p-0">
-                            <table class="table table-sm table-striped mb-0">
-                                <thead class="table-light">
+                        </div>
+                        <div class="text-end">
+                            <div class="route-total">S/ \${pending.toFixed(2)} pendiente</div>
+                        </div>
+                    </div>
+                    
+                    <div id="collapseRoute\${index}" class="collapse \${index === 0 ? 'show' : ''}">
+                        <div class="progress" style="height: 4px; border-radius: 0; background-color: #f1f5f9;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: \${progress}%;"></div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
                                     <tr>
-                                        <th class="sortable" onclick="handleSort('fecha_servicio')">Fecha <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
-                                        <th class="sortable" onclick="handleSort('sede_nombre')">Sede <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
-                                        <th class="sortable" onclick="handleSort('numero_factura')">Factura <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
-                                        <th class="text-end sortable" onclick="handleSort('tarifa_servicio')">Monto <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
-                                        <th class="text-end">Acciones</th>
+                                        <th>Fecha</th>
+                                        <th>Cliente / Sede</th>
+                                        <th>RUC</th>
+                                        <th>Factura</th>
+                                        <th>Estado</th>
+                                        <th class="text-end">Monto</th>
+                                        <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${group.items.map(item => `
+                                    \${group.items.map(item => {
+                                        const isLate = getDaysLate(item.fecha_servicio) > 30 && item.estado_pago !== 'pagado';
+                                        const statusClass = item.estado_pago === 'pagado' ? 'paid' : (isLate ? 'overdue' : 'pending');
+                                        const statusLabel = item.estado_pago === 'pagado' ? 'Pagado' : (isLate ? 'Vencido' : 'Pendiente');
+                                        
+                                        return \`
                                         <tr>
-                                            <td>${formatDate(item.fecha_servicio)}</td>
-                                            <td>${item.sede_nombre}</td>
-                                            <td>${item.numero_factura || 'Pendiente'}</td>
-                                            <td class="text-end">S/ ${parseFloat(item.tarifa_servicio).toFixed(2)}</td>
-                                            <td class="text-end">
-                                                <button class="btn btn-link btn-sm p-0 text-success" onclick="openWhatsApp(${item.id_servicio})"><i class="bi bi-whatsapp"></i></button>
-                                                <button class="btn btn-link btn-sm p-0 ms-2" onclick="openGestion(${item.id_servicio})"><i class="bi bi-pencil"></i></button>
+                                            <td class="text-nowrap text-muted">\${formatDate(item.fecha_servicio)}</td>
+                                            <td>
+                                                <div class="fw-semibold text-dark">\${item.empresa_razon_social || item.sede_nombre}</div>
+                                                <div class="small text-muted">\${item.sede_nombre}</div>
+                                            </td>
+                                            <td class="text-muted small">\${item.empresa_ruc || '-'}</td>
+                                            <td><span class="badge bg-light text-dark border">\${item.numero_factura || 'S/F'}</span></td>
+                                            <td><span class="status-badge \${statusClass}">\${statusLabel}</span></td>
+                                            <td class="text-end fw-bold">S/ \${parseFloat(item.tarifa_servicio).toFixed(2)}</td>
+                                            <td class="text-center">
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <button class="btn-action whatsapp" onclick="openWhatsApp(\${item.id_servicio})" title="Notificar WhatsApp">
+                                                        <i class="bi bi-whatsapp"></i>
+                                                    </button>
+                                                    <button class="btn-action gestion" onclick="openGestion(\${item.id_servicio})" title="Registrar Gestión">
+                                                        <i class="bi bi-journal-plus"></i>
+                                                    </button>
+                                                    \${item.estado_pago !== 'pagado' ? \`
+                                                    <button class="btn-action pago" onclick="openPago(\${item.id_servicio})" title="Registrar Pago">
+                                                        <i class="bi bi-cash"></i>
+                                                    </button>\` : ''}
+                                                </div>
                                             </td>
                                         </tr>
-                                    `).join('')}
+                                        \`;
+                                    }).join('')}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            `).join('');
-        }
-
-        // Logic Functions
-        let currentSort = { column: 'fecha_servicio', direction: 'desc' };
-
-        function handleSort(column) {
-            if (currentSort.column === column) {
-                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSort.column = column;
-                currentSort.direction = 'asc';
-            }
-
-            // Update icons if present
-            document.querySelectorAll('th[data-sort] .sort-icon').forEach(icon => {
-                icon.className = 'bi bi-arrow-down-up text-muted ms-1 sort-icon';
-            });
-            const th = document.querySelector(`th[data-sort="${column}"] .sort-icon`);
-            if (th) {
-                th.className = currentSort.direction === 'asc' ? 'bi bi-arrow-up ms-1 sort-icon text-primary' : 'bi bi-arrow-down ms-1 sort-icon text-primary';
-            }
-
-            // Sort data
-            rawData.sort((a, b) => {
-                let valA = a[column];
-                let valB = b[column];
-
-                if (column === 'tarifa_servicio') {
-                    valA = parseFloat(valA || 0);
-                    valB = parseFloat(valB || 0);
-                } else {
-                    valA = valA ? String(valA).toLowerCase() : '';
-                    valB = valB ? String(valB).toLowerCase() : '';
-                }
-
-                if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
-                if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-
-            renderView();
+                \`;
+            }).join('');
         }
 
         function setLoading(isLoading) {
-            document.getElementById('loadingState').classList.toggle('d-none', !isLoading);
-            document.getElementById('listViewContainer').classList.toggle('d-none', isLoading);
-            if (!isLoading) renderView();
+            const loadingEl = document.getElementById('loadingState');
+            const contentEl = document.getElementById('rutasContainer');
+            
+            if (isLoading) {
+                loadingEl.classList.remove('d-none');
+                contentEl.classList.add('d-none');
+            } else {
+                loadingEl.classList.add('d-none');
+                contentEl.classList.remove('d-none');
+            }
         }
 
         function updateStats(stats) {
-            document.getElementById('statPendiente').innerText = `S/ ${stats.total_pendiente.toLocaleString()}`;
-            document.getElementById('statVencido').innerText = `S/ ${stats.total_vencido.toLocaleString()}`;
-            document.getElementById('statCobrado').innerText = `S/ ${stats.cobrado_mes.toLocaleString()}`;
-            document.getElementById('statCount').innerText = stats.count_pendientes;
+            document.getElementById('statPendiente').innerText = \`S/ \${(stats.total_pendiente || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}\`;
+            document.getElementById('statVencido').innerText = \`S/ \${(stats.total_vencido || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}\`;
+            document.getElementById('statCobrado').innerText = \`S/ \${(stats.cobrado_mes || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}\`;
+            document.getElementById('statCount').innerText = stats.count_pendientes || 0;
         }
 
         // Action Handlers
@@ -591,7 +648,7 @@
         function openPago(id) {
             const item = rawData.find(i => i.id_servicio == id);
             document.getElementById('pagoServicioId').value = id;
-            document.getElementById('pagoMonto').value = `S/ ${parseFloat(item.tarifa_servicio).toFixed(2)}`;
+            document.getElementById('pagoMonto').value = \`S/ \${parseFloat(item.tarifa_servicio).toFixed(2)}\`;
             document.getElementById('pagoFactura').value = item.numero_factura || '';
             pagoModal.show();
         }
@@ -600,13 +657,12 @@
             const item = rawData.find(i => i.id_servicio == id);
             if (!item.contacto_telefono) return showToast('Sin teléfono registrado', 'warning');
 
-            const msg = `Hola ${item.sede_nombre}, le informamos que tiene un servicio pendiente de pago por S/ ${item.tarifa_servicio}. Factura: ${item.numero_factura || 'Pendiente'}.`;
+            const msg = \`Hola \${item.sede_nombre}, le informamos que tiene un servicio pendiente de pago por S/ \${item.tarifa_servicio}. Factura: \${item.numero_factura || 'Pendiente'}.\`;
             const phone = '51' + item.contacto_telefono.replace(/\D/g, '');
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            window.open(\`https://wa.me/\${phone}?text=\${encodeURIComponent(msg)}\`, '_blank');
         }
 
         async function guardarGestion() {
-            // Implementation for calling API...
             const data = {
                 id_servicio: document.getElementById('gestionServicioId').value,
                 id_sede: document.getElementById('gestionSedeId').value,
@@ -619,7 +675,7 @@
             try {
                 const res = await api.post('/cobranza?action=gestion', data);
                 if (res.success) {
-                    showToast('Gestión guardada');
+                    showToast('Gestión guardada exitosamente');
                     gestionModal.hide();
                     loadData();
                 }
@@ -627,21 +683,13 @@
         }
 
         async function confirmarPago() {
-            // Updated implementation for registering payment
             const id = document.getElementById('pagoServicioId').value;
             const factura = document.getElementById('pagoFactura').value;
             const metodo = document.getElementById('pagoMetodo').value;
             const fecha = document.getElementById('pagoFecha').value;
 
             try {
-                // 1. Update service status
-                // Note: In a real scenario you might want a specific endpoint for 'registerPayment' 
-                // but here we use the existing update logic or the one from the original file if available.
-                // For now, let's reuse the 'gestion' endpoint with 'pagado' result as it handles logic,
-                // OR call the service update endpoint directly as in the previous version.
-
-                // Using the previous version logic:
-                const res = await api.put(`/servicios/${id}`, {
+                const res = await api.put(\`/servicios/\${id}\`, {
                     estado_pago: 'pagado',
                     fecha_pago: fecha,
                     forma_pago: metodo
@@ -651,7 +699,7 @@
                     if (factura) {
                         await api.post('/facturas', { id_servicio: id, numero_factura: factura });
                     }
-                    showToast('Pago registrado');
+                    showToast('Pago registrado correctamente');
                     pagoModal.hide();
                     loadData();
                 }
@@ -661,7 +709,9 @@
         // Helpers
         function formatDate(str) {
             if (!str) return '-';
-            return new Date(str).toLocaleDateString('es-PE');
+            // Adjust to avoid timezone issues when parsing "YYYY-MM-DD"
+            const [y, m, d] = str.split(' ')[0].split('-');
+            return new Date(y, m - 1, d).toLocaleDateString('es-PE');
         }
         function getDaysLate(str) {
             if (!str) return 0;
