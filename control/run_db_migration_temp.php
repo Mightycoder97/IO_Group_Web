@@ -11,6 +11,7 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=UTF-8');
+putenv("APP_DEBUG=true");
 
 $token = $_GET['token'] ?? '';
 $secret = 'io_group_migration_2026_secret_9988';
