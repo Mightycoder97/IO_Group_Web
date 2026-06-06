@@ -77,7 +77,7 @@ RewriteRule ^$ public/index.html [L]
     Header set X-XSS-Protection "1; mode=block"
     Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net www.googletagmanager.com www.google-analytics.com *.googleapis.com *.gstatic.com unpkg.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com unpkg.com; font-src fonts.gstatic.com cdn.jsdelivr.net; img-src 'self' data: tile.openstreetmap.org *.tile.openstreetmap.org www.google-analytics.com *.googleapis.com *.gstatic.com maps.gstatic.com maps.googleapis.com www.google.com.pe google.com.pe unpkg.com; connect-src 'self' cdn.jsdelivr.net www.google-analytics.com analytics.google.com www.googletagmanager.com *.googleapis.com *.gstatic.com"
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net www.googletagmanager.com www.google-analytics.com *.googleapis.com *.gstatic.com unpkg.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com unpkg.com; font-src fonts.gstatic.com cdn.jsdelivr.net; img-src 'self' data: tile.openstreetmap.org *.tile.openstreetmap.org www.google-analytics.com *.googleapis.com *.gstatic.com maps.gstatic.com maps.googleapis.com www.google.com.pe google.com.pe unpkg.com; connect-src 'self' cdn.jsdelivr.net www.google-analytics.com analytics.google.com www.googletagmanager.com *.googleapis.com *.gstatic.com unpkg.com"
 </IfModule>
 
 # Prevent access to sensitive files
