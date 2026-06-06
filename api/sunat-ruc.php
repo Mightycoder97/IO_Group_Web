@@ -32,6 +32,11 @@ if (empty($ruc) || strlen($ruc) !== 11 || !ctype_digit($ruc)) {
 // Load .env if not already loaded
 $envFile = __DIR__ . '/../control/.env';
 if (file_exists($envFile)) {
+    if (!function_exists('str_starts_with')) {
+        function str_starts_with($haystack, $needle) {
+            return (string)$needle !== '' && strpos($haystack, $needle) === 0;
+        }
+    }
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         if (str_starts_with(trim($line), '#')) continue;
