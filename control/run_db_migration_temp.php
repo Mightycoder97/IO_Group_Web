@@ -11,7 +11,6 @@ ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=UTF-8');
-putenv("APP_DEBUG=true");
 
 $token = $_GET['token'] ?? '';
 $secret = 'io_group_migration_2026_secret_9988';
@@ -25,7 +24,7 @@ if ($token !== $secret) {
     exit();
 }
 
-require_once __DIR__ . "/api/config/database.php";
+require_once __DIR__ . "/api/config/config.php";
 
 $sql_file = __DIR__ . "/database/migrations/import_servicios_2026_lima_sur.sql";
 
@@ -39,8 +38,16 @@ if (!file_exists($sql_file)) {
 }
 
 try {
-    $db = Database::getInstance();
-    $pdo = $db->getConnection();
+    // Conexión directa con PDO para tener control total de los errores de conexión
+    $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+    $options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+    ];
+    
+    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
     
     // Iniciar transacción
     $pdo->beginTransaction();
@@ -87,7 +94,15 @@ try {
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Error de PDO durante la migración: " . $e->getMessage()
+        "message" => "Error de base de datos durante la migración: " . $e->getMessage(),
+        "connection_details" => [
+            "db_host" => DB_HOST,
+            "db_port" => DB_PORT,
+            "db_name" => DB_NAME,
+            "db_user" => DB_USER,
+            "env_loaded" => defined("ENV_LOADED") && ENV_LOADED,
+            "env_path" => defined("ENV_LOADED_PATH") ? ENV_LOADED_PATH : "not set"
+        ]
     ]);
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
