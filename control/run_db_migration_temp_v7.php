@@ -38,8 +38,16 @@ if (!file_exists($sql_file)) {
 }
 
 try {
+    // Fallback de credenciales por si falla la carga del archivo .env
+    $db_host = defined('DB_HOST') && DB_HOST !== '' ? DB_HOST : 'localhost';
+    $db_port = defined('DB_PORT') && DB_PORT !== '' ? DB_PORT : '3306';
+    $db_name = defined('DB_NAME') && DB_NAME !== '' ? DB_NAME : 'u511863531_IOGroupBD';
+    $db_user = defined('DB_USER') && DB_USER !== '' ? DB_USER : 'u511863531_Sebastian';
+    $db_pass = defined('DB_PASS') && DB_PASS !== '' ? DB_PASS : 'Sebas0920%';
+    $db_charset = defined('DB_CHARSET') && DB_CHARSET !== '' ? DB_CHARSET : 'utf8mb4';
+
     // Conexión directa con PDO
-    $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+    $dsn = "mysql:host=" . $db_host . ";port=" . $db_port . ";dbname=" . $db_name . ";charset=" . $db_charset;
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -47,7 +55,7 @@ try {
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
     ];
     
-    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    $pdo = new PDO($dsn, $db_user, $db_pass, $options);
     
     // 1. Limpieza de importaciones previas
     $pdo->exec("DELETE FROM Manifiesto WHERE id_servicio >= 50000");
