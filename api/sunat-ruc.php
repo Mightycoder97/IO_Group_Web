@@ -71,7 +71,7 @@ curl_setopt_array($ch, [
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $error = curl_error($ch);
-curl_close($ch);
+// curl_close() is deprecated since PHP 8.0, do not use
 
 // Handle cURL errors
 if ($error) {

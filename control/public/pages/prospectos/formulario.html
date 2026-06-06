@@ -556,9 +556,8 @@
         const rucWarning = document.getElementById('rucWarning');
         const rucWarningText = document.getElementById('rucWarningText');
         let rucCheckTimeout = null;
-        // Configuration for SUNAT API
-        // Get your free token at: https://apis.net.pe/
-        const APIS_TOKEN = 'sk_12866.VCQaSeG78qshfzt3EFgmgfEXO7PH4HEI'; // Ingrese aquí su token de ApisPeru
+        // Configuration for SUNAT API (via local proxy)
+        // Token is configured in environment variables and used by /api/sunat-ruc.php
         async function searchRuc() {
             const ruc = rucInput.value.trim();
             if (!ruc || ruc.length !== 11 || !/^\d{11}$/.test(ruc)) {
