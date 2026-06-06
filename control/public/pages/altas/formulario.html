@@ -339,15 +339,13 @@
 
                                     <!-- SEDE -->
                                     <h5 class="text-primary border-bottom pb-2">
-                                        <i class="bi bi-geo-alt"></i> Datos de
-                                        la Sede Operativa
+                                        <i class="bi bi-geo-alt"></i> Datos de la Sede Operativa
                                     </h5>
+                                    
                                     <div class="row g-3 mb-4">
+                                        <!-- Primera fila: Nombre y Buscador de Google -->
                                         <div class="col-md-6">
-                                            <label class="form-label"
-                                                >Nombre Comercial de Sede
-                                                *</label
-                                            >
+                                            <label class="form-label">Nombre Comercial de Sede *</label>
                                             <input
                                                 type="text"
                                                 class="form-control"
@@ -357,10 +355,7 @@
                                             />
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label"
-                                                ><i class="bi bi-search"></i>
-                                                Buscar Dirección</label
-                                            >
+                                            <label class="form-label"><i class="bi bi-search"></i> Buscar Dirección en Google Maps</label>
                                             <input
                                                 type="text"
                                                 class="form-control"
@@ -368,102 +363,60 @@
                                                 placeholder="Escriba para buscar una dirección en el mapa..."
                                             />
                                         </div>
+
+                                        <!-- Segunda fila: Dirección Operativa y Referencia -->
                                         <div class="col-md-6">
-                                            <label class="form-label"
-                                                >Dirección Operativa *</label
-                                            >
+                                            <label class="form-label">Dirección Operativa *</label>
                                             <input
                                                 type="text"
                                                 class="form-control"
                                                 id="sede_direccion"
                                                 required
-                                            />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label"
-                                                >Distrito</label
-                                            >
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                id="sede_distrito"
-                                            />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label"
-                                                >Provincia</label
-                                            >
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                id="sede_provincia"
-                                            />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label"
-                                                >Departamento</label
-                                            >
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                id="sede_departamento"
-                                            />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label"
-                                                >Contacto Sede</label
-                                            >
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                id="sede_contacto_nombre"
-                                            />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label"
-                                                >Teléfono de Contacto
-                                                Sede</label
-                                            >
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                id="sede_telefono"
-                                            />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label"
-                                                >Telefono Alterno</label
-                                            >
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                id="sede_telefono_2"
+                                                placeholder="Ingrese o seleccione la dirección"
                                             />
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label"
-                                                >Email Contacto</label
-                                            >
-                                            <input
-                                                type="email"
-                                                class="form-control"
-                                                id="sede_contacto_email"
-                                            />
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label"
-                                                >Referencia</label
-                                            >
+                                            <label class="form-label">Referencia</label>
                                             <input
                                                 type="text"
                                                 class="form-control"
                                                 id="sede_referencia"
+                                                placeholder="Ej. Frente al parque o color del local"
                                             />
                                         </div>
+
+                                        <!-- Tercera fila: Distrito, Provincia y Departamento -->
+                                        <div class="col-md-4">
+                                            <label class="form-label">Distrito</label>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_distrito"
+                                                placeholder="Distrito de la sede"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Provincia</label>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_provincia"
+                                                placeholder="Provincia de la sede"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Departamento</label>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_departamento"
+                                                placeholder="Departamento de la sede"
+                                            />
+                                        </div>
+
+                                        <!-- Ubicación en el Mapa -->
                                         <div class="col-12 mt-3">
-                                            <label class="form-label"
-                                                >Ubicación en el Mapa *</label
-                                            >
+                                            <label class="form-label">Ubicación en el Mapa *</label>
                                             <div id="map"></div>
                                             <input
                                                 type="hidden"
@@ -475,9 +428,52 @@
                                                 id="mapError"
                                                 style="display: none"
                                             >
-                                                Debe seleccionar una ubicación
-                                                en el mapa.
+                                                Debe seleccionar una ubicación en el mapa.
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- CONTACTO DE LA SEDE -->
+                                    <h6 class="text-secondary border-bottom pb-2 mt-4">
+                                        <i class="bi bi-person-badge"></i> Contacto de la Sede
+                                    </h6>
+                                    
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Contacto Sede</label>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_contacto_nombre"
+                                                placeholder="Nombre de la persona encargada"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Teléfono de Contacto Sede</label>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_telefono"
+                                                placeholder="Ej. 987654321"
+                                            />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Telefono Alterno</label>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="sede_telefono_2"
+                                                placeholder="Otro número de teléfono"
+                                            />
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label">Email Contacto</label>
+                                            <input
+                                                type="email"
+                                                class="form-control"
+                                                id="sede_contacto_email"
+                                                placeholder="correo@ejemplo.com"
+                                            />
                                         </div>
                                     </div>
 
@@ -1945,8 +1941,9 @@
                     if (place.address_components) {
                         let distrito = "";
                         let provincia = "";
+                        let departamento = "";
                         for (const comp of place.address_components) {
-                            if (comp.types.includes("locality")) {
+                            if (comp.types.includes("locality") || comp.types.includes("administrative_area_level_3")) {
                                 distrito = comp.long_name;
                             }
                             if (
@@ -1955,6 +1952,13 @@
                                 )
                             ) {
                                 provincia = comp.long_name;
+                            }
+                            if (
+                                comp.types.includes(
+                                    "administrative_area_level_1",
+                                )
+                            ) {
+                                departamento = comp.long_name;
                             }
                             // Fallback: sublocality for distrito
                             if (
@@ -1970,6 +1974,9 @@
                         if (provincia)
                             document.getElementById("sede_provincia").value =
                                 provincia;
+                        if (departamento)
+                            document.getElementById("sede_departamento").value =
+                                departamento;
                     }
                 });
             }

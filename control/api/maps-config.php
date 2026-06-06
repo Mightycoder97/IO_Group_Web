@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 /**
  * Public browser Maps configuration for authenticated screens.
  * Google Maps browser keys are public by design; restrict the key by HTTP referrer in Google Cloud.
