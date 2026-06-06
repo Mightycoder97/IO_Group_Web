@@ -318,60 +318,102 @@
         let MapClass, MarkerClass, AutocompleteClass;
         let currentData = null;
 
-        // Google Maps Bootstrap Loader
-        (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
-            key: API_CONFIG.GOOGLE_MAPS_API_KEY,
-            v: "weekly",
-            language: "es",
-            region: "PE"
-        });
+        async function resolveGoogleMapsKey() {
+            window.API_CONFIG = window.API_CONFIG || {};
+            const configuredKey = String(window.API_CONFIG.GOOGLE_MAPS_API_KEY || '').trim();
+            if (configuredKey && !configuredKey.includes('YOUR_GOOGLE_MAPS_API_KEY')) {
+                return configuredKey;
+            }
+
+            try {
+                const result = await api.get('/maps-config', { cache: false });
+                const serverKey = String(result?.data?.googleMapsApiKey || '').trim();
+                if (serverKey) {
+                    window.API_CONFIG.GOOGLE_MAPS_API_KEY = serverKey;
+                }
+                return serverKey;
+            } catch (error) {
+                console.warn('No se pudo resolver Google Maps API key desde el servidor', error);
+                return '';
+            }
+        }
+
+        function loadGoogleMapsApi(key) {
+            if (window.google?.maps?.importLibrary) return Promise.resolve();
+            if (window.__googleMapsLoadingPromise) return window.__googleMapsLoadingPromise;
+
+            window.__googleMapsLoadingPromise = new Promise((resolve, reject) => {
+                (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = () => { f(); resolve(); }; a.onerror = () => { h = n(Error(p + " could not load.")); reject(Error(p + " could not load.")); }; a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
+                    key: key,
+                    v: "weekly",
+                    language: "es",
+                    region: "PE"
+                });
+
+                google.maps.importLibrary("maps").catch(reject);
+            });
+
+            return window.__googleMapsLoadingPromise;
+        }
 
         // Initialize Google Maps
         async function initMap(lat = -12.0464, lng = -77.0428) {
-            MapClass = (await google.maps.importLibrary("maps")).Map;
-            MarkerClass = (await google.maps.importLibrary("marker")).Marker;
-            AutocompleteClass = (await google.maps.importLibrary("places")).Autocomplete;
-
-            map = new MapClass(document.getElementById('map'), {
-                center: { lat, lng },
-                zoom: 15,
-                mapTypeControl: true,
-                streetViewControl: false,
-                fullscreenControl: true
-            });
-
-            marker = new MarkerClass({
-                position: { lat, lng },
-                map: map,
-                draggable: true,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 10,
-                    fillColor: '#1B5E20',
-                    fillOpacity: 1,
-                    strokeColor: '#fff',
-                    strokeWeight: 2
+            if (!window.google || !window.google.maps) {
+                console.error("Google Maps SDK not loaded");
+                const mapEl = document.getElementById('map');
+                if (mapEl) {
+                    mapEl.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">No se pudo cargar el mapa. Verifique la API Key de Google Maps.</div>';
                 }
-            });
+                return;
+            }
+            try {
+                MapClass = (await google.maps.importLibrary("maps")).Map;
+                MarkerClass = (await google.maps.importLibrary("marker")).Marker;
+                AutocompleteClass = (await google.maps.importLibrary("places")).Autocomplete;
 
-            marker.addListener('dragend', function () {
-                const pos = marker.getPosition();
-                document.getElementById('latitud').value = pos.lat().toFixed(6);
-                document.getElementById('longitud').value = pos.lng().toFixed(6);
-            });
+                map = new MapClass(document.getElementById('map'), {
+                    center: { lat, lng },
+                    zoom: 15,
+                    mapTypeControl: true,
+                    streetViewControl: false,
+                    fullscreenControl: true
+                });
 
-            map.addListener('click', function (e) {
-                marker.setPosition(e.latLng);
-                document.getElementById('latitud').value = e.latLng.lat().toFixed(6);
-                document.getElementById('longitud').value = e.latLng.lng().toFixed(6);
-            });
+                marker = new MarkerClass({
+                    position: { lat, lng },
+                    map: map,
+                    draggable: true,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: '#1B5E20',
+                        fillOpacity: 1,
+                        strokeColor: '#fff',
+                        strokeWeight: 2
+                    }
+                });
 
-            document.getElementById('latitud').value = lat.toFixed(6);
-            document.getElementById('longitud').value = lng.toFixed(6);
+                marker.addListener('dragend', function () {
+                    const pos = marker.getPosition();
+                    document.getElementById('latitud').value = pos.lat().toFixed(6);
+                    document.getElementById('longitud').value = pos.lng().toFixed(6);
+                });
 
-            // Initialize autocomplete if available
-            if (typeof initAutocomplete === 'function') {
-                initAutocomplete();
+                map.addListener('click', function (e) {
+                    marker.setPosition(e.latLng);
+                    document.getElementById('latitud').value = e.latLng.lat().toFixed(6);
+                    document.getElementById('longitud').value = e.latLng.lng().toFixed(6);
+                });
+
+                document.getElementById('latitud').value = lat.toFixed(6);
+                document.getElementById('longitud').value = lng.toFixed(6);
+
+                // Initialize autocomplete if available
+                if (typeof initAutocomplete === 'function') {
+                    initAutocomplete();
+                }
+            } catch (err) {
+                console.error('Error initializing map:', err);
             }
         }
         // Load data if editing
@@ -713,6 +755,7 @@
         });
         // Reverse geocode using Google Maps
         async function reverseGeocode(lat, lng) {
+            if (!window.google || !window.google.maps) return;
             const geocoder = new google.maps.Geocoder();
             geocoder.geocode({ location: { lat, lng } }, (results, status) => {
                 if (status === 'OK' && results[0]) {
@@ -728,8 +771,24 @@
                 }
             });
         }
-        // Initialize map when page loads
-        loadData();
+        
+        async function initGoogleMapsAndLoadData() {
+            try {
+                const key = await resolveGoogleMapsKey();
+                if (key) {
+                    await loadGoogleMapsApi(key);
+                } else {
+                    console.error('Google Maps API key could not be resolved');
+                }
+            } catch (err) {
+                console.error('Error loading Google Maps:', err);
+            } finally {
+                await loadData();
+            }
+        }
+
+        // Initialize page
+        initGoogleMapsAndLoadData();
     </script>
 </body>
 

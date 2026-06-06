@@ -1999,20 +1999,38 @@
                 }
             }
 
-            function loadGoogleMaps() {
+            async function resolveGoogleMapsKey() {
+                window.API_CONFIG = window.API_CONFIG || {};
+                const configuredKey = String(window.API_CONFIG.GOOGLE_MAPS_API_KEY || "").trim();
+                if (configuredKey && !configuredKey.includes("YOUR_GOOGLE_MAPS_API_KEY")) {
+                    return configuredKey;
+                }
+
                 try {
-                    if (
-                        typeof API_CONFIG !== "undefined" &&
-                        API_CONFIG.GOOGLE_MAPS_API_KEY
-                    ) {
+                    const result = await api.get("/maps-config", { cache: false });
+                    const serverKey = String(result?.data?.googleMapsApiKey || "").trim();
+                    if (serverKey) {
+                        window.API_CONFIG.GOOGLE_MAPS_API_KEY = serverKey;
+                    }
+                    return serverKey;
+                } catch (error) {
+                    console.warn("No se pudo resolver Google Maps API key desde el servidor", error);
+                    return "";
+                }
+            }
+
+            async function loadGoogleMaps() {
+                try {
+                    const key = await resolveGoogleMapsKey();
+                    if (key) {
                         const script = document.createElement("script");
-                        script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&callback=initMap&libraries=places,marker`;
+                        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&callback=initMap&libraries=places,marker`;
                         script.async = true;
                         script.defer = true;
                         document.head.appendChild(script);
                     } else {
                         console.error(
-                            "No Google Maps API Key found in API_CONFIG.",
+                            "No Google Maps API Key found in API_CONFIG or resolved from server.",
                         );
                     }
                 } catch (err) {

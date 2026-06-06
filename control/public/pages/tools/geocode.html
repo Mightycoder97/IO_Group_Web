@@ -183,6 +183,26 @@
             });
         }
 
+        async function resolveGoogleMapsKey() {
+            window.API_CONFIG = window.API_CONFIG || {};
+            const configuredKey = String(window.API_CONFIG.GOOGLE_MAPS_API_KEY || '').trim();
+            if (configuredKey && !configuredKey.includes('YOUR_GOOGLE_MAPS_API_KEY')) {
+                return configuredKey;
+            }
+
+            try {
+                const result = await api.get('/maps-config', { cache: false });
+                const serverKey = String(result?.data?.googleMapsApiKey || '').trim();
+                if (serverKey) {
+                    window.API_CONFIG.GOOGLE_MAPS_API_KEY = serverKey;
+                }
+                return serverKey;
+            } catch (error) {
+                console.warn('No se pudo resolver Google Maps API key desde el servidor', error);
+                return '';
+            }
+        }
+
         async function startGeocoding() {
             document.getElementById('btnStart').disabled = true;
             document.getElementById('btnStop').disabled = false;
@@ -196,17 +216,33 @@
             log('Cargando Google Maps API...', 'info');
 
             // Load Google Maps
-            await new Promise((resolve, reject) => {
-                if (window.google && window.google.maps) {
-                    resolve();
-                    return;
-                }
-                const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${API_CONFIG.GOOGLE_MAPS_API_KEY}&libraries=geocoding&language=es&region=PE`;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
+            try {
+                await new Promise(async (resolve, reject) => {
+                    if (window.google && window.google.maps) {
+                        resolve();
+                        return;
+                    }
+                    try {
+                        const key = await resolveGoogleMapsKey();
+                        if (!key) {
+                            reject(new Error('Google Maps API Key no configurada.'));
+                            return;
+                        }
+                        const script = document.createElement('script');
+                        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=geocoding&language=es&region=PE`;
+                        script.onload = resolve;
+                        script.onerror = () => reject(new Error('No se pudo descargar Google Maps.'));
+                        document.head.appendChild(script);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+            } catch (err) {
+                log('ERROR al cargar Google Maps: ' + err.message, 'err');
+                document.getElementById('btnStart').disabled = false;
+                document.getElementById('btnStop').disabled = true;
+                return;
+            }
 
             geocoder = new google.maps.Geocoder();
             log('Google Maps API cargado ✓', 'ok');
