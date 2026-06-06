@@ -23,15 +23,14 @@
         rel="stylesheet">
     <link href="../css/global.css?v=2.5" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
     <link href="../css/control.css?v=2.3" rel="stylesheet">
-    <!-- Dashboard styles now loaded from external control.css for better caching -->
 </head>
 
 <body class="control-app">
     <div class="app-container">
         <!-- Sidebar (populated dynamically) -->
         <aside class="sidebar" id="sidebar"></aside>
+        
         <!-- Main Content -->
         <main class="main-content">
             <nav class="top-nav">
@@ -65,13 +64,15 @@
                 </div>
             </nav>
 
-            <div class="content-area">
+            <div class="content-area is-loading">
                 <!-- Welcome Header -->
                 <div class="dashboard-header">
                     <div class="row align-items-center">
                         <div class="col-lg-5">
                             <div class="header-content">
-                                <div class="header-greeting" id="headerGreeting">Buenos días</div>
+                                <div class="header-greeting" id="headerGreeting">
+                                    <i class="bi bi-sun"></i> Buenos días
+                                </div>
                                 <h1 class="header-title" id="headerUserName">Bienvenido a IO Control</h1>
                                 <div class="header-date" id="headerDate">Cargando...</div>
                             </div>
@@ -104,10 +105,16 @@
                                 </div>
                                 <div class="header-stat">
                                     <div class="header-stat-value" id="headerServiciosMes">--</div>
+                                    <div class="loading-skeleton-wrap" style="width: 50px; height: 26px;">
+                                        <div class="skeleton-loader" style="width: 100%; height: 100%;"></div>
+                                    </div>
                                     <div class="header-stat-label">Servicios del Mes</div>
                                 </div>
                                 <div class="header-stat">
                                     <div class="header-stat-value" id="headerRutasMes">--</div>
+                                    <div class="loading-skeleton-wrap" style="width: 50px; height: 26px;">
+                                        <div class="skeleton-loader" style="width: 100%; height: 100%;"></div>
+                                    </div>
                                     <div class="header-stat-label">Rutas del Mes</div>
                                 </div>
                             </div>
@@ -117,6 +124,7 @@
 
                 <!-- KPI Cards -->
                 <div class="kpi-grid">
+                    <!-- Clientes Activos -->
                     <div class="kpi-card-premium primary">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper primary">
@@ -124,10 +132,19 @@
                             </div>
                         </div>
                         <div class="kpi-value" id="kpiSedesActivas">--</div>
-                        <div class="kpi-label">Clientes Activos</div>
-                        <div class="kpi-sublabel">Sedes registradas</div>
+                        <div class="loading-skeleton-wrap">
+                            <div class="skeleton-loader skeleton-value"></div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Clientes Activos</div>
+                            <div class="kpi-sublabel">Sedes registradas</div>
+                            <div class="loading-skeleton-wrap">
+                                <div class="skeleton-loader skeleton-text sm"></div>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Cobertura del Mes -->
                     <button type="button" class="kpi-card-premium kpi-card-button coverage-alert success"
                         onclick="openCoverageModal()">
                         <div class="kpi-header">
@@ -139,10 +156,19 @@
                             </span>
                         </div>
                         <div class="kpi-value" id="kpiPorcentajeServicio">--%</div>
-                        <div class="kpi-label">Cobertura del Mes</div>
-                        <div class="kpi-sublabel" id="kpiSedesServicio">-- de -- sedes</div>
+                        <div class="loading-skeleton-wrap">
+                            <div class="skeleton-loader skeleton-value"></div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Cobertura del Mes</div>
+                            <div class="kpi-sublabel" id="kpiSedesServicio">-- de -- sedes</div>
+                            <div class="loading-skeleton-wrap">
+                                <div class="skeleton-loader skeleton-text sm"></div>
+                            </div>
+                        </div>
                     </button>
 
+                    <!-- Ingresos del Mes -->
                     <div class="kpi-card-premium info">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper info">
@@ -150,10 +176,19 @@
                             </div>
                         </div>
                         <div class="kpi-value" id="kpiIngresosMes">S/ --</div>
-                        <div class="kpi-label">Ingresos del Mes</div>
-                        <div class="kpi-sublabel">Servicios pagados</div>
+                        <div class="loading-skeleton-wrap">
+                            <div class="skeleton-loader skeleton-value"></div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Ingresos del Mes</div>
+                            <div class="kpi-sublabel">Servicios cobrados</div>
+                            <div class="loading-skeleton-wrap">
+                                <div class="skeleton-loader skeleton-text sm"></div>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Empresas Pendientes -->
                     <div class="kpi-card-premium warning">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper warning">
@@ -161,10 +196,19 @@
                             </div>
                         </div>
                         <div class="kpi-value" id="kpiClientesPendientes">--</div>
-                        <div class="kpi-label">Empresas Pendientes</div>
-                        <div class="kpi-sublabel">Con pagos por cobrar</div>
+                        <div class="loading-skeleton-wrap">
+                            <div class="skeleton-loader skeleton-value"></div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Empresas Pendientes</div>
+                            <div class="kpi-sublabel">Con facturas por cobrar</div>
+                            <div class="loading-skeleton-wrap">
+                                <div class="skeleton-loader skeleton-text sm"></div>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Monto Pendiente -->
                     <div class="kpi-card-premium danger">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper danger">
@@ -172,23 +216,41 @@
                             </div>
                         </div>
                         <div class="kpi-value" id="kpiMontoPendiente">S/ --</div>
-                        <div class="kpi-label">Monto Pendiente</div>
-                        <div class="kpi-sublabel">Por cobrar</div>
+                        <div class="loading-skeleton-wrap">
+                            <div class="skeleton-loader skeleton-value"></div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Monto Pendiente</div>
+                            <div class="kpi-sublabel">Por cobrar total</div>
+                            <div class="loading-skeleton-wrap">
+                                <div class="skeleton-loader skeleton-text sm"></div>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Contratos Vencidos -->
                     <button type="button" class="kpi-card-premium kpi-card-button renewal-alert"
                         onclick="openRenewalsModal()">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper danger">
                                 <i class="bi bi-file-earmark-excel"></i>
                             </div>
-                            <span class="kpi-trend danger" id="kpiContratosVencidosBadge">Renovar</span>
+                            <span class="kpi-trend danger" id="kpiContratosVencidosBadge">Revisar</span>
                         </div>
                         <div class="kpi-value" id="kpiContratosVencidos">--</div>
-                        <div class="kpi-label">Contratos Vencidos</div>
-                        <div class="kpi-sublabel" id="kpiContratosVencidosSub">Necesitan renovacion</div>
+                        <div class="loading-skeleton-wrap">
+                            <div class="skeleton-loader skeleton-value"></div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Contratos Vencidos</div>
+                            <div class="kpi-sublabel" id="kpiContratosVencidosSub">Necesitan renovación</div>
+                            <div class="loading-skeleton-wrap">
+                                <div class="skeleton-loader skeleton-text sm"></div>
+                            </div>
+                        </div>
                     </button>
 
+                    <!-- Rutas del Mes -->
                     <div class="kpi-card-premium secondary">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper secondary">
@@ -196,8 +258,16 @@
                             </div>
                         </div>
                         <div class="kpi-value" id="kpiRutasMes">--</div>
-                        <div class="kpi-label">Rutas del Mes</div>
-                        <div class="kpi-sublabel">Programadas</div>
+                        <div class="loading-skeleton-wrap">
+                            <div class="skeleton-loader skeleton-value"></div>
+                        </div>
+                        <div>
+                            <div class="kpi-label">Rutas del Mes</div>
+                            <div class="kpi-sublabel">Programadas</div>
+                            <div class="loading-skeleton-wrap">
+                                <div class="skeleton-loader skeleton-text sm"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -264,6 +334,7 @@
         </main>
     </div>
 
+    <!-- Modals -->
     <div class="modal fade" id="coverageModal" tabindex="-1" aria-labelledby="coverageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
@@ -277,19 +348,19 @@
                 <div class="modal-body">
                     <div id="coverageEmpty" class="empty-renewals-state d-none">
                         <i class="bi bi-check2-circle"></i>
-                        <h6>La cobertura esta completa</h6>
+                        <h6>La cobertura está completa</h6>
                         <p>Todas las sedes activas tienen servicio registrado en el mes seleccionado.</p>
                     </div>
                     <div id="coverageTableWrap" class="table-responsive">
-                        <table class="table table-hover align-middle renewals-table">
+                        <table class="table align-middle renewals-table">
                             <thead>
                                 <tr>
                                     <th>Sede</th>
                                     <th>Empresa</th>
                                     <th>Distrito</th>
                                     <th>Contrato</th>
-                                    <th>Ultimo servicio</th>
-                                    <th class="text-end">Accion</th>
+                                    <th>Último servicio</th>
+                                    <th class="text-end">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="coverageTableBody"></tbody>
@@ -306,7 +377,7 @@
                 <div class="modal-header">
                     <div>
                         <h5 class="modal-title" id="renewalsModalLabel">Contratos vencidos por renovar</h5>
-                        <div class="modal-subtitle" id="renewalsModalSubtitle">Sedes que requieren renovacion</div>
+                        <div class="modal-subtitle" id="renewalsModalSubtitle">Sedes que requieren renovación</div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
@@ -314,10 +385,10 @@
                     <div id="renewalsEmpty" class="empty-renewals-state d-none">
                         <i class="bi bi-check2-circle"></i>
                         <h6>No hay contratos vencidos</h6>
-                        <p>Todo esta al dia por ahora.</p>
+                        <p>Todo está al día por ahora.</p>
                     </div>
                     <div id="renewalsTableWrap" class="table-responsive">
-                        <table class="table table-hover align-middle renewals-table">
+                        <table class="table align-middle renewals-table">
                             <thead>
                                 <tr>
                                     <th>Sede</th>
@@ -325,7 +396,7 @@
                                     <th>Contrato</th>
                                     <th>Vencimiento</th>
                                     <th>Condiciones</th>
-                                    <th class="text-end">Accion</th>
+                                    <th class="text-end">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="renewalsTableBody"></tbody>
@@ -352,10 +423,16 @@
         function setHeaderInfo() {
             const hour = new Date().getHours();
             let greeting = 'Buenas noches';
-            if (hour >= 5 && hour < 12) greeting = 'Buenos días';
-            else if (hour >= 12 && hour < 18) greeting = 'Buenas tardes';
+            let icon = 'bi-moon-stars';
+            if (hour >= 5 && hour < 12) {
+                greeting = 'Buenos días';
+                icon = 'bi-sun';
+            } else if (hour >= 12 && hour < 18) {
+                greeting = 'Buenas tardes';
+                icon = 'bi-brightness-high';
+            }
 
-            document.getElementById('headerGreeting').textContent = greeting;
+            document.getElementById('headerGreeting').innerHTML = `<i class="bi ${icon}"></i> ${greeting}`;
 
             const user = getUser();
             if (user) {
@@ -373,7 +450,18 @@
         document.getElementById('dashboardMonth').value = today.getMonth() + 1;
         document.getElementById('dashboardYear').value = today.getFullYear();
 
+        // Hook up to Realtime Sync from app.js
+        window.onRealtimeDataChange = async function(payload) {
+            console.log('Real-time updates detected. Gracefully reloading dashboard...');
+            await loadDashboard();
+        };
+
         async function loadDashboard() {
+            const container = document.querySelector('.content-area');
+            if (container) {
+                container.classList.add('is-loading');
+            }
+
             try {
                 const month = document.getElementById('dashboardMonth').value;
                 const year = document.getElementById('dashboardYear').value;
@@ -406,20 +494,24 @@
                     document.getElementById('kpiContratosVencidos').textContent = totalContratosVencidos;
                     document.getElementById('kpiContratosVencidosSub').textContent = totalContratosVencidos > 0
                         ? `${totalSedesVencidas} sedes por renovar`
-                        : 'Todo al dia';
+                        : 'Todo al día';
                     document.getElementById('kpiContratosVencidosBadge').textContent = totalContratosVencidos > 0
                         ? 'Revisar'
                         : 'OK';
 
-                    // Total servicios
-                    document.getElementById('totalServicios').textContent = data.servicios_mes || 0;
-
-                    // Charts
+                    // Update charts
                     renderFacturacionChart(data.facturacion_12_meses);
                     renderServiciosChart(data);
                 }
             } catch (err) {
                 console.error('Error loading dashboard:', err);
+            } finally {
+                if (container) {
+                    // Slight delay to allow charts rendering smoothly
+                    setTimeout(() => {
+                        container.classList.remove('is-loading');
+                    }, 250);
+                }
             }
         }
 
@@ -484,22 +576,24 @@
                 return `
                     <tr>
                         <td>
-                            <div class="fw-semibold">${escapeHtml(item.sede_nombre || '-')}</div>
+                            <div class="fw-semibold text-dark">${escapeHtml(item.sede_nombre || '-')}</div>
                             <div class="text-muted small">${escapeHtml(item.sede_direccion || '')}</div>
                         </td>
                         <td>
-                            <div>${escapeHtml(item.empresa_razon_social || '-')}</div>
+                            <div class="fw-medium">${escapeHtml(item.empresa_razon_social || '-')}</div>
                             <div class="text-muted small">RUC ${escapeHtml(item.empresa_ruc || '-')}</div>
                         </td>
-                        <td>${escapeHtml(ubicacion || '-')}</td>
+                        <td><span class="badge bg-light text-secondary border">${escapeHtml(ubicacion || '-')}</span></td>
                         <td>
-                            <div>${contrato}</div>
+                            <div class="fw-semibold text-success">${contrato}</div>
                             <div class="text-muted small">${tipoTarifa}</div>
                         </td>
-                        <td>${item.ultimo_servicio_fecha ? formatDateDashboard(item.ultimo_servicio_fecha) : 'Sin registros'}</td>
+                        <td>
+                            <div class="fw-medium">${item.ultimo_servicio_fecha ? formatDateDashboard(item.ultimo_servicio_fecha) : 'Sin registros'}</div>
+                        </td>
                         <td class="text-end">
-                            <a class="btn btn-sm btn-outline-success" href="${routeUrl}">
-                                <i class="bi bi-truck"></i> Asignar Ruta
+                            <a class="btn btn-sm btn-outline-success rounded-pill px-3" href="${routeUrl}">
+                                <i class="bi bi-truck me-1"></i> Asignar Ruta
                             </a>
                         </td>
                     </tr>
@@ -521,8 +615,8 @@
             const total = dashboardContratosVencidos.length;
 
             subtitle.textContent = total === 1
-                ? '1 sede requiere renovacion'
-                : `${total} sedes requieren renovacion`;
+                ? '1 sede requiere renovación'
+                : `${total} sedes requieren renovación`;
 
             if (total === 0) {
                 tbody.innerHTML = '';
@@ -540,28 +634,28 @@
                 return `
                     <tr>
                         <td>
-                            <div class="fw-semibold">${escapeHtml(item.sede_nombre || '-')}</div>
+                            <div class="fw-semibold text-dark">${escapeHtml(item.sede_nombre || '-')}</div>
                             <div class="text-muted small">${escapeHtml([item.sede_distrito, item.sede_provincia].filter(Boolean).join(', '))}</div>
                         </td>
                         <td>
-                            <div>${escapeHtml(item.empresa_razon_social || '-')}</div>
+                            <div class="fw-medium">${escapeHtml(item.empresa_razon_social || '-')}</div>
                             <div class="text-muted small">RUC ${escapeHtml(item.empresa_ruc || '-')}</div>
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark">#${item.id_contrato}</span>
+                            <span class="badge bg-light text-dark border">#${item.id_contrato}</span>
                         </td>
                         <td>
-                            <div class="text-danger fw-semibold">${formatDateDashboard(item.fecha_fin)}</div>
-                            <div class="text-muted small">${item.dias_vencido || 0} dias vencido</div>
+                            <div class="text-danger fw-bold">${formatDateDashboard(item.fecha_fin)}</div>
+                            <div class="text-danger small fw-medium">${item.dias_vencido || 0} días vencido</div>
                         </td>
                         <td>
-                            <div>${escapeHtml(item.frecuencia || '-')} · ${formatMoney(item.tarifa)}</div>
+                            <div class="fw-semibold">${escapeHtml(item.frecuencia || '-')} · ${formatMoney(item.tarifa)}</div>
                             <div class="text-muted small">${escapeHtml(item.tipo_tarifa || '-')}</div>
                         </td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-success"
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3"
                                 onclick="renewContractFromDashboard(${item.id_contrato}, this)">
-                                <i class="bi ${buttonIcon}"></i> ${buttonText}
+                                <i class="bi ${buttonIcon} me-1"></i> ${buttonText}
                             </button>
                         </td>
                     </tr>
@@ -582,9 +676,9 @@
                     window.location.href = `${getBasePath()}/pages/altas/formulario.html?id=${result.id_proceso}&modo=renovacion`;
                     return;
                 }
-                showToast(result.message || 'No se pudo iniciar la renovacion', 'danger');
+                showToast(result.message || 'No se pudo iniciar la renovación', 'danger');
             } catch (err) {
-                showToast('Error iniciando renovacion', 'danger');
+                showToast('Error iniciando renovación', 'danger');
             } finally {
                 if (btn) {
                     btn.innerHTML = originalHtml;
@@ -606,8 +700,8 @@
 
             // Gradient
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(22, 101, 52, 0.8)');
-            gradient.addColorStop(1, 'rgba(34, 197, 94, 0.4)');
+            gradient.addColorStop(0, 'rgba(22, 101, 52, 0.85)');
+            gradient.addColorStop(1, 'rgba(34, 197, 94, 0.15)');
 
             facturaChart = new Chart(ctx, {
                 type: 'bar',
@@ -619,22 +713,29 @@
                         backgroundColor: gradient,
                         borderColor: 'rgba(22, 101, 52, 1)',
                         borderWidth: 0,
-                        borderRadius: 8,
+                        borderRadius: 6,
                         borderSkipped: false,
+                        hoverBackgroundColor: 'rgba(22, 101, 52, 1)',
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                            titleFont: { size: 13, weight: '600' },
-                            bodyFont: { size: 12 },
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleFont: { size: 12, weight: '700', family: 'Inter' },
+                            bodyFont: { size: 12, family: 'Inter' },
                             padding: 12,
-                            cornerRadius: 8,
+                            cornerRadius: 10,
                             displayColors: false,
+                            borderWidth: 1,
+                            borderColor: 'rgba(255,255,255,0.1)',
                             callbacks: {
                                 label: (ctx) => 'S/ ' + ctx.raw.toLocaleString('es-PE', { minimumFractionDigits: 2 })
                             }
@@ -644,19 +745,19 @@
                         y: {
                             beginAtZero: true,
                             grid: {
-                                color: 'rgba(0,0,0,0.04)',
+                                color: 'rgba(226, 232, 240, 0.4)',
                                 drawBorder: false
                             },
                             ticks: {
-                                font: { size: 11 },
+                                font: { size: 10, family: 'Inter', weight: '600' },
                                 color: '#64748b',
-                                callback: (value) => 'S/ ' + value.toLocaleString()
+                                callback: (value) => 'S/ ' + value.toLocaleString('es-PE', { maximumFractionDigits: 0 })
                             }
                         },
                         x: {
                             grid: { display: false },
                             ticks: {
-                                font: { size: 11 },
+                                font: { size: 10, family: 'Inter', weight: '600' },
                                 color: '#64748b'
                             }
                         }
@@ -668,13 +769,10 @@
         function renderServiciosChart(data) {
             const ctx = document.getElementById('chartServicios').getContext('2d');
 
-            // Use real data from API
-            // Fallback to simulated logic only if API doesn't return breakdown (for backward compat)
             let completados = data.servicios_completados;
             let programados = data.servicios_programados;
             let enCurso = data.servicios_en_curso;
 
-            // If data is missing (old API response), use simulation
             if (completados === undefined) {
                 const total = data.servicios_mes || 0;
                 programados = Math.round(total * 0.3);
@@ -682,7 +780,6 @@
                 completados = total - programados - enCurso;
             }
 
-            // Ensure non-negative
             completados = Math.max(0, completados);
             programados = Math.max(0, programados);
             enCurso = Math.max(0, enCurso);
@@ -690,6 +787,9 @@
             document.getElementById('serviciosCompletados').textContent = completados;
             document.getElementById('serviciosProgramados').textContent = programados;
             document.getElementById('serviciosEnCurso').textContent = enCurso;
+
+            const totalServicios = completados + programados + enCurso;
+            document.getElementById('totalServicios').textContent = totalServicios;
 
             if (serviciosChart) serviciosChart.destroy();
 
@@ -699,9 +799,11 @@
                     labels: ['Completados', 'Programados', 'En Curso'],
                     datasets: [{
                         data: [completados, programados, enCurso],
-                        backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b'],
+                        backgroundColor: ['#10B981', '#3B82F6', '#F59E0B'],
                         borderWidth: 0,
-                        cutout: '75%'
+                        borderRadius: 4,
+                        hoverOffset: 4,
+                        cutout: '76%'
                     }]
                 },
                 options: {
@@ -710,9 +812,27 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
                             padding: 12,
-                            cornerRadius: 8
+                            cornerRadius: 10,
+                            titleFont: { size: 12, weight: '700', family: 'Inter' },
+                            bodyFont: { size: 12, family: 'Inter' }
+                        }
+                    },
+                    onHover: (event, activeElements) => {
+                        const valueEl = document.getElementById('totalServicios');
+                        const labelEl = document.querySelector('.stats-ring-label');
+                        if (!valueEl || !labelEl) return;
+
+                        if (activeElements && activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const label = serviciosChart.data.labels[index];
+                            const value = serviciosChart.data.datasets[0].data[index];
+                            valueEl.textContent = value;
+                            labelEl.textContent = label;
+                        } else {
+                            valueEl.textContent = totalServicios;
+                            labelEl.textContent = 'Este Mes';
                         }
                     }
                 }
