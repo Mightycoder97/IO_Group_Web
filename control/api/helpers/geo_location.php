@@ -406,6 +406,9 @@ function geo_resolve_from_gps(?string $gps): ?array {
 
     $mapsConfig = @include __DIR__ . '/../config/maps.php';
     $apiKey = trim($mapsConfig['api_key'] ?? '');
+    if ($apiKey === '') {
+        $apiKey = trim(getenv('GOOGLE_MAPS_API_KEY') ?: '');
+    }
     if ($apiKey === '' || stripos($apiKey, 'YOUR_') !== false) return null;
 
     $payload = geo_google_reverse_geocode($coords['lat'], $coords['lng'], $apiKey);
