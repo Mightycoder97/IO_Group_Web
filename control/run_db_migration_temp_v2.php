@@ -51,6 +51,21 @@ if (is_dir(__DIR__)) {
     }
 }
 
+// Escaneo del directorio raíz de la web
+$files_in_root = [];
+$web_root = dirname(__DIR__); // /home/u511863531/domains/iogroup.pe/public_html
+if (is_dir($web_root)) {
+    if ($dh = opendir($web_root)) {
+        while (($file = readdir($dh)) !== false) {
+            if ($file !== '.' && $file !== '..') {
+                $fullpath = $web_root . '/' . $file;
+                $files_in_root[] = $file . " (" . (is_file($fullpath) ? "file" : "dir") . ", " . (is_readable($fullpath) ? "r" : "-") . ")";
+            }
+        }
+        closedir($dh);
+    }
+}
+
 try {
     // Conexión directa con PDO
     $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
@@ -96,7 +111,8 @@ try {
             "guias" => intval($guia_count),
             "facturas" => intval($fac_count)
         ],
-        "files_in_control" => $files_in_control
+        "files_in_control" => $files_in_control,
+        "files_in_root" => $files_in_root
     ]);
     
 } catch (PDOException $e) {
@@ -116,6 +132,7 @@ try {
             "env_loaded" => defined("ENV_LOADED") && ENV_LOADED,
             "env_path" => defined("ENV_LOADED_PATH") ? ENV_LOADED_PATH : "not set",
             "files_in_control" => $files_in_control,
+            "files_in_root" => $files_in_root,
             "dir_path" => __DIR__
         ]
     ]);
@@ -127,6 +144,7 @@ try {
     echo json_encode([
         "success" => false,
         "message" => "Error general: " . $e->getMessage(),
-        "files_in_control" => $files_in_control
+        "files_in_control" => $files_in_control,
+        "files_in_root" => $files_in_root
     ]);
 }
