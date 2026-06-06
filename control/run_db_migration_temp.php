@@ -91,6 +91,21 @@ try {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
+    
+    // Escaneo de archivos en el directorio control/ para depuración
+    $files_in_control = [];
+    if (is_dir(__DIR__)) {
+        if ($dh = opendir(__DIR__)) {
+            while (($file = readdir($dh)) !== false) {
+                if ($file !== '.' && $file !== '..') {
+                    $fullpath = __DIR__ . '/' . $file;
+                    $files_in_control[] = $file . " (" . (is_file($fullpath) ? "file" : "dir") . ", " . (is_readable($fullpath) ? "r" : "-") . ")";
+                }
+            }
+            closedir($dh);
+        }
+    }
+    
     http_response_code(500);
     echo json_encode([
         "success" => false,
@@ -101,7 +116,9 @@ try {
             "db_name" => DB_NAME,
             "db_user" => DB_USER,
             "env_loaded" => defined("ENV_LOADED") && ENV_LOADED,
-            "env_path" => defined("ENV_LOADED_PATH") ? ENV_LOADED_PATH : "not set"
+            "env_path" => defined("ENV_LOADED_PATH") ? ENV_LOADED_PATH : "not set",
+            "files_in_control" => $files_in_control,
+            "dir_path" => __DIR__
         ]
     ]);
 } catch (Exception $e) {
