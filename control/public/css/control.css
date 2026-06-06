@@ -254,8 +254,42 @@
 
 .chart-card,
 .quick-stats-card {
-    min-height: 380px;
+    min-height: 415px;
     padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.chart-header-premium {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.chart-meta {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #64748B;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.15rem;
+}
+
+.chart-meta i {
+    color: #166534;
+    font-size: 0.95rem;
+}
+
+.chart-total-value {
+    font-size: 2.15rem;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.03em;
+    line-height: 1;
 }
 
 .chart-header {

@@ -275,12 +275,12 @@
                 <div class="charts-grid">
                     <!-- Main Chart -->
                     <div class="chart-card">
-                        <div class="chart-header">
-                            <div class="chart-title">
+                        <div class="chart-header-premium">
+                            <div class="chart-meta">
                                 <i class="bi bi-graph-up-arrow"></i>
                                 Facturación Últimos 12 Meses
                             </div>
-                            <span class="chart-badge" id="totalAnual">S/ 0.00</span>
+                            <div class="chart-total-value" id="totalAnual">S/ 0.00</div>
                         </div>
                         <div class="chart-body">
                             <div class="chart-container">
@@ -687,35 +687,57 @@
             }
         }
 
+        function translateMonthLabel(label) {
+            if (!label) return '';
+            const months = {
+                'Jan': 'Ene', 'Feb': 'Feb', 'Mar': 'Mar', 'Apr': 'Abr', 'May': 'May', 'Jun': 'Jun',
+                'Jul': 'Jul', 'Aug': 'Ago', 'Sep': 'Set', 'Oct': 'Oct', 'Nov': 'Nov', 'Dec': 'Dic'
+            };
+            const parts = label.split(' ');
+            if (parts.length === 2) {
+                const engMonth = parts[0];
+                const spanMonth = months[engMonth] || engMonth;
+                return `${spanMonth} ${parts[1]}`;
+            }
+            return label;
+        }
+
         function renderFacturacionChart(facturacionData) {
             const ctx = document.getElementById('chartFacturacion').getContext('2d');
-            const labels = facturacionData.map(d => d.mes_label || d.mes);
+            const labels = facturacionData.map(d => translateMonthLabel(d.mes_label || d.mes));
             const valores = facturacionData.map(d => parseFloat(d.total));
             const total = valores.reduce((a, b) => a + b, 0);
 
             document.getElementById('totalAnual').textContent =
-                'Total: S/ ' + total.toLocaleString('es-PE', { minimumFractionDigits: 2 });
+                'S/ ' + total.toLocaleString('es-PE', { minimumFractionDigits: 2 });
 
             if (facturaChart) facturaChart.destroy();
 
-            // Gradient
-            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(22, 101, 52, 0.85)');
-            gradient.addColorStop(1, 'rgba(34, 197, 94, 0.15)');
+            // Gradient for line fill
+            const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+            gradient.addColorStop(0, 'rgba(22, 101, 52, 0.22)');
+            gradient.addColorStop(1, 'rgba(22, 101, 52, 0.00)');
 
             facturaChart = new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Facturación (S/)',
+                        label: 'Facturación',
                         data: valores,
+                        borderColor: '#166534',
+                        borderWidth: 3,
+                        tension: 0.38,
+                        fill: true,
                         backgroundColor: gradient,
-                        borderColor: 'rgba(22, 101, 52, 1)',
-                        borderWidth: 0,
-                        borderRadius: 6,
-                        borderSkipped: false,
-                        hoverBackgroundColor: 'rgba(22, 101, 52, 1)',
+                        pointBackgroundColor: '#166534',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: '#166534',
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 3,
                     }]
                 },
                 options: {
@@ -751,7 +773,11 @@
                             ticks: {
                                 font: { size: 10, family: 'Inter', weight: '600' },
                                 color: '#64748b',
-                                callback: (value) => 'S/ ' + value.toLocaleString('es-PE', { maximumFractionDigits: 0 })
+                                callback: (value) => {
+                                    if (value >= 1e6) return 'S/ ' + (value / 1e6).toFixed(0) + 'M';
+                                    if (value >= 1e3) return 'S/ ' + (value / 1e3).toFixed(0) + 'k';
+                                    return 'S/ ' + value;
+                                }
                             }
                         },
                         x: {
