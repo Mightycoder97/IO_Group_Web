@@ -78,7 +78,8 @@ function getDashboard() {
             "SELECT 
                 DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
                 DATE_FORMAT(s.fecha_ejecucion, '%b %Y') as mes_label,
-                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total
+                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total,
+                COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END), 0) as cobrado
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
