@@ -782,6 +782,53 @@
             font-weight: 700;
         }
 
+        /* Collapsible Month Groups */
+        details.month-group {
+            border-bottom: 1px solid #e0e0e0;
+            background: #fff;
+        }
+
+        details.month-group summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.month-group summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.65rem 0.85rem;
+            background: #f1f8e9;
+            color: #1b5e20;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            list-style: none; /* Hide standard marker */
+            user-select: none;
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.15s ease;
+        }
+
+        details.month-group summary:hover {
+            background: #e8f5e9;
+        }
+
+        details.month-group summary .icon-chevron {
+            transition: transform 0.2s ease;
+        }
+
+        details.month-group[open] summary .icon-chevron {
+            transform: rotate(180deg);
+        }
+
+        details.month-group .month-routes {
+            display: flex;
+            flex-direction: column;
+        }
+
+        details.month-group .month-routes .ruta-item:last-child {
+            border-bottom: none;
+        }
+
         /* Print */
         @media print {
 
@@ -1106,51 +1153,103 @@
                 return;
             }
 
-            el.innerHTML = data.map(r => {
-                const count = parseInt(r.sedes_count || 0);
-                const isSelected = r.id_ruta == currentRutaId;
-                const pendientesPago = parseInt(r.pendientes_pago || 0);
+            // Group routes by YYYY-MM
+            const groups = {};
+            data.forEach(r => {
+                if (!r.fecha) return;
+                const parts = r.fecha.split('-');
+                if (parts.length < 2) return;
+                const ym = `${parts[0]}-${parts[1]}`;
+                if (!groups[ym]) {
+                    groups[ym] = [];
+                }
+                groups[ym].push(r);
+            });
 
-                // Determine progress pill color based on route state
-                let pillClass = 'none', pillIcon = 'list';
-                if (r.estado === 'completada' || r.estado === 'procesada') { pillClass = 'done'; pillIcon = 'check-all'; }
-                else if (r.estado === 'en_curso') { pillClass = 'warn'; pillIcon = 'clock'; }
+            const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+            const MONTH_NAMES = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
 
-                // Pendiente de Liquidación badge - removed as payment statuses are handled only in Cobranzas page
-                const liquidacionBadge = '';
+            function getMonthLabel(ym) {
+                const parts = ym.split('-');
+                const year = parts[0];
+                const monthIdx = parseInt(parts[1], 10) - 1;
+                return `${MONTH_NAMES[monthIdx]} ${year}`;
+            }
 
-                // Document alerts
-                let docsAlert = '';
-                const missingDocs = [];
-                if (parseInt(r.faltan_manifiestos || 0) > 0) missingDocs.push('<span class="doc-badge-missing m" title="Falta Manifiesto">M</span>');
-                if (parseInt(r.faltan_guias || 0) > 0) missingDocs.push('<span class="doc-badge-missing g" title="Falta Guía de Remisión">G</span>');
-                if (parseInt(r.faltan_facturas || 0) > 0) missingDocs.push('<span class="doc-badge-missing f" title="Falta Factura">F</span>');
+            el.innerHTML = sortedKeys.map((ym, index) => {
+                const rutasInMonth = groups[ym];
+                const monthLabel = getMonthLabel(ym);
 
-                if (missingDocs.length > 0) {
-                    docsAlert = `
-                        <div class="ruta-meta d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
-                            <span class="text-muted"><i class="bi bi-file-earmark-arrow-up me-1"></i>Falta:</span>
-                            ${missingDocs.join(' ')}
-                        </div>
-                    `;
+                // Open by default if it contains the selected route, or if nothing is selected and it's the first month group
+                let isOpen = false;
+                if (currentRutaId) {
+                    isOpen = rutasInMonth.some(r => r.id_ruta == currentRutaId);
+                } else if (index === 0) {
+                    isOpen = true;
                 }
 
+                const routesHtml = rutasInMonth.map(r => {
+                    const count = parseInt(r.sedes_count || 0);
+                    const isSelected = r.id_ruta == currentRutaId;
+
+                    // Determine progress pill color based on route state
+                    let pillClass = 'none', pillIcon = 'list';
+                    if (r.estado === 'completada' || r.estado === 'procesada') { pillClass = 'done'; pillIcon = 'check-all'; }
+                    else if (r.estado === 'en_curso') { pillClass = 'warn'; pillIcon = 'clock'; }
+
+                    // Document alerts
+                    let docsAlert = '';
+                    const missingDocs = [];
+                    if (parseInt(r.faltan_manifiestos || 0) > 0) missingDocs.push('<span class="doc-badge-missing m" title="Falta Manifiesto">M</span>');
+                    if (parseInt(r.faltan_guias || 0) > 0) missingDocs.push('<span class="doc-badge-missing g" title="Falta Guía de Remisión">G</span>');
+                    if (parseInt(r.faltan_facturas || 0) > 0) missingDocs.push('<span class="doc-badge-missing f" title="Falta Factura">F</span>');
+
+                    if (missingDocs.length > 0) {
+                        docsAlert = `
+                            <div class="ruta-meta d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+                                <span class="text-muted"><i class="bi bi-file-earmark-arrow-up me-1"></i>Falta:</span>
+                                ${missingDocs.join(' ')}
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="ruta-item${isSelected ? ' active' : ''}" onclick="selectRuta(${r.id_ruta})" id="ritem-${r.id_ruta}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="ruta-fecha">${fmtDate(r.fecha)}</div>
+                                ${getEstadoBadge(r.estado)}
+                            </div>
+                            <div class="ruta-meta d-flex justify-content-between mt-1">
+                                <span><i class="bi bi-truck me-1"></i>${r.vehiculo_placa || '-'} ${r.vehiculo_marca ? '· ' + r.vehiculo_marca : ''}</span>
+                                <span class="prog-pill ${pillClass}">
+                                    <i class="bi bi-${pillIcon}"></i>${count} sedes
+                                </span>
+                            </div>
+                            ${r.chofer_nombre ? `<div class="ruta-meta" style="margin-top:2px;"><i class="bi bi-person me-1"></i>${r.chofer_nombre}</div>` : ''}
+                            ${docsAlert}
+                        </div>`;
+                }).join('');
+
                 return `
-            <div class="ruta-item${isSelected ? ' active' : ''}" onclick="selectRuta(${r.id_ruta})" id="ritem-${r.id_ruta}">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="ruta-fecha">${fmtDate(r.fecha)}</div>
-                    ${getEstadoBadge(r.estado)}
-                </div>
-                <div class="ruta-meta d-flex justify-content-between mt-1">
-                    <span><i class="bi bi-truck me-1"></i>${r.vehiculo_placa || '-'} ${r.vehiculo_marca ? '· ' + r.vehiculo_marca : ''}</span>
-                    <span class="prog-pill ${pillClass}">
-                        <i class="bi bi-${pillIcon}"></i>${count} sedes
-                    </span>
-                </div>
-                ${r.chofer_nombre ? `<div class="ruta-meta" style="margin-top:2px;"><i class="bi bi-person me-1"></i>${r.chofer_nombre}</div>` : ''}
-                ${docsAlert}
-                ${liquidacionBadge}
-            </div>`;
+                    <details class="month-group" ${isOpen ? 'open' : ''} id="group-${ym}">
+                        <summary class="month-header">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-calendar3 text-success" style="font-size: 0.9rem;"></i>
+                                <span class="month-title">${monthLabel}</span>
+                            </span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">${rutasInMonth.length} rutas</span>
+                                <i class="bi bi-chevron-down text-muted icon-chevron" style="font-size: 0.75rem;"></i>
+                            </div>
+                        </summary>
+                        <div class="month-routes">
+                            ${routesHtml}
+                        </div>
+                    </details>
+                `;
             }).join('');
         }
 
@@ -1217,7 +1316,14 @@
             // Highlight selected item
             document.querySelectorAll('.ruta-item').forEach(el => el.classList.remove('active'));
             const selected = document.getElementById(`ritem-${id}`);
-            if (selected) selected.classList.add('active');
+            if (selected) {
+                selected.classList.add('active');
+                // Ensure parent month group details element is expanded
+                const parentGroup = selected.closest('.month-group');
+                if (parentGroup) {
+                    parentGroup.open = true;
+                }
+            }
 
             // Show loading state
             document.getElementById('detailTitle').textContent = 'Cargando...';

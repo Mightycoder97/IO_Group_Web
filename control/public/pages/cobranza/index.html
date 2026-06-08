@@ -510,13 +510,14 @@
 
             // Group by Ruta
             const groups = data.reduce((acc, item) => {
-                const key = item.id_ruta || 'sin_ruta';
+                // Si no tiene ruta, agrupar por mes y año para evitar una sola tarjeta masiva
+                const key = item.id_ruta || ('sin_ruta_' + (item.fecha_servicio ? item.fecha_servicio.substring(0, 7) : 'sin_fecha'));
                 
                 if (!acc[key]) {
                     acc[key] = { 
                         id_ruta: item.id_ruta, 
                         fecha_ruta: item.fecha_ruta || item.fecha_servicio, 
-                        placa: item.vehiculo_placa,
+                        placa: item.vehiculo_placa, 
                         distritos: new Set(),
                         items: [], 
                         total: 0,
