@@ -156,6 +156,32 @@ function getDashboard() {
         );
         $rutasMes = $rutasMesResult ? $rutasMesResult['count'] : 0;
         $contratosVencidosRenovacion = getContratosVencidosRenovacion();
+
+        // Consultas de depuración para auditar los montos y meses reales
+        $debugServices = db()->query(
+            "SELECT s.id_servicio, s.id_sede, se.nombre_comercial, s.fecha_ejecucion, s.monto_cobrado, cs.tarifa
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE s.fecha_ejecucion >= '2026-01-01' AND s.fecha_ejecucion <= '2026-01-31'
+               AND s.estado = 'completado'
+             ORDER BY COALESCE(s.monto_cobrado, cs.tarifa) DESC
+             LIMIT 15"
+        );
+
+        $debugMonths = db()->query(
+            "SELECT 
+                DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
+                COUNT(*) as cantidad_servicios,
+                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total_facturado
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE s.estado = 'completado'
+             GROUP BY DATE_FORMAT(s.fecha_ejecucion, '%Y-%m')
+             ORDER BY mes DESC
+             LIMIT 12"
+        );
         
         echo json_encode([
             'success' => true,
@@ -182,6 +208,10 @@ function getDashboard() {
                 'rutas_mes' => intval($rutasMes),
                 'contratos_vencidos_renovacion' => count($contratosVencidosRenovacion),
                 'contratos_vencidos_renovacion_lista' => $contratosVencidosRenovacion
+            ],
+            'debug_info' => [
+                'top_services_january' => $debugServices ?: [],
+                'billing_by_month' => $debugMonths ?: []
             ]
         ]);
     } catch (Exception $e) {
