@@ -209,7 +209,8 @@
                     </div>
 
                     <!-- Monto Pendiente -->
-                    <div class="kpi-card-premium danger">
+                    <button type="button" class="kpi-card-premium kpi-card-button danger renewal-alert"
+                        onclick="openPendingServicesModal()">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper danger">
                                 <i class="bi bi-wallet2"></i>
@@ -220,13 +221,13 @@
                             <div class="skeleton-loader skeleton-value"></div>
                         </div>
                         <div>
-                            <div class="kpi-label">Monto Pendiente</div>
-                            <div class="kpi-sublabel">Por cobrar total</div>
+                            <div class="kpi-label">Monto Pendiente <span id="kpiMontoPendientePeriod">del Mes</span></div>
+                            <div class="kpi-sublabel" id="kpiMontoPendienteTotal">Monto total por cobrar: S/ --</div>
                             <div class="loading-skeleton-wrap">
                                 <div class="skeleton-loader skeleton-text sm"></div>
                             </div>
                         </div>
-                    </div>
+                    </button>
 
                     <!-- Contratos Vencidos -->
                     <button type="button" class="kpi-card-premium kpi-card-button renewal-alert"
@@ -278,7 +279,7 @@
                         <div class="chart-header-premium">
                             <div class="chart-meta">
                                 <i class="bi bi-wallet2"></i>
-                                Ingresos por Servicios (Últimos 12 Meses)
+                                Ingresos por Servicios (<span id="facturacionChartPeriod">Año Seleccionado</span>)
                             </div>
                             <div class="d-flex align-items-center gap-4 mt-2">
                                 <div>
@@ -416,6 +417,43 @@
         </div>
     </div>
 
+    <!-- Modal Servicios Pendientes de Pago -->
+    <div class="modal fade" id="pendingServicesModal" tabindex="-1" aria-labelledby="pendingServicesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="pendingServicesModalLabel">Servicios pendientes de pago</h5>
+                        <div class="modal-subtitle" id="pendingServicesModalSubtitle">Todos los servicios completados sin pago registrado</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="pendingServicesEmpty" class="empty-renewals-state d-none">
+                        <i class="bi bi-check2-circle"></i>
+                        <h6>No hay facturas/servicios pendientes</h6>
+                        <p>Todos los servicios completados han sido pagados.</p>
+                    </div>
+                    <div id="pendingServicesTableWrap" class="table-responsive">
+                        <table class="table align-middle renewals-table">
+                            <thead>
+                                <tr>
+                                    <th>Sede</th>
+                                    <th>Empresa</th>
+                                    <th>Fecha de Ejecución</th>
+                                    <th>Monto Pendiente</th>
+                                    <th>Estado de Pago</th>
+                                    <th class="text-end">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingServicesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/app.js?v=2.5"></script>
@@ -427,6 +465,7 @@
         let serviciosChart = null;
         let dashboardSedesSinServicio = [];
         let dashboardContratosVencidos = [];
+        let dashboardServiciosPendientes = [];
 
         // Set greeting and date
         function setHeaderInfo() {
@@ -494,8 +533,19 @@
                     document.getElementById('kpiIngresosMes').textContent =
                         'S/ ' + (data.ingresos_mes || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
                     document.getElementById('kpiClientesPendientes').textContent = data.empresas_pendientes;
+                    
+                    // Monto pendiente del mes seleccionado y total por cobrar
+                    dashboardServiciosPendientes = data.servicios_pendientes_lista || [];
                     document.getElementById('kpiMontoPendiente').textContent =
-                        'S/ ' + (data.monto_pendiente || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
+                        'S/ ' + (data.monto_pendiente_mes || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
+                    
+                    const monthSelect = document.getElementById('dashboardMonth');
+                    const monthName = monthSelect.options[monthSelect.selectedIndex].text;
+                    document.getElementById('kpiMontoPendientePeriod').textContent = `de ${monthName} ${year}`;
+                    
+                    document.getElementById('kpiMontoPendienteTotal').textContent =
+                        'Monto total por cobrar: S/ ' + (data.monto_pendiente || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
+
                     document.getElementById('kpiRutasMes').textContent = data.rutas_mes || 0;
                     dashboardContratosVencidos = data.contratos_vencidos_renovacion_lista || [];
                     const totalContratosVencidos = data.contratos_vencidos_renovacion || dashboardContratosVencidos.length;
@@ -509,6 +559,10 @@
                         : 'OK';
 
                     // Update charts
+                    const periodSpan = document.getElementById('facturacionChartPeriod');
+                    if (periodSpan) {
+                        periodSpan.textContent = `Año ${year}`;
+                    }
                     renderFacturacionChart(data.facturacion_12_meses);
                     renderServiciosChart(data);
                 }
@@ -694,6 +748,61 @@
                     btn.disabled = false;
                 }
             }
+        }
+
+        function openPendingServicesModal() {
+            renderPendingServicesTable();
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('pendingServicesModal'));
+            modal.show();
+        }
+
+        function renderPendingServicesTable() {
+            const tbody = document.getElementById('pendingServicesTableBody');
+            const empty = document.getElementById('pendingServicesEmpty');
+            const tableWrap = document.getElementById('pendingServicesTableWrap');
+            const subtitle = document.getElementById('pendingServicesModalSubtitle');
+            const total = dashboardServiciosPendientes.length;
+
+            subtitle.textContent = total === 1
+                ? '1 servicio requiere pago'
+                : `${total} servicios requieren pago`;
+
+            if (total === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('d-none');
+                tableWrap.classList.add('d-none');
+                return;
+            }
+
+            empty.classList.add('d-none');
+            tableWrap.classList.remove('d-none');
+            tbody.innerHTML = dashboardServiciosPendientes.map(item => {
+                const cobrUrl = `${getBasePath()}/pages/cobranza/index.html`;
+                return `
+                    <tr>
+                        <td>
+                            <div class="fw-semibold text-dark">${escapeHtml(item.sede_nombre || '-')}</div>
+                        </td>
+                        <td>
+                            <div class="fw-medium">${escapeHtml(item.empresa_razon_social || '-')}</div>
+                        </td>
+                        <td>
+                            <div>${formatDateDashboard(item.fecha_ejecucion)}</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-danger">${formatMoney(item.monto_total)}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">${escapeHtml(item.estado_pago || 'pendiente')}</span>
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-danger rounded-pill px-3" href="${cobrUrl}">
+                                <i class="bi bi-cash me-1"></i> Cobrar
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function translateMonthLabel(label) {

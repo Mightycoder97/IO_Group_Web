@@ -72,9 +72,24 @@ function getDashboard() {
         // Porcentaje de sedes con servicio
         $porcentajeServicio = $sedesActivas > 0 ? round(($sedesConServicio / $sedesActivas) * 100, 1) : 0;
         
-        // Facturación últimos 12 meses (ending at selected date)
-        // Logic: Show 12 months up to the selected year/month
-        $facturacion12Meses = db()->query(
+        // Facturación del año seleccionado (Enero a Diciembre)
+        $mesesAnio = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthStr = str_pad($m, 2, '0', STR_PAD_LEFT);
+            $key = "$currentYear-$monthStr";
+            $dateObj = DateTime::createFromFormat('!m', $m);
+            $monthAbbr = $dateObj ? $dateObj->format('M') : '';
+            $mesLabel = "$monthAbbr $currentYear";
+            
+            $mesesAnio[$key] = [
+                'mes' => $key,
+                'mes_label' => $mesLabel,
+                'total' => 0.0,
+                'cobrado' => 0.0
+            ];
+        }
+
+        $facturacionQuery = db()->query(
             "SELECT 
                 DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
                 DATE_FORMAT(s.fecha_ejecucion, '%b %Y') as mes_label,
@@ -83,13 +98,26 @@ function getDashboard() {
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.fecha_ejecucion <= '$filterDateEnd' 
-             AND s.fecha_ejecucion >= DATE_SUB('$filterDateStart', INTERVAL 11 MONTH)
+             WHERE YEAR(s.fecha_ejecucion) = ?
              AND s.estado = 'completado'
              GROUP BY DATE_FORMAT(s.fecha_ejecucion, '%Y-%m')
-             ORDER BY mes ASC"
+             ORDER BY mes ASC",
+            [$currentYear]
         );
-        if (!$facturacion12Meses) $facturacion12Meses = [];
+
+        if ($facturacionQuery) {
+            foreach ($facturacionQuery as $row) {
+                $key = $row['mes'];
+                if (isset($mesesAnio[$key])) {
+                    $mesesAnio[$key]['total'] = floatval($row['total']);
+                    $mesesAnio[$key]['cobrado'] = floatval($row['cobrado']);
+                    if (!empty($row['mes_label'])) {
+                        $mesesAnio[$key]['mes_label'] = $row['mes_label'];
+                    }
+                }
+            }
+        }
+        $facturacion12Meses = array_values($mesesAnio);
         
         // Pagos pendientes - servicios completados con estado_pago pendiente
         // GLOBAL (All time) - usually user wants total pending regardless of month selected
@@ -106,6 +134,44 @@ function getDashboard() {
         );
         if (!$pagosPendientes) {
             $pagosPendientes = ['total_facturas' => 0, 'monto_total' => 0];
+        }
+
+        // Pagos pendientes del mes seleccionado
+        $pagosPendientesMes = db()->queryOne(
+            "SELECT 
+                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as monto_total
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE s.estado = 'completado'
+             AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
+             AND MONTH(s.fecha_ejecucion) = ?
+             AND YEAR(s.fecha_ejecucion) = ?",
+            [$currentMonth, $currentYear]
+        );
+        $montoPendienteMes = $pagosPendientesMes ? floatval($pagosPendientesMes['monto_total']) : 0.0;
+
+        // Lista de todos los servicios pendientes de pago (GLOBAL)
+        $serviciosPendientesLista = db()->query(
+            "SELECT 
+                s.id_servicio,
+                s.fecha_ejecucion,
+                s.estado_pago,
+                se.nombre_comercial as sede_nombre,
+                e.razon_social as empresa_razon_social,
+                COALESCE(s.monto_cobrado, cs.tarifa, 0) as monto_total
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE s.estado = 'completado'
+             AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
+             ORDER BY s.fecha_ejecucion DESC"
+        );
+        if (!$serviciosPendientesLista) $serviciosPendientesLista = [];
+        foreach ($serviciosPendientesLista as &$row) {
+            $row['id_servicio'] = intval($row['id_servicio']);
+            $row['monto_total'] = floatval($row['monto_total']);
         }
         
         // Empresas con pagos pendientes (GLOBAL)
@@ -200,7 +266,9 @@ function getDashboard() {
                 'facturacion_12_meses' => $facturacion12Meses,
                 'empresas_pendientes' => intval($empresasPendientes),
                 'monto_pendiente' => floatval($pagosPendientes['monto_total']),
+                'monto_pendiente_mes' => floatval($montoPendienteMes),
                 'facturas_pendientes' => intval($pagosPendientes['total_facturas']),
+                'servicios_pendientes_lista' => $serviciosPendientesLista,
                 'ingresos_mes' => floatval($ingresosMes),
                 'servicios_mes' => intval($serviciosMes),
                 'servicios_programados' => intval($serviciosBreakdown['programados']),
