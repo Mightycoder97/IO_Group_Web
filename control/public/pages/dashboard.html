@@ -583,8 +583,6 @@
                     document.getElementById('kpiMontoPendiente').textContent =
                         'S/ ' + (data.monto_pendiente_mes || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
                     
-                    const monthSelect = document.getElementById('dashboardMonth');
-                    const monthName = monthSelect.options[monthSelect.selectedIndex].text;
                     document.getElementById('kpiMontoPendientePeriod').textContent = `de ${monthName} ${year}`;
                     
                     document.getElementById('kpiMontoPendienteTotal').textContent =
