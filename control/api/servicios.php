@@ -275,29 +275,41 @@ function create() {
     
     $id_sede = $data['id_sede'] ?? null;
     $fecha_ejecucion = $data['fecha_ejecucion'] ?? null;
+    $id_ruta = $data['id_ruta'] ?? null;
     
     if (empty($id_sede)) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Sede es requerida']);
         return;
     }
-        $id_servicio = db()->insert(
-            "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, forma_pago, fecha_pago, residuo) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [
-                $data['id_sede'],
-                $data['id_ruta'] ?? null,
-                $data['id_planta'] ?? null,
-                $data['id_contrato'] ?? null,
-                $data['mes_servicio'] ?? null,
-                $data['fecha_ejecucion'] ?? null,
-                $data['estado'] ?? 'programado',
-                $data['estado_pago'] ?? 'pendiente',
-                $data['forma_pago'] ?? null,
-                $data['fecha_pago'] ?? null,
-                $data['residuo'] ?? null
-            ]
-        ); // Add employees if provided
+
+    // Sincronizar fecha_ejecucion con la ruta si se proporciona
+    if (!empty($id_ruta)) {
+        $ruta = db()->queryOne("SELECT fecha FROM Ruta WHERE id_ruta = ?", [$id_ruta]);
+        if ($ruta) {
+            $fecha_ejecucion = $ruta['fecha'];
+        }
+    }
+    
+    $mes_servicio = $data['mes_servicio'] ?? ($fecha_ejecucion ? substr($fecha_ejecucion, 0, 7) : null);
+
+    $id_servicio = db()->insert(
+        "INSERT INTO Servicio (id_sede, id_ruta, id_planta, id_contrato, mes_servicio, fecha_ejecucion, estado, estado_pago, forma_pago, fecha_pago, residuo) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+            $data['id_sede'],
+            $id_ruta,
+            $data['id_planta'] ?? null,
+            $data['id_contrato'] ?? null,
+            $mes_servicio,
+            $fecha_ejecucion,
+            $data['estado'] ?? 'programado',
+            $data['estado_pago'] ?? 'pendiente',
+            $data['forma_pago'] ?? null,
+            $data['fecha_pago'] ?? null,
+            $data['residuo'] ?? null
+        ]
+    ); // Add employees if provided
     if (!empty($data['empleados'])) {
         foreach ($data['empleados'] as $emp) {
             db()->execute(
@@ -342,6 +354,19 @@ function update($id) {
         echo json_encode(['success' => false, 'message' => 'Servicio no encontrado']);
         return;
     }
+
+    $id_ruta = array_key_exists('id_ruta', $data) ? $data['id_ruta'] : $existing['id_ruta'];
+    $fecha_ejecucion = $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion'];
+
+    // Sincronizar fecha_ejecucion con la ruta si se proporciona
+    if (!empty($id_ruta)) {
+        $ruta = db()->queryOne("SELECT fecha FROM Ruta WHERE id_ruta = ?", [$id_ruta]);
+        if ($ruta) {
+            $fecha_ejecucion = $ruta['fecha'];
+        }
+    }
+
+    $mes_servicio = $data['mes_servicio'] ?? ($fecha_ejecucion ? substr($fecha_ejecucion, 0, 7) : ($existing['mes_servicio'] ?? null));
     
     db()->execute(
         "UPDATE Servicio SET 
@@ -361,17 +386,17 @@ function update($id) {
         WHERE id_servicio = ?",
         [
             $data['id_sede'] ?? $existing['id_sede'],
-            array_key_exists('id_ruta', $data) ? $data['id_ruta'] : $existing['id_ruta'],
+            $id_ruta,
             $data['id_planta'] ?? $existing['id_planta'],
             $data['id_contrato'] ?? $existing['id_contrato'],
-            $data['fecha_ejecucion'] ?? $existing['fecha_ejecucion'],
+            $fecha_ejecucion,
             $data['estado'] ?? $existing['estado'],
             $data['estado_pago'] ?? $existing['estado_pago'],
             $data['forma_pago'] ?? $existing['forma_pago'],
             $data['fecha_pago'] ?? $existing['fecha_pago'],
             $data['residuo'] ?? $existing['residuo'],
             $data['observaciones'] ?? $existing['observaciones'] ?? null,
-            $data['mes_servicio'] ?? $existing['mes_servicio'],
+            $mes_servicio,
             $id
         ]
     );// Update employees if provided

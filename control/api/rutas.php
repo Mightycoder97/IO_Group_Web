@@ -365,6 +365,15 @@ function update($id) {
             $id
         ]
     );
+
+    // Si la fecha de la ruta cambia, actualizar en cascada la fecha de ejecución de los servicios asociados
+    if (isset($data['fecha']) && $data['fecha'] !== $existing['fecha']) {
+        $new_fecha = $data['fecha'];
+        db()->execute(
+            "UPDATE Servicio SET fecha_ejecucion = ?, mes_servicio = ? WHERE id_ruta = ?",
+            [$new_fecha, substr($new_fecha, 0, 7), $id]
+        );
+    }
     
     db()->execute(
         "INSERT INTO AuditLog (id_usuario, tabla_afectada, id_registro, accion, datos_anteriores, datos_nuevos) VALUES (?, 'Ruta', ?, 'UPDATE', ?, ?)",
