@@ -369,9 +369,29 @@ function getSedesSinServicioMes($fechaInicio, $fechaFinExclusiva) {
                       AND sv.fecha_ejecucion < ?
                       AND sv.estado IN ('completado', 'en_curso', 'programado')
                )
+               AND (
+                    cs.frecuencia IS NULL
+                    OR cs.frecuencia NOT IN ('bimestral', 'bimensual', 'trimestral', 'quincenal', 'semanal', 'diario', 'diaria', 'interdiario', 'eventual', 'por_llamada')
+                    OR cs.frecuencia = 'mensual'
+                    OR (cs.frecuencia IN ('bimestral', 'bimensual') AND PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM ?), EXTRACT(YEAR_MONTH FROM COALESCE(ult.ultimo_servicio_fecha, cs.fecha_inicio))) >= 2)
+                    OR (cs.frecuencia = 'trimestral' AND PERIOD_DIFF(EXTRACT(YEAR_MONTH FROM ?), EXTRACT(YEAR_MONTH FROM COALESCE(ult.ultimo_servicio_fecha, cs.fecha_inicio))) >= 3)
+                    OR (cs.frecuencia = 'quincenal' AND DATEDIFF(LEAST(CAST(? AS DATE), CURDATE()), COALESCE(ult.ultimo_servicio_fecha, cs.fecha_inicio)) >= 15)
+                    OR (cs.frecuencia = 'semanal' AND DATEDIFF(LEAST(CAST(? AS DATE), CURDATE()), COALESCE(ult.ultimo_servicio_fecha, cs.fecha_inicio)) >= 7)
+                    OR (cs.frecuencia IN ('diario', 'diaria') AND DATEDIFF(LEAST(CAST(? AS DATE), CURDATE()), COALESCE(ult.ultimo_servicio_fecha, cs.fecha_inicio)) >= 2)
+                    OR (cs.frecuencia = 'interdiario' AND DATEDIFF(LEAST(CAST(? AS DATE), CURDATE()), COALESCE(ult.ultimo_servicio_fecha, cs.fecha_inicio)) >= 3)
+               )
              ORDER BY e.razon_social ASC, s.nombre_comercial ASC";
 
-    $rows = db()->query($sql, [$fechaInicio, $fechaFinExclusiva]);
+    $rows = db()->query($sql, [
+        $fechaInicio,
+        $fechaFinExclusiva,
+        $fechaInicio,
+        $fechaInicio,
+        $fechaFinExclusiva,
+        $fechaFinExclusiva,
+        $fechaFinExclusiva,
+        $fechaFinExclusiva
+    ]);
     if (!$rows) return [];
 
     foreach ($rows as &$row) {
