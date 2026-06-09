@@ -169,7 +169,8 @@
                     </button>
 
                     <!-- Ingresos del Mes -->
-                    <div class="kpi-card-premium info">
+                    <button type="button" class="kpi-card-premium kpi-card-button info info-alert"
+                        onclick="openIncomeByDistrictModal()">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper info">
                                 <i class="bi bi-cash-coin"></i>
@@ -180,13 +181,13 @@
                             <div class="skeleton-loader skeleton-value"></div>
                         </div>
                         <div>
-                            <div class="kpi-label">Ingresos del Mes</div>
+                            <div class="kpi-label">Ingresos del Mes <span id="kpiIngresosMesPeriod">de ...</span></div>
                             <div class="kpi-sublabel">Servicios cobrados</div>
                             <div class="loading-skeleton-wrap">
                                 <div class="skeleton-loader skeleton-text sm"></div>
                             </div>
                         </div>
-                    </div>
+                    </button>
 
                     <!-- Empresas Pendientes -->
                     <div class="kpi-card-premium warning">
@@ -454,6 +455,40 @@
         </div>
     </div>
 
+    <!-- Modal Ingresos por Distrito -->
+    <div class="modal fade" id="incomeByDistrictModal" tabindex="-1" aria-labelledby="incomeByDistrictModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="incomeByDistrictModalLabel">Ingresos del Mes por Distrito</h5>
+                        <div class="modal-subtitle" id="incomeByDistrictModalSubtitle">Desglose de montos cobrados por ubicación geográfica</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="incomeByDistrictEmpty" class="empty-renewals-state d-none">
+                        <i class="bi bi-info-circle"></i>
+                        <h6>No hay ingresos registrados</h6>
+                        <p>No se encontraron cobros registrados en el mes seleccionado.</p>
+                    </div>
+                    <div id="incomeByDistrictTableWrap" class="table-responsive">
+                        <table class="table align-middle renewals-table">
+                            <thead>
+                                <tr>
+                                    <th>Distrito / Provincia</th>
+                                    <th class="text-center">Servicios Cobrados</th>
+                                    <th class="text-end">Monto Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incomeByDistrictTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/app.js?v=2.5"></script>
@@ -466,6 +501,7 @@
         let dashboardSedesSinServicio = [];
         let dashboardContratosVencidos = [];
         let dashboardServiciosPendientes = [];
+        let dashboardIngresosDistrito = [];
 
         // Set greeting and date
         function setHeaderInfo() {
@@ -530,8 +566,16 @@
                     const totalSedesSinServicio = data.sedes_sin_servicio ?? dashboardSedesSinServicio.length;
                     document.getElementById('kpiSedesServicio').textContent =
                         `${data.sedes_con_servicio} de ${data.sedes_activas} sedes - ${totalSedesSinServicio} pendientes`;
+                    
+                    // Ingresos del mes y por distrito
+                    dashboardIngresosDistrito = data.ingresos_distrito_lista || [];
                     document.getElementById('kpiIngresosMes').textContent =
                         'S/ ' + (data.ingresos_mes || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
+                    
+                    const monthSelect = document.getElementById('dashboardMonth');
+                    const monthName = monthSelect.options[monthSelect.selectedIndex].text;
+                    document.getElementById('kpiIngresosMesPeriod').textContent = `de ${monthName} ${year}`;
+
                     document.getElementById('kpiClientesPendientes').textContent = data.empresas_pendientes;
                     
                     // Monto pendiente del mes seleccionado y total por cobrar
@@ -799,6 +843,51 @@
                             <a class="btn btn-sm btn-outline-danger rounded-pill px-3" href="${cobrUrl}">
                                 <i class="bi bi-cash me-1"></i> Cobrar
                             </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openIncomeByDistrictModal() {
+            renderIncomeByDistrictTable();
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('incomeByDistrictModal'));
+            modal.show();
+        }
+
+        function renderIncomeByDistrictTable() {
+            const tbody = document.getElementById('incomeByDistrictTableBody');
+            const empty = document.getElementById('incomeByDistrictEmpty');
+            const tableWrap = document.getElementById('incomeByDistrictTableWrap');
+            const subtitle = document.getElementById('incomeByDistrictModalSubtitle');
+            const total = dashboardIngresosDistrito.length;
+
+            const monthSelect = document.getElementById('dashboardMonth');
+            const monthName = monthSelect.options[monthSelect.selectedIndex].text;
+            const year = document.getElementById('dashboardYear').value;
+            subtitle.textContent = `Distribución geográfica para ${monthName} ${year}`;
+
+            if (total === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('d-none');
+                tableWrap.classList.add('d-none');
+                return;
+            }
+
+            empty.classList.add('d-none');
+            tableWrap.classList.remove('d-none');
+            tbody.innerHTML = dashboardIngresosDistrito.map(item => {
+                return `
+                    <tr>
+                        <td>
+                            <div class="fw-semibold text-dark">${escapeHtml(item.distrito || '-')}</div>
+                            <div class="text-muted small">${escapeHtml(item.provincia || '')}</div>
+                        </td>
+                        <td class="text-center fw-medium">
+                            ${item.cantidad_servicios}
+                        </td>
+                        <td class="text-end fw-bold text-success">
+                            ${formatMoney(item.total)}
                         </td>
                     </tr>
                 `;

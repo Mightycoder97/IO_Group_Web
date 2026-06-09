@@ -51,18 +51,24 @@ function getDashboard() {
         $filterDateEnd = date("Y-m-t", strtotime($filterDateStart));
         $filterDateNext = date("Y-m-d", strtotime("$filterDateEnd +1 day"));
         
-        // Sedes activas
-        $sedesActivasResult = db()->queryOne("SELECT COUNT(*) as count FROM Sede WHERE activo = 1");
+        // Sedes activas (de empresas activas)
+        $sedesActivasResult = db()->queryOne(
+            "SELECT COUNT(*) as count 
+             FROM Sede s 
+             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa 
+             WHERE s.activo = 1 AND e.activo = 1"
+        );
         $sedesActivas = $sedesActivasResult ? $sedesActivasResult['count'] : 0;
         
-        // Sedes con servicio este mes (únicas) - usando fecha_ejecucion
+        // Sedes con servicio este mes (únicas) - usando fecha_ejecucion (de empresas y sedes activas)
         $sedesConServicioResult = db()->queryOne(
             "SELECT COUNT(DISTINCT s.id_sede) as count 
              FROM Servicio sv 
              INNER JOIN Sede s ON sv.id_sede = s.id_sede
+             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
              WHERE sv.fecha_ejecucion >= ?
              AND sv.fecha_ejecucion < ?
-             AND s.activo = 1
+             AND s.activo = 1 AND e.activo = 1
              AND sv.estado IN ('completado', 'en_curso', 'programado')",
             [$filterDateStart, $filterDateNext]
         );
@@ -191,12 +197,37 @@ function getDashboard() {
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE MONTH(s.fecha_ejecucion) = $currentMonth 
-             AND YEAR(s.fecha_ejecucion) = $currentYear
+             WHERE MONTH(s.fecha_ejecucion) = ? 
+             AND YEAR(s.fecha_ejecucion) = ?
              AND s.estado = 'completado'
-             AND s.estado_pago = 'pagado'"
+             AND s.estado_pago = 'pagado'",
+            [$currentMonth, $currentYear]
         );
-        $ingresosMes = $ingresosMesResult ? $ingresosMesResult['total'] : 0;
+        $ingresosMes = $ingresosMesResult ? floatval($ingresosMesResult['total']) : 0.0;
+
+        // Ingresos agrupados por distrito del mes seleccionado
+        $ingresosDistritoResult = db()->query(
+            "SELECT 
+                COALESCE(se.distrito, 'Sin Distrito') as distrito,
+                COALESCE(se.provincia, '') as provincia,
+                COUNT(DISTINCT s.id_servicio) as cantidad_servicios,
+                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE MONTH(s.fecha_ejecucion) = ? 
+             AND YEAR(s.fecha_ejecucion) = ?
+             AND s.estado = 'completado'
+             AND s.estado_pago = 'pagado'
+             GROUP BY se.distrito, se.provincia
+             ORDER BY total DESC",
+            [$currentMonth, $currentYear]
+        );
+        if (!$ingresosDistritoResult) $ingresosDistritoResult = [];
+        foreach ($ingresosDistritoResult as &$row) {
+            $row['cantidad_servicios'] = intval($row['cantidad_servicios']);
+            $row['total'] = floatval($row['total']);
+        }
         
         // Servicios este mes
         $serviciosMesResult = db()->queryOne(
@@ -270,6 +301,7 @@ function getDashboard() {
                 'facturas_pendientes' => intval($pagosPendientes['total_facturas']),
                 'servicios_pendientes_lista' => $serviciosPendientesLista,
                 'ingresos_mes' => floatval($ingresosMes),
+                'ingresos_distrito_lista' => $ingresosDistritoResult,
                 'servicios_mes' => intval($serviciosMes),
                 'servicios_programados' => intval($serviciosBreakdown['programados']),
                 'servicios_en_curso' => intval($serviciosBreakdown['en_curso']),
@@ -328,7 +360,7 @@ function getSedesSinServicioMes($fechaInicio, $fechaFinExclusiva) {
                 WHERE estado IN ('completado', 'en_curso', 'programado')
                 GROUP BY id_sede
              ) ult ON ult.id_sede = s.id_sede
-             WHERE s.activo = 1
+             WHERE s.activo = 1 AND e.activo = 1
                AND NOT EXISTS (
                     SELECT 1
                     FROM Servicio sv
@@ -385,6 +417,7 @@ function getContratosVencidosRenovacion() {
                 GROUP BY id_contrato_anterior
              ) rp ON rp.id_contrato_anterior = cs.id_contrato
              WHERE cs.activo = 1
+               AND s.activo = 1 AND e.activo = 1
                AND cs.fecha_fin IS NOT NULL
                AND cs.fecha_fin < CURDATE()
              ORDER BY cs.fecha_fin ASC, s.nombre_comercial ASC";
@@ -415,6 +448,7 @@ function getContratosVencidosRenovacion() {
              INNER JOIN Sede s ON cs.id_sede = s.id_sede
              INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
              WHERE cs.activo = 1
+               AND s.activo = 1 AND e.activo = 1
                AND cs.fecha_fin IS NOT NULL
                AND cs.fecha_fin < CURDATE()
              ORDER BY cs.fecha_fin ASC, s.nombre_comercial ASC"

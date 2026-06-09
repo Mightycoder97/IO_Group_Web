@@ -165,6 +165,11 @@
     box-shadow: 0 16px 36px -12px rgba(239, 68, 68, 0.15);
 }
 
+.kpi-card-button.info-alert:hover {
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 16px 36px -12px rgba(59, 130, 246, 0.15);
+}
+
 .kpi-header,
 .chart-header,
 .quick-stat-item {
