@@ -146,7 +146,7 @@
 
                     <!-- Cobertura del Mes -->
                     <button type="button" class="kpi-card-premium kpi-card-button coverage-alert success"
-                        onclick="openCoverageModal()">
+                        onclick="openCoverageModal(this)">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper success">
                                 <i class="bi bi-check-circle"></i>
@@ -170,7 +170,7 @@
 
                     <!-- Ingresos del Mes -->
                     <button type="button" class="kpi-card-premium kpi-card-button info info-alert"
-                        onclick="openIncomeByDistrictModal()">
+                        onclick="openIncomeByDistrictModal(this)">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper info">
                                 <i class="bi bi-cash-coin"></i>
@@ -211,7 +211,7 @@
 
                     <!-- Monto Pendiente -->
                     <button type="button" class="kpi-card-premium kpi-card-button danger renewal-alert"
-                        onclick="openPendingServicesModal()">
+                        onclick="openPendingServicesModal(this)">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper danger">
                                 <i class="bi bi-wallet2"></i>
@@ -232,7 +232,7 @@
 
                     <!-- Contratos Vencidos -->
                     <button type="button" class="kpi-card-premium kpi-card-button renewal-alert"
-                        onclick="openRenewalsModal()">
+                        onclick="openRenewalsModal(this)">
                         <div class="kpi-header">
                             <div class="kpi-icon-wrapper danger">
                                 <i class="bi bi-file-earmark-excel"></i>
@@ -473,7 +473,7 @@
                         <p>No se encontraron cobros registrados en el mes seleccionado.</p>
                     </div>
                     <div id="incomeByDistrictTableWrap" class="table-responsive">
-                        <table class="table align-middle renewals-table">
+                        <table class="table align-middle renewals-table no-min-width">
                             <thead>
                                 <tr>
                                     <th>Distrito / Provincia</th>
@@ -495,6 +495,26 @@
     <script>
         // Populate sidebar dynamically based on permissions
         bootControlPage('dashboard');
+
+        // Helper to configure Genie Modal animation dynamically
+        function setModalGenieOrigin(modalId, triggerElement) {
+            const modalEl = document.getElementById(modalId);
+            if (!modalEl || !triggerElement) return;
+            
+            const triggerRect = triggerElement.getBoundingClientRect();
+            const triggerX = triggerRect.left + triggerRect.width / 2;
+            const triggerY = triggerRect.top + triggerRect.height / 2;
+            
+            const viewportX = window.innerWidth / 2;
+            const viewportY = window.innerHeight / 2;
+            
+            const translateX = triggerX - viewportX;
+            const translateY = triggerY - viewportY;
+            
+            modalEl.style.setProperty('--origin-x', `${translateX}px`);
+            modalEl.style.setProperty('--origin-y', `${translateY}px`);
+            modalEl.classList.add('modal-genie');
+        }
 
         let facturaChart = null;
         let serviciosChart = null;
@@ -641,7 +661,8 @@
             return 'S/ ' + Number(value || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
         }
 
-        function openCoverageModal() {
+        function openCoverageModal(el) {
+            setModalGenieOrigin('coverageModal', el);
             renderCoverageTable();
             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('coverageModal'));
             modal.show();
@@ -706,7 +727,8 @@
             }).join('');
         }
 
-        function openRenewalsModal() {
+        function openRenewalsModal(el) {
+            setModalGenieOrigin('renewalsModal', el);
             renderRenewalsTable();
             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('renewalsModal'));
             modal.show();
@@ -792,7 +814,8 @@
             }
         }
 
-        function openPendingServicesModal() {
+        function openPendingServicesModal(el) {
+            setModalGenieOrigin('pendingServicesModal', el);
             renderPendingServicesTable();
             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('pendingServicesModal'));
             modal.show();
@@ -847,7 +870,8 @@
             }).join('');
         }
 
-        function openIncomeByDistrictModal() {
+        function openIncomeByDistrictModal(el) {
+            setModalGenieOrigin('incomeByDistrictModal', el);
             renderIncomeByDistrictTable();
             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('incomeByDistrictModal'));
             modal.show();

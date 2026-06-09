@@ -832,3 +832,21 @@
         height: 240px;
     }
 }
+
+/* Genie effect animation (macOS-like popup) */
+.modal.modal-genie.fade .modal-dialog {
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease-out, filter 0.35s ease-out;
+    transform: translate(var(--origin-x, 0px), var(--origin-y, 0px)) scaleX(0.01) scaleY(0.08) rotate(3deg);
+    opacity: 0;
+    filter: blur(8px);
+}
+
+.modal.modal-genie.show .modal-dialog {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0);
+}
+
+.renewals-table.no-min-width {
+    min-width: auto;
+}
