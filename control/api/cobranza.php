@@ -272,10 +272,10 @@ function getReporteDiario() {
     $pagos = db()->queryOne("
         SELECT 
             COUNT(*) as cantidad,
-            SUM(COALESCE(s.monto_cobrado, cs.tarifa)) as total,
-            SUM(CASE WHEN LOWER(s.forma_pago) = 'transferencia' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as transferencia,
-            SUM(CASE WHEN LOWER(s.forma_pago) IN ('yape', 'plin') THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as yape_plin,
-            SUM(CASE WHEN LOWER(s.forma_pago) = 'efectivo' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as efectivo
+            SUM(COALESCE(s.monto_cobrado, 0)) as total,
+            SUM(CASE WHEN LOWER(s.forma_pago) = 'transferencia' THEN COALESCE(s.monto_cobrado, 0) ELSE 0 END) as transferencia,
+            SUM(CASE WHEN LOWER(s.forma_pago) IN ('yape', 'plin') THEN COALESCE(s.monto_cobrado, 0) ELSE 0 END) as yape_plin,
+            SUM(CASE WHEN LOWER(s.forma_pago) = 'efectivo' THEN COALESCE(s.monto_cobrado, 0) ELSE 0 END) as efectivo
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato

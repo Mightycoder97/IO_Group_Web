@@ -99,8 +99,8 @@ function getDashboard() {
             "SELECT 
                 DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
                 DATE_FORMAT(s.fecha_ejecucion, '%b %Y') as mes_label,
-                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total,
-                COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END), 0) as cobrado
+                COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END), 0) as total,
+                COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE 0 END), 0) as cobrado
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
@@ -193,7 +193,7 @@ function getDashboard() {
         
         // Ingresos este mes seleccionado
         $ingresosMesResult = db()->queryOne(
-            "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total 
+            "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, 0)), 0) as total 
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
@@ -211,7 +211,7 @@ function getDashboard() {
                 COALESCE(se.distrito, 'Sin Distrito') as distrito,
                 COALESCE(se.provincia, '') as provincia,
                 COUNT(DISTINCT s.id_servicio) as cantidad_servicios,
-                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total
+                COALESCE(SUM(COALESCE(s.monto_cobrado, 0)), 0) as total
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
@@ -263,7 +263,7 @@ function getDashboard() {
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
              WHERE s.fecha_ejecucion >= '2026-01-01' AND s.fecha_ejecucion <= '2026-01-31'
                AND s.estado = 'completado'
-             ORDER BY COALESCE(s.monto_cobrado, cs.tarifa) DESC
+             ORDER BY CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END DESC
              LIMIT 15"
         );
 
@@ -271,7 +271,7 @@ function getDashboard() {
             "SELECT 
                 DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
                 COUNT(*) as cantidad_servicios,
-                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total_facturado
+                COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END), 0) as total_facturado
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
@@ -512,7 +512,7 @@ function getFacturacionReport() {
                 s.fecha_ejecucion, 
                 s.estado_pago,
                 e.razon_social as empresa_razon_social,
-                COALESCE(s.monto_cobrado, cs.tarifa, 0) as monto_total
+                CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END as monto_total
          FROM Factura f
          INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
          INNER JOIN Sede se ON s.id_sede = se.id_sede
@@ -528,9 +528,9 @@ function getFacturacionReport() {
     $totales = db()->queryOne(
         "SELECT 
             COUNT(*) as total_facturas,
-            COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as total_facturado,
-            COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END), 0) as total_cobrado,
-            COALESCE(SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END), 0) as total_pendiente
+            COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END), 0) as total_facturado,
+            COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE 0 END), 0) as total_cobrado,
+            COALESCE(SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END), 0) as total_pendiente
          FROM Factura f
          INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
          LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
