@@ -245,8 +245,9 @@ class RouteAssignmentMap {
   }
 
   static async resolveGoogleMapsKey() {
-    const configuredKey = String(
-      window.API_CONFIG?.GOOGLE_MAPS_API_KEY || "",
+    window.API_CONFIG = window.API_CONFIG || {};
+    let configuredKey = String(
+      window.API_CONFIG.GOOGLE_MAPS_API_KEY || "",
     ).trim();
     if (configuredKey && !configuredKey.includes("YOUR_GOOGLE_MAPS_API_KEY")) {
       return configuredKey;
@@ -254,6 +255,31 @@ class RouteAssignmentMap {
 
     if (window.__routeAssignmentGoogleMapsKey !== undefined) {
       return window.__routeAssignmentGoogleMapsKey;
+    }
+
+    // If running locally, try to load config.js dynamically first
+    const isLocal = window.location.hostname === "localhost" || 
+                    window.location.hostname === "127.0.0.1" || 
+                    window.location.hostname.startsWith("192.168.");
+    if (isLocal) {
+      try {
+        await new Promise((resolve) => {
+          const script = document.createElement("script");
+          script.src = "../../js/config.js";
+          script.onload = () => resolve();
+          script.onerror = () => resolve();
+          document.head.appendChild(script);
+        });
+        configuredKey = String(
+          window.API_CONFIG.GOOGLE_MAPS_API_KEY || "",
+        ).trim();
+        if (configuredKey && !configuredKey.includes("YOUR_GOOGLE_MAPS_API_KEY")) {
+          window.__routeAssignmentGoogleMapsKey = configuredKey;
+          return configuredKey;
+        }
+      } catch (e) {
+        // ignore
+      }
     }
 
     try {
@@ -264,7 +290,6 @@ class RouteAssignmentMap {
       const key = String(response?.data?.googleMapsApiKey || "").trim();
       window.__routeAssignmentGoogleMapsKey = key;
       if (key) {
-        window.API_CONFIG = window.API_CONFIG || {};
         window.API_CONFIG.GOOGLE_MAPS_API_KEY = key;
       }
       return key;
