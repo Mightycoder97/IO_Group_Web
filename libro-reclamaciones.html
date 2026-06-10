@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Libro de Reclamaciones Virtual de IO Group. Registra tu reclamo o queja de manera rápida y segura de acuerdo a ley.">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="IO Group">
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.iogroup.pe/libro-reclamaciones.html">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Libro de Reclamaciones | IO Group">
+    <meta property="og:description" content="Libro de Reclamaciones Virtual de IO Group. Registra tu reclamo o queja de manera rápida y segura.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_PE">
+    <meta property="og:url" content="https://www.iogroup.pe/libro-reclamaciones.html">
+    <meta property="og:site_name" content="IO Group">
+    <meta property="og:image" content="https://www.iogroup.pe/img/hero/hero-principal.jpg">
+    <title>Libro de Reclamaciones | IO Group - Gestión de Residuos Peligrosos</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="css/global.css" rel="stylesheet">
+    <!-- JSON-LD Structured Data for Breadcrumbs -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://www.iogroup.pe/"},
+            {"@type": "ListItem", "position": 2, "name": "Libro de Reclamaciones", "item": "https://www.iogroup.pe/libro-reclamaciones.html"}
+        ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="img/logos/logo-principal.png" alt="IO Group" width="120" height="18">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="nosotros">Nosotros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="servicios">Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="blog">Blog</a>
+                    </li>
+                </ul>
+                <a href="contacto" class="btn btn-primary ms-lg-3">
+                    <i class="fas fa-phone-alt me-2"></i>Contáctanos
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Page Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1>Libro de Reclamaciones</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Libro de Reclamaciones</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Form Section -->
+    <section class="section-padding reclamaciones-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="reclamaciones-intro text-center mb-5">
+                        <div class="intro-icon mb-3">
+                            <i class="fas fa-book-open fa-3x text-primary"></i>
+                        </div>
+                        <h2>Libro de Reclamaciones Virtual</h2>
+                        <p class="lead">Conforme a lo establecido en el Código de Protección y Defensa del Consumidor, nuestra empresa pone a su disposición este Libro de Reclamaciones Virtual.</p>
+                        <div class="info-alert d-inline-block p-3 rounded shadow-sm text-start" style="background-color: var(--accent-green-bg); border-left: 4px solid var(--accent-green);">
+                            <small class="d-block text-muted"><strong>Nota Informativa:</strong></small>
+                            <small class="text-dark">• <strong>Reclamo:</strong> Disconformidad relacionada a los productos expendidos o servicios prestados.</small><br>
+                            <small class="text-dark">• <strong>Queja:</strong> Disconformidad no relacionada a los productos o servicios, sino al malestar o descontento respecto a la atención al público.</small>
+                        </div>
+                    </div>
+
+                    <!-- Main Form Card -->
+                    <div class="card border-0 shadow-lg p-4 p-md-5 rounded-4" style="background-color: var(--white);">
+                        <div id="formStatusMessage" style="display: none;"></div>
+
+                        <form id="reclamacionesForm" novalidate>
+                            
+                            <!-- 1. IDENTIFICACIÓN DEL CONSUMIDOR -->
+                            <div class="form-section-title mb-4">
+                                <h4 class="d-flex align-items-center text-primary-dark">
+                                    <span class="badge bg-primary me-2 rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px; font-size:14px;">1</span>
+                                    Identificación del Consumidor Reclamante
+                                </h4>
+                                <hr class="mt-2 mb-4">
+                            </div>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="nombres" class="form-label">Nombres *</label>
+                                    <input type="text" class="form-control form-control-lg" id="nombres" name="nombres" required placeholder="Tus nombres">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="apellidos" class="form-label">Apellidos *</label>
+                                    <input type="text" class="form-control form-control-lg" id="apellidos" name="apellidos" required placeholder="Tus apellidos">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="tipo_documento" class="form-label">Tipo de Documento *</label>
+                                    <select class="form-select form-select-lg" id="tipo_documento" name="tipo_documento" required>
+                                        <option value="" selected disabled>Selecciona tipo</option>
+                                        <option value="DNI">DNI (Persona Natural)</option>
+                                        <option value="RUC">RUC (Persona Jurídica)</option>
+                                        <option value="CE">Carnet de Extranjería</option>
+                                        <option value="Pasaporte">Pasaporte</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="numero_documento" class="form-label">Número de Documento *</label>
+                                    <input type="text" class="form-control form-control-lg" id="numero_documento" name="numero_documento" required placeholder="Número de identidad">
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="direccion" class="form-label">Domicilio (Dirección, Distrito, Provincia y Departamento) *</label>
+                                    <input type="text" class="form-control form-control-lg" id="direccion" name="direccion" required placeholder="Ej: Calle Los Claveles 123, Surco, Lima, Lima">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="telefono" class="form-label">Teléfono / Celular *</label>
+                                    <input type="tel" class="form-control form-control-lg" id="telefono" name="telefono" required placeholder="Ej: 999999999">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Correo Electrónico *</label>
+                                    <input type="email" class="form-control form-control-lg" id="email" name="email" required placeholder="tu@correo.com">
+                                    <div class="form-text">Enviaremos la constancia de su reclamo a esta dirección.</div>
+                                </div>
+                                
+                                <!-- MENOR DE EDAD CHECKBOX -->
+                                <div class="col-12 mt-3">
+                                    <div class="form-check form-switch p-0 ps-5">
+                                        <input class="form-check-input ms-n5" type="checkbox" role="switch" id="es_menor" name="es_menor" value="1">
+                                        <label class="form-check-label" for="es_menor"><strong>Soy menor de edad</strong> (Habilitar para ingresar datos de apoderado)</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- APODERADO SECTION (COLAPSIBLE) -->
+                            <div id="apoderadoSection" style="display: none;" class="p-3 mb-4 rounded bg-light border">
+                                <h5 class="mb-3 text-secondary-dark"><i class="fas fa-user-shield me-2"></i>Datos del Padre, Madre o Representante Legal</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-7">
+                                        <label for="nombre_representante" class="form-label">Nombre Completo del Apoderante *</label>
+                                        <input type="text" class="form-control" id="nombre_representante" name="nombre_representante" placeholder="Nombres de tu apoderado">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="doc_representante" class="form-label">DNI / CE del Apoderante *</label>
+                                        <input type="text" class="form-control" id="doc_representante" name="doc_representante" placeholder="Documento del apoderado">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 2. IDENTIFICACIÓN DEL BIEN CONTRATADO -->
+                            <div class="form-section-title mb-4 mt-5">
+                                <h4 class="d-flex align-items-center text-primary-dark">
+                                    <span class="badge bg-primary me-2 rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px; font-size:14px;">2</span>
+                                    Detalle del Bien Contratado
+                                </h4>
+                                <hr class="mt-2 mb-4">
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label d-block">Tipo de Bien *</label>
+                                    <div class="btn-group w-100" role="group" aria-label="Tipo de bien">
+                                        <input type="radio" class="btn-check" name="tipo_bien" id="bienServicio" value="Servicio" checked autocomplete="off">
+                                        <label class="btn btn-outline-primary py-2" for="bienServicio">
+                                            <i class="fas fa-hand-holding-heart me-2"></i>Servicio
+                                        </label>
+                                        <input type="radio" class="btn-check" name="tipo_bien" id="bienProducto" value="Producto" autocomplete="off">
+                                        <label class="btn btn-outline-primary py-2" for="bienProducto">
+                                            <i class="fas fa-box me-2"></i>Producto
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="monto_reclamado" class="form-label">Monto Reclamado (S/.) <span class="text-muted">(Opcional)</span></label>
+                                    <input type="number" step="0.01" class="form-control form-control-lg" id="monto_reclamado" name="monto_reclamado" placeholder="0.00">
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="descripcion_bien" class="form-label">Descripción del bien, producto o servicio contratado *</label>
+                                    <textarea class="form-control" id="descripcion_bien" name="descripcion_bien" rows="3" required placeholder="Escriba los detalles del servicio o producto solicitado (ej. traslado de residuos peligrosos del 05/06)"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- 3. DETALLE DE LA RECLAMACIÓN -->
+                            <div class="form-section-title mb-4 mt-5">
+                                <h4 class="d-flex align-items-center text-primary-dark">
+                                    <span class="badge bg-primary me-2 rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px; font-size:14px;">3</span>
+                                    Detalle del Reclamo o Queja
+                                </h4>
+                                <hr class="mt-2 mb-4">
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <label class="form-label d-block">Tipo de Acción *</label>
+                                    <div class="btn-group w-100" role="group" aria-label="Tipo de caso">
+                                        <input type="radio" class="btn-check" name="tipo_reclamacion" id="casoReclamo" value="Reclamo" checked autocomplete="off">
+                                        <label class="btn btn-outline-primary py-2" for="casoReclamo">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>Reclamo
+                                        </label>
+                                        <input type="radio" class="btn-check" name="tipo_reclamacion" id="casoQueja" value="Queja" autocomplete="off">
+                                        <label class="btn btn-outline-primary py-2" for="casoQueja">
+                                            <i class="fas fa-frown me-2"></i>Queja
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="detalle_reclamacion" class="form-label">Detalle de la Queja o Reclamo *</label>
+                                    <textarea class="form-control" id="detalle_reclamacion" name="detalle_reclamacion" rows="5" required placeholder="Escriba aquí los hechos y detalles específicos ocurridos de forma cronológica..."></textarea>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="pedido_consumidor" class="form-label">Pedido u Objetivo solicitado *</label>
+                                    <textarea class="form-control" id="pedido_consumidor" name="pedido_consumidor" rows="3" required placeholder="Detalle qué es lo que solicita como solución a este inconveniente..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- 4. POLÍTICAS Y ENVÍO -->
+                            <div class="row mt-4 g-3">
+                                <div class="col-12">
+                                    <div class="form-check border-top pt-3">
+                                        <input class="form-check-input" type="checkbox" id="politica_veracidad" required>
+                                        <label class="form-check-label text-muted" for="politica_veracidad" style="font-size:13px;">
+                                            * Declaro la veracidad de los datos personales ingresados en este formulario y doy mi consentimiento para el tratamiento de mis datos personales de conformidad con la Política de Privacidad de IO Group y en marco de la Ley N° 29733 (Ley de Protección de Datos Personales en Perú).
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100 py-3 rounded-3 shadow">
+                                        <i class="fas fa-paper-plane me-2"></i>Registrar Reclamo / Queja
+                                    </button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">
+                        <img src="img/logos/logo-principal.png" alt="IO Group" loading="lazy">
+                    </div>
+                    <p class="footer-text">Somos una empresa peruana comprometida con la preservación y conservación del medio ambiente, dedicada a la gestión responsable del manejo de los residuos sólidos peligrosos.</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/iogroup.oficial" target="_blank" rel="noopener" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/iogroup.residuos/" target="_blank" rel="noopener" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="https://wa.me/51997571262" target="_blank" rel="noopener" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="footer-title">Enlaces</h5>
+                    <ul class="footer-links">
+                        <li><a href="/">Inicio</a></li>
+                        <li><a href="nosotros">Nosotros</a></li>
+                        <li><a href="servicios">Servicios</a></li>
+                        <li><a href="blog">Blog</a></li>
+                        <li><a href="contacto">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-title">Servicios</h5>
+                    <ul class="footer-links">
+                        <li><a href="servicios">Recojo de Residuos</a></li>
+                        <li><a href="servicios">Traslado Seguro</a></li>
+                        <li><a href="servicios">Incineración</a></li>
+                        <li><a href="servicios">Disposición Final</a></li>
+                        <li><a href="servicios">Destrucción Notarial</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-title">Contacto</h5>
+                    <ul class="footer-links">
+                        <li>
+                            <a href="https://maps.google.com/?q=Halcones+260+Surquillo+Lima" target="_blank">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Calle Los Halcones 260 - 4to piso, Surquillo, Lima
+                            </a>
+                        </li>
+                        <li>
+                            <a href="tel:+51997571262">
+                                <i class="fas fa-phone-alt"></i>
+                                +51 997 571 262 / 973 224 733
+                            </a>
+                        </li>
+                        <li>
+                            <a href="mailto:naenciso@iogroup.pe">
+                                <i class="fas fa-envelope"></i>
+                                naenciso@iogroup.pe / jgarcia@iogroup.pe
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fas fa-clock"></i>
+                                Lun - Vie: 9:00 AM - 6:00 PM | Sáb: 9:00 AM - 1:00 PM
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 IO Group. Todos los derechos reservados.</p>
+                <a href="control/" class="control-access-link" title="Acceso al Sistema de Control">
+                    <i class="fas fa-lock me-1"></i>Área de Control
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Float Button -->
+    <a href="https://wa.me/51997571262" class="whatsapp-float" target="_blank" rel="noopener">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/main.js"></script>
+    
+    <!-- Client script for form submission -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const esMenorSwitch = document.getElementById('es_menor');
+            const apoderadoSection = document.getElementById('apoderadoSection');
+            const nombreRepInput = document.getElementById('nombre_representante');
+            const docRepInput = document.getElementById('doc_representante');
+            const form = document.getElementById('reclamacionesForm');
+            const statusMessage = document.getElementById('formStatusMessage');
+
+            // Toggle minor apoderado input fields
+            esMenorSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    apoderadoSection.style.display = 'block';
+                    nombreRepInput.required = true;
+                    docRepInput.required = true;
+                } else {
+                    apoderadoSection.style.display = 'none';
+                    nombreRepInput.required = false;
+                    docRepInput.required = false;
+                    nombreRepInput.value = '';
+                    docRepInput.value = '';
+                }
+            });
+
+            // Ajax form submission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                statusMessage.style.display = 'none';
+                
+                // Form client-side validation
+                if (!form.checkValidity()) {
+                    e.stopPropagation();
+                    form.classList.add('was-validated');
+                    
+                    statusMessage.className = "alert alert-danger mt-3";
+                    statusMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Por favor complete correctamente todos los campos obligatorios (*).';
+                    statusMessage.style.display = 'block';
+                    statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                form.classList.add('was-validated');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+
+                // Loading visual state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando Reclamación...';
+
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch('api/send-reclamacion.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    statusMessage.style.display = 'block';
+
+                    if (response.ok && result.success) {
+                        statusMessage.className = "alert alert-success mt-3 p-4";
+                        statusMessage.innerHTML = `
+                            <div class="d-flex">
+                                <i class="fas fa-check-circle fa-2x me-3 text-success"></i>
+                                <div>
+                                    <h5 class="alert-heading font-weight-bold">¡Reclamación Registrada Exitosamente!</h5>
+                                    <p class="mb-2">${result.message}</p>
+                                    <p class="mb-0"><strong>Número de Constancia (Correlativo):</strong> <code class="fs-5">${result.correlativo}</code></p>
+                                    <p class="mb-0 mt-2 text-muted"><small>Un correo con su copia digital fue enviado a la dirección ingresada.</small></p>
+                                </div>
+                            </div>
+                        `;
+                        form.reset();
+                        form.classList.remove('was-validated');
+                        apoderadoSection.style.display = 'none';
+                        statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        statusMessage.className = "alert alert-danger mt-3";
+                        statusMessage.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${result.message || 'Ocurrió un error al registrar el reclamo. Por favor intente nuevamente.'}`;
+                        statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                } catch (error) {
+                    statusMessage.style.display = 'block';
+                    statusMessage.className = "alert alert-danger mt-3";
+                    statusMessage.innerHTML = '<i class="fas fa-wifi me-2"></i>Error de conexión al servidor. Por favor verifique su conexión a internet e intente de nuevo.';
+                    statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

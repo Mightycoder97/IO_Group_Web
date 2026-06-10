@@ -49,3 +49,11 @@ To keep the repository clean and avoid committing large binaries, office documen
   - **Extraction**: `python3 extraction_tools/extract_servicios_2026_lima_sur.py`
   - **Import execution (Dry-run)**: `php extraction_tools/run_services_import.php`
   - **Import execution (Production)**: `php extraction_tools/run_services_import.php --commit`
+
+## Git and Deployment Guidelines
+
+### 1. Minimal Commits and Pushes (Hostinger Optimization)
+- **Rule**: When a task is completed, commit and push only the updated/modified files. Avoid staging the entire directory to prevent transferring unnecessary files and to optimize deployment on Hostinger.
+- **Commands**:
+  - Always verify changes with `git status`.
+  - Stage specific files: `git add path/to/updated_file.ext` (avoid using generic `git add .` unless all modified files are strictly necessary).

@@ -3455,3 +3455,83 @@ section.bg-light {
         height: 300px;
     }
 }
+
+/* ===== LIBRO DE RECLAMACIONES ===== */
+.libro-reclamaciones-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--gray-900);
+    border: 1px solid var(--gray-800);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    text-decoration: none !important;
+    color: var(--white) !important;
+    transition: all var(--transition-fast) ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.libro-reclamaciones-badge:hover {
+    background-color: var(--gray-800);
+    border-color: var(--gray-700);
+    color: var(--primary) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.libro-reclamaciones-badge svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+    color: var(--primary);
+    transition: color var(--transition-fast) ease;
+}
+
+.libro-reclamaciones-badge:hover svg {
+    color: var(--primary-light);
+}
+
+.libro-reclamaciones-badge .badge-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    text-align: left;
+}
+
+.libro-reclamaciones-badge .badge-title {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-500);
+}
+
+.libro-reclamaciones-badge .badge-subtitle {
+    font-size: 0.85rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--white);
+}
+
+/* Reclamaciones Page Styles */
+.reclamaciones-section {
+    background-color: var(--gray-100);
+}
+
+.form-section-title h4 {
+    font-weight: var(--font-weight-semibold);
+}
+
+/* Switch styling tweak to fit branding */
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.was-validated .form-control:invalid, 
+.was-validated .form-select:invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:valid, 
+.was-validated .form-select:valid {
+    border-color: #198754;
+}
