@@ -193,6 +193,21 @@ function getSidebarHTML() {
         const visibleItems = section.items.filter(item => canView(item.modulo));
         if (visibleItems.length === 0) return '';
 
+        // If a section has only one visible item, render it directly as a button link
+        if (visibleItems.length === 1) {
+            const item = visibleItems[0];
+            const match = getSidebarMatchPath(item.href);
+            const root = getSidebarItemRoot(match);
+            return `
+                <div class="sidebar-section" data-section-id="${section.id}">
+                    <a href="${base}${item.href}" class="sidebar-link sidebar-section-toggle" data-section="${section.id}" data-match="${match}" data-root="${root}" title="${section.title}">
+                        <i class="bi bi-${section.icon || item.icon} sidebar-section-icon" aria-hidden="true"></i>
+                        <span class="sidebar-section-label">${section.title}</span>
+                    </a>
+                </div>
+            `;
+        }
+
         const panelId = `sidebar-panel-${section.id}`;
         const links = visibleItems.map(item => {
             const match = getSidebarMatchPath(item.href);
@@ -300,6 +315,14 @@ function setupSidebarInteractions() {
     sidebar.addEventListener('click', event => {
         const toggle = event.target.closest('.sidebar-section-toggle');
         if (toggle) {
+            // Direct root link (anchor styled as a toggle button)
+            if (toggle.tagName === 'A') {
+                if (isDesktopSidebar()) {
+                    setSidebarCollapsed(true);
+                }
+                return;
+            }
+
             const section = toggle.closest('.sidebar-section');
             const isOpen = section?.classList.contains('sidebar-section-open');
 

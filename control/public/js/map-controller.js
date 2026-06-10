@@ -103,6 +103,7 @@ class MapController {
     this.map = new Map(document.getElementById("map"), {
       center: this.defaultLocation,
       zoom: 11,
+      mapId: "6870580f73bb949b9f7210ff",
       disableDefaultUI: true,
       clickableIcons: false,
       gestureHandling: "greedy",
