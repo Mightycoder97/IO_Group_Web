@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>IO Group — Gestión de Residuos Peligrosos</title>
+    <!--[if mso]>
+    <noscript><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+    <![endif]-->
+    <style>
+        /* === RESET === */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; display: block; }
+        body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+
+        body {
+            background-color: #f0ede8;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #2b2b2b;
+        }
+
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f0ede8;
+            padding: 30px 0;
+        }
+
+        .email-body {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            border-spacing: 0;
+            overflow: hidden;
+        }
+
+        /* Preheader */
+        .preheader {
+            display: none !important;
+            visibility: hidden;
+            mso-hide: all;
+            font-size: 1px;
+            line-height: 1px;
+            max-height: 0;
+            max-width: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        /* ===== TOP BAR ===== */
+        .top-bar {
+            background-color: #333833;
+            padding: 10px 40px;
+            text-align: center;
+        }
+        .top-bar-text {
+            font-size: 11px;
+            color: #a8b5a0;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background-color: #ffffff;
+            padding: 24px 40px 18px 40px;
+        }
+
+        /* ===== HERO ===== */
+        .hero-block {
+            background-color: #333833;
+            padding: 0;
+        }
+        .hero-content {
+            padding: 44px 40px 38px 40px;
+        }
+        .hero-label {
+            font-size: 11px;
+            color: #E8471A;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin: 0 0 16px 0;
+        }
+        .hero-title {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 30px;
+            font-weight: bold;
+            color: #ffffff;
+            line-height: 1.2;
+            margin: 0 0 16px 0;
+        }
+        .hero-sub {
+            font-size: 14px;
+            color: #b3bfb0;
+            line-height: 1.65;
+            margin: 0;
+        }
+
+        /* ===== IMAGE STRIP ===== */
+        .img-strip img {
+            width: 100%;
+            display: block;
+        }
+
+        /* ===== CONTENT ===== */
+        .section {
+            padding: 34px 40px;
+        }
+        .section-alt {
+            padding: 34px 40px;
+            background-color: #f8f7f4;
+        }
+
+        .label {
+            font-size: 10px;
+            color: #5C6B1E;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+        .title {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 22px;
+            font-weight: bold;
+            color: #2b2b2b;
+            line-height: 1.3;
+            margin: 0 0 16px 0;
+        }
+        .body-copy {
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.7;
+            margin: 0 0 16px 0;
+        }
+        .body-copy:last-child {
+            margin-bottom: 0;
+        }
+        .body-copy strong {
+            color: #2b2b2b;
+        }
+
+        /* ===== DIVIDER ===== */
+        .hr-brand {
+            border: none;
+            border-top: 3px solid #E8471A;
+            width: 40px;
+            margin: 0 0 20px 0;
+            text-align: left;
+        }
+
+        /* ===== SERVICES GRID ===== */
+        .svc-cell {
+            padding: 14px 16px;
+            vertical-align: top;
+        }
+        .svc-num {
+            font-family: Georgia, serif;
+            font-size: 24px;
+            font-weight: bold;
+            color: #E8471A;
+            line-height: 1;
+            margin: 0 0 6px 0;
+        }
+        .svc-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2b2b2b;
+            margin: 0 0 4px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .svc-desc {
+            font-size: 12px;
+            color: #777777;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* ===== HIGHLIGHT BAR ===== */
+        .highlight-bar {
+            background-color: #5C6B1E;
+            padding: 28px 40px;
+        }
+        .highlight-text {
+            font-family: Georgia, serif;
+            font-size: 17px;
+            font-style: italic;
+            color: #ffffff;
+            line-height: 1.55;
+            margin: 0;
+            text-align: center;
+        }
+
+        /* ===== NUMBERS ===== */
+        .numbers-row {
+            background-color: #333833;
+            padding: 24px 20px;
+        }
+        .num-val {
+            font-family: Georgia, serif;
+            font-size: 28px;
+            font-weight: bold;
+            color: #E8471A;
+            margin: 0;
+            line-height: 1;
+        }
+        .num-label {
+            font-size: 10px;
+            color: #8a9185;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 5px 0 0 0;
+            line-height: 1.4;
+        }
+
+        /* ===== CLIENTS ===== */
+        .clients-block {
+            padding: 26px 40px;
+            background-color: #ffffff;
+            text-align: center;
+        }
+        .clients-title {
+            font-size: 10px;
+            color: #aaaaaa;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin: 0 0 16px 0;
+        }
+
+        /* ===== CTA ===== */
+        .cta-block {
+            background-color: #E8471A;
+            padding: 38px 40px;
+            text-align: center;
+        }
+        .cta-title {
+            font-family: Georgia, serif;
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+            margin: 0 0 10px 0;
+            line-height: 1.3;
+        }
+        .cta-sub {
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.55;
+            margin: 0 0 24px 0;
+        }
+        .btn-main {
+            display: inline-block;
+            background-color: #ffffff;
+            color: #E8471A !important;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 14px 36px;
+            letter-spacing: 0.3px;
+        }
+        .btn-link {
+            display: inline-block;
+            color: #ffffff !important;
+            font-size: 13px;
+            text-decoration: underline;
+            margin-top: 16px;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background-color: #333833;
+            padding: 26px 40px;
+            text-align: center;
+        }
+        .footer-brand {
+            font-family: Georgia, serif;
+            font-size: 15px;
+            color: #ffffff;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+        }
+        .footer-tag {
+            font-size: 9px;
+            color: #5C6B1E;
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            margin: 0 0 14px 0;
+        }
+        .footer-info {
+            font-size: 11px;
+            color: #8a9185;
+            line-height: 1.7;
+            margin: 2px 0;
+        }
+        .footer-info a {
+            color: #E8471A;
+            text-decoration: none;
+        }
+        .footer-line {
+            border: none;
+            border-top: 1px solid #454f45;
+            margin: 14px 0;
+        }
+        .footer-legal {
+            font-size: 10px;
+            color: #5e685e;
+            line-height: 1.5;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media only screen and (max-width: 620px) {
+            .wrapper { padding: 0 !important; }
+            .header, .section, .section-alt, .highlight-bar, .clients-block, .cta-block, .footer, .hero-content, .top-bar {
+                padding-left: 22px !important;
+                padding-right: 22px !important;
+            }
+            .hero-title { font-size: 26px !important; }
+            .title { font-size: 20px !important; }
+            .num-val { font-size: 22px !important; }
+            .cta-title { font-size: 20px !important; }
+            .btn-main { display: block !important; text-align: center !important; }
+            .svc-cell { display: block !important; width: 100% !important; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="preheader">
+        Recojo, transporte, tratamiento y disposición final — con trazabilidad de cada kilogramo. EO-RS autorizada por MINAM y MTC.
+        &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+    </div>
+
+    <center class="wrapper">
+        <table class="email-body" width="600" cellpadding="0" cellspacing="0" role="presentation">
+
+            <!-- ===== TOP BAR ===== -->
+            <tr>
+                <td class="top-bar">
+                    <p class="top-bar-text">EO-RS Autorizada &nbsp;·&nbsp; MINAM &nbsp;·&nbsp; MTC &nbsp;·&nbsp; Lima &amp; Regiones</p>
+                </td>
+            </tr>
+
+            <!-- ===== HEADER ===== -->
+            <tr>
+                <td class="header">
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                            <td>
+                                <a href="https://www.iogroup.pe" target="_blank">
+                                    <img src="https://www.iogroup.pe/img/logos/logo-principal.png"
+                                        alt="IO Group" width="120"
+                                        style="display: block; max-width: 120px; height: auto;">
+                                </a>
+                            </td>
+                            <td style="text-align: right; vertical-align: middle;">
+                                <span style="font-size: 11px; color: #999999;">iogroup.pe</span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <!-- ===== HERO ===== -->
+            <tr>
+                <td class="hero-block">
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                            <td class="hero-content">
+                                <p class="hero-label">Gestión de Residuos Peligrosos</p>
+                                <h1 class="hero-title">
+                                    Operamos con la misma exigencia que usted le pide a su empresa.
+                                </h1>
+                                <p class="hero-sub">
+                                    Desde 2019, acompañamos a organizaciones del sector salud, industrial, educativo y
+                                    farmacéutico en la gestión integral de sus residuos peligrosos — con documentación
+                                    completa, cumplimiento normativo y la tranquilidad de saber que cada kilogramo
+                                    llega a su destino autorizado.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <!-- ===== HERO IMAGE ===== -->
+            <tr>
+                <td class="img-strip">
+                    <img src="https://www.iogroup.pe/img/email/hero_editorial_b2b.png"
+                        alt="Equipo IO Group durante operación de recojo"
+                        width="600"
+                        style="display: block; width: 100%; max-width: 600px; height: auto;">
+                </td>
+            </tr>
+
+            <!-- ===== INTRO ===== -->
+            <tr>
+                <td class="section">
+                    <hr class="hr-brand">
+                    <h2 class="title">Lo que nos diferencia no es lo que hacemos, sino cómo lo hacemos.</h2>
+                    <p class="body-copy">
+                        En un sector donde muchas operadoras ofrecen los mismos servicios, sabemos que
+                        la diferencia real está en la ejecución: en la puntualidad del recojo, en la calidad de
+                        la documentación y en la capacidad de respuesta cuando su operación lo necesita.
+                    </p>
+                    <p class="body-copy">
+                        Por eso, cada servicio que realizamos se respalda con <strong>manifiestos firmados el mismo
+                        día de la operación</strong>, certificados de disposición final entregados sin necesidad
+                        de seguimiento, y un equipo que responde en menos de 24 horas a cualquier requerimiento.
+                    </p>
+                </td>
+            </tr>
+
+            <!-- ===== SERVICES GRID ===== -->
+            <tr>
+                <td class="section-alt" style="padding-top: 28px; padding-bottom: 28px;">
+                    <p class="label">Servicios</p>
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+                        style="border-top: 1px solid #e2dfd8;">
+                        <tr>
+                            <td width="50%" class="svc-cell" style="border-bottom: 1px solid #e2dfd8; border-right: 1px solid #e2dfd8;">
+                                <p class="svc-num">01</p>
+                                <p class="svc-name">Recojo programado</p>
+                                <p class="svc-desc">Coordinación directa, en el horario que su operación necesita.</p>
+                            </td>
+                            <td width="50%" class="svc-cell" style="border-bottom: 1px solid #e2dfd8;">
+                                <p class="svc-num">02</p>
+                                <p class="svc-name">Transporte autorizado</p>
+                                <p class="svc-desc">Flota propia con permisos MTC vigentes y personal con EPPs certificados.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="50%" class="svc-cell" style="border-bottom: 1px solid #e2dfd8; border-right: 1px solid #e2dfd8;">
+                                <p class="svc-num">03</p>
+                                <p class="svc-name">Tratamiento</p>
+                                <p class="svc-desc">Incineración en hornos ecológicos a través de nuestro socio estratégico Incineragas.</p>
+                            </td>
+                            <td width="50%" class="svc-cell" style="border-bottom: 1px solid #e2dfd8;">
+                                <p class="svc-num">04</p>
+                                <p class="svc-name">Disposición final</p>
+                                <p class="svc-desc">Trazabilidad documentada de cada kilogramo hasta su destino final autorizado.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="50%" class="svc-cell" style="border-right: 1px solid #e2dfd8;">
+                                <p class="svc-num">05</p>
+                                <p class="svc-name">Destrucción notarial</p>
+                                <p class="svc-desc">Servicio certificado con acta notarial y documentación legal completa.</p>
+                            </td>
+                            <td width="50%" class="svc-cell">
+                                <p class="svc-num">+</p>
+                                <p class="svc-name">SIGERSOL y expedientes</p>
+                                <p class="svc-desc">Declaración de manifiestos, capacitaciones y elaboración de expedientes ambientales.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <!-- ===== HIGHLIGHT ===== -->
+            <tr>
+                <td class="highlight-bar">
+                    <p class="highlight-text">
+                        "Trabajamos con la normativa MINAM, MTC y la Norma Técnica N°&nbsp;144 del MINSA
+                        como estándar mínimo — no como excepción."
+                    </p>
+                </td>
+            </tr>
+
+            <!-- ===== REGULATORY VALUE ===== -->
+            <tr>
+                <td class="section">
+                    <p class="label">Contexto normativo 2026</p>
+                    <h2 class="title">Los cambios regulatorios de este año exigen mayor rigor de su operador.</h2>
+                    <p class="body-copy">
+                        El nuevo <strong>Reglamento de Supervisión del OEFA</strong> (R.C.D. N° 00019-2025-OEFA/CD)
+                        ha reforzado el enfoque de fiscalización basada en riesgos, priorizando la trazabilidad
+                        real del residuo y la verificación de que su EO-RS mantenga autorizaciones vigentes.
+                    </p>
+                    <p class="body-copy">
+                        Adicionalmente, el nuevo <strong>Reglamento de Sustancias Químicas</strong>
+                        (D.S. N° 005-2026-MINAM) introduce la adopción obligatoria del Sistema Globalmente
+                        Armonizado (SGA) para clasificación y etiquetado — un cambio que impacta directamente
+                        en el manejo de materiales peligrosos dentro de su cadena operativa.
+                    </p>
+                    <p class="body-copy">
+                        En IO Group, estos estándares ya forman parte de nuestra operación diaria. Nuestros
+                        manifiestos digitales, registros SIGERSOL al día y cadena de custodia documentada
+                        están diseñados para que <strong>su empresa pase cualquier auditoría sin contratiempos</strong>.
+                    </p>
+                </td>
+            </tr>
+
+            <!-- ===== NUMBERS ===== -->
+            <tr>
+                <td class="numbers-row">
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                            <td width="25%" style="text-align: center; padding: 8px;">
+                                <p class="num-val">+5</p>
+                                <p class="num-label">Años<br>operando</p>
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 8px;">
+                                <p class="num-val">1,200+</p>
+                                <p class="num-label">Clientes<br>activos</p>
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 8px;">
+                                <p class="num-val">200+</p>
+                                <p class="num-label">Toneladas<br>gestionadas</p>
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 8px;">
+                                <p class="num-val">10+</p>
+                                <p class="num-label">Convenios<br>institucionales</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <!-- ===== CLIENTS ===== -->
+            <tr>
+                <td class="clients-block">
+                    <p class="clients-title">Confían en nosotros</p>
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                            <td width="25%" style="text-align: center; padding: 6px 8px;">
+                                <img src="https://www.iogroup.pe/img/clientes/LOGO%20REBAGLIATI.png"
+                                    alt="Hospital Rebagliati" width="90"
+                                    style="max-height: 38px; width: auto; margin: 0 auto; display: block; opacity: 0.55;">
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 6px 8px;">
+                                <img src="https://www.iogroup.pe/img/clientes/LOGO%20SENASA.jpg"
+                                    alt="SENASA" width="90"
+                                    style="max-height: 38px; width: auto; margin: 0 auto; display: block; opacity: 0.55;">
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 6px 8px;">
+                                <img src="https://www.iogroup.pe/img/clientes/LOGO%20UCAL.png"
+                                    alt="UCAL" width="90"
+                                    style="max-height: 38px; width: auto; margin: 0 auto; display: block; opacity: 0.55;">
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 6px 8px;">
+                                <img src="https://www.iogroup.pe/img/clientes/LOGO%20LAFARPE.png"
+                                    alt="Lafarpe" width="90"
+                                    style="max-height: 38px; width: auto; margin: 0 auto; display: block; opacity: 0.55;">
+                            </td>
+                        </tr>
+                    </table>
+                    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top: 4px;">
+                        <tr>
+                            <td width="25%" style="text-align: center; padding: 6px 8px;">
+                                <img src="https://www.iogroup.pe/img/clientes/LOGO%20QUALAB.png"
+                                    alt="Qualab" width="90"
+                                    style="max-height: 38px; width: auto; margin: 0 auto; display: block; opacity: 0.55;">
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 6px 8px;">
+                                <img src="https://www.iogroup.pe/img/clientes/LOGO%20CERTUS.png"
+                                    alt="Certus" width="90"
+                                    style="max-height: 38px; width: auto; margin: 0 auto; display: block; opacity: 0.55;">
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 6px 8px;">
+                                <img src="https://www.iogroup.pe/img/clientes/LOGO%20MEDEX.jpg"
+                                    alt="Medex" width="90"
+                                    style="max-height: 38px; width: auto; margin: 0 auto; display: block; opacity: 0.55;">
+                            </td>
+                            <td width="25%" style="text-align: center; padding: 6px 8px;">
+                                <img src="https://www.iogroup.pe/img/clientes/LOGO%20BIOQUIM.jpg"
+                                    alt="Bioquim" width="90"
+                                    style="max-height: 38px; width: auto; margin: 0 auto; display: block; opacity: 0.55;">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <!-- ===== CTA ===== -->
+            <tr>
+                <td class="cta-block">
+                    <h2 class="cta-title">Solicite una cotización a la medida de su operación</h2>
+                    <p class="cta-sub">
+                        Evaluamos el volumen, tipo de residuo y frecuencia que su empresa requiere
+                        para entregarle una propuesta técnica y económica personalizada.
+                    </p>
+
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="https://wa.me/51949063359?text=Buenos%20d%C3%ADas.%20Quisiera%20solicitar%20una%20cotizaci%C3%B3n%20para%20gesti%C3%B3n%20de%20residuos%20peligrosos.%20Nuestra%20raz%C3%B3n%20social%20es%3A" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="0%" strokecolor="#ffffff" fillcolor="#ffffff">
+                        <w:anchorlock/>
+                        <center style="color:#E8471A;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;">Solicitar cotización por WhatsApp</center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-->
+                    <a href="https://wa.me/51949063359?text=Buenos%20d%C3%ADas.%20Quisiera%20solicitar%20una%20cotizaci%C3%B3n%20para%20gesti%C3%B3n%20de%20residuos%20peligrosos.%20Nuestra%20raz%C3%B3n%20social%20es%3A"
+                        class="btn-main">Solicitar cotización por WhatsApp →</a>
+                    <!--<![endif]-->
+
+                    <br>
+                    <a href="mailto:administracion@iogroup.pe?subject=Solicitud%20de%20Cotizaci%C3%B3n%20-%20Gesti%C3%B3n%20de%20Residuos%20Peligrosos&body=Estimados%2C%0A%0AQuisiera%20solicitar%20una%20cotizaci%C3%B3n%20para%20la%20gesti%C3%B3n%20de%20residuos%20peligrosos.%0A%0ARaz%C3%B3n%20Social%3A%0ARUC%3A%0ATipo%20de%20residuos%3A%0AFrecuencia%20estimada%3A%0A%0AQuedo%20atento.%0A%0ASaludos."
+                        class="btn-link">o escríbanos a administracion@iogroup.pe</a>
+                </td>
+            </tr>
+
+            <!-- ===== FOOTER ===== -->
+            <tr>
+                <td class="footer">
+                    <p class="footer-brand">IO Group</p>
+                    <p class="footer-tag">Gestión Integral de Residuos Peligrosos</p>
+
+                    <table cellpadding="0" cellspacing="0" role="presentation" style="margin: 0 auto 12px auto;">
+                        <tr>
+                            <td style="padding: 0 8px;">
+                                <a href="https://www.facebook.com/iogroup.oficial" target="_blank">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png"
+                                        alt="Facebook" width="20" height="20" style="display: block; opacity: 0.5;">
+                                </a>
+                            </td>
+                            <td style="padding: 0 8px;">
+                                <a href="https://www.instagram.com/iogroup.residuos/" target="_blank">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
+                                        alt="Instagram" width="20" height="20" style="display: block; opacity: 0.5;">
+                                </a>
+                            </td>
+                            <td style="padding: 0 8px;">
+                                <a href="https://www.iogroup.pe" target="_blank">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png"
+                                        alt="Web" width="20" height="20" style="display: block; opacity: 0.5;">
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <p class="footer-info">Calle Los Halcones 260, 4to piso — Surquillo, Lima</p>
+                    <p class="footer-info">+51 949 063 359</p>
+                    <p class="footer-info">
+                        <a href="mailto:administracion@iogroup.pe">administracion@iogroup.pe</a>
+                        &nbsp;·&nbsp;
+                        <a href="https://www.iogroup.pe" target="_blank">iogroup.pe</a>
+                    </p>
+
+                    <hr class="footer-line">
+
+                    <p class="footer-legal">
+                        IO Group SAC — Empresa Operadora de Residuos Sólidos autorizada por MINAM y MTC.<br>
+                        Si prefiere no recibir más correos, responda con la palabra "Baja".
+                    </p>
+                </td>
+            </tr>
+
+        </table>
+    </center>
+</body>
+
+</html>
