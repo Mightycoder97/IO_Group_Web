@@ -32,6 +32,8 @@ try {
             switch ($action) {
                 case 'send': sendMessage(); break;
                 case 'send-template': sendTemplate(); break;
+                case 'agent': addAgent(); break;
+                case 'conversation': createConversation(); break;
                 default:
                     http_response_code(400);
                     echo json_encode(['success' => false, 'message' => 'Acción no válida']);
@@ -41,6 +43,8 @@ try {
             switch ($action) {
                 case 'assign': assignConversation($id); break;
                 case 'close': closeConversation($id); break;
+                case 'agent-limit': updateAgentLimit(); break;
+                case 'agent-status': toggleAgentStatus(); break;
                 default:
                     http_response_code(400);
                     echo json_encode(['success' => false, 'message' => 'Acción no válida']);
@@ -330,6 +334,54 @@ function sendTemplate()
     $waApi = new WhatsAppCloudAPI();
     $result = $waApi->sendTemplate($phone, $templateName, $language, $components);
 
+    if ($result['success']) {
+        // Normalizar teléfono
+        $cleanPhone = preg_replace('/[\s\-\(\)\+]/', '', $phone);
+        if (!preg_match('/^51/', $cleanPhone) && preg_match('/^9\d{8}$/', $cleanPhone)) {
+            $cleanPhone = '51' . $cleanPhone;
+        }
+
+        // Buscar conversación
+        $conversation = db()->queryOne(
+            "SELECT * FROM WhatsAppConversation WHERE wa_phone = ? AND estado != 'cerrada' ORDER BY fecha_creacion DESC LIMIT 1",
+            [$cleanPhone]
+        );
+
+        $userId = $user['id'] ?? $user['id_usuario'];
+
+        if (!$conversation) {
+            // Encontrar o crear prospecto
+            $prospecto = db()->queryOne("SELECT id_prospecto FROM Prospecto WHERE telefono = ? AND activo = 1 LIMIT 1", [$cleanPhone]);
+            if (!$prospecto && preg_match('/^51(\d{9})$/', $cleanPhone, $matches)) {
+                $prospecto = db()->queryOne("SELECT id_prospecto FROM Prospecto WHERE (telefono = ? OR telefono = ?) AND activo = 1 LIMIT 1", [$matches[1], '+' . $cleanPhone]);
+            }
+            
+            $prospectoId = $prospecto ? $prospecto['id_prospecto'] : null;
+
+            $convId = db()->insert(
+                "INSERT INTO WhatsAppConversation (wa_phone, wa_profile_name, estado, origen, id_prospecto, id_usuario_asignado) VALUES (?, ?, 'asignada', 'manual', ?, ?)",
+                [$cleanPhone, 'Prospecto ' . substr($cleanPhone, -4), $prospectoId, $userId]
+            );
+        } else {
+            $convId = $conversation['id_conversation'];
+            // Actualizar actividad y asignación
+            db()->execute(
+                "UPDATE WhatsAppConversation SET ultima_actividad = NOW(), id_usuario_asignado = ?, estado = 'asignada' WHERE id_conversation = ?",
+                [$userId, $convId]
+            );
+        }
+
+        // Guardar mensaje
+        $waMessageId = $result['data']['messages'][0]['id'] ?? null;
+        db()->insert(
+            "INSERT INTO WhatsAppMessage (id_conversation, wa_message_id, direccion, tipo, contenido, enviado_por, estado_envio) 
+             VALUES (?, ?, 'saliente', 'plantilla', ?, ?, 'enviado')",
+            [$convId, $waMessageId, "Plantilla: " . $templateName, $userId]
+        );
+
+        $result['id_conversation'] = $convId;
+    }
+
     echo json_encode($result);
 }
 
@@ -476,9 +528,135 @@ function getAgents()
         "SELECT ad.*, u.nombre_completo, u.username, u.email
          FROM AgentDistribution ad
          JOIN Usuario u ON ad.id_usuario = u.id_usuario
-         WHERE ad.activo = 1 AND u.activo = 1
+         WHERE u.activo = 1
          ORDER BY u.nombre_completo"
     );
 
     echo json_encode(['success' => true, 'data' => $agents]);
+}
+
+/**
+ * Agregar agente al pool de distribución
+ */
+function addAgent()
+{
+    requireRole(['admin']);
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $userId = $data['id_usuario'] ?? null;
+    $maxConversaciones = intval($data['max_conversaciones'] ?? 10);
+
+    if (!$userId) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'ID de usuario requerido']);
+        return;
+    }
+
+    $distributor = new MessageDistributor();
+    $result = $distributor->addAgent($userId, $maxConversaciones);
+
+    if ($result) {
+        echo json_encode(['success' => true, 'message' => 'Agente agregado al pool de distribución']);
+    } else {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => 'Error agregando agente al pool']);
+    }
+}
+
+/**
+ * Actualizar límite de conversaciones de un agente
+ */
+function updateAgentLimit()
+{
+    requireRole(['admin']);
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $userId = $data['id_usuario'] ?? null;
+    $maxConversaciones = intval($data['max_conversaciones'] ?? 10);
+
+    if (!$userId) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'ID de usuario requerido']);
+        return;
+    }
+
+    db()->execute(
+        "UPDATE AgentDistribution SET max_conversaciones = ? WHERE id_usuario = ?",
+        [$maxConversaciones, $userId]
+    );
+
+    echo json_encode(['success' => true, 'message' => 'Límite de conversaciones actualizado']);
+}
+
+/**
+ * Activar o desactivar un agente del pool
+ */
+function toggleAgentStatus()
+{
+    requireRole(['admin']);
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $userId = $data['id_usuario'] ?? null;
+    $activo = isset($data['activo']) ? intval($data['activo']) : 1;
+
+    if (!$userId) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'ID de usuario requerido']);
+        return;
+    }
+
+    db()->execute(
+        "UPDATE AgentDistribution SET activo = ? WHERE id_usuario = ?",
+        [$activo, $userId]
+    );
+
+    echo json_encode(['success' => true, 'message' => 'Estado del agente actualizado']);
+}
+
+/**
+ * Obtener o crear una conversación por número de teléfono
+ */
+function createConversation()
+{
+    $user = canEdit();
+    $data = json_decode(file_get_contents('php://input'), true);
+    $phone = $data['phone'] ?? null;
+
+    if (!$phone) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Teléfono requerido']);
+        return;
+    }
+
+    $cleanPhone = preg_replace('/[\s\-\(\)\+]/', '', $phone);
+    if (!preg_match('/^51/', $cleanPhone) && preg_match('/^9\d{8}$/', $cleanPhone)) {
+        $cleanPhone = '51' . $cleanPhone;
+    }
+
+    $conversation = db()->queryOne(
+        "SELECT * FROM WhatsAppConversation WHERE wa_phone = ? AND estado != 'cerrada' ORDER BY fecha_creacion DESC LIMIT 1",
+        [$cleanPhone]
+    );
+
+    $userId = $user['id'] ?? $user['id_usuario'];
+
+    if (!$conversation) {
+        $prospecto = db()->queryOne("SELECT id_prospecto FROM Prospecto WHERE telefono = ? AND activo = 1 LIMIT 1", [$cleanPhone]);
+        if (!$prospecto && preg_match('/^51(\d{9})$/', $cleanPhone, $matches)) {
+            $prospecto = db()->queryOne("SELECT id_prospecto FROM Prospecto WHERE (telefono = ? OR telefono = ?) AND activo = 1 LIMIT 1", [$matches[1], '+' . $cleanPhone]);
+        }
+        $prospectoId = $prospecto ? $prospecto['id_prospecto'] : null;
+
+        $convId = db()->insert(
+            "INSERT INTO WhatsAppConversation (wa_phone, wa_profile_name, estado, origen, id_prospecto, id_usuario_asignado) VALUES (?, ?, 'asignada', 'manual', ?, ?)",
+            [$cleanPhone, 'Prospecto ' . substr($cleanPhone, -4), $prospectoId, $userId]
+        );
+
+        $conversation = db()->queryOne(
+            "SELECT * FROM WhatsAppConversation WHERE id_conversation = ?",
+            [$convId]
+        );
+    }
+
+    echo json_encode(['success' => true, 'data' => $conversation]);
 }

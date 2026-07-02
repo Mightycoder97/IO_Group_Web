@@ -288,7 +288,8 @@ class WhatsAppCloudAPI
                             'content' => '',
                             'media_id' => null,
                             'media_mime' => null,
-                            'context' => $msg['context'] ?? null
+                            'context' => $msg['context'] ?? null,
+                            'referral' => $msg['referral'] ?? null
                         ];
 
                         // Extraer contenido según tipo

@@ -210,7 +210,7 @@
         let msgListTimer = null;
         let isSending = false;
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             checkAuth();
             initSidebar();
             
@@ -221,7 +221,36 @@
             }
 
             // Load initial data
-            loadConversations();
+            const conversations = await loadConversations();
+
+            // Check URL search parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramId = urlParams.get('id');
+            const paramPhone = urlParams.get('phone');
+
+            if (paramId) {
+                selectConversation(parseInt(paramId));
+            } else if (paramPhone) {
+                const cleanPhone = paramPhone.replace(/\D/g, '');
+                const found = conversations && conversations.find(c => c.wa_phone.replace(/\D/g, '') === cleanPhone);
+                if (found) {
+                    selectConversation(found.id_conversation);
+                } else {
+                    showToast('Abriendo conversación de WhatsApp...', 'info');
+                    try {
+                        const res = await api.post('/whatsapp?action=conversation', { phone: cleanPhone });
+                        if (res && res.success && res.data) {
+                            await loadConversations();
+                            selectConversation(res.data.id_conversation);
+                        } else {
+                            showToast('No se pudo abrir la conversación en el servidor', 'danger');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        showToast('Error al conectar con la bandeja', 'danger');
+                    }
+                }
+            }
 
             // Set up polling timers
             convListTimer = setInterval(() => {
@@ -267,6 +296,7 @@
                 const response = await api.get(url);
                 if (response && response.success) {
                     renderConversationsList(response.data);
+                    return response.data || [];
                 } else {
                     listEl.innerHTML = `<div class="p-3 text-center text-danger">No se pudieron cargar los chats</div>`;
                 }
@@ -274,6 +304,7 @@
                 console.error(err);
                 listEl.innerHTML = `<div class="p-3 text-center text-danger">Error de conexión</div>`;
             }
+            return [];
         }
 
         function renderConversationsList(conversations) {

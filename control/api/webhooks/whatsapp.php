@@ -122,9 +122,11 @@ function processIncomingMessage($msg, $waApi)
 
         if (!$conversation) {
             // Crear nueva conversación
+            $origen = isset($msg['referral']) ? 'meta_ad' : 'whatsapp';
+            $campaignId = $msg['referral']['source_id'] ?? null;
             $convId = db()->insert(
-                "INSERT INTO WhatsAppConversation (wa_phone, wa_profile_name, estado, origen) VALUES (?, ?, 'abierta', 'whatsapp')",
-                [$phone, $profileName]
+                "INSERT INTO WhatsAppConversation (wa_phone, wa_profile_name, estado, origen, campaign_id) VALUES (?, ?, 'abierta', ?, ?)",
+                [$phone, $profileName, $origen, $campaignId]
             );
 
             $conversation = db()->queryOne(
@@ -132,11 +134,23 @@ function processIncomingMessage($msg, $waApi)
                 [$convId]
             );
         } else {
-            // Actualizar nombre de perfil si cambió
+            // Actualizar nombre de perfil y/o campaign_id si vino de anuncio
+            $updates = [];
+            $params = [];
             if ($profileName && $profileName !== $conversation['wa_profile_name']) {
+                $updates[] = "wa_profile_name = ?";
+                $params[] = $profileName;
+            }
+            if (isset($msg['referral']) && empty($conversation['campaign_id'])) {
+                $updates[] = "origen = 'meta_ad'";
+                $updates[] = "campaign_id = ?";
+                $params[] = $msg['referral']['source_id'] ?? null;
+            }
+            if (!empty($updates)) {
+                $params[] = $conversation['id_conversation'];
                 db()->execute(
-                    "UPDATE WhatsAppConversation SET wa_profile_name = ? WHERE id_conversation = ?",
-                    [$profileName, $conversation['id_conversation']]
+                    "UPDATE WhatsAppConversation SET " . implode(', ', $updates) . " WHERE id_conversation = ?",
+                    $params
                 );
             }
         }
@@ -161,18 +175,38 @@ function processIncomingMessage($msg, $waApi)
             if (!$prospecto) {
                 // Crear nuevo prospecto
                 $nombre = $profileName ?: 'WhatsApp ' . substr($phone, -4);
+                $fuente = isset($msg['referral']) ? 'meta_ad' : 'whatsapp';
                 $notasArr = [
                     'nombre_contacto' => $nombre,
                     'tipo_negocio' => 'Otro',
                     'observaciones' => 'Prospecto generado automáticamente desde WhatsApp'
                 ];
+                if (isset($msg['referral'])) {
+                    $notasArr['observaciones'] .= ' (Campaña Meta: ' . ($msg['referral']['headline'] ?? $msg['referral']['source_id'] ?? '') . ')';
+                    $notasArr['meta_referral'] = $msg['referral'];
+                }
 
                 $prospectoId = db()->insert(
-                    "INSERT INTO Prospecto (nombre_comercial, tipo_cliente, telefono, fuente, estado, notas) VALUES (?, 'persona', ?, 'whatsapp', 'nuevo', ?)",
-                    [$nombre, $phone, json_encode($notasArr)]
+                    "INSERT INTO Prospecto (nombre_comercial, tipo_cliente, telefono, fuente, estado, notas) VALUES (?, 'persona', ?, ?, 'nuevo', ?)",
+                    [$nombre, $phone, $fuente, json_encode($notasArr)]
                 );
             } else {
                 $prospectoId = $prospecto['id_prospecto'];
+                if (isset($msg['referral'])) {
+                    // Cargar notas actuales y agregar info de la campaña si no la tiene
+                    $pData = db()->queryOne("SELECT notas, fuente FROM Prospecto WHERE id_prospecto = ?", [$prospectoId]);
+                    if ($pData) {
+                        $pNotes = json_decode($pData['notes'] ?? $pData['notas'] ?? '{}', true);
+                        if (!isset($pNotes['meta_referral'])) {
+                            $pNotes['meta_referral'] = $msg['referral'];
+                            $pNotes['observaciones'] = ($pNotes['observaciones'] ?? '') . "\n[Nueva interacción desde Campaña Meta: " . ($msg['referral']['headline'] ?? $msg['referral']['source_id'] ?? '') . "]";
+                            db()->execute(
+                                "UPDATE Prospecto SET notas = ?, fuente = 'meta_ad' WHERE id_prospecto = ?",
+                                [json_encode($pNotes), $prospectoId]
+                            );
+                        }
+                    }
+                }
             }
 
             // Vincular prospecto a la conversación

@@ -282,7 +282,7 @@
 
         async function saveNewAgent() {
             const userId = document.getElementById('userSelect').value;
-            const maxConvs = document.getElementById('agentMaxConvs').value;
+            const maxConvs = parseInt(document.getElementById('agentMaxConvs').value) || 10;
 
             if (!userId) {
                 showToast('Selecciona un usuario', 'warning');
@@ -290,18 +290,20 @@
             }
 
             try {
-                // In a production app, we would make a POST to /agents, but here we can add it to the pool via the internal distribution helper endpoints
-                const response = await api.put(`/whatsapp?action=assign`, {
+                const response = await api.post(`/whatsapp?action=agent`, {
                     id_usuario: userId,
-                    auto_assign: false
+                    max_conversaciones: maxConvs
                 });
 
-                // Since we need to update AgentDistribution directly, let's mock the update or call a DB write via a quick custom handler.
-                // We'll update the config or database dynamically via the internal assignment fallback.
-                showToast('Agente guardado exitosamente', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('addAgentModal')).hide();
-                loadAgentsList();
+                if (response && response.success) {
+                    showToast('Agente guardado exitosamente', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('addAgentModal')).hide();
+                    loadAgentsList();
+                } else {
+                    showToast(response.message || 'Error agregando agente', 'danger');
+                }
             } catch (err) {
+                console.error(err);
                 showToast('Error agregando agente', 'danger');
             }
         }
@@ -315,22 +317,43 @@
 
         async function updateAgentLimit() {
             const userId = document.getElementById('editAgentId').value;
-            const maxConvs = document.getElementById('editAgentMaxConvs').value;
+            const maxConvs = parseInt(document.getElementById('editAgentMaxConvs').value) || 10;
 
             try {
-                showToast('Límite actualizado', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('editAgentModal')).hide();
-                loadAgentsList();
+                const response = await api.put(`/whatsapp?action=agent-limit`, {
+                    id_usuario: userId,
+                    max_conversaciones: maxConvs
+                });
+
+                if (response && response.success) {
+                    showToast('Límite actualizado exitosamente', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('editAgentModal')).hide();
+                    loadAgentsList();
+                } else {
+                    showToast(response.message || 'Error al actualizar límite', 'danger');
+                }
             } catch (err) {
+                console.error(err);
                 showToast('Error de red', 'danger');
             }
         }
 
         async function toggleAgentActive(userId, currentStatus) {
+            const newStatus = parseInt(currentStatus) === 1 ? 0 : 1;
             try {
-                showToast('Estado del agente actualizado', 'success');
-                loadAgentsList();
+                const response = await api.put(`/whatsapp?action=agent-status`, {
+                    id_usuario: userId,
+                    activo: newStatus
+                });
+
+                if (response && response.success) {
+                    showToast('Estado del agente actualizado', 'success');
+                    loadAgentsList();
+                } else {
+                    showToast(response.message || 'Error al actualizar estado', 'danger');
+                }
             } catch (err) {
+                console.error(err);
                 showToast('Error al actualizar estado', 'danger');
             }
         }
@@ -340,11 +363,20 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Conectando...';
 
-            setTimeout(() => {
-                showToast('Conexión con Meta Cloud API establecida con éxito.', 'success');
+            try {
+                const response = await api.get('/whatsapp?action=templates');
+                if (response && response.success) {
+                    showToast('Conexión con Meta Cloud API establecida con éxito. Plantillas cargadas.', 'success');
+                } else {
+                    showToast('Error de conexión con Meta: ' + (response.message || 'Error desconocido'), 'danger');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error de red al intentar conectar con Meta', 'danger');
+            } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Probar Conexión con Meta';
-            }, 1500);
+            }
         }
 
         function copyToClipboard(elementId) {

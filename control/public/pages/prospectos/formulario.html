@@ -528,7 +528,7 @@
             // WhatsApp link
             if (data.telefono) {
                 const phone = data.telefono.replace(/\D/g, '');
-                document.getElementById('btnWhatsApp').href = `https://wa.me/51${phone}`;
+                document.getElementById('btnWhatsApp').href = `../whatsapp/inbox.html?phone=${phone}`;
             }
             // Map
             const lat = parseFloat(data.latitud) || -12.0464;
