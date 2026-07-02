@@ -1,6 +1,9 @@
 # Enable URL Rewriting
 RewriteEngine On
 
+# Route clean webhook API calls to control/api/webhooks/
+RewriteRule ^api/webhooks/whatsapp(.*)$ control/api/webhooks/whatsapp.php [QSA,L]
+
 # Special case: /blog should serve blog.html (not the blog/ directory)
 RewriteRule ^blog/?$ blog.html [L]
 

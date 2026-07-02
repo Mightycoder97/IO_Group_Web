@@ -34,7 +34,8 @@ const SIDEBAR_SECTIONS = [
         title: 'Dashboard',
         icon: 'speedometer2',
         items: [
-            { href: 'dashboard.html', icon: 'speedometer2', label: 'Dashboard', modulo: 'dashboard' }
+            { href: 'dashboard.html', icon: 'speedometer2', label: 'General', modulo: 'dashboard' },
+            { href: 'dashboard-comercial.html', icon: 'graph-up', label: 'Comercial', modulo: 'dashboard_comercial' }
         ]
     },
     {
@@ -94,6 +95,16 @@ const SIDEBAR_SECTIONS = [
             { href: 'mapa/index.html', icon: 'map', label: 'Mapa de Sedes', modulo: 'mapa' },
             { href: 'reportes/index.html', icon: 'graph-up', label: 'Reportes', modulo: 'reportes' },
             { href: 'alertas/index.html', icon: 'bell', label: 'Alertas', modulo: 'alertas' }
+        ]
+    },
+    {
+        id: 'whatsapp',
+        title: 'WhatsApp CRM',
+        icon: 'whatsapp',
+        items: [
+            { href: 'whatsapp/inbox.html', icon: 'chat-dots', label: 'Bandeja Entrada', modulo: 'whatsapp' },
+            { href: 'whatsapp/config.html', icon: 'gear', label: 'Configuración WA', modulo: 'whatsapp', adminOnly: true },
+            { href: 'whatsapp/bot-config.html', icon: 'robot', label: 'Bot de Ventas', modulo: 'whatsapp', adminOnly: true }
         ]
     },
     {
@@ -190,7 +201,10 @@ function getSidebarHTML() {
     const sectionHTML = SIDEBAR_SECTIONS.map(section => {
         if (section.adminOnly && !isAdmin) return '';
 
-        const visibleItems = section.items.filter(item => canView(item.modulo));
+        const visibleItems = section.items.filter(item => {
+            if (item.adminOnly && !isAdmin) return false;
+            return canView(item.modulo);
+        });
         if (visibleItems.length === 0) return '';
 
         // If a section has only one visible item, render it directly as a button link

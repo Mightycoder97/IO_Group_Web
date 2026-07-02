@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Configuración de Bot - IO Control</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="../../css/global.css?v=2.5" rel="stylesheet">
+    <link href="../../css/control.css?v=2.3" rel="stylesheet">
+    <style>
+        .bot-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .bot-kpi-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .bot-kpi-val {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--wa-primary, #ea4517);
+        }
+        .bot-kpi-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        /* Simulated Chat styling */
+        .test-chat-box {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            height: 350px;
+            overflow-y: auto;
+            background: #efeae2;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .test-bubble {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+        }
+        .test-bubble.user {
+            background: #ffffff;
+            align-self: flex-start;
+        }
+        .test-bubble.bot {
+            background: #d9fdd3;
+            align-self: flex-end;
+        }
+    </style>
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Nav -->
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h4 class="mb-0 ms-2">Asistente de Ventas (Bot LLM)</h4>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            <span id="userName">Cargando...</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <!-- Bot Switch and Stats -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-robot fs-1 text-primary"></i>
+                            <div>
+                                <h5 class="fw-bold mb-0">Bot Comercial IO Group</h5>
+                                <p class="text-muted small mb-0">Atiende a prospectos iniciales con Inteligencia Artificial utilizando Gemini 2.5 Flash</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch form-switch-lg fs-5">
+                            <input class="form-check-input" type="checkbox" id="botStatusToggle" onchange="toggleBotActive()">
+                            <label class="form-check-label small fw-bold" for="botStatusToggle">Bot Habilitado</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bot Performance KPIs -->
+                <div class="bot-kpi-grid">
+                    <div class="bot-kpi-card">
+                        <div class="bot-kpi-val" id="kpiBotTotalMsgs">--</div>
+                        <div class="bot-kpi-label">Mensajes Enviados</div>
+                    </div>
+                    <div class="bot-kpi-card">
+                        <div class="bot-kpi-val" id="kpiBotConvs">--</div>
+                        <div class="bot-kpi-label">Chats Gestionados</div>
+                    </div>
+                    <div class="bot-kpi-card">
+                        <div class="bot-kpi-val" id="kpiBotTransferRate">--%</div>
+                        <div class="bot-kpi-label">Tasa de Transferencia</div>
+                    </div>
+                    <div class="bot-kpi-card">
+                        <div class="bot-kpi-val" id="kpiBotAvgMsgBefore">--</div>
+                        <div class="bot-kpi-label">Msg Promedio antes de Transf.</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Config Form Column -->
+                    <div class="col-lg-7 mb-4">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-sliders text-primary me-2"></i> Instrucciones del Asistente (System Prompt)</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted">Instrucciones de comportamiento e identidad que sigue el bot para interactuar con los clientes nuevos.</p>
+                                <textarea class="form-control" id="botSystemPrompt" rows="8" placeholder="Escribe el prompt aquí..."></textarea>
+                                <div class="mt-3 text-end">
+                                    <button class="btn btn-primary btn-sm" onclick="saveSystemPrompt()">Guardar System Prompt</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-journal-text text-primary me-2"></i> Base de Conocimiento (Knowledge Base)</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="small text-muted">Información sobre los servicios de IO Group, cobertura, horarios y frecuencias para que el bot pueda responder FAQs.</p>
+                                <textarea class="form-control" id="botKnowledge" rows="6" placeholder="Detalles de los servicios, frecuencias, requisitos, etc."></textarea>
+                                <div class="mt-3 text-end">
+                                    <button class="btn btn-primary btn-sm" onclick="saveKnowledgeBase()">Guardar Base de Conocimiento</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bot Rules & Keywords -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-arrow-left-right text-primary me-2"></i> Reglas de Transferencia Humana</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Mensaje de bienvenida al iniciar chat</label>
+                                    <textarea class="form-control" id="botMsgWelcome" rows="2"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Mensaje de transferencia a asesor</label>
+                                    <textarea class="form-control" id="botMsgTransfer" rows="2"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small fw-bold">Máximo de mensajes del bot antes de transferir</label>
+                                        <input type="number" class="form-control" id="botMaxMsg" min="1" max="25">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label small fw-bold">Modelo de LLM</label>
+                                        <select class="form-select" id="botModel">
+                                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recomendado)</option>
+                                            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Palabras clave que disparan transferencia (JSON array)</label>
+                                    <input type="text" class="form-control" id="botKeywords" placeholder='["asesor", "cotizar", "precio"]'>
+                                </div>
+                                <div class="text-end">
+                                    <button class="btn btn-primary btn-sm" onclick="saveTransferRules()">Guardar Reglas</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulator Column -->
+                    <div class="col-lg-5 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-chat-left-dots text-primary me-2"></i> Simulador y Pruebas</h5>
+                            </div>
+                            <div class="card-body d-flex flex-column h-100">
+                                <p class="small text-muted">Prueba cómo respondería el bot en tiempo real sin mandar mensajes reales a WhatsApp.</p>
+                                
+                                <div class="test-chat-box flex-grow-1 mb-3" id="testChatBox">
+                                    <div class="test-bubble bot">¡Hola! Soy el simulador de pruebas. Escribe algo para ver cómo respondo utilizando las instrucciones actuales.</div>
+                                </div>
+
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="testInput" placeholder="Escribe tu mensaje..." onkeydown="handleTestKeydown(event)">
+                                    <button class="btn btn-primary" onclick="sendTestMessage()" id="btnSendTest">Enviar</button>
+                                </div>
+                                <div class="mt-2 text-end">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="clearTestChat()">Limpiar chat</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        let testHistory = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            initSidebar();
+
+            const user = getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.nombre || user.username || 'Usuario';
+            }
+
+            // Load config
+            loadBotConfig();
+            // Load stats
+            loadBotStats();
+        });
+
+        async function loadBotConfig() {
+            try {
+                const res = await api.get('/bot-config');
+                if (res && res.success && res.data) {
+                    const d = res.data;
+                    document.getElementById('botStatusToggle').checked = parseInt(d.activo) === 1;
+                    document.getElementById('botSystemPrompt').value = d.system_prompt || '';
+                    document.getElementById('botKnowledge').value = d.knowledge_base || '';
+                    document.getElementById('botMsgWelcome').value = d.mensaje_bienvenida || '';
+                    document.getElementById('botMsgTransfer').value = d.mensaje_transferencia || '';
+                    document.getElementById('botMaxMsg').value = d.max_bot_messages || 10;
+                    document.getElementById('botModel').value = d.modelo || 'gemini-2.5-flash';
+                    
+                    const keywords = d.auto_transfer_keywords || [];
+                    document.getElementById('botKeywords').value = JSON.stringify(keywords);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadBotStats() {
+            try {
+                const res = await api.get('/bot-config?action=stats');
+                if (res && res.success) {
+                    const d = res.data;
+                    document.getElementById('kpiBotTotalMsgs').textContent = d.total_mensajes_bot;
+                    document.getElementById('kpiBotConvs').textContent = d.conversaciones_bot;
+                    document.getElementById('kpiBotTransferRate').textContent = d.tasa_transferencia + '%';
+                    document.getElementById('kpiBotAvgMsgBefore').textContent = d.promedio_mensajes_antes_transferencia;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function toggleBotActive() {
+            const active = document.getElementById('botStatusToggle').checked ? 1 : 0;
+            try {
+                const res = await api.put('/bot-config', { activo: active });
+                if (res && res.success) {
+                    showToast('Estado del bot actualizado', 'success');
+                }
+            } catch (e) {
+                showToast('Error de conexión', 'danger');
+            }
+        }
+
+        async function saveSystemPrompt() {
+            const prompt = document.getElementById('botSystemPrompt').value;
+            updateBotFields({ system_prompt: prompt });
+        }
+
+        async function saveKnowledgeBase() {
+            const kb = document.getElementById('botKnowledge').value;
+            updateBotFields({ knowledge_base: kb });
+        }
+
+        async function saveTransferRules() {
+            const welcome = document.getElementById('botMsgWelcome').value;
+            const transfer = document.getElementById('botMsgTransfer').value;
+            const maxMsg = document.getElementById('botMaxMsg').value;
+            const model = document.getElementById('botModel').value;
+            
+            let keywords = [];
+            try {
+                keywords = JSON.parse(document.getElementById('botKeywords').value);
+            } catch (e) {
+                showToast('Formato JSON de palabras clave inválido. Debe ser como: ["keyword1", "keyword2"]', 'warning');
+                return;
+            }
+
+            updateBotFields({
+                mensaje_bienvenida: welcome,
+                mensaje_transferencia: transfer,
+                max_bot_messages: maxMsg,
+                modelo: model,
+                auto_transfer_keywords: keywords
+            });
+        }
+
+        async function updateBotFields(fields) {
+            try {
+                const res = await api.put('/bot-config', fields);
+                if (res && res.success) {
+                    showToast('Configuración guardada exitosamente', 'success');
+                } else {
+                    showToast(res.message || 'Error al guardar', 'danger');
+                }
+            } catch (e) {
+                showToast('Error de conexión', 'danger');
+            }
+        }
+
+        // Test bot simulator
+        async function sendTestMessage() {
+            const input = document.getElementById('testInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // UI user bubble
+            appendTestBubble(text, 'user');
+            input.value = '';
+
+            const btn = document.getElementById('btnSendTest');
+            btn.disabled = true;
+
+            try {
+                const res = await api.post('/bot-config?action=test', {
+                    message: text,
+                    history: testHistory
+                });
+
+                if (res && res.success) {
+                    const reply = res.data.response;
+                    appendTestBubble(reply, 'bot');
+                    
+                    // Add to history
+                    testHistory.push({ role: 'user', text: text });
+                    testHistory.push({ role: 'model', text: reply });
+                    if (testHistory.length > 10) testHistory.shift(); // keep history brief
+                } else {
+                    appendTestBubble('Error de respuesta: ' + (res.message || 'Error desconocido'), 'bot');
+                }
+            } catch (e) {
+                appendTestBubble('Error de red al conectar con el servidor', 'bot');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function handleTestKeydown(event) {
+            if (event.key === 'Enter') {
+                sendTestMessage();
+            }
+        }
+
+        function appendTestBubble(text, sender) {
+            const box = document.getElementById('testChatBox');
+            const bubble = document.createElement('div');
+            bubble.className = `test-bubble ${sender}`;
+            bubble.textContent = text;
+            box.appendChild(bubble);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function clearTestChat() {
+            document.getElementById('testChatBox').innerHTML = '';
+            testHistory = [];
+        }
+    </script>
+</body>
+
+</html>

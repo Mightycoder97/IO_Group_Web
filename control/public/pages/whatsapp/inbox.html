@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Bandeja WhatsApp - IO Control</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="../../css/global.css?v=2.5" rel="stylesheet">
+    <link href="../../css/whatsapp-inbox.css?v=1.0" rel="stylesheet">
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <!-- Sidebar dynamically loaded -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Nav -->
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h4 class="mb-0 ms-2">Bandeja WhatsApp</h4>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            <span id="userName">Cargando...</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Container for inbox view -->
+            <div class="content-area p-0">
+                <div class="wa-inbox-container" id="inboxContainer">
+                    
+                    <!-- Column 1: Conversations List -->
+                    <div class="wa-conversations-column">
+                        <div class="wa-sidebar-header">
+                            <div class="wa-search-box">
+                                <i class="bi bi-search"></i>
+                                <input type="text" id="waSearch" placeholder="Buscar chat o teléfono..." onkeyup="filterChatsDebounced()">
+                            </div>
+                            <div class="wa-filters-nav" id="waFilters">
+                                <button class="active" onclick="setChatFilter('all')">Todos</button>
+                                <button onclick="setChatFilter('me')">Míos</button>
+                                <button onclick="setChatFilter('unassigned')">Sin Asignar</button>
+                                <button onclick="setChatFilter('bot')">En Bot</button>
+                            </div>
+                        </div>
+                        <div class="wa-conversations-list" id="conversationsList">
+                            <!-- Skeleton loader -->
+                            <div class="p-3 text-center text-muted">Cargando conversaciones...</div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Chat Area -->
+                    <div class="wa-chat-column" id="chatColumn">
+                        <!-- Chat Header -->
+                        <div class="wa-chat-header d-none" id="chatHeader">
+                            <div class="wa-header-user-info">
+                                <button class="btn btn-sm btn-light d-md-none me-2" onclick="goBackToConversations()">
+                                    <i class="bi bi-arrow-left"></i>
+                                </button>
+                                <div class="wa-avatar me-2" id="chatHeaderAvatar">WA</div>
+                                <div>
+                                    <h6 class="wa-header-name" id="chatHeaderName">Contacto</h6>
+                                    <span class="wa-header-status" id="chatHeaderStatus">Asignado a: Nadie</span>
+                                </div>
+                            </div>
+                            <div class="wa-chat-actions">
+                                <button class="btn btn-sm btn-outline-primary" onclick="showAssignModal()" title="Asignar agente">
+                                    <i class="bi bi-person-plus"></i> Asignar
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" onclick="closeChat()" title="Cerrar chat">
+                                    <i class="bi bi-check-circle"></i> Cerrar
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="toggleInfoColumn()">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Messages Area -->
+                        <div class="wa-messages-area" id="messagesArea">
+                            <div class="wa-empty-state">
+                                <i class="bi bi-whatsapp"></i>
+                                <h3>Bandeja de Entrada WhatsApp CRM</h3>
+                                <p>Selecciona una conversación para ver y enviar mensajes.</p>
+                            </div>
+                        </div>
+
+                        <!-- Input Panel -->
+                        <div class="wa-input-panel d-none" id="inputPanel">
+                            <button class="btn btn-secondary-action" onclick="showTemplatesModal()" title="Plantillas">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </button>
+                            <textarea id="messageInput" placeholder="Escribe un mensaje aquí..." onkeydown="handleInputKeydown(event)" rows="1"></textarea>
+                            <button onclick="sendChatMessage()" id="btnSend">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Contact Info -->
+                    <div class="wa-info-column collapsed" id="infoColumn">
+                        <div class="wa-info-header">
+                            <h5>Detalles del Contacto</h5>
+                            <button class="btn-close" onclick="toggleInfoColumn()"></button>
+                        </div>
+                        <div class="wa-info-body">
+                            <div class="wa-avatar wa-info-avatar" id="infoAvatar">WA</div>
+                            <div class="wa-info-name" id="infoName">Nombre</div>
+                            
+                            <div class="wa-info-detail-card">
+                                <div class="wa-info-label">Teléfono</div>
+                                <div class="wa-info-value" id="infoPhone">-</div>
+                                
+                                <div class="wa-info-label">Prospecto Relacionado</div>
+                                <div class="wa-info-value"><span class="badge bg-secondary" id="infoProspectoEstado">Nuevo</span></div>
+                                
+                                <div class="wa-info-label">Tipo de Negocio</div>
+                                <div class="wa-info-value" id="infoTipoNegocio">-</div>
+                                
+                                <div class="wa-info-label">Observaciones</div>
+                                <div class="wa-info-value" id="infoObservaciones">-</div>
+
+                                <div class="mt-3">
+                                    <a href="#" id="btnGoToProspecto" class="btn btn-sm btn-primary w-100 mb-2">
+                                        <i class="bi bi-box-arrow-up-right"></i> Ver Ficha Completa
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Assign Agent Modal -->
+    <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Asignar Agente</h5>
+                    <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-outline-primary w-100" onclick="autoAssignAgent()">
+                            <i class="bi bi-magic"></i> Auto-asignación Inteligente (Round-Robin)
+                        </button>
+                    </div>
+                    <hr>
+                    <label class="form-label">Seleccionar Agente Manualmente</label>
+                    <select class="form-select" id="agentSelect">
+                        <option value="">Cargando agentes...</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" onclick="assignAgentSelected()">Confirmar Asignación</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates Modal -->
+    <div class="modal fade" id="templatesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Plantillas de Mensaje WhatsApp</h5>
+                    <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group" id="templatesList">
+                        <div class="p-3 text-center text-muted">Cargando plantillas...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js"></script>
+    <script>
+        let currentConvId = null;
+        let activeFilter = 'all';
+        let searchQuery = '';
+        let pollingActive = true;
+        let convListTimer = null;
+        let msgListTimer = null;
+        let isSending = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            initSidebar();
+            
+            // Set user profile info
+            const user = getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.nombre || user.username || 'Usuario';
+            }
+
+            // Load initial data
+            loadConversations();
+
+            // Set up polling timers
+            convListTimer = setInterval(() => {
+                if (pollingActive && !document.hidden) loadConversations(false);
+            }, 15000);
+
+            msgListTimer = setInterval(() => {
+                if (pollingActive && currentConvId && !document.hidden) loadMessages(currentConvId, false);
+            }, 5000);
+
+            // Handle visibility API changes to save battery/bandwidth
+            document.addEventListener('visibilitychange', () => {
+                pollingActive = !document.hidden;
+            });
+        });
+
+        // Filter search input
+        const filterChatsDebounced = debounce(() => {
+            searchQuery = document.getElementById('waSearch').value.trim();
+            loadConversations(true);
+        }, 300);
+
+        function setChatFilter(filter) {
+            activeFilter = filter;
+            document.querySelectorAll('#waFilters button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadConversations(true);
+        }
+
+        async function loadConversations(showLoader = true) {
+            const listEl = document.getElementById('conversationsList');
+            if (showLoader && listEl) {
+                listEl.innerHTML = `<div class="p-4 text-center"><div class="spinner-border spinner-border-sm text-primary"></div><div class="text-muted mt-2">Cargando chats...</div></div>`;
+            }
+
+            try {
+                let url = '/whatsapp?action=conversations';
+                if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
+                if (activeFilter === 'me') url += '&asignado=me';
+                else if (activeFilter === 'unassigned') url += '&asignado=unassigned';
+                else if (activeFilter === 'bot') url += '&asignado=bot';
+
+                const response = await api.get(url);
+                if (response && response.success) {
+                    renderConversationsList(response.data);
+                } else {
+                    listEl.innerHTML = `<div class="p-3 text-center text-danger">No se pudieron cargar los chats</div>`;
+                }
+            } catch (err) {
+                console.error(err);
+                listEl.innerHTML = `<div class="p-3 text-center text-danger">Error de conexión</div>`;
+            }
+        }
+
+        function renderConversationsList(conversations) {
+            const listEl = document.getElementById('conversationsList');
+            if (!conversations || conversations.length === 0) {
+                listEl.innerHTML = `<div class="p-4 text-center text-muted"><i class="bi bi-chat-left-dots fs-3 d-block mb-2"></i>No hay conversaciones</div>`;
+                return;
+            }
+
+            let html = '';
+            conversations.forEach(c => {
+                const isSelected = c.id_conversation == currentConvId ? 'active' : '';
+                const name = c.prospecto_nombre || c.wa_profile_name || c.wa_phone;
+                const initials = getInitials(name);
+                const color = getAvatarColor(name);
+                const time = c.ultimo_mensaje_fecha ? formatConversationTime(c.ultimo_mensaje_fecha) : '';
+                const preview = c.ultimo_mensaje || 'Sin mensajes';
+                const unreadBadge = c.mensajes_no_leidos > 0 
+                    ? `<span class="wa-badge-unread">${c.mensajes_no_leidos}</span>` 
+                    : '';
+
+                html += `
+                    <div class="wa-conversation-item ${isSelected}" onclick="selectConversation(${c.id_conversation})">
+                        <div class="wa-avatar" style="background-color: ${color}">${initials}</div>
+                        <div class="wa-conv-info">
+                            <div class="wa-conv-header">
+                                <span class="wa-conv-name">${escapeHtml(name)}</span>
+                                <span class="wa-conv-time">${time}</span>
+                            </div>
+                            <div class="wa-conv-last-msg">
+                                <span class="wa-last-msg-text">${escapeHtml(preview)}</span>
+                                ${unreadBadge}
+                            </div>
+                        </div>
+                        <span class="wa-status-dot ${c.estado}"></span>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html;
+        }
+
+        async function selectConversation(id) {
+            currentConvId = id;
+            
+            // UI classes
+            document.getElementById('inboxContainer').classList.add('chat-open');
+            document.querySelectorAll('.wa-conversation-item').forEach(item => item.classList.remove('active'));
+            
+            // Toggle visibility
+            document.getElementById('chatHeader').classList.remove('d-none');
+            document.getElementById('inputPanel').classList.remove('d-none');
+
+            // Load
+            await loadMessages(id, true);
+
+            // Highlight in list
+            loadConversations(false);
+        }
+
+        async function loadMessages(id, showLoader = true) {
+            const areaEl = document.getElementById('messagesArea');
+            if (showLoader) {
+                areaEl.innerHTML = `<div class="h-100 d-flex align-items-center justify-content-center"><div class="spinner-border text-primary"></div></div>`;
+            }
+
+            try {
+                const response = await api.get(`/whatsapp?action=conversation&id=${id}`);
+                if (response && response.success) {
+                    const data = response.data;
+                    renderChatHeader(data.conversation);
+                    renderMessages(data.messages);
+                    updateInfoPanel(data.conversation);
+                    
+                    if (showLoader) {
+                        scrollToBottom();
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderChatHeader(c) {
+            const name = c.prospecto_nombre || c.wa_profile_name || c.wa_phone;
+            document.getElementById('chatHeaderName').textContent = name;
+            document.getElementById('chatHeaderAvatar').textContent = getInitials(name);
+            document.getElementById('chatHeaderAvatar').style.backgroundColor = getAvatarColor(name);
+            
+            let statusText = 'Sin asignar';
+            if (c.estado === 'bot') {
+                statusText = '🤖 Atendido por Bot';
+            } else if (c.agente_nombre) {
+                statusText = `👤 Asignado a: ${c.agente_nombre}`;
+            }
+            document.getElementById('chatHeaderStatus').textContent = statusText;
+        }
+
+        function renderMessages(messages) {
+            const areaEl = document.getElementById('messagesArea');
+            if (!messages || messages.length === 0) {
+                areaEl.innerHTML = `<div class="wa-empty-state"><i class="bi bi-chat"></i><p>No hay mensajes en este chat. Envía uno para iniciar la conversación.</p></div>`;
+                return;
+            }
+
+            let html = '';
+            let lastDate = '';
+
+            messages.forEach(m => {
+                const dateStr = formatDividerDate(m.fecha_creacion);
+                if (dateStr !== lastDate) {
+                    html += `<div class="wa-date-divider">${dateStr}</div>`;
+                    lastDate = dateStr;
+                }
+
+                const isOutgoing = m.direccion === 'saliente';
+                const isBot = parseInt(m.es_bot) === 1;
+                
+                let bubbleClass = 'incoming';
+                if (isOutgoing) {
+                    bubbleClass = isBot ? 'bot' : 'outgoing';
+                }
+
+                let ticks = '';
+                if (isOutgoing) {
+                    const ticksClass = m.estado_envio || 'enviado';
+                    let ticksIcon = '✓';
+                    if (ticksClass === 'delivered') ticksIcon = '✓✓';
+                    if (ticksClass === 'leido') ticksIcon = '✓✓';
+                    ticks = `<span class="wa-message-ticks ${ticksClass}">${ticksIcon}</span>`;
+                }
+
+                let senderName = '';
+                if (isOutgoing && !isBot && m.enviado_por_nombre) {
+                    senderName = `<span class="wa-message-sender">${escapeHtml(m.enviado_por_nombre)}</span>`;
+                } else if (isBot) {
+                    senderName = `<span class="wa-message-bot-badge"><i class="bi bi-robot"></i> Asistente Bot</span>`;
+                }
+
+                let contentHtml = escapeHtml(m.contenido);
+                if (m.tipo === 'imagen' && m.media_url) {
+                    contentHtml = `<img src="${m.media_url}" class="img-fluid rounded mb-1" style="max-height: 200px; cursor: pointer;" onclick="window.open('${m.media_url}')"><br>${contentHtml}`;
+                } else if (m.tipo === 'documento' && m.media_url) {
+                    contentHtml = `<a href="${m.media_url}" target="_blank" class="btn btn-sm btn-light border d-inline-flex align-items-center gap-2"><i class="bi bi-file-earmark-pdf fs-4 text-danger"></i> <span>Documento</span></a><br>${contentHtml}`;
+                } else if (m.tipo === 'audio' && m.media_url) {
+                    contentHtml = `<audio src="${m.media_url}" controls class="w-100" style="max-width: 250px;"></audio>`;
+                }
+
+                html += `
+                    <div class="wa-message-bubble ${bubbleClass}">
+                        ${senderName}
+                        <div>${contentHtml}</div>
+                        <div class="wa-message-footer">
+                            <span>${formatMessageTime(m.fecha_creacion)}</span>
+                            ${ticks}
+                        </div>
+                    </div>
+                `;
+            });
+
+            const scrollPos = areaEl.scrollHeight - areaEl.scrollTop;
+            const wasAtBottom = scrollPos - areaEl.clientHeight < 100;
+
+            areaEl.innerHTML = html;
+
+            if (wasAtBottom) {
+                scrollToBottom();
+            }
+        }
+
+        function updateInfoPanel(c) {
+            document.getElementById('infoAvatar').textContent = getInitials(c.prospecto_nombre || c.wa_profile_name || c.wa_phone);
+            document.getElementById('infoAvatar').style.backgroundColor = getAvatarColor(c.prospecto_nombre || c.wa_profile_name || c.wa_phone);
+            document.getElementById('infoName').textContent = c.prospecto_nombre || c.wa_profile_name || 'Desconocido';
+            document.getElementById('infoPhone').textContent = c.wa_phone;
+            
+            const badge = document.getElementById('infoProspectoEstado');
+            badge.textContent = c.prospecto_estado || 'Desconocido';
+            badge.className = 'badge';
+            if (c.prospecto_estado === 'nuevo') badge.classList.add('bg-secondary');
+            else if (c.prospecto_estado === 'contactado') badge.classList.add('bg-info');
+            else if (c.prospecto_estado === 'interesado') badge.classList.add('bg-warning');
+            else if (c.prospecto_estado === 'negociacion') badge.classList.add('bg-primary');
+            else if (c.prospecto_estado === 'ganado') badge.classList.add('bg-success');
+            else if (c.prospecto_estado === 'perdido') badge.classList.add('bg-danger');
+
+            document.getElementById('infoTipoNegocio').textContent = c.prospecto_tipo_negocio || '-';
+            document.getElementById('infoObservaciones').textContent = c.prospecto_observaciones || '-';
+            
+            const btn = document.getElementById('btnGoToProspecto');
+            if (c.id_prospecto) {
+                btn.classList.remove('disabled');
+                btn.href = `../prospectos/formulario.html?id=${c.id_prospecto}`;
+            } else {
+                btn.classList.add('disabled');
+                btn.href = '#';
+            }
+        }
+
+        async function sendChatMessage() {
+            if (isSending || !currentConvId) return;
+            
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            isSending = true;
+            document.getElementById('btnSend').disabled = true;
+
+            try {
+                const response = await api.post('/whatsapp?action=send', {
+                    id_conversation: currentConvId,
+                    contenido: text,
+                    tipo: 'texto'
+                });
+
+                if (response && response.success) {
+                    input.value = '';
+                    input.style.height = '42px'; // Reset height
+                    await loadMessages(currentConvId, false);
+                    scrollToBottom();
+                } else {
+                    showToast(response.message || 'Error al enviar mensaje', 'danger');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error de red al enviar mensaje', 'danger');
+            } finally {
+                isSending = false;
+                document.getElementById('btnSend').disabled = false;
+            }
+        }
+
+        function handleInputKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        }
+
+        // Auto-grow textarea
+        const tx = document.getElementById('messageInput');
+        tx.addEventListener("input", function() {
+            this.style.height = '42px';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Modals Assignment
+        async function showAssignModal() {
+            const modal = new bootstrap.Modal(document.getElementById('assignModal'));
+            modal.show();
+
+            try {
+                const response = await api.get('/whatsapp?action=agents');
+                const select = document.getElementById('agentSelect');
+                if (response && response.success) {
+                    let html = '<option value="">-- Seleccionar Agente --</option>';
+                    response.data.forEach(a => {
+                        html += `<option value="${a.id_usuario}">${escapeHtml(a.nombre_completo)} (${a.conversaciones_activas}/${a.max_conversaciones} chats)</option>`;
+                    });
+                    select.innerHTML = html;
+                } else {
+                    select.innerHTML = '<option value="">Error cargando agentes</option>';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function autoAssignAgent() {
+            if (!currentConvId) return;
+            try {
+                const response = await api.put(`/whatsapp?action=assign&id=${currentConvId}`, {
+                    auto_assign: true
+                });
+                if (response && response.success) {
+                    showToast(response.message, 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('assignModal')).hide();
+                    loadMessages(currentConvId, false);
+                } else {
+                    showToast(response.message || 'Error de asignación', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de conexión', 'danger');
+            }
+        }
+
+        async function assignAgentSelected() {
+            if (!currentConvId) return;
+            const agentId = document.getElementById('agentSelect').value;
+            if (!agentId) {
+                showToast('Selecciona un agente', 'warning');
+                return;
+            }
+
+            try {
+                const response = await api.put(`/whatsapp?action=assign&id=${currentConvId}`, {
+                    id_usuario: agentId
+                });
+                if (response && response.success) {
+                    showToast('Conversación asignada', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('assignModal')).hide();
+                    loadMessages(currentConvId, false);
+                } else {
+                    showToast(response.message || 'Error', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de conexión', 'danger');
+            }
+        }
+
+        async function closeChat() {
+            if (!currentConvId) return;
+            if (!confirm('¿Estás seguro de cerrar esta conversación? El agente se liberará y la conversación pasará a estado cerrado.')) return;
+
+            try {
+                const response = await api.put(`/whatsapp?action=close&id=${currentConvId}`);
+                if (response && response.success) {
+                    showToast('Conversación cerrada exitosamente', 'success');
+                    currentConvId = null;
+                    document.getElementById('chatHeader').classList.add('d-none');
+                    document.getElementById('inputPanel').classList.add('d-none');
+                    document.getElementById('messagesArea').innerHTML = `
+                        <div class="wa-empty-state">
+                            <i class="bi bi-whatsapp"></i>
+                            <h3>Bandeja de Entrada WhatsApp CRM</h3>
+                            <p>Selecciona una conversación para ver y enviar mensajes.</p>
+                        </div>
+                    `;
+                    loadConversations(true);
+                } else {
+                    showToast(response.message || 'Error al cerrar chat', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de conexión', 'danger');
+            }
+        }
+
+        async function showTemplatesModal() {
+            const modal = new bootstrap.Modal(document.getElementById('templatesModal'));
+            modal.show();
+
+            const container = document.getElementById('templatesList');
+            container.innerHTML = '<div class="p-3 text-center"><div class="spinner-border text-primary spinner-border-sm"></div></div>';
+
+            try {
+                const response = await api.get('/whatsapp?action=templates');
+                if (response && response.success) {
+                    let html = '';
+                    const templates = response.data;
+                    if (templates.length === 0) {
+                        container.innerHTML = '<div class="p-3 text-center text-muted">No hay plantillas disponibles en Meta</div>';
+                        return;
+                    }
+                    templates.forEach(t => {
+                        const bodyComponent = t.components.find(c => c.type === 'BODY');
+                        const text = bodyComponent ? bodyComponent.text : '';
+                        html += `
+                            <button type="button" class="list-group-item list-group-item-action" onclick="useTemplate('${t.name}', '${t.language}')">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1 fw-bold">${t.name}</h6>
+                                    <small class="text-uppercase">${t.language}</small>
+                                </div>
+                                <p class="mb-1 text-muted small">${escapeHtml(text)}</p>
+                            </button>
+                        `;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div class="p-3 text-center text-danger">No se pudieron cargar las plantillas</div>';
+                }
+            } catch (err) {
+                container.innerHTML = '<div class="p-3 text-center text-danger">Error de conexión</div>';
+            }
+        }
+
+        async function useTemplate(name, lang) {
+            bootstrap.Modal.getInstance(document.getElementById('templatesModal')).hide();
+            
+            // In a production app we'd display form inputs for parameters, but for simple use we can send it directly
+            if (!confirm(`¿Quieres enviar la plantilla "${name}" al teléfono de este contacto?`)) return;
+
+            const phone = document.getElementById('infoPhone').textContent;
+            try {
+                const response = await api.post('/whatsapp?action=send-template', {
+                    phone: phone,
+                    template_name: name,
+                    language: lang
+                });
+
+                if (response && response.success) {
+                    showToast('Plantilla enviada exitosamente', 'success');
+                    if (currentConvId) {
+                        setTimeout(() => loadMessages(currentConvId, false), 1500);
+                    }
+                } else {
+                    showToast(response.message || 'Error enviando plantilla', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de conexión', 'danger');
+            }
+        }
+
+        // Toggle Column 3 Info
+        function toggleInfoColumn() {
+            const col = document.getElementById('infoColumn');
+            col.classList.toggle('collapsed');
+        }
+
+        function goBackToConversations() {
+            document.getElementById('inboxContainer').classList.remove('chat-open');
+        }
+
+        // Utility: Scroll to bottom
+        function scrollToBottom() {
+            const area = document.getElementById('messagesArea');
+            area.scrollTop = area.scrollHeight;
+        }
+
+        // Utility Helpers
+        function getInitials(name) {
+            if (!name) return 'WA';
+            const clean = name.replace(/[+\d]/g, '').trim();
+            if (!clean) return 'WA';
+            const parts = clean.split(' ');
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+            return parts[0].substring(0, 2).toUpperCase();
+        }
+
+        function getAvatarColor(name) {
+            if (!name) return '#00a884';
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const colors = ['#007bff', '#6610f2', '#6f42c1', '#e83e8c', '#dc3545', '#fd7e14', '#ffc107', '#28a745', '#20c997', '#17a2b8', '#00a884', '#ea4517'];
+            const index = Math.abs(hash) % colors.length;
+            return colors[index];
+        }
+
+        function formatConversationTime(dateStr) {
+            const date = new Date(dateStr.replace(/-/g, '/'));
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (date.toDateString() === today.toDateString()) {
+                return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return 'Ayer';
+            } else {
+                return date.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' });
+            }
+        }
+
+        function formatMessageTime(dateStr) {
+            const date = new Date(dateStr.replace(/-/g, '/'));
+            return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+
+        function formatDividerDate(dateStr) {
+            const date = new Date(dateStr.replace(/-/g, '/'));
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (date.toDateString() === today.toDateString()) {
+                return 'Hoy';
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return 'Ayer';
+            } else {
+                return date.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' });
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+
+</html>

@@ -16,7 +16,8 @@ $MODULOS = [
     'dashboard', 'clientes', 'empresas', 'sedes', 'contratos',
     'servicios', 'rutas', 'manifiestos', 'guias',
     'empleados', 'vehiculos', 'plantas',
-    'facturas', 'prospectos', 'reportes', 'alertas', 'usuarios', 'mapa'
+    'facturas', 'prospectos', 'reportes', 'alertas', 'usuarios', 'mapa',
+    'whatsapp', 'dashboard_comercial'
 ];
 
 switch ($method) {

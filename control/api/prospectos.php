@@ -340,12 +340,19 @@ function create() {
     $tipoCliente = ($ruc || $razonSocial) ? 'empresa' : 'persona';
     $nombreComercial = $razonSocial ?: $nombre;
 
+    $valorPotencial = $data['valor_potencial'] ?? null;
     $id = db()->insert(
         "INSERT INTO Prospecto (nombre_comercial, tipo_cliente, ruc, telefono, email, direccion, distrito, 
-                                notas, id_usuario_asignado, estado, fecha_proximo_contacto) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                notas, id_usuario_asignado, estado, fecha_proximo_contacto, valor_potencial) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [$nombreComercial, $tipoCliente, $ruc, $telefono, $email, $direccion, $distrito, 
-         $notasJson, $idUsuario, $estadoDb, $data['fecha_siguiente_contacto'] ?? null]
+         $notasJson, $idUsuario, $estadoDb, $data['fecha_siguiente_contacto'] ?? null, $valorPotencial]
+    );
+
+    // Registrar estado inicial en el historial
+    db()->insert(
+        "INSERT INTO ProspectoHistorial (id_prospecto, estado_anterior, estado_nuevo, id_usuario) VALUES (?, NULL, ?, ?)",
+        [$id, $estadoDb, $user['id'] ?? $user['id_usuario'] ?? null]
     );
     
     echo json_encode([
@@ -442,6 +449,51 @@ function update($id) {
         [$nombreComercial, $tipoCliente, $ruc, $telefono, $email, $direccion, $distrito,
          $notasJson, $idUsuario, $estadoDb, $fechaSiguiente, $id]
     );
+
+    // Registrar cambio de estado en historial si cambió
+    if ($estadoDb !== $existing['estado']) {
+        $duracion = null;
+        if (!empty($existing['fecha_modificacion'])) {
+            $dur = db()->queryOne(
+                "SELECT TIMESTAMPDIFF(SECOND, ?, NOW()) as duracion",
+                [$existing['fecha_modificacion']]
+            );
+            $duracion = $dur['duracion'] ?? null;
+        }
+        db()->insert(
+            "INSERT INTO ProspectoHistorial (id_prospecto, estado_anterior, estado_nuevo, id_usuario, duracion_estado_anterior) VALUES (?, ?, ?, ?, ?)",
+            [$id, $existing['estado'], $estadoDb, $user['id'] ?? $user['id_usuario'] ?? null, $duracion]
+        );
+    }
+
+    // Actualizar campos comerciales adicionales si se proveen
+    $valorPotencial = $data['valor_potencial'] ?? null;
+    $idMotivo = $data['id_motivo_perdida'] ?? null;
+    $notasPerdida = $data['notas_perdida'] ?? null;
+
+    $updateFields = [];
+    $updateParams = [];
+    if ($valorPotencial !== null) {
+        $updateFields[] = "valor_potencial = ?";
+        $updateParams[] = $valorPotencial;
+    }
+    if ($estadoDb === 'perdido') {
+        if ($idMotivo !== null) {
+            $updateFields[] = "id_motivo_perdida = ?";
+            $updateParams[] = $idMotivo;
+        }
+        if ($notasPerdida !== null) {
+            $updateFields[] = "notas_perdida = ?";
+            $updateParams[] = $notasPerdida;
+        }
+    }
+    if (!empty($updateFields)) {
+        $updateParams[] = $id;
+        db()->execute(
+            "UPDATE Prospecto SET " . implode(', ', $updateFields) . " WHERE id_prospecto = ?",
+            $updateParams
+        );
+    }
     
     // Audit log
     $adminId = $user['id'] ?? $user['id_usuario'] ?? null;
@@ -505,6 +557,32 @@ function updateEstado($id) {
         "UPDATE Prospecto SET estado = ? WHERE id_prospecto = ?",
         [$estadoDb, $id]
     );
+
+    // Registrar en historial de estados
+    $duracion = null;
+    if (!empty($existing['fecha_modificacion'])) {
+        $dur = db()->queryOne(
+            "SELECT TIMESTAMPDIFF(SECOND, ?, NOW()) as duracion",
+            [$existing['fecha_modificacion']]
+        );
+        $duracion = $dur['duracion'] ?? null;
+    }
+    db()->insert(
+        "INSERT INTO ProspectoHistorial (id_prospecto, estado_anterior, estado_nuevo, id_usuario, duracion_estado_anterior) VALUES (?, ?, ?, ?, ?)",
+        [$id, $existing['estado'], $estadoDb, $user['id'] ?? $user['id_usuario'] ?? null, $duracion]
+    );
+
+    // Si es perdido, guardar motivo
+    if ($estadoDb === 'perdido') {
+        $idMotivo = $data['id_motivo_perdida'] ?? null;
+        $notasPerdida = $data['notas_perdida'] ?? null;
+        if ($idMotivo !== null || $notasPerdida !== null) {
+            db()->execute(
+                "UPDATE Prospecto SET id_motivo_perdida = ?, notas_perdida = ? WHERE id_prospecto = ?",
+                [$idMotivo, $notasPerdida, $id]
+            );
+        }
+    }
     
     // Audit log
     $adminId = $user['id'] ?? $user['id_usuario'] ?? null;

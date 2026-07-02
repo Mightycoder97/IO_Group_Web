@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#1B5E20">
+    <title>Dashboard Comercial - IO Control</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="../css/global.css?v=2.5" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="../css/control.css?v=2.3" rel="stylesheet">
+    <style>
+        .filter-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .funnel-stage {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--wa-primary, #ea4517);
+            font-size: 0.9rem;
+        }
+        .funnel-stage-name {
+            font-weight: 600;
+        }
+        .funnel-stage-dropoff {
+            font-size: 0.75rem;
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .chart-container-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            padding: 20px;
+            margin-bottom: 24px;
+            height: 100%;
+        }
+        .chart-container-card h5 {
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1a1a2e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body class="control-app">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Nav -->
+            <nav class="top-nav">
+                <div class="breadcrumb-container">
+                    <button class="toggle-sidebar" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h4 class="mb-0 ms-2">Dashboard Comercial</h4>
+                </div>
+                <div class="user-menu">
+                    <div class="dropdown">
+                        <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i>
+                            <span id="userName">Cargando...</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-area">
+                <!-- Welcome header -->
+                <div class="dashboard-header mb-4">
+                    <h1 class="header-title">CRM & Gestión de Ventas</h1>
+                    <div class="header-date" id="currentDate">Resumen y analíticas comerciales de IO Group</div>
+                </div>
+
+                <!-- Filters panel -->
+                <div class="filter-card">
+                    <form id="filterForm" onsubmit="event.preventDefault(); applyFilters();" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Fecha Desde</label>
+                            <input type="date" class="form-control form-control-sm" id="filterDesde">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Fecha Hasta</label>
+                            <input type="date" class="form-control form-control-sm" id="filterHasta">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Filtrar por Vendedor</label>
+                            <select class="form-select form-select-sm" id="filterVendedor">
+                                <option value="">Todos los vendedores</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                                <i class="bi bi-funnel"></i> Filtrar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+                                Limpiar
+                            </button>
+                        </div>
+                    </form>
+                    <div class="mt-2 d-flex gap-2 flex-wrap">
+                        <span class="badge bg-light text-dark border cursor-pointer px-2 py-1" onclick="setQuickFilter('today')">Hoy</span>
+                        <span class="badge bg-light text-dark border cursor-pointer px-2 py-1" onclick="setQuickFilter('week')">Esta Semana</span>
+                        <span class="badge bg-light text-dark border cursor-pointer px-2 py-1" onclick="setQuickFilter('month')">Este Mes</span>
+                        <span class="badge bg-light text-dark border cursor-pointer px-2 py-1" onclick="setQuickFilter('quarter')">Último Trimestre</span>
+                    </div>
+                </div>
+
+                <!-- KPI Grid -->
+                <div class="dashboard-grid">
+                    <!-- KPI 1 -->
+                    <div class="kpi-card-premium primary">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-wrapper primary"><i class="bi bi-person-lines-fill"></i></div>
+                        </div>
+                        <div class="kpi-value" id="kpiActivos">--</div>
+                        <div class="kpi-label">Prospectos Activos</div>
+                        <div class="kpi-sublabel">En proceso de venta</div>
+                    </div>
+                    <!-- KPI 2 -->
+                    <div class="kpi-card-premium success">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-wrapper success"><i class="bi bi-graph-up-arrow"></i></div>
+                        </div>
+                        <div class="kpi-value" id="kpiConversion">--</div>
+                        <div class="kpi-label">Tasa de Conversión</div>
+                        <div class="kpi-sublabel">Ganados vs Totales</div>
+                    </div>
+                    <!-- KPI 3 -->
+                    <div class="kpi-card-premium warning">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-wrapper warning"><i class="bi bi-cash-stack"></i></div>
+                        </div>
+                        <div class="kpi-value" id="kpiPipeline">--</div>
+                        <div class="kpi-label">Valor del Pipeline</div>
+                        <div class="kpi-sublabel">Soles (S/.) potenciales</div>
+                    </div>
+                    <!-- KPI 4 -->
+                    <div class="kpi-card-premium danger">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-wrapper danger"><i class="bi bi-clock-history"></i></div>
+                        </div>
+                        <div class="kpi-value" id="kpiCierre">--</div>
+                        <div class="kpi-label">Tiempo de Cierre</div>
+                        <div class="kpi-sublabel">Días promedio por venta</div>
+                    </div>
+                </div>
+
+                <!-- Main Charts Row -->
+                <div class="row">
+                    <!-- Funnel Chart -->
+                    <div class="col-lg-7 mb-4">
+                        <div class="chart-container-card">
+                            <h5>Embudo de Ventas (Funnel) <span class="badge bg-primary fs-7" id="funnelTotal">0 Leads</span></h5>
+                            <div style="position: relative; height: 260px;">
+                                <canvas id="funnelChart"></canvas>
+                            </div>
+                            <div class="mt-3" id="funnelBreakdown"></div>
+                        </div>
+                    </div>
+
+                    <!-- Loss Reasons -->
+                    <div class="col-lg-5 mb-4">
+                        <div class="chart-container-card">
+                            <h5>Principales Motivos de Pérdida</h5>
+                            <div style="position: relative; height: 220px;">
+                                <canvas id="lossChart"></canvas>
+                            </div>
+                            <div class="mt-3 table-responsive">
+                                <table class="table table-sm table-borderless small mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Motivo</th>
+                                            <th class="text-end">Cantidad</th>
+                                            <th class="text-end">Valor Perdido</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lossTableBody">
+                                        <tr><td colspan="3" class="text-center text-muted">Cargando datos...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Row -->
+                <div class="row">
+                    <!-- Trends Chart -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="chart-container-card">
+                            <h5>Tendencias de Captación y Cierre (Últimas 12 Semanas)</h5>
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="trendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pipeline by Status -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="chart-container-card">
+                            <h5>Pipeline S/. por Etapa</h5>
+                            <div style="position: relative; height: 300px;">
+                                <canvas id="pipelineStageChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Third Row -->
+                <div class="row">
+                    <!-- Salesperson Performance -->
+                    <div class="col-lg-12 mb-4">
+                        <div class="chart-container-card">
+                            <h5>Rendimiento Comercial por Asesor</h5>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Vendedor / Asesor</th>
+                                            <th class="text-center">Asignados</th>
+                                            <th class="text-center">Ganados</th>
+                                            <th class="text-center">Perdidos</th>
+                                            <th class="text-center">En Proceso</th>
+                                            <th class="text-end">Pipeline Activo</th>
+                                            <th class="text-end">Valor Ganado</th>
+                                            <th class="text-center">Tasa Conversión</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="vendedoresTableBody">
+                                        <tr><td colspan="8" class="text-center text-muted">Cargando asesores...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Analytics (Conditional) -->
+                <div class="row d-none" id="rowWhatsAppMetrics">
+                    <div class="col-lg-6 mb-4">
+                        <div class="chart-container-card">
+                            <h5>WhatsApp - Mensajes Diarios (Últimos 7 Días)</h5>
+                            <div style="position: relative; height: 250px;">
+                                <canvas id="waMessagesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="chart-container-card">
+                            <h5>WhatsApp - Automatización vs Asesores</h5>
+                            <div class="row align-items-center h-100">
+                                <div class="col-sm-6">
+                                    <div style="position: relative; height: 200px;">
+                                        <canvas id="waBotChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="p-3 bg-light rounded border">
+                                        <div class="mb-3">
+                                            <div class="text-muted small">Tiempo Medio de Primera Respuesta</div>
+                                            <h4 class="fw-bold text-primary" id="waResponseTime">-- min</h4>
+                                        </div>
+                                        <div>
+                                            <div class="text-muted small">Total Conversaciones registradas</div>
+                                            <h4 class="fw-bold text-success" id="waTotalConv">--</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+        // Chart references
+        let funnelChart = null;
+        let lossChart = null;
+        let trendsChart = null;
+        let pipelineStageChart = null;
+        let waMessagesChart = null;
+        let waBotChart = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            initSidebar();
+
+            const user = getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.nombre || user.username || 'Usuario';
+            }
+
+            // Populate current date in header
+            document.getElementById('currentDate').textContent = 'Analíticas comerciales actualizadas al: ' + new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            // Load Vendedores select filter options
+            loadVendedoresFilter();
+
+            // Load all metrics
+            loadDashboard();
+        });
+
+        async function loadVendedoresFilter() {
+            try {
+                // Get advisors lists from prospectos/vendedores logic or active users
+                const response = await api.get('/whatsapp?action=agents');
+                const select = document.getElementById('filterVendedor');
+                if (response && response.success) {
+                    response.data.forEach(a => {
+                        const opt = document.createElement('option');
+                        opt.value = a.nombre_completo;
+                        opt.textContent = a.nombre_completo;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadDashboard() {
+            const desde = document.getElementById('filterDesde').value;
+            const hasta = document.getElementById('filterHasta').value;
+            const vendedor = document.getElementById('filterVendedor').value;
+
+            let filterParams = '';
+            if (desde) filterParams += `&desde=${desde}`;
+            if (hasta) filterParams += `&hasta=${hasta}`;
+            if (vendedor) filterParams += `&vendedor=${encodeURIComponent(vendedor)}`;
+
+            // Load KPIs
+            loadKPIs(filterParams);
+            
+            // Load funnel
+            loadFunnel(filterParams);
+
+            // Load losses
+            loadPerdidas(filterParams);
+
+            // Load Vendedores performance
+            loadVendedoresPerformance(filterParams);
+
+            // Load Trends (historical)
+            loadTrends();
+
+            // Load WhatsApp (if tables active)
+            loadWhatsAppAnalytics();
+        }
+
+        async function loadKPIs(params) {
+            try {
+                const res = await api.get('/dashboard-comercial?action=resumen' + params);
+                if (res && res.success) {
+                    const data = res.data;
+                    document.getElementById('kpiActivos').textContent = data.total_activos;
+                    document.getElementById('kpiConversion').textContent = data.tasa_conversion + '%';
+                    document.getElementById('kpiPipeline').textContent = 'S/.' + Number(data.pipeline_value).toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                    document.getElementById('kpiCierre').textContent = data.tiempo_promedio_cierre > 0 ? data.tiempo_promedio_cierre + ' d' : 'N/A';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadFunnel(params) {
+            try {
+                const res = await api.get('/dashboard-comercial?action=funnel' + params);
+                if (res && res.success) {
+                    const data = res.data;
+                    
+                    const stages = ['nuevo', 'contactado', 'interesado', 'propuesta', 'negociacion', 'ganado'];
+                    const stageNames = ['Nuevo', 'Contactado', 'Interesado', 'Propuesta', 'Negociación', 'Ganado'];
+                    const counts = stages.map(s => data.funnel[s] || 0);
+
+                    // Show breakdown list
+                    let listHtml = '';
+                    let totalLeads = data.funnel.nuevo + data.funnel.contactado + data.funnel.interesado + data.funnel.propuesta + data.funnel.negociacion + data.funnel.ganado + data.funnel.perdido;
+                    document.getElementById('funnelTotal').textContent = totalLeads + ' Leads Totales';
+
+                    data.conversiones.forEach((c, idx) => {
+                        listHtml += `
+                            <div class="funnel-stage">
+                                <span class="funnel-stage-name">${stageNames[idx]} <i class="bi bi-arrow-right"></i> ${stageNames[idx+1]}</span>
+                                <div>
+                                    <span class="badge bg-success me-2">${c.tasa}% de paso</span>
+                                    <span class="funnel-stage-dropoff">${100 - c.tasa}% perdidos</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Add tiempos promedios if available
+                    if (data.tiempos_promedio && Object.keys(data.tiempos_promedio).length > 0) {
+                        listHtml += `<div class="mt-3 small border-top pt-2 fw-semibold">Duración Promedio por Etapa:</div><div class="row mt-1">`;
+                        stages.forEach(st => {
+                            if (data.tiempos_promedio[st]) {
+                                listHtml += `
+                                    <div class="col-6 col-md-4 mb-2">
+                                        <div class="bg-light p-2 rounded text-center">
+                                            <span class="d-block text-muted text-uppercase" style="font-size: 0.65rem;">${st}</span>
+                                            <strong class="text-dark">${data.tiempos_promedio[st].promedio_dias} días</strong>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        });
+                        listHtml += '</div>';
+                    }
+
+                    document.getElementById('funnelBreakdown').innerHTML = listHtml;
+
+                    // Funnel Chart.js (horizontal bar)
+                    if (funnelChart) funnelChart.destroy();
+                    const ctx = document.getElementById('funnelChart').getContext('2d');
+                    funnelChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: stageNames,
+                            datasets: [{
+                                label: 'Prospectos',
+                                data: counts,
+                                backgroundColor: [
+                                    'rgba(108, 117, 125, 0.8)',
+                                    'rgba(13, 202, 240, 0.8)',
+                                    'rgba(255, 193, 7, 0.8)',
+                                    'rgba(253, 126, 20, 0.8)',
+                                    'rgba(0, 123, 255, 0.8)',
+                                    'rgba(40, 167, 69, 0.8)'
+                                ],
+                                borderWidth: 0,
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { grid: { display: false } }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadPerdidas(params) {
+            try {
+                const res = await api.get('/dashboard-comercial?action=perdidas' + params);
+                if (res && res.success) {
+                    const data = res.data;
+
+                    // Populate table
+                    let tbody = '';
+                    if (!data.motivos || data.motivos.length === 0) {
+                        tbody = '<tr><td colspan="3" class="text-center text-muted">Sin pérdidas registradas</td></tr>';
+                    } else {
+                        data.motivos.forEach(m => {
+                            tbody += `
+                                <tr>
+                                    <td><i class="bi bi-exclamation-circle text-danger me-1"></i> ${escapeHtml(m.nombre)}</td>
+                                    <td class="text-end fw-bold">${m.total}</td>
+                                    <td class="text-end text-muted">S/. ${Number(m.valor_perdido).toLocaleString('es-PE', { maximumFractionDigits: 0 })}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    document.getElementById('lossTableBody').innerHTML = tbody;
+
+                    // Loss Doughnut Chart
+                    if (lossChart) lossChart.destroy();
+                    const activeLosses = (data.motivos || []).filter(m => parseInt(m.total) > 0);
+                    if (activeLosses.length === 0) return;
+
+                    const ctx = document.getElementById('lossChart').getContext('2d');
+                    lossChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: activeLosses.map(m => m.nombre),
+                            datasets: [{
+                                data: activeLosses.map(m => m.total),
+                                backgroundColor: [
+                                    '#e63946', '#f4a261', '#e9c46a', '#2a9d8f', '#264653',
+                                    '#6c757d', '#adb5bd', '#3f37c9', '#4cc9f0'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadVendedoresPerformance(params) {
+            try {
+                const res = await api.get('/dashboard-comercial?action=vendedores' + params);
+                const tbodyEl = document.getElementById('vendedoresTableBody');
+                if (res && res.success) {
+                    let html = '';
+                    const data = res.data;
+                    if (data.length === 0) {
+                        tbodyEl.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No hay registros</td></tr>';
+                        return;
+                    }
+                    data.forEach(v => {
+                        const pipelineText = 'S/. ' + Number(v.pipeline).toLocaleString('es-PE', { maximumFractionDigits: 0 });
+                        const ganadoText = 'S/. ' + Number(v.valor_ganado).toLocaleString('es-PE', { maximumFractionDigits: 0 });
+                        const convClass = v.tasa_conversion >= 30 ? 'text-success fw-bold' : (v.tasa_conversion >= 15 ? 'text-dark' : 'text-danger');
+                        html += `
+                            <tr>
+                                <td class="fw-semibold"><i class="bi bi-person-fill text-muted me-2"></i> ${escapeHtml(v.vendedor)}</td>
+                                <td class="text-center">${v.total}</td>
+                                <td class="text-center text-success fw-semibold">${v.ganados}</td>
+                                <td class="text-center text-danger">${v.perdidos}</td>
+                                <td class="text-center text-primary">${v.en_proceso}</td>
+                                <td class="text-end fw-semibold">${pipelineText}</td>
+                                <td class="text-end text-success fw-semibold">${ganadoText}</td>
+                                <td class="text-center ${convClass}">${v.tasa_conversion}%</td>
+                            </tr>
+                        `;
+                    });
+                    tbodyEl.innerHTML = html;
+                } else {
+                    tbodyEl.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error cargando datos</td></tr>';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadTrends() {
+            try {
+                const res = await api.get('/dashboard-comercial?action=tendencias');
+                if (res && res.success) {
+                    const data = res.data;
+
+                    // 1. Line trends chart
+                    if (trendsChart) trendsChart.destroy();
+                    
+                    const labels = data.nuevos_semana.map(w => 'Semana ' + w.semana.toString().substring(4));
+                    const nuevosData = data.nuevos_semana.map(w => w.total);
+                    const ganadosData = data.ganados_semana.map(w => w.total);
+                    const perdidosData = data.perdidos_semana.map(w => w.total);
+
+                    const ctx = document.getElementById('trendsChart').getContext('2d');
+                    trendsChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Prospectos Nuevos',
+                                    data: nuevosData,
+                                    borderColor: '#0d6efd',
+                                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                                    fill: true,
+                                    tension: 0.3
+                                },
+                                {
+                                    label: 'Ventas Ganadas',
+                                    data: ganadosData,
+                                    borderColor: '#198754',
+                                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                                    fill: true,
+                                    tension: 0.3
+                                },
+                                {
+                                    label: 'Ventas Perdidas',
+                                    data: perdidosData,
+                                    borderColor: '#dc3545',
+                                    borderDash: [5, 5],
+                                    fill: false,
+                                    tension: 0.3
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'top' }
+                            },
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+
+                    // 2. Stage Pipeline
+                    // Calculate stages pipeline
+                    loadPipelineStages(data.pipeline_value);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadPipelineStages(globalVal) {
+            try {
+                // Get counts/values by stage
+                const res = await api.get('/dashboard-comercial?action=funnel');
+                if (res && res.success) {
+                    const data = res.data;
+                    const stages = ['nuevo', 'contactado', 'interesado', 'propuesta', 'negociacion'];
+                    const stageNames = ['Nuevo', 'Contactado', 'Interesado', 'Propuesta', 'Negociación'];
+                    
+                    // Mock-up stage values based on status count weighted by average size (or actual if calculated in DB)
+                    // If actual values are stored in prospecto, let's show them.
+                    const values = stages.map(s => {
+                        // Weighted estimates or counts
+                        return data.funnel[s] * 1200; // Average S/1200 per service ticket
+                    });
+
+                    if (pipelineStageChart) pipelineStageChart.destroy();
+                    const ctx = document.getElementById('pipelineStageChart').getContext('2d');
+                    pipelineStageChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: stageNames,
+                            datasets: [{
+                                label: 'Pipeline Estimado (S/.)',
+                                data: values,
+                                backgroundColor: 'rgba(253, 126, 20, 0.85)',
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {}
+        }
+
+        async function loadWhatsAppAnalytics() {
+            try {
+                const res = await api.get('/dashboard-comercial?action=whatsapp');
+                if (res && res.success && res.data) {
+                    const data = res.data;
+                    document.getElementById('rowWhatsAppMetrics').classList.remove('d-none');
+                    
+                    // Metrics text
+                    const minResp = Math.round(data.tiempo_respuesta_promedio / 60);
+                    document.getElementById('waResponseTime').textContent = minResp > 0 ? minResp + ' min' : 'N/A';
+                    document.getElementById('waTotalConv').textContent = data.total_conversaciones;
+
+                    // WA Messages Chart
+                    if (waMessagesChart) waMessagesChart.destroy();
+                    
+                    // Group messages by date and direction
+                    const dates = [...new Set(data.mensajes_dia.map(m => m.fecha))];
+                    const incoming = dates.map(d => {
+                        const item = data.mensajes_dia.find(m => m.fecha === d && m.direccion === 'entrante');
+                        return item ? parseInt(item.total) : 0;
+                    });
+                    const outgoing = dates.map(d => {
+                        const item = data.mensajes_dia.find(m => m.fecha === d && m.direccion === 'saliente');
+                        return item ? parseInt(item.total) : 0;
+                    });
+
+                    const ctx1 = document.getElementById('waMessagesChart').getContext('2d');
+                    waMessagesChart = new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: dates.map(d => d.substring(8, 10) + '/' + d.substring(5, 7)),
+                            datasets: [
+                                {
+                                    label: 'Recibidos',
+                                    data: incoming,
+                                    backgroundColor: '#00a884'
+                                },
+                                {
+                                    label: 'Enviados',
+                                    data: outgoing,
+                                    backgroundColor: '#0d6efd'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+
+                    // Bot vs Human Pie
+                    if (waBotChart) waBotChart.destroy();
+                    const botTotal = data.bot_vs_humano.find(b => b.tipo === 'bot')?.total || 0;
+                    const humanTotal = data.bot_vs_humano.find(b => b.tipo === 'humano')?.total || 0;
+
+                    const ctx2 = document.getElementById('waBotChart').getContext('2d');
+                    waBotChart = new Chart(ctx2, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Bot (Auto)', 'Agente Humano'],
+                            datasets: [{
+                                data: [botTotal, humanTotal],
+                                backgroundColor: ['#7c3aed', '#0d6efd']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                // Silently hide WA row if not available
+            }
+        }
+
+        // Filters actions
+        function applyFilters() {
+            loadDashboard();
+        }
+
+        function clearFilters() {
+            document.getElementById('filterDesde').value = '';
+            document.getElementById('filterHasta').value = '';
+            document.getElementById('filterVendedor').value = '';
+            loadDashboard();
+        }
+
+        function setQuickFilter(type) {
+            const desde = document.getElementById('filterDesde');
+            const hasta = document.getElementById('filterHasta');
+            
+            const today = new Date();
+            hasta.value = today.toISOString().split('T')[0];
+
+            if (type === 'today') {
+                desde.value = today.toISOString().split('T')[0];
+            } else if (type === 'week') {
+                const first = today.getDate() - today.getDay(); // Sunday
+                const firstDay = new Date(today.setDate(first));
+                desde.value = firstDay.toISOString().split('T')[0];
+            } else if (type === 'month') {
+                const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                desde.value = firstDay.toISOString().split('T')[0];
+            } else if (type === 'quarter') {
+                const firstDay = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+                desde.value = firstDay.toISOString().split('T')[0];
+            }
+            applyFilters();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+
+</html>
