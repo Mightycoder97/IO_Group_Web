@@ -56,7 +56,9 @@ function getDashboard() {
             "SELECT COUNT(*) as count 
              FROM Sede s 
              INNER JOIN Empresa e ON s.id_empresa = e.id_empresa 
-             WHERE s.activo = 1 AND e.activo = 1"
+             WHERE s.activo = 1 AND e.activo = 1
+             AND s.fecha_creacion < ?",
+            [$filterDateNext]
         );
         $sedesActivas = $sedesActivasResult ? $sedesActivasResult['count'] : 0;
         
@@ -361,6 +363,7 @@ function getSedesSinServicioMes($fechaInicio, $fechaFinExclusiva) {
                 GROUP BY id_sede
              ) ult ON ult.id_sede = s.id_sede
              WHERE s.activo = 1 AND e.activo = 1
+               AND s.fecha_creacion < ?
                AND NOT EXISTS (
                     SELECT 1
                     FROM Servicio sv
@@ -383,14 +386,15 @@ function getSedesSinServicioMes($fechaInicio, $fechaFinExclusiva) {
              ORDER BY e.razon_social ASC, s.nombre_comercial ASC";
 
     $rows = db()->query($sql, [
-        $fechaInicio,
-        $fechaFinExclusiva,
-        $fechaInicio,
-        $fechaInicio,
-        $fechaFinExclusiva,
-        $fechaFinExclusiva,
-        $fechaFinExclusiva,
-        $fechaFinExclusiva
+        $fechaInicio,        // sv.fecha_ejecucion >= ?  (NOT EXISTS)
+        $fechaFinExclusiva,  // sv.fecha_ejecucion < ?   (NOT EXISTS)
+        $fechaFinExclusiva,  // s.fecha_creacion < ?
+        $fechaInicio,        // PERIOD_DIFF bimestral
+        $fechaInicio,        // PERIOD_DIFF trimestral
+        $fechaFinExclusiva,  // DATEDIFF quincenal
+        $fechaFinExclusiva,  // DATEDIFF semanal
+        $fechaFinExclusiva,  // DATEDIFF diario
+        $fechaFinExclusiva   // DATEDIFF interdiario
     ]);
     if (!$rows) return [];
 
