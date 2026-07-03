@@ -386,15 +386,15 @@ function getSedesSinServicioMes($fechaInicio, $fechaFinExclusiva) {
              ORDER BY e.razon_social ASC, s.nombre_comercial ASC";
 
     $rows = db()->query($sql, [
-        $fechaInicio,        // sv.fecha_ejecucion >= ?  (NOT EXISTS)
-        $fechaFinExclusiva,  // sv.fecha_ejecucion < ?   (NOT EXISTS)
-        $fechaFinExclusiva,  // s.fecha_creacion < ?
-        $fechaInicio,        // PERIOD_DIFF bimestral
-        $fechaInicio,        // PERIOD_DIFF trimestral
-        $fechaFinExclusiva,  // DATEDIFF quincenal
-        $fechaFinExclusiva,  // DATEDIFF semanal
-        $fechaFinExclusiva,  // DATEDIFF diario
-        $fechaFinExclusiva   // DATEDIFF interdiario
+        $fechaFinExclusiva,  // 1. s.fecha_creacion < ?          (WHERE principal)
+        $fechaInicio,        // 2. sv.fecha_ejecucion >= ?        (NOT EXISTS)
+        $fechaFinExclusiva,  // 3. sv.fecha_ejecucion < ?         (NOT EXISTS)
+        $fechaInicio,        // 4. PERIOD_DIFF bimestral/bimensual
+        $fechaInicio,        // 5. PERIOD_DIFF trimestral
+        $fechaFinExclusiva,  // 6. DATEDIFF quincenal
+        $fechaFinExclusiva,  // 7. DATEDIFF semanal
+        $fechaFinExclusiva,  // 8. DATEDIFF diario/diaria
+        $fechaFinExclusiva   // 9. DATEDIFF interdiario
     ]);
     if (!$rows) return [];
 
