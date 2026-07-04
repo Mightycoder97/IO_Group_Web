@@ -71,8 +71,9 @@ function getDashboard() {
              WHERE sv.fecha_ejecucion >= ?
              AND sv.fecha_ejecucion < ?
              AND s.activo = 1 AND e.activo = 1
+             AND s.fecha_creacion < ?
              AND sv.estado IN ('completado', 'en_curso', 'programado')",
-            [$filterDateStart, $filterDateNext]
+            [$filterDateStart, $filterDateNext, $filterDateNext]
         );
         $sedesConServicio = $sedesConServicioResult ? $sedesConServicioResult['count'] : 0;
         $sedesSinServicio = getSedesSinServicioMes($filterDateStart, $filterDateNext);
