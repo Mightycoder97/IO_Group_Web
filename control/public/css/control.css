@@ -115,6 +115,8 @@
     justify-content: space-between;
     position: relative;
     overflow: hidden;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+    border: 1px solid rgba(226, 232, 240, 0.7);
 }
 
 .kpi-card-premium::before {
@@ -123,22 +125,22 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 3px;
+    height: 4px;
     background: transparent;
     transition: background 0.3s ease;
 }
 
-.kpi-card-premium.primary::before { background: #166534; }
-.kpi-card-premium.success::before { background: #10B981; }
-.kpi-card-premium.info::before { background: #3B82F6; }
-.kpi-card-premium.warning::before { background: #F59E0B; }
-.kpi-card-premium.danger::before { background: #EF4444; }
-.kpi-card-premium.secondary::before { background: #6366F1; }
+.kpi-card-premium.primary::before { background: linear-gradient(90deg, #166534, #22c55e); }
+.kpi-card-premium.success::before { background: linear-gradient(90deg, #047857, #10b981); }
+.kpi-card-premium.info::before { background: linear-gradient(90deg, #1d4ed8, #3b82f6); }
+.kpi-card-premium.warning::before { background: linear-gradient(90deg, #b45309, #f59e0b); }
+.kpi-card-premium.danger::before { background: linear-gradient(90deg, #b91c1c, #ef4444); }
+.kpi-card-premium.secondary::before { background: linear-gradient(90deg, #4338ca, #6366f1); }
 
 .kpi-card-premium:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
-    border-color: rgba(203, 213, 225, 0.8);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.02);
+    border-color: rgba(203, 213, 225, 0.9);
 }
 
 .kpi-card-button {
@@ -148,6 +150,8 @@
     font: inherit;
     text-align: left;
     width: 100%;
+    border: 1px solid rgba(226, 232, 240, 0.7);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .kpi-card-button:hover,
@@ -155,19 +159,59 @@
     outline: 0;
 }
 
+/* Click indicator for interactive KPI cards */
+.kpi-click-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(226, 232, 240, 0.5);
+    color: #64748B;
+    font-size: 0.8rem;
+    opacity: 0;
+    transform: translateX(-5px);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kpi-card-button:hover .kpi-click-indicator {
+    opacity: 1;
+    transform: translateX(0);
+    background: rgba(226, 232, 240, 0.9);
+}
+
 .kpi-card-button.coverage-alert:hover {
-    border-color: rgba(16, 185, 129, 0.4);
-    box-shadow: 0 16px 36px -12px rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.5);
+    box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.16);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 253, 244, 0.8) 100%);
+}
+
+.kpi-card-button.coverage-alert:hover .kpi-click-indicator {
+    color: #047857;
+    background: rgba(16, 185, 129, 0.15);
 }
 
 .kpi-card-button.renewal-alert:hover {
-    border-color: rgba(239, 68, 68, 0.4);
-    box-shadow: 0 16px 36px -12px rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 20px 40px -15px rgba(239, 68, 68, 0.16);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(254, 242, 242, 0.8) 100%);
+}
+
+.kpi-card-button.renewal-alert:hover .kpi-click-indicator {
+    color: #b91c1c;
+    background: rgba(239, 68, 68, 0.15);
 }
 
 .kpi-card-button.info-alert:hover {
-    border-color: rgba(59, 130, 246, 0.4);
-    box-shadow: 0 16px 36px -12px rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 20px 40px -15px rgba(59, 130, 246, 0.16);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(239, 246, 255, 0.8) 100%);
+}
+
+.kpi-card-button.info-alert:hover .kpi-click-indicator {
+    color: #1d4ed8;
+    background: rgba(59, 130, 246, 0.15);
 }
 
 .kpi-header,

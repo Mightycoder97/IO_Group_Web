@@ -56,9 +56,7 @@ function getDashboard() {
             "SELECT COUNT(*) as count 
              FROM Sede s 
              INNER JOIN Empresa e ON s.id_empresa = e.id_empresa 
-             WHERE s.activo = 1 AND e.activo = 1
-             AND s.fecha_creacion < ?",
-            [$filterDateNext]
+             WHERE s.activo = 1 AND e.activo = 1"
         );
         $sedesActivas = $sedesActivasResult ? $sedesActivasResult['count'] : 0;
         
@@ -71,9 +69,8 @@ function getDashboard() {
              WHERE sv.fecha_ejecucion >= ?
              AND sv.fecha_ejecucion < ?
              AND s.activo = 1 AND e.activo = 1
-             AND s.fecha_creacion < ?
              AND sv.estado IN ('completado', 'en_curso', 'programado')",
-            [$filterDateStart, $filterDateNext, $filterDateNext]
+            [$filterDateStart, $filterDateNext]
         );
         $sedesConServicio = $sedesConServicioResult ? $sedesConServicioResult['count'] : 0;
         $sedesSinServicio = getSedesSinServicioMes($filterDateStart, $filterDateNext);
@@ -94,7 +91,9 @@ function getDashboard() {
                 'mes' => $key,
                 'mes_label' => $mesLabel,
                 'total' => 0.0,
-                'cobrado' => 0.0
+                'cobrado' => 0.0,
+                'cobertura' => 0.0,
+                'sedes_atendidas' => 0
             ];
         }
 
@@ -126,6 +125,33 @@ function getDashboard() {
                 }
             }
         }
+
+        $coberturaQuery = db()->query(
+            "SELECT 
+                DATE_FORMAT(sv.fecha_ejecucion, '%Y-%m') as mes,
+                COUNT(DISTINCT sv.id_sede) as served_sedes
+             FROM Servicio sv
+             INNER JOIN Sede s ON sv.id_sede = s.id_sede
+             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+             WHERE s.activo = 1 AND e.activo = 1
+               AND YEAR(sv.fecha_ejecucion) = ?
+               AND sv.estado IN ('completado', 'en_curso', 'programado')
+             GROUP BY DATE_FORMAT(sv.fecha_ejecucion, '%Y-%m')
+             ORDER BY mes ASC",
+            [$currentYear]
+        );
+
+        if ($coberturaQuery) {
+            foreach ($coberturaQuery as $row) {
+                $key = $row['mes'];
+                if (isset($mesesAnio[$key])) {
+                    $served = intval($row['served_sedes']);
+                    $mesesAnio[$key]['sedes_atendidas'] = $served;
+                    $mesesAnio[$key]['cobertura'] = $sedesActivas > 0 ? round(($served / $sedesActivas) * 100, 1) : 0.0;
+                }
+            }
+        }
+
         $facturacion12Meses = array_values($mesesAnio);
         
         // Pagos pendientes - servicios completados con estado_pago pendiente
@@ -364,7 +390,6 @@ function getSedesSinServicioMes($fechaInicio, $fechaFinExclusiva) {
                 GROUP BY id_sede
              ) ult ON ult.id_sede = s.id_sede
              WHERE s.activo = 1 AND e.activo = 1
-               AND s.fecha_creacion < ?
                AND NOT EXISTS (
                     SELECT 1
                     FROM Servicio sv
@@ -387,15 +412,14 @@ function getSedesSinServicioMes($fechaInicio, $fechaFinExclusiva) {
              ORDER BY e.razon_social ASC, s.nombre_comercial ASC";
 
     $rows = db()->query($sql, [
-        $fechaFinExclusiva,  // 1. s.fecha_creacion < ?          (WHERE principal)
-        $fechaInicio,        // 2. sv.fecha_ejecucion >= ?        (NOT EXISTS)
-        $fechaFinExclusiva,  // 3. sv.fecha_ejecucion < ?         (NOT EXISTS)
-        $fechaInicio,        // 4. PERIOD_DIFF bimestral/bimensual
-        $fechaInicio,        // 5. PERIOD_DIFF trimestral
-        $fechaFinExclusiva,  // 6. DATEDIFF quincenal
-        $fechaFinExclusiva,  // 7. DATEDIFF semanal
-        $fechaFinExclusiva,  // 8. DATEDIFF diario/diaria
-        $fechaFinExclusiva   // 9. DATEDIFF interdiario
+        $fechaInicio,        // 1. sv.fecha_ejecucion >= ?        (NOT EXISTS)
+        $fechaFinExclusiva,  // 2. sv.fecha_ejecucion < ?         (NOT EXISTS)
+        $fechaInicio,        // 3. PERIOD_DIFF bimestral/bimensual
+        $fechaInicio,        // 4. PERIOD_DIFF trimestral
+        $fechaFinExclusiva,  // 5. DATEDIFF quincenal
+        $fechaFinExclusiva,  // 6. DATEDIFF semanal
+        $fechaFinExclusiva,  // 7. DATEDIFF diario/diaria
+        $fechaFinExclusiva   // 8. DATEDIFF interdiario
     ]);
     if (!$rows) return [];
 
