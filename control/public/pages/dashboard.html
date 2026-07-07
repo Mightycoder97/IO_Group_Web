@@ -722,16 +722,36 @@
             tableWrap.classList.remove('d-none');
 
             const routeUrl = `rutas/listar.html?month=${encodeURIComponent(monthSelect.value)}&year=${encodeURIComponent(year)}`;
+            const filterYear = parseInt(year);
+            const filterMonth = parseInt(monthSelect.value);
+
             tbody.innerHTML = dashboardSedesSinServicio.map(item => {
+                let monthsWithoutService = 999;
+                if (item.ultimo_servicio_fecha) {
+                    const lastDate = new Date(item.ultimo_servicio_fecha + 'T00:00:00');
+                    const lastYear = lastDate.getFullYear();
+                    const lastMonth = lastDate.getMonth() + 1;
+                    monthsWithoutService = (filterYear - lastYear) * 12 + (filterMonth - lastMonth);
+                }
+
+                const isAlert = monthsWithoutService >= 3;
+                const rowClass = isAlert ? 'row-alert-warning' : '';
+                const alertLabel = isAlert
+                    ? `<span class="badge bg-warning text-dark ms-2" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;">${monthsWithoutService >= 999 ? 'Sin Historial' : monthsWithoutService + ' meses sin serv.'}</span>`
+                    : '';
+
                 const ubicacion = [item.sede_distrito, item.sede_provincia].filter(Boolean).join(', ');
                 const contrato = item.id_contrato
                     ? `${escapeHtml(item.frecuencia || '-')} - ${formatMoney(item.tarifa)}`
                     : 'Sin contrato activo';
                 const tipoTarifa = item.id_contrato ? escapeHtml(item.tipo_tarifa || '-') : '';
                 return `
-                    <tr>
+                    <tr class="${rowClass}">
                         <td>
-                            <div class="fw-semibold text-dark">${escapeHtml(item.sede_nombre || '-')}</div>
+                            <div class="fw-semibold text-dark d-flex align-items-center flex-wrap gap-1">
+                                ${escapeHtml(item.sede_nombre || '-')}
+                                ${alertLabel}
+                            </div>
                             <div class="text-muted small">${escapeHtml(item.sede_direccion || '')}</div>
                         </td>
                         <td>
