@@ -734,11 +734,20 @@
                     monthsWithoutService = (filterYear - lastYear) * 12 + (filterMonth - lastMonth);
                 }
 
-                const isAlert = monthsWithoutService >= 3;
-                const rowClass = isAlert ? 'row-alert-warning' : '';
-                const alertLabel = isAlert
-                    ? `<span class="badge bg-warning text-dark ms-2" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;">${monthsWithoutService >= 999 ? 'Sin Historial' : monthsWithoutService + ' meses sin serv.'}</span>`
-                    : '';
+                // Color-coded badge: 1-3 green, 3-6 orange, 6+ red
+                let badgeClass = 'bg-success';
+                let textLabel = monthsWithoutService + ' meses sin serv.';
+                
+                if (monthsWithoutService >= 999) {
+                    badgeClass = 'bg-danger';
+                    textLabel = 'Sin Historial';
+                } else if (monthsWithoutService >= 6) {
+                    badgeClass = 'bg-danger';
+                } else if (monthsWithoutService >= 3) {
+                    badgeClass = 'bg-warning text-dark';
+                }
+
+                const alertLabel = `<span class="badge ${badgeClass} ms-2" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;">${textLabel}</span>`;
 
                 const ubicacion = [item.sede_distrito, item.sede_provincia].filter(Boolean).join(', ');
                 const contrato = item.id_contrato
@@ -746,7 +755,7 @@
                     : 'Sin contrato activo';
                 const tipoTarifa = item.id_contrato ? escapeHtml(item.tipo_tarifa || '-') : '';
                 return `
-                    <tr class="${rowClass}">
+                    <tr>
                         <td>
                             <div class="fw-semibold text-dark d-flex align-items-center flex-wrap gap-1">
                                 ${escapeHtml(item.sede_nombre || '-')}
@@ -767,9 +776,14 @@
                             <div class="fw-medium">${item.ultimo_servicio_fecha ? formatDateDashboard(item.ultimo_servicio_fecha) : 'Sin registros'}</div>
                         </td>
                         <td class="text-end">
-                            <a class="btn btn-sm btn-outline-success rounded-pill px-3" href="${routeUrl}">
-                                <i class="bi bi-truck me-1"></i> Asignar Ruta
-                            </a>
+                            <div class="d-flex justify-content-end gap-2">
+                                <a class="btn btn-sm btn-outline-danger rounded-pill px-3" href="sedes/formulario.html?id=${item.id_sede}">
+                                    <i class="bi bi-pencil me-1"></i> Atender
+                                </a>
+                                <a class="btn btn-sm btn-outline-success rounded-pill px-3" href="${routeUrl}">
+                                    <i class="bi bi-truck me-1"></i> Asignar Ruta
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 `;
