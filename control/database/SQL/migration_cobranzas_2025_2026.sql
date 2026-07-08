@@ -1,5 +1,5 @@
 -- SQL Migration for Route Control Injection (COBRANZAS 2025-2026)
--- Generated on 2026-07-08 14:13:08
+-- Generated on 2026-07-08 14:20:49
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
@@ -53611,7 +53611,7 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250708-D
 -- Chofer: JOSE LUIS | Placa: DONFENG 2 | Clientes: 28
 SET @chofer_id = (SELECT `id_empleado` FROM `Empleado` WHERE `nombres` LIKE '%LUIS%' OR `apellidos` LIKE '%LUIS%' LIMIT 1);
 SET @vehiculo_id = (SELECT `id_vehiculo` FROM `Vehiculo` WHERE `placa` = 'F2Z877' LIMIT 1);
--- [SMART MATCH] Coincide con Ruta teórica: JULIO 2025.xlsx / JOSE LUIS  MARTES 08 (Overlap: 26 RUCs)
+-- [SMART MATCH] Coincide con Ruta teórica: JULIO 2025.xlsx / JOSE LUIS  MARTES 08 (Overlap: 27 RUCs)
 UPDATE `Ruta` SET `id_chofer` = @chofer_id, `id_vehiculo` = @vehiculo_id, `estado` = 'completada' WHERE `codigo_ruta` = 'R-20250708-D1O763-2';
 SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250708-D1O763-2' LIMIT 1);
   -- Parada 1: MAPEVAS SOCIEDAD ANONIMA CERRADA (RUC: 20602841899)
@@ -53766,11 +53766,11 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250708-D
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-07', '2025-07-08', 'completado', 'pagado', 'efectivo', 'Cliente: GUIDENT EMPRESA INDIVIDUAL DE RESPONSABILIDAD LIMITADA', 55.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '35996');
-  -- Parada 20: REPRESENTACIONES MAGDA`S SOCIEDAD ANONIMA CERRADA (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 20: REPRESENTACIONES MAGDA`S SOCIEDAD ANONIMA CERRADA (RUC: 20384463470)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20384463470' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-07', '2025-07-08', 'completado', 'pendiente', 'transferencia', 'Cliente: REPRESENTACIONES MAGDA`S SOCIEDAD ANONIMA CERRADA | Obs: AL DIA', 65.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '35997');
@@ -95164,14 +95164,14 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20251205-D
 -- Chofer: LUIS | Placa: KYC | Clientes: 23
 SET @chofer_id = (SELECT `id_empleado` FROM `Empleado` WHERE `nombres` LIKE '%LUIS%' OR `apellidos` LIKE '%LUIS%' LIMIT 1);
 SET @vehiculo_id = (SELECT `id_vehiculo` FROM `Vehiculo` WHERE `placa` = 'BUL906' LIMIT 1);
--- [SMART MATCH] Coincide con Ruta teórica: DICIEMBRE 2025.xlsx / luis viernes 05 (Overlap: 22 RUCs)
+-- [SMART MATCH] Coincide con Ruta teórica: DICIEMBRE 2025.xlsx / luis viernes 05 (Overlap: 23 RUCs)
 UPDATE `Ruta` SET `id_chofer` = @chofer_id, `id_vehiculo` = @vehiculo_id, `estado` = 'completada' WHERE `codigo_ruta` = 'R-20251205-BUL906-2';
 SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20251205-BUL906-2' LIMIT 1);
-  -- Parada 1: CONSULTORIOS ESPECIALIZADOS SERFLO E.I.R.L. (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 1: CONSULTORIOS ESPECIALIZADOS SERFLO E.I.R.L. (RUC: 20609872480)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20609872480' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-12', '2025-12-05', 'completado', 'pendiente', 'transferencia', 'Cliente: CONSULTORIOS ESPECIALIZADOS SERFLO E.I.R.L. | Obs: AL DIA', 120.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '40027');
