@@ -156,8 +156,8 @@
             }
 
             tbody.innerHTML = data.map(s => {
-                const fecha = s.fecha_servicio ? new Date(s.fecha_servicio).toLocaleDateString('es-PE') : '-';
-                const fechaPago = s.fecha_pago ? new Date(s.fecha_pago).toLocaleDateString('es-PE') : '-';
+                const fecha = s.fecha_servicio ? new Date(s.fecha_servicio + 'T12:00:00').toLocaleDateString('es-PE') : '-';
+                const fechaPago = s.fecha_pago ? new Date(s.fecha_pago + 'T12:00:00').toLocaleDateString('es-PE') : '-';
                 const estadoBadge = getEstadoBadge(s.estado);
                 const pagoBadge = s.estado_pago === 'pagado'
                     ? '<span class="badge bg-success">Pagado</span>'

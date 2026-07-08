@@ -172,8 +172,8 @@
                 return `
                 <tr>
                     <td>${s.sede_nombre || '-'}</td>
-                    <td>${new Date(s.fecha_servicio).toLocaleDateString('es-PE')}</td>
-                    <td>${s.fecha_pago ? new Date(s.fecha_pago).toLocaleDateString('es-PE') : '-'}</td>
+                    <td>${new Date(s.fecha_servicio + 'T12:00:00').toLocaleDateString('es-PE')}</td>
+                    <td>${s.fecha_pago ? new Date(s.fecha_pago + 'T12:00:00').toLocaleDateString('es-PE') : '-'}</td>
                     <td><strong>S/${tarifa.toFixed(2)}</strong></td>
                     <td>
                         ${isPagado

@@ -270,7 +270,11 @@ function hideLoading() {
 
 function formatDate(date) {
     if (!date) return '-';
-    return new Date(date).toLocaleDateString('es-PE');
+    let d = date;
+    if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        d = date + 'T12:00:00';
+    }
+    return new Date(d).toLocaleDateString('es-PE');
 }
 
 function formatCurrency(amount) {

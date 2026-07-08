@@ -198,7 +198,7 @@
                     if (result.success) {
                         data = result.data.map(s => [
                             s.codigo_servicio || 'SV-' + s.id_servicio,
-                            new Date(s.fecha_programada).toLocaleDateString('es-PE'),
+                            new Date(s.fecha_programada + 'T12:00:00').toLocaleDateString('es-PE'),
                             s.sede_nombre || '-',
                             s.planta_nombre || '-',
                             `<span class="badge bg-${s.estado === 'completado' ? 'success' : 'secondary'}">${s.estado}</span>`,
@@ -211,11 +211,11 @@
                     if (result.success) {
                         data = result.data.map(f => [
                             f.numero_factura || '#' + f.id_factura,
-                            new Date(f.fecha_emision).toLocaleDateString('es-PE'),
+                            new Date(f.fecha_emision + 'T12:00:00').toLocaleDateString('es-PE'),
                             f.cliente_nombre || '-',
                             'S/ ' + parseFloat(f.monto_total || 0).toFixed(2),
                             `<span class="badge bg-${f.estado === 'pagada' ? 'success' : f.estado === 'pendiente' ? 'warning' : 'danger'}">${f.estado}</span>`,
-                            f.fecha_pago ? new Date(f.fecha_pago).toLocaleDateString('es-PE') : '-'
+                            f.fecha_pago ? new Date(f.fecha_pago + 'T12:00:00').toLocaleDateString('es-PE') : '-'
                         ]);
                     }
                 } else if (tipo === 'residuos') {

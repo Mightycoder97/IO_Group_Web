@@ -149,7 +149,7 @@
                 <tr>
                     <td><strong>${item.serie ? item.serie + '-' : ''}${item.numero_guia || '-'}</strong></td>
                     <td>${item.sede_nombre || '-'}</td>
-                    <td>${item.fecha_emision ? new Date(item.fecha_emision).toLocaleDateString('es-PE') : '-'}</td>
+                    <td>${item.fecha_emision ? new Date(item.fecha_emision + 'T12:00:00').toLocaleDateString('es-PE') : '-'}</td>
                     <td><small>${item.punto_partida || '-'}</small></td>
                     <td><small>${item.punto_llegada || '-'}</small></td>
                     <td>
