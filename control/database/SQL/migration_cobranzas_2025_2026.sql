@@ -1,5 +1,5 @@
 -- SQL Migration for Route Control Injection (COBRANZAS 2025-2026)
--- Generated on 2026-07-08 14:03:28
+-- Generated on 2026-07-08 14:09:27
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
@@ -23,8 +23,8 @@ SELECT @oq_emp_id, 'Clinica Oquendo', 'Oquendo', 'Callao', 1 FROM dual
 WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @oq_emp_id);
 
 SET @oq_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @oq_emp_id LIMIT 1);
-INSERT IGNORE INTO `ContratoServicio` (`id_sede`, `codigo_contrato`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) 
-SELECT @oq_sede_id, 'CON-OQUENDO', '2025-01-01', 0.00, 'por_servicio', 'eventual', 1 FROM dual 
+INSERT IGNORE INTO `ContratoServicio` (`id_sede`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) 
+SELECT @oq_sede_id, '2025-01-01', 0.00, 'por_servicio', 'eventual', 1 FROM dual 
 WHERE NOT EXISTS (SELECT 1 FROM `ContratoServicio` WHERE `id_sede` = @oq_sede_id);
 
 -- ========================================================
