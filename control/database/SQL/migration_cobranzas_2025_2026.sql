@@ -1,5 +1,5 @@
 -- SQL Migration for Route Control Injection (COBRANZAS 2025-2026)
--- Generated on 2026-07-08 14:09:27
+-- Generated on 2026-07-08 14:13:08
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
@@ -14233,11 +14233,11 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250224-D
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-02', '2025-02-24', 'completado', 'pendiente', 'transferencia', 'Cliente: ACVET PERU E.I.R.L | Obs: 1', 60.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '32176');
-  -- Parada 2: MEDICINA EXTERNA S.A. (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 2: MEDICINA EXTERNA S.A. (RUC: 20100339936)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20100339936' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-02', '2025-02-24', 'completado', 'pendiente', 'transferencia', 'Cliente: MEDICINA EXTERNA S.A.', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
   -- Parada 3: IPROVET EIRL (RUC: 20604354146)
   SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20604354146' LIMIT 1);
@@ -17533,11 +17533,11 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250304-D
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-03', '2025-03-04', 'completado', 'pendiente', 'transferencia', 'Cliente: ADNMEDICAL E.I.R.L. | Obs: 1', 70.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '32490');
-  -- Parada 16: MEDICINA EXTERNA S.A. (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 16: MEDICINA EXTERNA S.A. (RUC: 20100339936)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20100339936' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-03', '2025-03-04', 'completado', 'pendiente', 'transferencia', 'Cliente: MEDICINA EXTERNA S.A. | Tarifa Original: PAGA FIN DE MES', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
 
 -- ========================================================
@@ -17920,11 +17920,11 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250306-B
   SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-03', '2025-03-06', 'completado', 'pendiente', 'transferencia', 'Cliente: QUALAB S.A.C', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
-  -- Parada 11: MEDICINA EXTERNA S.A. (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 11: MEDICINA EXTERNA S.A. (RUC: 20100339936)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20100339936' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-03', '2025-03-06', 'completado', 'pendiente', 'transferencia', 'Cliente: MEDICINA EXTERNA S.A. | Tarifa Original: PAGA FIN DE MES', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
   -- Parada 12: CLIICA OQUENDO SAC (RUC: 20610727507)
   SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20610727507' LIMIT 1);
@@ -18926,11 +18926,11 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250310-B
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-03', '2025-03-10', 'completado', 'pendiente', 'transferencia', 'Cliente: ONCOLOGIA S.A.C. | Tarifa Original: 3.99 X KG', NULL);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '33341');
-  -- Parada 25: MEDICINA EXTERNA S.A. (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 25: MEDICINA EXTERNA S.A. (RUC: 20100339936)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20100339936' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-03', '2025-03-10', 'completado', 'pendiente', 'transferencia', 'Cliente: MEDICINA EXTERNA S.A. | Tarifa Original: PAGA FIN DE MES', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
 
 -- ========================================================
@@ -61080,11 +61080,11 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250808-D
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-08', '2025-08-08', 'completado', 'pendiente', 'transferencia', 'Cliente: ONCOLOGIA S.A.C.', 500.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '37403');
-  -- Parada 5: EJERCITO PERUANO - ESCUELA MILITAR DE CHORRILLOS  "CFB" (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 5: EJERCITO PERUANO - ESCUELA MILITAR DE CHORRILLOS  "CFB" (RUC: 20131369124)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20131369124' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-08', '2025-08-08', 'completado', 'pendiente', 'transferencia', 'Cliente: EJERCITO PERUANO - ESCUELA MILITAR DE CHORRILLOS  "CFB"', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
   -- Parada 6: UCIVET SAC (RUC: 20601498902)
   SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20601498902' LIMIT 1);
@@ -76851,23 +76851,6 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20251001-D
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '38204');
 
 -- ========================================================
--- Cobranza: COBRANZAS 2025.xlsx / Pest. OCT | Fecha: 2025-10-01
--- Chofer: None | Placa: None | Clientes: 1
-SET @chofer_id = (SELECT `id_empleado` FROM `Empleado` WHERE `nombres` LIKE '%%' OR `apellidos` LIKE '%%' LIMIT 1);
-SET @vehiculo_id = (SELECT `id_vehiculo` FROM `Vehiculo` WHERE `placa` = '' LIMIT 1);
--- [NO MATCH] Ruta nueva. Insertando cabecera...
-INSERT INTO `Ruta` (`id_vehiculo`, `codigo_ruta`, `fecha`, `estado`, `id_chofer`, `id_ayudante`) VALUES (@vehiculo_id, 'R-20251001--new3', '2025-10-01', 'completada', @chofer_id, NULL);
-SET @ruta_id = LAST_INSERT_ID();
-  -- Parada 1:  (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
-  INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-10', '2025-10-01', 'completado', 'pendiente', 'transferencia', 'Cliente: ', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
-  SET @servicio_id = LAST_INSERT_ID();
-  INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '39076');
-
--- ========================================================
 -- Cobranza: COBRANZAS 2025.xlsx / Pest. OCT | Fecha: 2025-10-02
 -- Chofer: LUIS | Placa: KYC | Clientes: 21
 SET @chofer_id = (SELECT `id_empleado` FROM `Empleado` WHERE `nombres` LIKE '%LUIS%' OR `apellidos` LIKE '%LUIS%' LIMIT 1);
@@ -84664,27 +84647,6 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20251031-V
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-10', '2025-10-31', 'completado', 'pagado', 'efectivo', 'Cliente: clinica veterinaria faccevet sac | Obs: FACTURAR 84', 70.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '39001');
-
--- ========================================================
--- Cobranza: COBRANZAS 2025.xlsx / Pest. NOV | Fecha: 2025-11-01
--- Chofer: None | Placa: None | Clientes: 2
-SET @chofer_id = (SELECT `id_empleado` FROM `Empleado` WHERE `nombres` LIKE '%%' OR `apellidos` LIKE '%%' LIMIT 1);
-SET @vehiculo_id = (SELECT `id_vehiculo` FROM `Vehiculo` WHERE `placa` = '' LIMIT 1);
--- [NO MATCH] Ruta nueva. Insertando cabecera...
-INSERT INTO `Ruta` (`id_vehiculo`, `codigo_ruta`, `fecha`, `estado`, `id_chofer`, `id_ayudante`) VALUES (@vehiculo_id, 'R-20251101--new1', '2025-11-01', 'completada', @chofer_id, NULL);
-SET @ruta_id = LAST_INSERT_ID();
-  -- Parada 1:  (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
-  INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-11', '2025-11-01', 'completado', 'pendiente', 'transferencia', 'Cliente: ', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
-  -- Parada 2:  (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
-  INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-11', '2025-11-01', 'completado', 'pendiente', 'transferencia', 'Cliente: ', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
 
 -- ========================================================
 -- Cobranza: COBRANZAS 2025.xlsx / Pest. NOV | Fecha: 2025-11-03
@@ -95606,7 +95568,7 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20251205-D
 -- Chofer: LUIS | Placa: KYC | Clientes: 25
 SET @chofer_id = (SELECT `id_empleado` FROM `Empleado` WHERE `nombres` LIKE '%LUIS%' OR `apellidos` LIKE '%LUIS%' LIMIT 1);
 SET @vehiculo_id = (SELECT `id_vehiculo` FROM `Vehiculo` WHERE `placa` = 'BUL906' LIMIT 1);
--- [SMART MATCH] Coincide con Ruta teórica: DICIEMBRE 2025.xlsx / LUIS SABADO 06 (Overlap: 24 RUCs)
+-- [SMART MATCH] Coincide con Ruta teórica: DICIEMBRE 2025.xlsx / LUIS SABADO 06 (Overlap: 25 RUCs)
 UPDATE `Ruta` SET `id_chofer` = @chofer_id, `id_vehiculo` = @vehiculo_id, `estado` = 'completada' WHERE `codigo_ruta` = 'R-20251206-BUL906-1';
 SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20251206-BUL906-1' LIMIT 1);
   -- Parada 1: GONZALES GAVIDIA DORA (RUC: 10108681875)
@@ -95753,11 +95715,11 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20251206-B
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-12', '2025-12-06', 'completado', 'pendiente', 'transferencia', 'Cliente: Ivonne Geraldine Montes Valenzuela | Obs: AL DIA', 65.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '40090');
-  -- Parada 19: EDUARDO SALAS ZORRILLA (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 19: EDUARDO SALAS ZORRILLA (RUC: 10421021363)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '10421021363' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-12', '2025-12-06', 'completado', 'pendiente', 'transferencia', 'Cliente: EDUARDO SALAS ZORRILLA | Obs: AL DIA', 65.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '40091');
@@ -130910,7 +130872,7 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20260401-D
 -- Chofer: OBED | Placa: DONFENG 1 | Clientes: 21
 SET @chofer_id = (SELECT `id_empleado` FROM `Empleado` WHERE `nombres` LIKE '%OBED%' OR `apellidos` LIKE '%OBED%' LIMIT 1);
 SET @vehiculo_id = (SELECT `id_vehiculo` FROM `Vehiculo` WHERE `placa` = 'D1O763' LIMIT 1);
--- [SMART MATCH] Coincide con Ruta teórica: ABRIL 2026.xlsx / OBED MIERCOLES 01 (Overlap: 19 RUCs)
+-- [SMART MATCH] Coincide con Ruta teórica: ABRIL 2026.xlsx / OBED MIERCOLES 01 (Overlap: 20 RUCs)
 UPDATE `Ruta` SET `id_chofer` = @chofer_id, `id_vehiculo` = @vehiculo_id, `estado` = 'completada' WHERE `codigo_ruta` = 'R-20260401-D1O763-2';
 SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20260401-D1O763-2' LIMIT 1);
   -- Parada 1: Arvet Sacs (RUC: 20613649213)
@@ -131053,11 +131015,11 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20260401-D
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-04', '2026-04-01', 'completado', 'pagado', 'efectivo', 'Cliente: LEON VENTOCILLA FREDDY RICARDO', 65.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '43339');
-  -- Parada 19: MEDICINA EXTERNA S.A. (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 19: MEDICINA EXTERNA S.A. (RUC: 20100339936)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20100339936' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-04', '2026-04-01', 'completado', 'pendiente', 'transferencia', 'Cliente: MEDICINA EXTERNA S.A. | Tarifa Original: PAGA FIN DE MES', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
   -- Parada 20: ONCOLOGIA S.A.C. (RUC: 20428674201)
   SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20428674201' LIMIT 1);
@@ -140474,21 +140436,6 @@ SET @ruta_id = LAST_INSERT_ID();
   SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-05', '2026-05-01', 'completado', 'pendiente', 'transferencia', 'Cliente: QUALAB S.A.C', 120.0);
-
--- ========================================================
--- Cobranza: COBRANZAS 2026.xlsx / Pest. MAY | Fecha: 2026-05-01
--- Chofer: None | Placa: None | Clientes: 1
-SET @chofer_id = (SELECT `id_empleado` FROM `Empleado` WHERE `nombres` LIKE '%%' OR `apellidos` LIKE '%%' LIMIT 1);
-SET @vehiculo_id = (SELECT `id_vehiculo` FROM `Vehiculo` WHERE `placa` = '' LIMIT 1);
--- [NO MATCH] Ruta nueva. Insertando cabecera...
-INSERT INTO `Ruta` (`id_vehiculo`, `codigo_ruta`, `fecha`, `estado`, `id_chofer`, `id_ayudante`) VALUES (@vehiculo_id, 'R-20260501--new3', '2026-05-01', 'completada', @chofer_id, NULL);
-SET @ruta_id = LAST_INSERT_ID();
-  -- Parada 1:  (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
-  INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-05', '2026-05-01', 'completado', 'pendiente', 'transferencia', 'Cliente: ', IF(@tipo_tarifa = 'por_kg', NULL, @contrato_tarifa));
 
 -- ========================================================
 -- Cobranza: COBRANZAS 2026.xlsx / Pest. MAY | Fecha: 2026-05-02
@@ -159971,11 +159918,11 @@ SET @ruta_id = LAST_INSERT_ID();
   SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-07', '2026-07-06', 'completado', 'pendiente', 'transferencia', 'Cliente: VEVET S.A.C.', 50.0);
-  -- Parada 9: CENTRO PRE-NATAL VIDA NUEVA (RUC: )
-  SET @sede_id = NULL;
-  SET @contrato_id = NULL;
-  SET @tipo_tarifa = NULL;
-  SET @contrato_tarifa = NULL;
+  -- Parada 9: CENTRO PRE-NATAL VIDA NUEVA (RUC: 20429156883)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20429156883' LIMIT 1);
+  SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
+  SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
+  SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-07', '2026-07-06', 'completado', 'pendiente', 'transferencia', 'Cliente: CENTRO PRE-NATAL VIDA NUEVA', 70.0);
   -- Parada 10: Canales Larrea, Angela María (RUC: 10403783019)
   SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '10403783019' LIMIT 1);
