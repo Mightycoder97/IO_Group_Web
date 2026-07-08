@@ -1,5 +1,5 @@
 -- SQL Migration for Route Control Injection (COBRANZAS 2025-2026)
--- Generated on 2026-07-08 13:48:35
+-- Generated on 2026-07-08 14:01:13
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
@@ -10,6 +10,20 @@ DELETE FROM `Manifiesto`;
 DELETE FROM `Servicio`;
 ALTER TABLE `Servicio` AUTO_INCREMENT = 1;
 ALTER TABLE `Factura` AUTO_INCREMENT = 1;
+
+-- 1B. Correcciones de Datos Maestros (Samantha Rojas y Clinica Oquendo)
+UPDATE `Empresa` SET `ruc` = '10712919928' WHERE `ruc` = '99900000019';
+
+INSERT IGNORE INTO `Empresa` (`ruc`, `razon_social`, `activo`) VALUES ('20610727507', 'CLINICA OQUENDO SAC', 1);
+SET @oq_emp_id = (SELECT `id_empresa` FROM `Empresa` WHERE `ruc` = '20610727507' LIMIT 1);
+INSERT IGNORE INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `activo`) 
+SELECT @oq_emp_id, 'Clinica Oquendo', 'Oquendo', 'Callao', 1 FROM dual 
+WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @oq_emp_id);
+
+SET @oq_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @oq_emp_id LIMIT 1);
+INSERT IGNORE INTO `ContratoServicio` (`id_sede`, `codigo_contrato`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `activo`) 
+SELECT @oq_sede_id, 'CON-OQUENDO', '2025-01-01', 0.00, 'fijo', 1 FROM dual 
+WHERE NOT EXISTS (SELECT 1 FROM `ContratoServicio` WHERE `id_sede` = @oq_sede_id);
 
 -- ========================================================
 -- Cobranza: COBRANZAS 2025.xlsx / Pest. ENE | Fecha: 2025-01-02
@@ -11429,8 +11443,8 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20250213-D
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2025-02', '2025-02-13', 'completado', 'pendiente', 'transferencia', 'Cliente: 4G integral sac | Tarifa Original: 450 MENSUAL', 450.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '32456');
-  -- Parada 10: FUCHS CENTRO ODONTOLOGICO S,A,C (RUC: 2060807318420613440128)
-  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '2060807318420613440128' LIMIT 1);
+  -- Parada 10: FUCHS CENTRO ODONTOLOGICO S,A,C (RUC: 20613440128)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20613440128' LIMIT 1);
   SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
   SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
@@ -104828,8 +104842,8 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20260109-B
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-01', '2026-01-09', 'completado', 'pagado', 'efectivo', 'Cliente: CACERES PASTOR RAUL EFRAIN', 59.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '40898');
-  -- Parada 15: REPRESENTACIONES MAGDA`S SOCIEDAD ANONIMA CERRADA (RUC: 20384453470)
-  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20384453470' LIMIT 1);
+  -- Parada 15: REPRESENTACIONES MAGDA`S SOCIEDAD ANONIMA CERRADA (RUC: 20384463470)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '20384463470' LIMIT 1);
   SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
   SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
@@ -139473,8 +139487,8 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20260430-B
   SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-04', '2026-04-30', 'cancelado', 'pendiente', 'transferencia', 'Cliente: NICASIO SILVA CESAR FORTUNATO', 65.0);
-  -- Parada 15: Jeny Luz Lázaro Ramos (RUC: 1070868890)
-  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '1070868890' LIMIT 1);
+  -- Parada 15: Jeny Luz Lázaro Ramos (RUC: 10708688903)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '10708688903' LIMIT 1);
   SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
   SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
@@ -148862,8 +148876,8 @@ SET @ruta_id = (SELECT `id_ruta` FROM `Ruta` WHERE `codigo_ruta` = 'R-20260529-B
   INSERT INTO `Servicio` (`id_sede`, `id_ruta`, `id_planta`, `id_contrato`, `mes_servicio`, `fecha_ejecucion`, `estado`, `estado_pago`, `forma_pago`, `observaciones`, `monto_cobrado`)   VALUES (@sede_id, @ruta_id, 1, @contrato_id, '2026-05', '2026-05-29', 'completado', 'pendiente', 'transferencia', 'Cliente: NICASIO SILVA CESAR FORTUNATO | Obs: AL DIA', 65.0);
   SET @servicio_id = LAST_INSERT_ID();
   INSERT INTO `Factura` (`id_servicio`, `numero_factura`)   VALUES (@servicio_id, '44828');
-  -- Parada 12: Jeny Luz Lázaro Ramos (RUC: 1070868890)
-  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '1070868890' LIMIT 1);
+  -- Parada 12: Jeny Luz Lázaro Ramos (RUC: 10708688903)
+  SET @sede_id = (SELECT s.id_sede FROM Sede s JOIN Empresa e ON s.id_empresa = e.id_empresa WHERE e.ruc = '10708688903' LIMIT 1);
   SET @contrato_id = (SELECT id_contrato FROM ContratoServicio WHERE id_sede = @sede_id AND activo = 1 ORDER BY fecha_inicio DESC LIMIT 1);
   SET @tipo_tarifa = (SELECT tipo_tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
   SET @contrato_tarifa = (SELECT tarifa FROM ContratoServicio WHERE id_contrato = @contrato_id);
