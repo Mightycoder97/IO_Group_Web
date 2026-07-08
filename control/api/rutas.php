@@ -39,7 +39,7 @@ function getAll() {
     $anio = $_GET['anio'] ?? null;
     $distrito = $_GET['distrito'] ?? null;
     $includeSedes = ($_GET['include'] ?? '') === 'sedes' || ($_GET['with_sedes'] ?? '') === '1';
-    $limit = min(200, max(10, intval($_GET['limit'] ?? 100)));
+    $limit = min(5000, max(10, intval($_GET['limit'] ?? 100)));
     
     // Optimized query using LEFT JOIN instead of correlated subqueries
     $sql = "SELECT r.*, v.placa as vehiculo_placa, v.marca as vehiculo_marca, v.modelo as vehiculo_modelo,

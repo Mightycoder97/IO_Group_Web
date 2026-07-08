@@ -1116,7 +1116,7 @@
         // ========================
         async function loadRutas() {
             try {
-                const result = await api.get('/rutas?limit=200');
+                const result = await api.get('/rutas?limit=5000');
                 if (!result.success) return;
 
                 allRutas = result.data;
