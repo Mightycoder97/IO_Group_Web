@@ -1,5 +1,5 @@
 -- SQL Migration for Route Control Injection (COBRANZAS 2025-2026)
--- Generated on 2026-07-08 14:01:13
+-- Generated on 2026-07-08 14:03:28
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
@@ -14,15 +14,17 @@ ALTER TABLE `Factura` AUTO_INCREMENT = 1;
 -- 1B. Correcciones de Datos Maestros (Samantha Rojas y Clinica Oquendo)
 UPDATE `Empresa` SET `ruc` = '10712919928' WHERE `ruc` = '99900000019';
 
-INSERT IGNORE INTO `Empresa` (`ruc`, `razon_social`, `activo`) VALUES ('20610727507', 'CLINICA OQUENDO SAC', 1);
+INSERT IGNORE INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) VALUES ('CLINICA OQUENDO SAC', 'RUC', '20610727507', 1);
+SET @oq_cli_id = (SELECT `id_cliente` FROM `Cliente` WHERE `dni` = '20610727507' LIMIT 1);
+INSERT IGNORE INTO `Empresa` (`id_cliente`, `ruc`, `razon_social`, `activo`) VALUES (@oq_cli_id, '20610727507', 'CLINICA OQUENDO SAC', 1);
 SET @oq_emp_id = (SELECT `id_empresa` FROM `Empresa` WHERE `ruc` = '20610727507' LIMIT 1);
 INSERT IGNORE INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `activo`) 
 SELECT @oq_emp_id, 'Clinica Oquendo', 'Oquendo', 'Callao', 1 FROM dual 
 WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @oq_emp_id);
 
 SET @oq_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @oq_emp_id LIMIT 1);
-INSERT IGNORE INTO `ContratoServicio` (`id_sede`, `codigo_contrato`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `activo`) 
-SELECT @oq_sede_id, 'CON-OQUENDO', '2025-01-01', 0.00, 'fijo', 1 FROM dual 
+INSERT IGNORE INTO `ContratoServicio` (`id_sede`, `codigo_contrato`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) 
+SELECT @oq_sede_id, 'CON-OQUENDO', '2025-01-01', 0.00, 'por_servicio', 'eventual', 1 FROM dual 
 WHERE NOT EXISTS (SELECT 1 FROM `ContratoServicio` WHERE `id_sede` = @oq_sede_id);
 
 -- ========================================================
