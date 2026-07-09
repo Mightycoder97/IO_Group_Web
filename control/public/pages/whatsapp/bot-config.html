@@ -236,8 +236,7 @@
         let testHistory = [];
 
         document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            initSidebar();
+            bootControlPage('whatsapp');
 
             const user = getUser();
             if (user) {

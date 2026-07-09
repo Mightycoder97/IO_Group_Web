@@ -321,8 +321,7 @@
         let waBotChart = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            initSidebar();
+            bootControlPage('dashboard_comercial');
 
             const user = getUser();
             if (user) {

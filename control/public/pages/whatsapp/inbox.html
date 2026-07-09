@@ -211,8 +211,7 @@
         let isSending = false;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            checkAuth();
-            initSidebar();
+            bootControlPage('whatsapp');
             
             // Set user profile info
             const user = getUser();
