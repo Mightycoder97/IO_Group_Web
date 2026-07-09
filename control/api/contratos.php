@@ -104,14 +104,15 @@ function create() {
     }
     
     $id = db()->insert(
-        "INSERT INTO ContratoServicio (id_sede, fecha_inicio, fecha_fin, frecuencia, peso_limite_kg, tarifa, tipo_tarifa, observaciones) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO ContratoServicio (id_sede, fecha_inicio, fecha_fin, frecuencia, peso_limite_kg, tarifa_adicional_kg, tarifa, tipo_tarifa, observaciones) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             $id_sede,
             $fecha_inicio,
             $data['fecha_fin'] ?? null,
             $frecuencia,
             $data['peso_limite_kg'] ?? null,
+            $data['tarifa_adicional_kg'] ?? null,
             $tarifa,
             $data['tipo_tarifa'] ?? 'por_servicio',
             $data['observaciones'] ?? null
@@ -155,6 +156,7 @@ function update($id) {
             fecha_fin = ?,
             frecuencia = COALESCE(?, frecuencia),
             peso_limite_kg = ?,
+            tarifa_adicional_kg = ?,
             tarifa = COALESCE(?, tarifa),
             tipo_tarifa = ?,
             observaciones = ?,
@@ -167,6 +169,7 @@ function update($id) {
             $data['fecha_fin'] ?? $existing['fecha_fin'],
             isset($data['frecuencia']) ? geo_contract_frequency_value($data['frecuencia']) : null,
             $data['peso_limite_kg'] ?? $existing['peso_limite_kg'],
+            $data['tarifa_adicional_kg'] ?? $existing['tarifa_adicional_kg'],
             $data['tarifa'] ?? null,
             $data['tipo_tarifa'] ?? $existing['tipo_tarifa'],
             $data['observaciones'] ?? $existing['observaciones'],
