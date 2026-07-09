@@ -34,34 +34,75 @@ switch ($action) {
 
 function getDashboard() {
     try {
-        // Cache current date values to avoid repeated function calls in SQL
-        // Allow overriding via GET params
         $filterMonth = isset($_GET['month']) ? intval($_GET['month']) : intval(date('m'));
         $filterYear = isset($_GET['year']) ? intval($_GET['year']) : intval(date('Y'));
         
-        // Ensure valid range
         if ($filterMonth < 1 || $filterMonth > 12) $filterMonth = intval(date('m'));
         if ($filterYear < 2000 || $filterYear > 2100) $filterYear = intval(date('Y'));
         
         $currentMonth = $filterMonth;
         $currentYear = $filterYear;
         
-        // Build date string for SQL comparisons
-        $filterDateStart = "$currentYear-$currentMonth-01";
+        $filterDateStart = "$currentYear-" . str_pad($currentMonth, 2, '0', STR_PAD_LEFT) . "-01";
         $filterDateEnd = date("Y-m-t", strtotime($filterDateStart));
         $filterDateNext = date("Y-m-d", strtotime("$filterDateEnd +1 day"));
         
-        // Sedes activas (de empresas activas)
+        // Auth user name
+        $user = getAuthUser();
+        $userName = $user ? ($user['nombre'] ?? 'Usuario') : 'Usuario';
+        
+        $mesesEspanol = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+        ];
+        $monthName = $mesesEspanol[$currentMonth] ?? 'Mes';
+        
+        // 1. Clientes Activos
+        $clientesTotalesResult = db()->queryOne(
+            "SELECT 
+                SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as activos,
+                SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as inactivos
+             FROM Cliente"
+        );
+        $clientesActivosTotal = $clientesTotalesResult ? intval($clientesTotalesResult['activos']) : 0;
+        $clientesInactivosTotal = $clientesTotalesResult ? intval($clientesTotalesResult['inactivos']) : 0;
+        
+        // Growth calculation (active current month vs previous month based on creation date)
+        $activeCurrentMonthResult = db()->queryOne(
+            "SELECT COUNT(*) as count 
+             FROM Cliente 
+             WHERE activo = 1 AND fecha_creacion < ?",
+            [$filterDateNext]
+        );
+        $activeCurrentMonth = $activeCurrentMonthResult ? intval($activeCurrentMonthResult['count']) : 0;
+        
+        $prevMonthDate = date("Y-m-d", strtotime("$filterDateStart -1 month"));
+        $prevMonthEndNext = date("Y-m-d", strtotime("last day of $prevMonthDate +1 day"));
+        
+        $activePrevMonthResult = db()->queryOne(
+            "SELECT COUNT(*) as count 
+             FROM Cliente 
+             WHERE activo = 1 AND fecha_creacion < ?",
+            [$prevMonthEndNext]
+        );
+        $activePrevMonth = $activePrevMonthResult ? intval($activePrevMonthResult['count']) : 0;
+        
+        $crecimientoClientes = 0.0;
+        if ($activePrevMonth > 0) {
+            $crecimientoClientes = round((($activeCurrentMonth - $activePrevMonth) / $activePrevMonth) * 100, 1);
+        }
+        
+        // 2. Cobertura del mes
         $sedesActivasResult = db()->queryOne(
             "SELECT COUNT(*) as count 
              FROM Sede s 
              INNER JOIN Empresa e ON s.id_empresa = e.id_empresa 
              WHERE s.activo = 1 AND e.activo = 1"
         );
-        $sedesActivas = $sedesActivasResult ? $sedesActivasResult['count'] : 0;
+        $sedesActivas = $sedesActivasResult ? intval($sedesActivasResult['count']) : 0;
         
-        // Sedes con servicio este mes (únicas) - usando fecha_ejecucion (de empresas y sedes activas)
-        $sedesConServicioResult = db()->queryOne(
+        $sedesAtendidasResult = db()->queryOne(
             "SELECT COUNT(DISTINCT s.id_sede) as count 
              FROM Servicio sv 
              INNER JOIN Sede s ON sv.id_sede = s.id_sede
@@ -72,243 +113,182 @@ function getDashboard() {
              AND sv.estado IN ('completado', 'en_curso', 'programado')",
             [$filterDateStart, $filterDateNext]
         );
-        $sedesConServicio = $sedesConServicioResult ? $sedesConServicioResult['count'] : 0;
-        $sedesSinServicio = getSedesSinServicioMes($filterDateStart, $filterDateNext);
+        $sedesAtendidas = $sedesAtendidasResult ? intval($sedesAtendidasResult['count']) : 0;
+        $porcentajeCobertura = $sedesActivas > 0 ? round(($sedesAtendidas / $sedesActivas) * 100, 1) : 0.0;
         
-        // Porcentaje de sedes con servicio
-        $porcentajeServicio = $sedesActivas > 0 ? round(($sedesConServicio / $sedesActivas) * 100, 1) : 0;
+        // List of pending sedes
+        $sedesSinServicioRaw = getSedesSinServicioMes($filterDateStart, $filterDateNext);
+        $sedesSinServicioLista = [];
+        $currentDateTimeObj = new DateTime($filterDateStart);
         
-        // Facturación del año seleccionado (Enero a Diciembre)
-        $mesesAnio = [];
+        foreach ($sedesSinServicioRaw as $sedeItem) {
+            $ultimoServicio = $sedeItem['ultimo_servicio_fecha'];
+            $mesesText = 'Nunca';
+            $mesesCount = null;
+            if ($ultimoServicio) {
+                $lastDateObj = new DateTime($ultimoServicio);
+                $diff = $lastDateObj->diff($currentDateTimeObj);
+                $mesesCount = ($diff->y * 12) + $diff->m;
+                $mesesText = $mesesCount > 0 ? "$mesesCount " . ($mesesCount == 1 ? "mes" : "meses") : "0 meses";
+            }
+            $sedeItem['meses_sin_servicio'] = $mesesText;
+            $sedeItem['meses_sin_servicio_raw'] = $mesesCount;
+            $sedesSinServicioLista[] = $sedeItem;
+        }
+        $cantidadSedesPendientes = count($sedesSinServicioLista);
+        
+        // 3. Ingresos (Suma del producido en control de rutas: completados)
+        $ingresosProducidosResult = db()->queryOne(
+            "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa, 0)), 0) as total 
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE s.estado = 'completado'
+               AND s.fecha_ejecucion >= ?
+               AND s.fecha_ejecucion < ?",
+            [$filterDateStart, $filterDateNext]
+        );
+        $totalIngresoProducido = $ingresosProducidosResult ? floatval($ingresosProducidosResult['total']) : 0.0;
+        
+        $ingresosBreakdownResult = db()->queryOne(
+            "SELECT 
+                COALESCE(SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pagado' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END), 0) as pagado,
+                COALESCE(SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END), 0) as pendiente
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE s.estado = 'completado'
+               AND s.fecha_ejecucion >= ?
+               AND s.fecha_ejecucion < ?",
+            [$filterDateStart, $filterDateNext]
+        );
+        $ingresoPagadoMes = $ingresosBreakdownResult ? floatval($ingresosBreakdownResult['pagado']) : 0.0;
+        $ingresoPendienteMes = $ingresosBreakdownResult ? floatval($ingresosBreakdownResult['pendiente']) : 0.0;
+        
+        // 4. Egresos
+        $egresosTotalesResult = db()->queryOne(
+            "SELECT COALESCE(SUM(monto), 0) as total 
+             FROM Egreso 
+             WHERE fecha >= ? AND fecha < ?",
+            [$filterDateStart, $filterDateNext]
+        );
+        $totalEgreso = $egresosTotalesResult ? floatval($egresosTotalesResult['total']) : 0.0;
+        
+        // Egresos by category
+        $egresosCategorias = db()->query(
+            "SELECT categoria, COALESCE(SUM(monto), 0) as total, COUNT(*) as cantidad
+             FROM Egreso
+             WHERE fecha >= ? AND fecha < ?
+             GROUP BY categoria
+             ORDER BY total DESC",
+            [$filterDateStart, $filterDateNext]
+        );
+        if (!$egresosCategorias) $egresosCategorias = [];
+        foreach ($egresosCategorias as &$cat) {
+            $cat['total'] = floatval($cat['total']);
+            $cat['cantidad'] = intval($cat['cantidad']);
+        }
+        
+        // Egresos by vehicle (category 'operativo')
+        $egresosCamiones = db()->query(
+            "SELECT v.id_vehiculo, v.placa, v.marca, v.modelo, COALESCE(SUM(e.monto), 0) as total, COUNT(*) as cantidad
+             FROM Egreso e
+             INNER JOIN Vehiculo v ON e.id_vehiculo = v.id_vehiculo
+             WHERE e.categoria = 'operativo'
+               AND e.fecha >= ?
+               AND e.fecha < ?
+             GROUP BY v.id_vehiculo, v.placa, v.marca, v.modelo
+             ORDER BY total DESC",
+            [$filterDateStart, $filterDateNext]
+        );
+        if (!$egresosCamiones) $egresosCamiones = [];
+        foreach ($egresosCamiones as &$cam) {
+            $cam['total'] = floatval($cam['total']);
+            $cam['cantidad'] = intval($cam['cantidad']);
+        }
+        
+        // 5. Rentabilidad
+        $gananciaMes = $totalIngresoProducido - $totalEgreso;
+        $rentabilidadMes = $totalIngresoProducido > 0 ? round(($gananciaMes / $totalIngresoProducido) * 100, 1) : 0.0;
+        
+        // 6. Annual performance breakdown (Ingresos vs Egresos)
+        $facturacionAnual = [];
         for ($m = 1; $m <= 12; $m++) {
             $monthStr = str_pad($m, 2, '0', STR_PAD_LEFT);
             $key = "$currentYear-$monthStr";
+            $monthStart = "$key-01";
+            $monthNext = date("Y-m-d", strtotime("$monthStart +1 month"));
+            
+            $ingQuery = db()->queryOne(
+                "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa, 0)), 0) as total 
+                 FROM Servicio s
+                 INNER JOIN Sede se ON s.id_sede = se.id_sede
+                 LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+                 WHERE s.estado = 'completado'
+                   AND s.fecha_ejecucion >= ?
+                   AND s.fecha_ejecucion < ?",
+                [$monthStart, $monthNext]
+            );
+            $ingTotal = $ingQuery ? floatval($ingQuery['total']) : 0.0;
+            
+            $egQuery = db()->queryOne(
+                "SELECT COALESCE(SUM(monto), 0) as total 
+                 FROM Egreso 
+                 WHERE fecha >= ? AND fecha < ?",
+                [$monthStart, $monthNext]
+            );
+            $egTotal = $egQuery ? floatval($egQuery['total']) : 0.0;
+            
             $dateObj = DateTime::createFromFormat('!m', $m);
             $monthAbbr = $dateObj ? $dateObj->format('M') : '';
-            $mesLabel = "$monthAbbr $currentYear";
             
-            $mesesAnio[$key] = [
+            $facturacionAnual[] = [
                 'mes' => $key,
-                'mes_label' => $mesLabel,
-                'total' => 0.0,
-                'cobrado' => 0.0,
-                'cobertura' => 0.0,
-                'sedes_atendidas' => 0
+                'mes_label' => $monthAbbr ? "$monthAbbr $currentYear" : $key,
+                'ingreso' => $ingTotal,
+                'egreso' => $egTotal,
+                'ganancia' => $ingTotal - $egTotal
             ];
         }
-
-        $facturacionQuery = db()->query(
-            "SELECT 
-                DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
-                DATE_FORMAT(s.fecha_ejecucion, '%b %Y') as mes_label,
-                COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END), 0) as total,
-                COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE 0 END), 0) as cobrado
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE YEAR(s.fecha_ejecucion) = ?
-             AND s.estado = 'completado'
-             GROUP BY DATE_FORMAT(s.fecha_ejecucion, '%Y-%m')
-             ORDER BY mes ASC",
-            [$currentYear]
-        );
-
-        if ($facturacionQuery) {
-            foreach ($facturacionQuery as $row) {
-                $key = $row['mes'];
-                if (isset($mesesAnio[$key])) {
-                    $mesesAnio[$key]['total'] = floatval($row['total']);
-                    $mesesAnio[$key]['cobrado'] = floatval($row['cobrado']);
-                    if (!empty($row['mes_label'])) {
-                        $mesesAnio[$key]['mes_label'] = $row['mes_label'];
-                    }
-                }
-            }
-        }
-
-        $coberturaQuery = db()->query(
-            "SELECT 
-                DATE_FORMAT(sv.fecha_ejecucion, '%Y-%m') as mes,
-                COUNT(DISTINCT sv.id_sede) as served_sedes
-             FROM Servicio sv
-             INNER JOIN Sede s ON sv.id_sede = s.id_sede
-             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
-             WHERE s.activo = 1 AND e.activo = 1
-               AND YEAR(sv.fecha_ejecucion) = ?
-               AND sv.estado IN ('completado', 'en_curso', 'programado')
-             GROUP BY DATE_FORMAT(sv.fecha_ejecucion, '%Y-%m')
-             ORDER BY mes ASC",
-            [$currentYear]
-        );
-
-        if ($coberturaQuery) {
-            foreach ($coberturaQuery as $row) {
-                $key = $row['mes'];
-                if (isset($mesesAnio[$key])) {
-                    $served = intval($row['served_sedes']);
-                    $mesesAnio[$key]['sedes_atendidas'] = $served;
-                    $mesesAnio[$key]['cobertura'] = $sedesActivas > 0 ? round(($served / $sedesActivas) * 100, 1) : 0.0;
-                }
-            }
-        }
-
-        $facturacion12Meses = array_values($mesesAnio);
         
-        // Pagos pendientes - servicios completados con estado_pago pendiente
-        // GLOBAL (All time) - usually user wants total pending regardless of month selected
-        // But let's keep it global as it is debt.
-        $pagosPendientes = db()->queryOne(
-            "SELECT 
-                COUNT(*) as total_facturas,
-                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as monto_total
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.estado = 'completado'
-             AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'"
+        // 7. CRM Sales Summary
+        $crmPipelineResult = db()->queryOne(
+            "SELECT COALESCE(SUM(valor_potencial), 0) as total, COUNT(*) as count 
+             FROM Prospecto 
+             WHERE activo = 1 AND estado NOT IN ('ganado', 'perdido')"
         );
-        if (!$pagosPendientes) {
-            $pagosPendientes = ['total_facturas' => 0, 'monto_total' => 0];
-        }
-
-        // Pagos pendientes del mes seleccionado
-        $pagosPendientesMes = db()->queryOne(
-            "SELECT 
-                COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa)), 0) as monto_total
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.estado = 'completado'
-             AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
-             AND MONTH(s.fecha_ejecucion) = ?
-             AND YEAR(s.fecha_ejecucion) = ?",
-            [$currentMonth, $currentYear]
+        $pipelineTotalValue = $crmPipelineResult ? floatval($crmPipelineResult['total']) : 0.0;
+        $pipelineProspectsCount = $crmPipelineResult ? intval($crmPipelineResult['count']) : 0;
+        
+        $crmStages = db()->query(
+            "SELECT estado, COUNT(*) as cantidad, COALESCE(SUM(valor_potencial), 0) as valor_total
+             FROM Prospecto
+             WHERE activo = 1
+             GROUP BY estado
+             ORDER BY FIELD(estado, 'nuevo', 'contactado', 'interesado', 'propuesta', 'negociacion', 'ganado', 'perdido')"
         );
-        $montoPendienteMes = $pagosPendientesMes ? floatval($pagosPendientesMes['monto_total']) : 0.0;
-
-        // Lista de todos los servicios pendientes de pago (GLOBAL)
-        $serviciosPendientesLista = db()->query(
-            "SELECT 
-                s.id_servicio,
-                s.fecha_ejecucion,
-                s.estado_pago,
-                se.nombre_comercial as sede_nombre,
-                e.razon_social as empresa_razon_social,
-                COALESCE(s.monto_cobrado, cs.tarifa, 0) as monto_total
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.estado = 'completado'
-             AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
-             ORDER BY s.fecha_ejecucion DESC"
-        );
-        if (!$serviciosPendientesLista) $serviciosPendientesLista = [];
-        foreach ($serviciosPendientesLista as &$row) {
-            $row['id_servicio'] = intval($row['id_servicio']);
-            $row['monto_total'] = floatval($row['monto_total']);
+        if (!$crmStages) $crmStages = [];
+        foreach ($crmStages as &$stg) {
+            $stg['cantidad'] = intval($stg['cantidad']);
+            $stg['valor_total'] = floatval($stg['valor_total']);
         }
         
-        // Empresas con pagos pendientes (GLOBAL)
-        $empresasPendientesResult = db()->queryOne(
-            "SELECT COUNT(DISTINCT e.id_empresa) as count
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
-             WHERE s.estado = 'completado'
-             AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'"
+        $crmSources = db()->query(
+            "SELECT COALESCE(fuente, 'No Especificado') as fuente, COUNT(*) as cantidad, COALESCE(SUM(valor_potencial), 0) as valor_total
+             FROM Prospecto
+             WHERE activo = 1
+             GROUP BY fuente
+             ORDER BY cantidad DESC
+             LIMIT 5"
         );
-        $empresasPendientes = $empresasPendientesResult ? $empresasPendientesResult['count'] : 0;
-        
-        // Ingresos este mes seleccionado
-        $ingresosMesResult = db()->queryOne(
-            "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, 0)), 0) as total 
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE MONTH(s.fecha_ejecucion) = ? 
-             AND YEAR(s.fecha_ejecucion) = ?
-             AND s.estado = 'completado'
-             AND s.estado_pago = 'pagado'",
-            [$currentMonth, $currentYear]
-        );
-        $ingresosMes = $ingresosMesResult ? floatval($ingresosMesResult['total']) : 0.0;
-
-        // Ingresos agrupados por distrito del mes seleccionado
-        $ingresosDistritoResult = db()->query(
-            "SELECT 
-                COALESCE(se.distrito, 'Sin Distrito') as distrito,
-                COALESCE(se.provincia, '') as provincia,
-                COUNT(DISTINCT s.id_servicio) as cantidad_servicios,
-                COALESCE(SUM(COALESCE(s.monto_cobrado, 0)), 0) as total
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE MONTH(s.fecha_ejecucion) = ? 
-             AND YEAR(s.fecha_ejecucion) = ?
-             AND s.estado = 'completado'
-             AND s.estado_pago = 'pagado'
-             GROUP BY se.distrito, se.provincia
-             ORDER BY total DESC",
-            [$currentMonth, $currentYear]
-        );
-        if (!$ingresosDistritoResult) $ingresosDistritoResult = [];
-        foreach ($ingresosDistritoResult as &$row) {
-            $row['cantidad_servicios'] = intval($row['cantidad_servicios']);
-            $row['total'] = floatval($row['total']);
+        if (!$crmSources) $crmSources = [];
+        foreach ($crmSources as &$src) {
+            $src['cantidad'] = intval($src['cantidad']);
+            $src['valor_total'] = floatval($src['valor_total']);
         }
         
-        // Servicios este mes
-        $serviciosMesResult = db()->queryOne(
-            "SELECT COUNT(*) as count FROM Servicio 
-             WHERE MONTH(fecha_ejecucion) = $currentMonth AND YEAR(fecha_ejecucion) = $currentYear"
-        );
-        $serviciosMes = $serviciosMesResult ? $serviciosMesResult['count'] : 0;
-        
-        // Servicios breakdown per status (Current Month)
-        $serviciosBreakdownResult = db()->queryOne(
-            "SELECT 
-                COALESCE(SUM(CASE WHEN estado = 'programado' THEN 1 ELSE 0 END), 0) as programados,
-                COALESCE(SUM(CASE WHEN estado = 'en_curso' THEN 1 ELSE 0 END), 0) as en_curso,
-                COALESCE(SUM(CASE WHEN estado = 'completado' THEN 1 ELSE 0 END), 0) as completados
-             FROM Servicio 
-             WHERE MONTH(fecha_ejecucion) = $currentMonth AND YEAR(fecha_ejecucion) = $currentYear"
-        );
-        $serviciosBreakdown = $serviciosBreakdownResult ?: ['programados' => 0, 'en_curso' => 0, 'completados' => 0];
-        
-        // Rutas este mes
-        $rutasMesResult = db()->queryOne(
-            "SELECT COUNT(*) as count FROM Ruta 
-             WHERE MONTH(fecha) = $currentMonth AND YEAR(fecha) = $currentYear"
-        );
-        $rutasMes = $rutasMesResult ? $rutasMesResult['count'] : 0;
+        // 8. Contratos vencidos
         $contratosVencidosRenovacion = getContratosVencidosRenovacion();
-
-        // Consultas de depuración para auditar los montos y meses reales
-        $debugServices = db()->query(
-            "SELECT s.id_servicio, s.id_sede, se.nombre_comercial, s.fecha_ejecucion, s.monto_cobrado, cs.tarifa
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.fecha_ejecucion >= '2026-01-01' AND s.fecha_ejecucion <= '2026-01-31'
-               AND s.estado = 'completado'
-             ORDER BY CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END DESC
-             LIMIT 15"
-        );
-
-        $debugMonths = db()->query(
-            "SELECT 
-                DATE_FORMAT(s.fecha_ejecucion, '%Y-%m') as mes,
-                COUNT(*) as cantidad_servicios,
-                COALESCE(SUM(CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END), 0) as total_facturado
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.estado = 'completado'
-             GROUP BY DATE_FORMAT(s.fecha_ejecucion, '%Y-%m')
-             ORDER BY mes DESC
-             LIMIT 12"
-        );
         
         echo json_encode([
             'success' => true,
@@ -316,32 +296,46 @@ function getDashboard() {
                 'periodo' => [
                     'month' => $currentMonth,
                     'year' => $currentYear,
-                    'month_name' => strftime('%B', strtotime("$currentYear-$currentMonth-01"))
+                    'month_name' => $monthName
                 ],
-                'sedes_activas' => intval($sedesActivas),
-                'sedes_con_servicio' => intval($sedesConServicio),
-                'sedes_sin_servicio' => count($sedesSinServicio),
-                'sedes_sin_servicio_lista' => $sedesSinServicio,
-                'porcentaje_servicio' => $porcentajeServicio,
-                'facturacion_12_meses' => $facturacion12Meses,
-                'empresas_pendientes' => intval($empresasPendientes),
-                'monto_pendiente' => floatval($pagosPendientes['monto_total']),
-                'monto_pendiente_mes' => floatval($montoPendienteMes),
-                'facturas_pendientes' => intval($pagosPendientes['total_facturas']),
-                'servicios_pendientes_lista' => $serviciosPendientesLista,
-                'ingresos_mes' => floatval($ingresosMes),
-                'ingresos_distrito_lista' => $ingresosDistritoResult,
-                'servicios_mes' => intval($serviciosMes),
-                'servicios_programados' => intval($serviciosBreakdown['programados']),
-                'servicios_en_curso' => intval($serviciosBreakdown['en_curso']),
-                'servicios_completados' => intval($serviciosBreakdown['completados']),
-                'rutas_mes' => intval($rutasMes),
-                'contratos_vencidos_renovacion' => count($contratosVencidosRenovacion),
-                'contratos_vencidos_renovacion_lista' => $contratosVencidosRenovacion
-            ],
-            'debug_info' => [
-                'top_services_january' => $debugServices ?: [],
-                'billing_by_month' => $debugMonths ?: []
+                'usuario' => [
+                    'nombre' => $userName
+                ],
+                'clientes_activos' => [
+                    'total_activos' => $clientesActivosTotal,
+                    'total_inactivos' => $clientesInactivosTotal,
+                    'crecimiento' => $crecimientoClientes
+                ],
+                'cobertura' => [
+                    'porcentaje' => $porcentajeCobertura,
+                    'sedes_atendidas' => $sedesAtendidas,
+                    'sedes_activas' => $sedesActivas,
+                    'sedes_pendientes_cantidad' => $cantidadSedesPendientes,
+                    'sedes_pendientes_lista' => $sedesSinServicioLista
+                ],
+                'ingresos' => [
+                    'total' => $totalIngresoProducido,
+                    'pagado' => $ingresoPagadoMes,
+                    'pendiente' => $ingresoPendienteMes
+                ],
+                'egresos' => [
+                    'total' => $totalEgreso,
+                    'por_categoria' => $egresosCategorias,
+                    'por_camion' => $egresosCamiones
+                ],
+                'rentabilidad' => [
+                    'porcentaje' => $rentabilidadMes,
+                    'ganancia' => $gananciaMes
+                ],
+                'comparativo_anual' => $facturacionAnual,
+                'crm' => [
+                    'pipeline_total' => $pipelineTotalValue,
+                    'prospectos_cantidad' => $pipelineProspectsCount,
+                    'por_etapa' => $crmStages,
+                    'por_fuente' => $crmSources
+                ],
+                'contratos_vencidos_cantidad' => count($contratosVencidosRenovacion),
+                'contratos_vencidos_lista' => $contratosVencidosRenovacion
             ]
         ]);
     } catch (Exception $e) {

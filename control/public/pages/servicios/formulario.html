@@ -604,9 +604,21 @@
             else showToast('No hay factura asociada', 'info');
         }
 
-        // Init — cargar selects primero, luego rellenar datos en modo edición
-        loadSelects().then(() => {
-            if (id) loadData();
+        // Init — cargar selects primero, luego rellenar datos en modo edición o pre-cargar sede
+        const idSedeParam = getUrlParam('id_sede');
+        loadSelects().then(async () => {
+            if (id) {
+                await loadData();
+            } else if (idSedeParam) {
+                try {
+                    const res = await api.get(`/sedes/${idSedeParam}`);
+                    if (res.success && res.data) {
+                        selectSede(res.data.id_sede, res.data.nombre_comercial, res.data.empresa_razon_social);
+                    }
+                } catch (e) {
+                    console.error('Error al cargar la sede pre-seleccionada:', e);
+                }
+            }
         });
     </script>
 </body>

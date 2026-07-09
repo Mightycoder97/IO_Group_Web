@@ -2,1158 +2,609 @@
 <html lang="es">
 
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6MBEGPZ5TK"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-6MBEGPZ5TK');
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#1B5E20">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dashboard - IO Control</title>
+    <title>Dashboard General - IO Control</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link href="../css/global.css?v=2.5" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="../../css/global.css?v=2.5" rel="stylesheet">
+    <link href="../../css/control.css?v=2.3" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <link href="../css/control.css?v=2.3" rel="stylesheet">
+    <style>
+        /* Modern aesthetic adjustments specifically for dashboard */
+        .dashboard-header {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .kpi-card-premium {
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+        }
+        
+        .kpi-card-premium:hover {
+            box-shadow: 0 16px 28px rgba(15, 23, 42, 0.08);
+        }
+
+        .chart-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.7);
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+            height: 100%;
+        }
+
+        .crm-progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #f1f5f9;
+        }
+
+        .crm-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .source-tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 99px;
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+        
+        .modal-custom-header {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .modal-custom-body {
+            padding: 1.5rem;
+        }
+        
+        .pending-sede-card {
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .pending-sede-card:hover {
+            border-color: #cbd5e1;
+            background-color: #f8fafc;
+        }
+        
+        .months-never {
+            color: #ef4444;
+            font-weight: 700;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .months-alert {
+            color: #f59e0b;
+            font-weight: 700;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .months-ok {
+            color: #64748b;
+            font-weight: 600;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .btn-action-sm {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .crm-stage-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .crm-stage-val {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+    </style>
 </head>
 
 <body class="control-app">
     <div class="app-container">
-        <!-- Sidebar (populated dynamically) -->
+        <!-- Sidebar Navigation -->
         <aside class="sidebar" id="sidebar"></aside>
-        
-        <!-- Main Content -->
+
+        <!-- Main Content Area -->
         <main class="main-content">
+            <!-- Top Navigation Bar -->
             <nav class="top-nav">
                 <div class="breadcrumb-container">
-                    <button class="toggle-sidebar" onclick="toggleSidebar()">
-                        <i class="bi bi-list"></i>
-                    </button>
-                    <h4 class="mb-0 ms-2">Dashboard</h4>
+                    <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                        </ol>
+                    </nav>
                 </div>
                 <div class="user-menu">
-                    <a href="alertas/index.html" class="btn btn-light alert-badge">
-                        <i class="bi bi-bell"></i>
-                        <span class="badge bg-danger" id="alertCount">0</span>
-                    </a>
                     <div class="dropdown">
                         <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i>
-                            <span id="userName">Usuario</span>
+                            <i class="bi bi-person-circle"></i> <span id="userMenuName">Usuario</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
-                                    data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar
-                                    Contraseña</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#" onclick="logout()"><i
-                                        class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Cambiar Contraseña</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
                     </div>
                 </div>
             </nav>
 
-            <div class="content-area is-loading">
+            <div class="content-area">
                 <!-- Welcome Header -->
-                <div class="dashboard-header">
-                    <div class="row align-items-center">
-                        <div class="col-lg-5">
-                            <div class="header-content">
-                                <div class="header-greeting" id="headerGreeting">
-                                    <i class="bi bi-sun"></i> Buenos días
-                                </div>
-                                <h1 class="header-title" id="headerUserName">Bienvenido a IO Control</h1>
-                                <div class="header-date" id="headerDate">Cargando...</div>
-                            </div>
-                        </div>
-                        <div class="col-lg-7">
-                            <div class="header-stats d-flex justify-content-lg-end align-items-center gap-3">
-                                <!-- Date Filter -->
-                                <div class="dashboard-filter d-flex align-items-center gap-2">
-                                    <select class="form-select form-select-sm" id="dashboardMonth"
-                                        onchange="loadDashboard()">
-                                        <option value="1">Enero</option>
-                                        <option value="2">Febrero</option>
-                                        <option value="3">Marzo</option>
-                                        <option value="4">Abril</option>
-                                        <option value="5">Mayo</option>
-                                        <option value="6">Junio</option>
-                                        <option value="7">Julio</option>
-                                        <option value="8">Agosto</option>
-                                        <option value="9">Septiembre</option>
-                                        <option value="10">Octubre</option>
-                                        <option value="11">Noviembre</option>
-                                        <option value="12">Diciembre</option>
-                                    </select>
-                                    <select class="form-select form-select-sm" id="dashboardYear"
-                                        onchange="loadDashboard()">
-                                        <option value="2024">2024</option>
-                                        <option value="2025">2025</option>
-                                        <option value="2026">2026</option>
-                                    </select>
-                                </div>
-                                <div class="header-stat">
-                                    <div class="header-stat-value" id="headerServiciosMes">--</div>
-                                    <div class="loading-skeleton-wrap" style="width: 50px; height: 26px;">
-                                        <div class="skeleton-loader" style="width: 100%; height: 100%;"></div>
-                                    </div>
-                                    <div class="header-stat-label">Servicios del Mes</div>
-                                </div>
-                                <div class="header-stat">
-                                    <div class="header-stat-value" id="headerRutasMes">--</div>
-                                    <div class="loading-skeleton-wrap" style="width: 50px; height: 26px;">
-                                        <div class="skeleton-loader" style="width: 100%; height: 100%;"></div>
-                                    </div>
-                                    <div class="header-stat-label">Rutas del Mes</div>
-                                </div>
-                            </div>
+                <div class="dashboard-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div>
+                        <div class="header-greeting"><i class="bi bi-stars"></i> <span id="greetingText">Buenos días</span></div>
+                        <h1 class="header-title">Panel General</h1>
+                        <div class="header-date" id="currentDateText">Cargando fecha...</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="dashboard-filter d-flex align-items-center gap-1">
+                            <i class="bi bi-calendar3 text-muted me-1"></i>
+                            <select class="form-select form-select-sm" id="filterMonth" onchange="loadDashboardData()">
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                            <select class="form-select form-select-sm" id="filterYear" onchange="loadDashboardData()">
+                                <option value="2024">2024</option>
+                                <option value="2025">2025</option>
+                                <option value="2026">2026</option>
+                                <option value="2027">2027</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- KPI Cards -->
+                <!-- KPI Metrics Cards Row -->
                 <div class="kpi-grid">
-                    <!-- Clientes Activos -->
+                    <!-- Clientes Activos Card -->
                     <div class="kpi-card-premium primary">
                         <div class="kpi-header">
-                            <div class="kpi-icon-wrapper primary">
-                                <i class="bi bi-building"></i>
-                            </div>
-                        </div>
-                        <div class="kpi-value" id="kpiSedesActivas">--</div>
-                        <div class="loading-skeleton-wrap">
-                            <div class="skeleton-loader skeleton-value"></div>
+                            <span class="kpi-label">Clientes Activos</span>
+                            <div class="kpi-icon-wrapper primary"><i class="bi bi-people"></i></div>
                         </div>
                         <div>
-                            <div class="kpi-label">Clientes Activos</div>
-                            <div class="kpi-sublabel">Sedes registradas</div>
-                            <div class="loading-skeleton-wrap">
-                                <div class="skeleton-loader skeleton-text sm"></div>
+                            <div class="kpi-value" id="kpiActiveClients">0</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="kpi-trend" id="kpiClientsTrend">0%</span>
+                                <span class="kpi-sublabel text-end" id="kpiClientsTotal">0 registrados</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Cobertura del Mes -->
-                    <button type="button" class="kpi-card-premium kpi-card-button coverage-alert success"
-                        onclick="openCoverageModal(this)">
+                    <!-- Cobertura del Mes Card (Interactive) -->
+                    <button class="kpi-card-premium success kpi-card-button coverage-alert" onclick="openCoberturaModal()">
                         <div class="kpi-header">
-                            <div class="kpi-icon-wrapper success">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="kpi-trend up" id="kpiTrendServicio">
-                                    <i class="bi bi-arrow-up"></i> --%
-                                </span>
+                            <span class="kpi-label">Cobertura</span>
+                            <div class="kpi-icon-wrapper success"><i class="bi bi-check-circle"></i></div>
+                        </div>
+                        <div>
+                            <div class="kpi-value" id="kpiCoverage">0%</div>
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <span class="kpi-sublabel" id="kpiCoverageSedes">0/0 atendidas</span>
                                 <span class="kpi-click-indicator"><i class="bi bi-chevron-right"></i></span>
                             </div>
                         </div>
-                        <div class="kpi-value" id="kpiPorcentajeServicio">--%</div>
-                        <div class="loading-skeleton-wrap">
-                            <div class="skeleton-loader skeleton-value"></div>
-                        </div>
-                        <div>
-                            <div class="kpi-label">Cobertura del Mes</div>
-                            <div class="kpi-sublabel" id="kpiSedesServicio">-- de -- sedes</div>
-                            <div class="loading-skeleton-wrap">
-                                <div class="skeleton-loader skeleton-text sm"></div>
-                            </div>
-                        </div>
                     </button>
 
-                    <!-- Ingresos del Mes -->
-                    <button type="button" class="kpi-card-premium kpi-card-button info info-alert"
-                        onclick="openIncomeByDistrictModal(this)">
+                    <!-- Total Ingresos Card -->
+                    <div class="kpi-card-premium info">
                         <div class="kpi-header">
-                            <div class="kpi-icon-wrapper info">
-                                <i class="bi bi-cash-coin"></i>
-                            </div>
-                            <span class="kpi-click-indicator"><i class="bi bi-chevron-right"></i></span>
-                        </div>
-                        <div class="kpi-value" id="kpiIngresosMes">S/ --</div>
-                        <div class="loading-skeleton-wrap">
-                            <div class="skeleton-loader skeleton-value"></div>
+                            <span class="kpi-label">Ingreso del Mes</span>
+                            <div class="kpi-icon-wrapper info"><i class="bi bi-cash-stack"></i></div>
                         </div>
                         <div>
-                            <div class="kpi-label">Ingresos del Mes <span id="kpiIngresosMesPeriod">de ...</span></div>
-                            <div class="kpi-sublabel">Servicios cobrados</div>
-                            <div class="loading-skeleton-wrap">
-                                <div class="skeleton-loader skeleton-text sm"></div>
-                            </div>
-                        </div>
-                    </button>
-
-                    <!-- Empresas Pendientes -->
-                    <div class="kpi-card-premium warning">
-                        <div class="kpi-header">
-                            <div class="kpi-icon-wrapper warning">
-                                <i class="bi bi-clock-history"></i>
-                            </div>
-                        </div>
-                        <div class="kpi-value" id="kpiClientesPendientes">--</div>
-                        <div class="loading-skeleton-wrap">
-                            <div class="skeleton-loader skeleton-value"></div>
-                        </div>
-                        <div>
-                            <div class="kpi-label">Empresas Pendientes</div>
-                            <div class="kpi-sublabel">Con facturas por cobrar</div>
-                            <div class="loading-skeleton-wrap">
-                                <div class="skeleton-loader skeleton-text sm"></div>
+                            <div class="kpi-value" id="kpiIngresos">S/ 0.00</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="kpi-sublabel" id="kpiIngresosBreakdown">Cobrado S/ 0 | Pend. S/ 0</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Monto Pendiente -->
-                    <button type="button" class="kpi-card-premium kpi-card-button danger renewal-alert"
-                        onclick="openPendingServicesModal(this)">
+                    <!-- Total Egresos Card (Interactive) -->
+                    <button class="kpi-card-premium warning kpi-card-button info-alert" onclick="openEgresosModal()">
                         <div class="kpi-header">
-                            <div class="kpi-icon-wrapper danger">
-                                <i class="bi bi-wallet2"></i>
-                            </div>
-                            <span class="kpi-click-indicator"><i class="bi bi-chevron-right"></i></span>
-                        </div>
-                        <div class="kpi-value" id="kpiMontoPendiente">S/ --</div>
-                        <div class="loading-skeleton-wrap">
-                            <div class="skeleton-loader skeleton-value"></div>
+                            <span class="kpi-label">Egreso del Mes</span>
+                            <div class="kpi-icon-wrapper warning"><i class="bi bi-wallet2"></i></div>
                         </div>
                         <div>
-                            <div class="kpi-label">Monto Pendiente <span id="kpiMontoPendientePeriod">del Mes</span></div>
-                            <div class="kpi-sublabel" id="kpiMontoPendienteTotal">Monto total por cobrar: S/ --</div>
-                            <div class="loading-skeleton-wrap">
-                                <div class="skeleton-loader skeleton-text sm"></div>
-                            </div>
-                        </div>
-                    </button>
-
-                    <!-- Contratos Vencidos -->
-                    <button type="button" class="kpi-card-premium kpi-card-button renewal-alert"
-                        onclick="openRenewalsModal(this)">
-                        <div class="kpi-header">
-                            <div class="kpi-icon-wrapper danger">
-                                <i class="bi bi-file-earmark-excel"></i>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="kpi-trend danger" id="kpiContratosVencidosBadge">Revisar</span>
+                            <div class="kpi-value" id="kpiEgresos">S/ 0.00</div>
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <span class="kpi-sublabel">Ver por áreas</span>
                                 <span class="kpi-click-indicator"><i class="bi bi-chevron-right"></i></span>
                             </div>
                         </div>
-                        <div class="kpi-value" id="kpiContratosVencidos">--</div>
-                        <div class="loading-skeleton-wrap">
-                            <div class="skeleton-loader skeleton-value"></div>
+                    </button>
+
+                    <!-- Rentabilidad Card (Interactive) -->
+                    <button class="kpi-card-premium secondary kpi-card-button info-alert" onclick="openRentabilidadModal()">
+                        <div class="kpi-header">
+                            <span class="kpi-label">Rentabilidad</span>
+                            <div class="kpi-icon-wrapper secondary"><i class="bi bi-graph-up-arrow"></i></div>
                         </div>
                         <div>
-                            <div class="kpi-label">Contratos Vencidos</div>
-                            <div class="kpi-sublabel" id="kpiContratosVencidosSub">Necesitan renovación</div>
-                            <div class="loading-skeleton-wrap">
-                                <div class="skeleton-loader skeleton-text sm"></div>
+                            <div class="kpi-value" id="kpiRentabilidad">0%</div>
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <span class="kpi-sublabel" id="kpiGainText">Ganancia: S/ 0.00</span>
+                                <span class="kpi-click-indicator"><i class="bi bi-chevron-right"></i></span>
                             </div>
                         </div>
                     </button>
-
-                    <!-- Rutas del Mes -->
-                    <div class="kpi-card-premium secondary">
-                        <div class="kpi-header">
-                            <div class="kpi-icon-wrapper secondary">
-                                <i class="bi bi-truck"></i>
-                            </div>
-                        </div>
-                        <div class="kpi-value" id="kpiRutasMes">--</div>
-                        <div class="loading-skeleton-wrap">
-                            <div class="skeleton-loader skeleton-value"></div>
-                        </div>
-                        <div>
-                            <div class="kpi-label">Rutas del Mes</div>
-                            <div class="kpi-sublabel">Programadas</div>
-                            <div class="loading-skeleton-wrap">
-                                <div class="skeleton-loader skeleton-text sm"></div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Charts Row -->
-                <div class="charts-grid">
-                    <!-- Main Chart -->
-                    <div class="chart-card">
-                        <div class="chart-header-premium">
-                            <div class="chart-meta">
-                                <i class="bi bi-wallet2"></i>
-                                Ingresos por Servicios (<span id="facturacionChartPeriod">Año Seleccionado</span>)
+                <!-- Graphs and CRM section -->
+                <div class="row g-4 mb-4">
+                    <!-- Ingresos vs Egresos Annual Chart -->
+                    <div class="col-lg-8">
+                        <div class="chart-card">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="card-title fw-bold mb-0"><i class="bi bi-bar-chart-line text-primary me-2"></i>Historial de Ingresos vs Egresos</h5>
+                                <span class="badge bg-light text-dark fw-semibold" id="chartYearBadge">Año 2026</span>
                             </div>
-                            <div class="d-flex align-items-center gap-4 mt-2">
-                                <div>
-                                    <div class="small text-muted" style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Valorizado</div>
-                                    <div class="fw-bold text-dark" id="totalAnual" style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;">S/ 0.00</div>
-                                </div>
-                                <div class="border-start ps-4">
-                                    <div class="small text-success" style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Cobrado</div>
-                                    <div class="fw-bold text-success" id="totalCobradoAnual" style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;">S/ 0.00</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-body">
-                            <div class="chart-container">
-                                <canvas id="chartFacturacion"></canvas>
+                            <div style="position: relative; height: 320px;">
+                                <canvas id="chartPerformance"></canvas>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Quick Stats -->
-                    <div class="quick-stats-card">
-                        <div class="quick-stats-title">
-                            <i class="bi bi-pie-chart"></i>
-                            Resumen de Servicios
-                        </div>
-                        <div class="stats-ring-container">
-                            <div class="stats-ring">
-                                <canvas id="chartServicios"></canvas>
-                                <div class="stats-ring-center">
-                                    <div class="stats-ring-value" id="totalServicios">--</div>
-                                    <div class="stats-ring-label">Este Mes</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="quick-stats-list">
-                            <div class="quick-stat-item">
-                                <div class="quick-stat-dot completados"></div>
-                                <div class="quick-stat-info">
-                                    <div class="quick-stat-label">Completados</div>
-                                </div>
-                                <div class="quick-stat-value" id="serviciosCompletados">--</div>
-                            </div>
-                            <div class="quick-stat-item">
-                                <div class="quick-stat-dot programados"></div>
-                                <div class="quick-stat-info">
-                                    <div class="quick-stat-label">Programados</div>
-                                </div>
-                                <div class="quick-stat-value" id="serviciosProgramados">--</div>
-                            </div>
-                            <div class="quick-stat-item">
-                                <div class="quick-stat-dot en-curso"></div>
-                                <div class="quick-stat-info">
-                                    <div class="quick-stat-label">En Curso</div>
-                                </div>
-                                <div class="quick-stat-value" id="serviciosEnCurso">--</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cobertura Chart Row -->
-                <div class="chart-card mt-4" style="width: 100%;">
-                    <div class="chart-header-premium">
-                        <div class="chart-meta">
-                            <i class="bi bi-graph-up-arrow"></i>
-                            Evolución de Cobertura Operativa (% de Sedes Atendidas)
-                        </div>
-                        <div class="d-flex align-items-center gap-4 mt-2">
+                    <!-- CRM Summary -->
+                    <div class="col-lg-4">
+                        <div class="chart-card d-flex flex-column justify-content-between">
                             <div>
-                                <div class="small text-muted" style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Promedio del Año</div>
-                                <div class="fw-bold text-success" id="coberturaPromedioAnual" style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;">0.0%</div>
+                                <h5 class="card-title fw-bold mb-3"><i class="bi bi-funnel text-warning me-2"></i>Resumen Comercial CRM</h5>
+                                <div class="bg-light p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="small text-muted fw-semibold">Valor Total Pipeline</div>
+                                        <h4 class="fw-bold mb-0 text-success" id="crmPipelineValue">S/ 0.00</h4>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="small text-muted fw-semibold">Prospectos Activos</div>
+                                        <span class="badge bg-success" id="crmProspectsCount">0</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="small fw-bold text-uppercase text-muted mb-3">Estados en Funnel</h6>
+                                    <div id="crmStagesList" class="d-flex flex-column gap-2">
+                                        <div class="text-center text-muted small py-3">Cargando funnel...</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h6 class="small fw-bold text-uppercase text-muted mb-2">Principales Fuentes</h6>
+                                <div id="crmSourcesContainer" class="d-flex flex-wrap gap-2">
+                                    <!-- Lead Sources -->
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="chart-body" style="height: 320px; position: relative; width: 100%;">
-                        <canvas id="chartCobertura"></canvas>
-                    </div>
                 </div>
-
             </div>
         </main>
     </div>
 
-    <!-- Modals -->
-    <div class="modal fade" id="coverageModal" tabindex="-1" aria-labelledby="coverageModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div>
-                        <h5 class="modal-title" id="coverageModalLabel">Clientes sin servicio del mes</h5>
-                        <div class="modal-subtitle" id="coverageModalSubtitle">Sedes activas pendientes</div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="coverageEmpty" class="empty-renewals-state d-none">
-                        <i class="bi bi-check2-circle"></i>
-                        <h6>La cobertura está completa</h6>
-                        <p>Todas las sedes activas tienen servicio registrado en el mes seleccionado.</p>
-                    </div>
-                    <div id="coverageTableWrap" class="table-responsive">
-                        <table class="table align-middle renewals-table">
-                            <thead>
-                                <tr>
-                                    <th>Sede</th>
-                                    <th>Empresa</th>
-                                    <th>Distrito</th>
-                                    <th>Contrato</th>
-                                    <th>Último servicio</th>
-                                    <th class="text-end">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="coverageTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="renewalsModal" tabindex="-1" aria-labelledby="renewalsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div>
-                        <h5 class="modal-title" id="renewalsModalLabel">Contratos vencidos por renovar</h5>
-                        <div class="modal-subtitle" id="renewalsModalSubtitle">Sedes que requieren renovación</div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="renewalsEmpty" class="empty-renewals-state d-none">
-                        <i class="bi bi-check2-circle"></i>
-                        <h6>No hay contratos vencidos</h6>
-                        <p>Todo está al día por ahora.</p>
-                    </div>
-                    <div id="renewalsTableWrap" class="table-responsive">
-                        <table class="table align-middle renewals-table">
-                            <thead>
-                                <tr>
-                                    <th>Sede</th>
-                                    <th>Empresa</th>
-                                    <th>Contrato</th>
-                                    <th>Vencimiento</th>
-                                    <th>Condiciones</th>
-                                    <th class="text-end">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="renewalsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Servicios Pendientes de Pago -->
-    <div class="modal fade" id="pendingServicesModal" tabindex="-1" aria-labelledby="pendingServicesModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div>
-                        <h5 class="modal-title" id="pendingServicesModalLabel">Servicios pendientes de pago</h5>
-                        <div class="modal-subtitle" id="pendingServicesModalSubtitle">Todos los servicios completados sin pago registrado</div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="pendingServicesEmpty" class="empty-renewals-state d-none">
-                        <i class="bi bi-check2-circle"></i>
-                        <h6>No hay facturas/servicios pendientes</h6>
-                        <p>Todos los servicios completados han sido pagados.</p>
-                    </div>
-                    <div id="pendingServicesTableWrap" class="table-responsive">
-                        <table class="table align-middle renewals-table">
-                            <thead>
-                                <tr>
-                                    <th>Sede</th>
-                                    <th>Empresa</th>
-                                    <th>Fecha de Ejecución</th>
-                                    <th>Monto Pendiente</th>
-                                    <th>Estado de Pago</th>
-                                    <th class="text-end">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pendingServicesTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Ingresos por Distrito -->
-    <div class="modal fade" id="incomeByDistrictModal" tabindex="-1" aria-labelledby="incomeByDistrictModalLabel" aria-hidden="true">
+    <!-- Modals Section -->
+    
+    <!-- 1. Cobertura Modal (Sedes Pendientes) -->
+    <div class="modal fade" id="modalCobertura" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header modal-custom-header">
                     <div>
-                        <h5 class="modal-title" id="incomeByDistrictModalLabel">Ingresos del Mes por Distrito</h5>
-                        <div class="modal-subtitle" id="incomeByDistrictModalSubtitle">Desglose de montos cobrados por ubicación geográfica</div>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-shield-exclamation text-warning me-2"></i>Sedes Pendientes de Servicio</h5>
+                        <p class="text-muted small mb-0">Sedes activas que no registran atención en el período seleccionado.</p>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div id="incomeByDistrictEmpty" class="empty-renewals-state d-none">
-                        <i class="bi bi-info-circle"></i>
-                        <h6>No hay ingresos registrados</h6>
-                        <p>No se encontraron cobros registrados en el mes seleccionado.</p>
+                <div class="modal-body modal-custom-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" id="searchPendingSede" placeholder="Buscar por cliente o dirección..." oninput="filterPendingSedes()">
                     </div>
-                    <div id="incomeByDistrictTableWrap" class="table-responsive">
-                        <table class="table align-middle renewals-table no-min-width">
-                            <thead>
-                                <tr>
-                                    <th>Distrito / Provincia</th>
-                                    <th class="text-center">Servicios Cobrados</th>
-                                    <th class="text-end">Monto Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="incomeByDistrictTableBody"></tbody>
-                        </table>
+                    <div id="pendingSedesContainer" style="max-height: 400px; overflow-y: auto;">
+                        <!-- List loaded dynamically -->
                     </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                    <button type="button" class="btn btn-secondary px-4 fw-semibold" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- 2. Egresos Modal (Breakdown) -->
+    <div class="modal fade" id="modalEgresos" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header modal-custom-header">
+                    <div>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-wallet2 text-warning me-2"></i>Desglose de Egresos por Áreas</h5>
+                        <p class="text-muted small mb-0" id="egresosModalSub">Gastos registrados en el mes.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body modal-custom-body">
+                    <!-- Main Category List -->
+                    <div id="egresosCategoriesView">
+                        <div class="list-group list-group-flush mb-4" id="egresosCategoryList">
+                            <!-- Categories load dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Truck Breakdown View (Initially Hidden) -->
+                    <div id="egresosTrucksView" style="display: none;">
+                        <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToEgresosCategories()">
+                            <i class="bi bi-arrow-left me-1"></i> Volver a Categorías
+                        </button>
+                        <h6 class="fw-bold mb-3"><i class="bi bi-truck me-2 text-primary"></i>Gasto Operativo por Camión / Vehículo</h6>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Camión</th>
+                                        <th>Placa</th>
+                                        <th>Cantidad Gastos</th>
+                                        <th class="text-end">Monto Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="egresosTruckList">
+                                    <!-- Trucks load dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                    <button type="button" class="btn btn-secondary px-4 fw-semibold" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Rentabilidad Modal (Formula) -->
+    <div class="modal fade" id="modalRentabilidad" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header modal-custom-header">
+                    <div>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Operación de Rentabilidad</h5>
+                        <p class="text-muted small mb-0">Detalle del cálculo para el período seleccionado.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body modal-custom-body text-center">
+                    <div class="p-4 bg-light rounded-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted fw-semibold">Ingresos Producidos</span>
+                            <span class="fw-bold text-dark" id="rentIngresos">S/ 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted fw-semibold">Egresos Totales</span>
+                            <span class="fw-bold text-danger" id="rentEgresos">S/ 0.00</span>
+                        </div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted fw-bold">Ganancia Neta</span>
+                            <span class="fw-bold text-success fs-5" id="rentGanancia">S/ 0.00</span>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold mb-2">Fórmula Aplicada:</h6>
+                    <div class="p-3 bg-dark text-white rounded-3 font-monospace mb-3 fs-6">
+                        Rentabilidad = (Ganancia / Ingresos) * 100
+                    </div>
+                    
+                    <div class="p-3 rounded-3" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                        <span class="text-success fw-bold text-uppercase fs-5" id="rentFormulaResult">Rentabilidad: 0%</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                    <button type="button" class="btn btn-secondary px-4 fw-semibold" data-bs-dismiss="modal">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/api.js"></script>
-    <script src="../js/app.js?v=2.5"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/app.js?v=2.5"></script>
+    
     <script>
-        // Populate sidebar dynamically based on permissions
+        // Init navigation page
         bootControlPage('dashboard');
+        
+        // Modal references
+        const modalCoberturaObj = new bootstrap.Modal(document.getElementById('modalCobertura'));
+        const modalEgresosObj = new bootstrap.Modal(document.getElementById('modalEgresos'));
+        const modalRentabilidadObj = new bootstrap.Modal(document.getElementById('modalRentabilidad'));
+        
+        // Data Cache
+        let dashboardData = null;
+        let chartInstance = null;
 
-        // Helper to configure Genie Modal animation dynamically
-        function setModalGenieOrigin(modalId, triggerElement) {
-            const modalEl = document.getElementById(modalId);
-            if (!modalEl || !triggerElement) return;
-            
-            const triggerRect = triggerElement.getBoundingClientRect();
-            const triggerX = triggerRect.left + triggerRect.width / 2;
-            const triggerY = triggerRect.top + triggerRect.height / 2;
-            
-            const viewportX = window.innerWidth / 2;
-            const viewportY = window.innerHeight / 2;
-            
-            const translateX = triggerX - viewportX;
-            const translateY = triggerY - viewportY;
-            
-            modalEl.style.setProperty('--origin-x', `${translateX}px`);
-            modalEl.style.setProperty('--origin-y', `${translateY}px`);
-            modalEl.classList.add('modal-genie');
-        }
-
-        let facturaChart = null;
-        let coberturaChart = null;
-        let serviciosChart = null;
-        let dashboardSedesSinServicio = [];
-        let dashboardContratosVencidos = [];
-        let dashboardServiciosPendientes = [];
-        let dashboardIngresosDistrito = [];
-
-        // Set greeting and date
-        function setHeaderInfo() {
-            const hour = new Date().getHours();
-            let greeting = 'Buenas noches';
-            let icon = 'bi-moon-stars';
-            if (hour >= 5 && hour < 12) {
-                greeting = 'Buenos días';
-                icon = 'bi-sun';
-            } else if (hour >= 12 && hour < 18) {
-                greeting = 'Buenas tardes';
-                icon = 'bi-brightness-high';
-            }
-
-            document.getElementById('headerGreeting').innerHTML = `<i class="bi ${icon}"></i> ${greeting}`;
-
-            const user = getUser();
-            if (user) {
-                document.getElementById('headerUserName').textContent = user.nombre || 'Bienvenido a IO Control';
-            }
-
+        // On document load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set current month and year in select options
             const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateStr = now.toLocaleDateString('es-PE', options);
-            document.getElementById('headerDate').textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-        }
+            document.getElementById('filterMonth').value = now.getMonth() + 1;
+            document.getElementById('filterYear').value = now.getFullYear();
+            
+            // Set current formatted date
+            const localeOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = now.toLocaleDateString('es-ES', localeOptions);
+            document.getElementById('currentDateText').textContent = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+            
+            // Dynamic greeting
+            const hour = now.getHours();
+            let greeting = "Buenos días";
+            if (hour >= 12 && hour < 19) greeting = "Buenas tardes";
+            else if (hour >= 19 || hour < 5) greeting = "Buenas noches";
+            document.getElementById('greetingText').innerHTML = `<i class="bi bi-stars"></i> ${greeting}`;
 
-        // Initialize date selectors
-        const today = new Date();
-        document.getElementById('dashboardMonth').value = today.getMonth() + 1;
-        document.getElementById('dashboardYear').value = today.getFullYear();
+            // Load initial dashboard data
+            loadDashboardData();
+        });
 
-        // Hook up to Realtime Sync from app.js
-        window.onRealtimeDataChange = async function(payload) {
-            console.log('Real-time updates detected. Gracefully reloading dashboard...');
-            await loadDashboard();
-        };
-
-        async function loadDashboard() {
-            const container = document.querySelector('.content-area');
-            if (container) {
-                container.classList.add('is-loading');
-            }
-
+        // Load Dashboard Data from API
+        async function loadDashboardData() {
+            const month = document.getElementById('filterMonth').value;
+            const year = document.getElementById('filterYear').value;
+            
+            document.getElementById('chartYearBadge').textContent = `Año ${year}`;
+            
             try {
-                const month = document.getElementById('dashboardMonth').value;
-                const year = document.getElementById('dashboardYear').value;
-
-                const result = await api.get(`/reportes?action=dashboard&month=${month}&year=${year}`);
-                if (result.success) {
-                    const data = result.data;
-
-                    // Header stats
-                    document.getElementById('headerServiciosMes').textContent = data.servicios_mes || 0;
-                    document.getElementById('headerRutasMes').textContent = data.rutas_mes || 0;
-
-                    // KPIs
-                    document.getElementById('kpiSedesActivas').textContent = data.sedes_activas.toLocaleString();
-                    document.getElementById('kpiPorcentajeServicio').textContent = data.porcentaje_servicio + '%';
-                    document.getElementById('kpiTrendServicio').innerHTML = `<i class="bi bi-arrow-up"></i> ${data.porcentaje_servicio}%`;
-                    dashboardSedesSinServicio = data.sedes_sin_servicio_lista || [];
-                    const totalSedesSinServicio = data.sedes_sin_servicio ?? dashboardSedesSinServicio.length;
-                    document.getElementById('kpiSedesServicio').textContent =
-                        `${data.sedes_con_servicio} de ${data.sedes_activas} sedes - ${totalSedesSinServicio} pendientes`;
-                    
-                    // Ingresos del mes y por distrito
-                    dashboardIngresosDistrito = data.ingresos_distrito_lista || [];
-                    document.getElementById('kpiIngresosMes').textContent =
-                        'S/ ' + (data.ingresos_mes || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
-                    
-                    const monthSelect = document.getElementById('dashboardMonth');
-                    const monthName = monthSelect.options[monthSelect.selectedIndex].text;
-                    document.getElementById('kpiIngresosMesPeriod').textContent = `de ${monthName} ${year}`;
-
-                    document.getElementById('kpiClientesPendientes').textContent = data.empresas_pendientes;
-                    
-                    // Monto pendiente del mes seleccionado y total por cobrar
-                    dashboardServiciosPendientes = data.servicios_pendientes_lista || [];
-                    document.getElementById('kpiMontoPendiente').textContent =
-                        'S/ ' + (data.monto_pendiente_mes || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
-                    
-                    document.getElementById('kpiMontoPendientePeriod').textContent = `de ${monthName} ${year}`;
-                    
-                    document.getElementById('kpiMontoPendienteTotal').textContent =
-                        'Monto total por cobrar: S/ ' + (data.monto_pendiente || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
-
-                    document.getElementById('kpiRutasMes').textContent = data.rutas_mes || 0;
-                    dashboardContratosVencidos = data.contratos_vencidos_renovacion_lista || [];
-                    const totalContratosVencidos = data.contratos_vencidos_renovacion || dashboardContratosVencidos.length;
-                    const totalSedesVencidas = new Set(dashboardContratosVencidos.map(item => item.id_sede)).size;
-                    document.getElementById('kpiContratosVencidos').textContent = totalContratosVencidos;
-                    document.getElementById('kpiContratosVencidosSub').textContent = totalContratosVencidos > 0
-                        ? `${totalSedesVencidas} sedes por renovar`
-                        : 'Todo al día';
-                    document.getElementById('kpiContratosVencidosBadge').textContent = totalContratosVencidos > 0
-                        ? 'Revisar'
-                        : 'OK';
-
-                    // Update charts
-                    const periodSpan = document.getElementById('facturacionChartPeriod');
-                    if (periodSpan) {
-                        periodSpan.textContent = `Año ${year}`;
-                    }
-                    renderFacturacionChart(data.facturacion_12_meses);
-                    renderCoberturaChart(data.facturacion_12_meses);
-                    renderServiciosChart(data);
+                const res = await api.get(`/reportes?action=dashboard&month=${month}&year=${year}`);
+                if (res.success) {
+                    dashboardData = res.data;
+                    populateDashboard();
+                } else {
+                    showToast('Error cargando los datos del dashboard', 'danger');
                 }
             } catch (err) {
-                console.error('Error loading dashboard:', err);
-            } finally {
-                if (container) {
-                    // Slight delay to allow charts rendering smoothly
-                    setTimeout(() => {
-                        container.classList.remove('is-loading');
-                    }, 250);
-                }
+                console.error(err);
+                showToast('Error de red al conectar con el servidor', 'danger');
             }
         }
 
-        function escapeHtml(value) {
-            return String(value ?? '').replace(/[&<>"']/g, (char) => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            }[char]));
-        }
+        // Populate Dashboard UI components
+        function populateDashboard() {
+            if (!dashboardData) return;
 
-        function formatDateDashboard(dateStr) {
-            if (!dateStr) return '-';
-            const [year, month, day] = dateStr.split('-').map(Number);
-            if (!year || !month || !day) return dateStr;
-            return new Date(year, month - 1, day).toLocaleDateString('es-PE');
-        }
+            const d = dashboardData;
 
-        function formatMoney(value) {
-            return 'S/ ' + Number(value || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 });
-        }
-
-        function openCoverageModal(el) {
-            setModalGenieOrigin('coverageModal', el);
-            renderCoverageTable();
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('coverageModal'));
-            modal.show();
-        }
-
-        function renderCoverageTable() {
-            const tbody = document.getElementById('coverageTableBody');
-            const empty = document.getElementById('coverageEmpty');
-            const tableWrap = document.getElementById('coverageTableWrap');
-            const subtitle = document.getElementById('coverageModalSubtitle');
-            const monthSelect = document.getElementById('dashboardMonth');
-            const monthName = monthSelect.options[monthSelect.selectedIndex]?.text || '';
-            const year = document.getElementById('dashboardYear').value;
-            const total = dashboardSedesSinServicio.length;
-
-            subtitle.textContent = total === 1
-                ? `1 sede activa sin servicio en ${monthName} ${year}`
-                : `${total} sedes activas sin servicio en ${monthName} ${year}`;
-
-            if (total === 0) {
-                tbody.innerHTML = '';
-                empty.classList.remove('d-none');
-                tableWrap.classList.add('d-none');
-                return;
+            // Welcome username
+            if (d.usuario && d.usuario.nombre) {
+                document.getElementById('userMenuName').textContent = d.usuario.nombre;
             }
 
-            empty.classList.add('d-none');
-            tableWrap.classList.remove('d-none');
+            // 1. Clientes Activos
+            document.getElementById('kpiActiveClients').textContent = d.clientes_activos.total_activos;
+            document.getElementById('kpiClientsTotal').textContent = `${d.clientes_activos.total_activos} activos / ${d.clientes_activos.total_inactivos} inactivos`;
+            
+            const clientsTrendEl = document.getElementById('kpiClientsTrend');
+            const clientsTrendVal = d.clientes_activos.crecimiento;
+            clientsTrendEl.textContent = `${clientsTrendVal >= 0 ? '+' : ''}${clientsTrendVal}%`;
+            clientsTrendEl.className = `kpi-trend ${clientsTrendVal >= 0 ? 'up' : 'danger'}`;
+            clientsTrendEl.innerHTML = `<i class="bi bi-arrow-${clientsTrendVal >= 0 ? 'up' : 'down'}"></i> ${clientsTrendEl.textContent}`;
 
-            const routeUrl = `rutas/listar.html?month=${encodeURIComponent(monthSelect.value)}&year=${encodeURIComponent(year)}`;
-            const filterYear = parseInt(year);
-            const filterMonth = parseInt(monthSelect.value);
+            // 2. Cobertura
+            document.getElementById('kpiCoverage').textContent = `${d.cobertura.porcentaje}%`;
+            document.getElementById('kpiCoverageSedes').textContent = `${d.cobertura.sedes_atendidas}/${d.cobertura.sedes_activas} sedes`;
 
-            tbody.innerHTML = dashboardSedesSinServicio.map(item => {
-                let monthsWithoutService = 999;
-                if (item.ultimo_servicio_fecha) {
-                    const lastDate = new Date(item.ultimo_servicio_fecha + 'T00:00:00');
-                    const lastYear = lastDate.getFullYear();
-                    const lastMonth = lastDate.getMonth() + 1;
-                    monthsWithoutService = (filterYear - lastYear) * 12 + (filterMonth - lastMonth);
-                }
+            // 3. Ingresos
+            document.getElementById('kpiIngresos').textContent = formatCurrency(d.ingresos.total);
+            document.getElementById('kpiIngresosBreakdown').textContent = `Cobrado ${formatCurrency(d.ingresos.pagado)} | Pend. ${formatCurrency(d.ingresos.pendiente)}`;
 
-                // Color-coded badge: 1-3 green, 3-6 orange, 6+ red
-                let badgeClass = 'bg-success';
-                let textLabel = monthsWithoutService + ' meses sin serv.';
-                
-                if (monthsWithoutService >= 999) {
-                    badgeClass = 'bg-danger';
-                    textLabel = 'Sin Historial';
-                } else if (monthsWithoutService >= 6) {
-                    badgeClass = 'bg-danger';
-                } else if (monthsWithoutService >= 3) {
-                    badgeClass = 'bg-warning text-dark';
-                }
+            // 4. Egresos
+            document.getElementById('kpiEgresos').textContent = formatCurrency(d.egresos.total);
 
-                const alertLabel = `<span class="badge ${badgeClass} ms-2" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;">${textLabel}</span>`;
+            // 5. Rentabilidad
+            document.getElementById('kpiRentabilidad').textContent = `${d.rentabilidad.porcentaje}%`;
+            document.getElementById('kpiGainText').textContent = `Ganancia: ${formatCurrency(d.rentabilidad.ganancia)}`;
 
-                const ubicacion = [item.sede_distrito, item.sede_provincia].filter(Boolean).join(', ');
-                const contrato = item.id_contrato
-                    ? `${escapeHtml(item.frecuencia || '-')} - ${formatMoney(item.tarifa)}`
-                    : 'Sin contrato activo';
-                const tipoTarifa = item.id_contrato ? escapeHtml(item.tipo_tarifa || '-') : '';
-                return `
-                    <tr>
-                        <td>
-                            <div class="fw-semibold text-dark d-flex align-items-center flex-wrap gap-1">
-                                ${escapeHtml(item.sede_nombre || '-')}
-                                ${alertLabel}
-                            </div>
-                            <div class="text-muted small">${escapeHtml(item.sede_direccion || '')}</div>
-                        </td>
-                        <td>
-                            <div class="fw-medium">${escapeHtml(item.empresa_razon_social || '-')}</div>
-                            <div class="text-muted small">RUC ${escapeHtml(item.empresa_ruc || '-')}</div>
-                        </td>
-                        <td><span class="badge bg-light text-secondary border">${escapeHtml(ubicacion || '-')}</span></td>
-                        <td>
-                            <div class="fw-semibold text-success">${contrato}</div>
-                            <div class="text-muted small">${tipoTarifa}</div>
-                        </td>
-                        <td>
-                            <div class="fw-medium">${item.ultimo_servicio_fecha ? formatDateDashboard(item.ultimo_servicio_fecha) : 'Sin registros'}</div>
-                        </td>
-                        <td class="text-end">
-                            <div class="d-flex justify-content-end gap-2">
-                                <a class="btn btn-sm btn-outline-danger rounded-pill px-3" href="sedes/formulario.html?id=${item.id_sede}">
-                                    <i class="bi bi-pencil me-1"></i> Atender
-                                </a>
-                                <a class="btn btn-sm btn-outline-success rounded-pill px-3" href="${routeUrl}">
-                                    <i class="bi bi-truck me-1"></i> Asignar Ruta
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            // Render Charts
+            renderPerformanceChart(d.comparativo_anual);
+
+            // Populate CRM Summary
+            populateCrmSummary(d.crm);
         }
 
-        function openRenewalsModal(el) {
-            setModalGenieOrigin('renewalsModal', el);
-            renderRenewalsTable();
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('renewalsModal'));
-            modal.show();
+        // Helper currency formatter
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(val);
         }
 
-        function renderRenewalsTable() {
-            const tbody = document.getElementById('renewalsTableBody');
-            const empty = document.getElementById('renewalsEmpty');
-            const tableWrap = document.getElementById('renewalsTableWrap');
-            const subtitle = document.getElementById('renewalsModalSubtitle');
-            const total = dashboardContratosVencidos.length;
+        // Render Performance Chart (Ingresos vs Egresos)
+        function renderPerformanceChart(history) {
+            const ctx = document.getElementById('chartPerformance').getContext('2d');
+            
+            const labels = history.map(h => h.mes_label);
+            const ingresosData = history.map(h => h.ingreso);
+            const egresosData = history.map(h => h.egreso);
 
-            subtitle.textContent = total === 1
-                ? '1 sede requiere renovación'
-                : `${total} sedes requieren renovación`;
-
-            if (total === 0) {
-                tbody.innerHTML = '';
-                empty.classList.remove('d-none');
-                tableWrap.classList.add('d-none');
-                return;
+            if (chartInstance) {
+                chartInstance.destroy();
             }
 
-            empty.classList.add('d-none');
-            tableWrap.classList.remove('d-none');
-            tbody.innerHTML = dashboardContratosVencidos.map(item => {
-                const pending = !!item.id_proceso_renovacion;
-                const buttonText = pending ? 'Continuar' : 'Renovar';
-                const buttonIcon = pending ? 'bi-arrow-right-circle' : 'bi-arrow-repeat';
-                return `
-                    <tr>
-                        <td>
-                            <div class="fw-semibold text-dark">${escapeHtml(item.sede_nombre || '-')}</div>
-                            <div class="text-muted small">${escapeHtml([item.sede_distrito, item.sede_provincia].filter(Boolean).join(', '))}</div>
-                        </td>
-                        <td>
-                            <div class="fw-medium">${escapeHtml(item.empresa_razon_social || '-')}</div>
-                            <div class="text-muted small">RUC ${escapeHtml(item.empresa_ruc || '-')}</div>
-                        </td>
-                        <td>
-                            <span class="badge bg-light text-dark border">#${item.id_contrato}</span>
-                        </td>
-                        <td>
-                            <div class="text-danger fw-bold">${formatDateDashboard(item.fecha_fin)}</div>
-                            <div class="text-danger small fw-medium">${item.dias_vencido || 0} días vencido</div>
-                        </td>
-                        <td>
-                            <div class="fw-semibold">${escapeHtml(item.frecuencia || '-')} · ${formatMoney(item.tarifa)}</div>
-                            <div class="text-muted small">${escapeHtml(item.tipo_tarifa || '-')}</div>
-                        </td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3"
-                                onclick="renewContractFromDashboard(${item.id_contrato}, this)">
-                                <i class="bi ${buttonIcon} me-1"></i> ${buttonText}
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
+            // Create linear gradients for area fills
+            const gradientIngresos = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientIngresos.addColorStop(0, 'rgba(34, 197, 94, 0.35)');
+            gradientIngresos.addColorStop(1, 'rgba(34, 197, 94, 0.00)');
 
-        async function renewContractFromDashboard(idContrato, btn) {
-            const originalHtml = btn?.innerHTML;
-            if (btn) {
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>';
-                btn.disabled = true;
-            }
+            const gradientEgresos = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientEgresos.addColorStop(0, 'rgba(239, 68, 68, 0.35)');
+            gradientEgresos.addColorStop(1, 'rgba(239, 68, 68, 0.00)');
 
-            try {
-                const result = await api.post('/altas?action=iniciar_renovacion', { id_contrato: idContrato });
-                if (result.success) {
-                    window.location.href = `${getBasePath()}/pages/altas/formulario.html?id=${result.id_proceso}&modo=renovacion`;
-                    return;
-                }
-                showToast(result.message || 'No se pudo iniciar la renovación', 'danger');
-            } catch (err) {
-                showToast('Error iniciando renovación', 'danger');
-            } finally {
-                if (btn) {
-                    btn.innerHTML = originalHtml;
-                    btn.disabled = false;
-                }
-            }
-        }
-
-        function openPendingServicesModal(el) {
-            setModalGenieOrigin('pendingServicesModal', el);
-            renderPendingServicesTable();
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('pendingServicesModal'));
-            modal.show();
-        }
-
-        function renderPendingServicesTable() {
-            const tbody = document.getElementById('pendingServicesTableBody');
-            const empty = document.getElementById('pendingServicesEmpty');
-            const tableWrap = document.getElementById('pendingServicesTableWrap');
-            const subtitle = document.getElementById('pendingServicesModalSubtitle');
-            const total = dashboardServiciosPendientes.length;
-
-            subtitle.textContent = total === 1
-                ? '1 servicio requiere pago'
-                : `${total} servicios requieren pago`;
-
-            if (total === 0) {
-                tbody.innerHTML = '';
-                empty.classList.remove('d-none');
-                tableWrap.classList.add('d-none');
-                return;
-            }
-
-            empty.classList.add('d-none');
-            tableWrap.classList.remove('d-none');
-            tbody.innerHTML = dashboardServiciosPendientes.map(item => {
-                const cobrUrl = `${getBasePath()}/pages/cobranza/index.html`;
-                return `
-                    <tr>
-                        <td>
-                            <div class="fw-semibold text-dark">${escapeHtml(item.sede_nombre || '-')}</div>
-                        </td>
-                        <td>
-                            <div class="fw-medium">${escapeHtml(item.empresa_razon_social || '-')}</div>
-                        </td>
-                        <td>
-                            <div>${formatDateDashboard(item.fecha_ejecucion)}</div>
-                        </td>
-                        <td>
-                            <div class="fw-bold text-danger">${formatMoney(item.monto_total)}</div>
-                        </td>
-                        <td>
-                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">${escapeHtml(item.estado_pago || 'pendiente')}</span>
-                        </td>
-                        <td class="text-end">
-                            <a class="btn btn-sm btn-outline-danger rounded-pill px-3" href="${cobrUrl}">
-                                <i class="bi bi-cash me-1"></i> Cobrar
-                            </a>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function openIncomeByDistrictModal(el) {
-            setModalGenieOrigin('incomeByDistrictModal', el);
-            renderIncomeByDistrictTable();
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('incomeByDistrictModal'));
-            modal.show();
-        }
-
-        function renderIncomeByDistrictTable() {
-            const tbody = document.getElementById('incomeByDistrictTableBody');
-            const empty = document.getElementById('incomeByDistrictEmpty');
-            const tableWrap = document.getElementById('incomeByDistrictTableWrap');
-            const subtitle = document.getElementById('incomeByDistrictModalSubtitle');
-            const total = dashboardIngresosDistrito.length;
-
-            const monthSelect = document.getElementById('dashboardMonth');
-            const monthName = monthSelect.options[monthSelect.selectedIndex].text;
-            const year = document.getElementById('dashboardYear').value;
-            subtitle.textContent = `Distribución geográfica para ${monthName} ${year}`;
-
-            if (total === 0) {
-                tbody.innerHTML = '';
-                empty.classList.remove('d-none');
-                tableWrap.classList.add('d-none');
-                return;
-            }
-
-            empty.classList.add('d-none');
-            tableWrap.classList.remove('d-none');
-            tbody.innerHTML = dashboardIngresosDistrito.map(item => {
-                return `
-                    <tr>
-                        <td>
-                            <div class="fw-semibold text-dark">${escapeHtml(item.distrito || '-')}</div>
-                            <div class="text-muted small">${escapeHtml(item.provincia || '')}</div>
-                        </td>
-                        <td class="text-center fw-medium">
-                            ${item.cantidad_servicios}
-                        </td>
-                        <td class="text-end fw-bold text-success">
-                            ${formatMoney(item.total)}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function translateMonthLabel(label) {
-            if (!label) return '';
-            const months = {
-                'Jan': 'Ene', 'Feb': 'Feb', 'Mar': 'Mar', 'Apr': 'Abr', 'May': 'May', 'Jun': 'Jun',
-                'Jul': 'Jul', 'Aug': 'Ago', 'Sep': 'Set', 'Oct': 'Oct', 'Nov': 'Nov', 'Dec': 'Dic'
-            };
-            const parts = label.split(' ');
-            if (parts.length === 2) {
-                const engMonth = parts[0];
-                const spanMonth = months[engMonth] || engMonth;
-                return `${spanMonth} ${parts[1]}`;
-            }
-            return label;
-        }
-
-        function renderFacturacionChart(facturacionData) {
-            const ctx = document.getElementById('chartFacturacion').getContext('2d');
-            const labels = facturacionData.map(d => translateMonthLabel(d.mes_label || d.mes));
-            const valoresTotal = facturacionData.map(d => parseFloat(d.total || 0));
-            const valoresCobrado = facturacionData.map(d => parseFloat(d.cobrado || 0));
-
-            const totalVal = valoresTotal.reduce((a, b) => a + b, 0);
-            const totalCob = valoresCobrado.reduce((a, b) => a + b, 0);
-
-            document.getElementById('totalAnual').textContent =
-                'S/ ' + totalVal.toLocaleString('es-PE', { minimumFractionDigits: 2 });
-            document.getElementById('totalCobradoAnual').textContent =
-                'S/ ' + totalCob.toLocaleString('es-PE', { minimumFractionDigits: 2 });
-
-            if (facturaChart) facturaChart.destroy();
-
-            // Create Canvas Gradients for high-end SaaS feel
-            const gradientTotal = ctx.createLinearGradient(0, 0, 0, 260);
-            gradientTotal.addColorStop(0, 'rgba(148, 163, 184, 0.45)');
-            gradientTotal.addColorStop(1, 'rgba(148, 163, 184, 0.05)');
-
-            const gradientCobrado = ctx.createLinearGradient(0, 0, 0, 260);
-            gradientCobrado.addColorStop(0, 'rgba(22, 101, 52, 0.85)');
-            gradientCobrado.addColorStop(1, 'rgba(34, 197, 94, 0.15)');
-
-            facturaChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Total Valorizado',
-                            data: valoresTotal,
-                            backgroundColor: gradientTotal,
-                            borderColor: 'rgba(148, 163, 184, 0.9)',
-                            borderWidth: 1.5,
-                            borderRadius: 6,
-                            barPercentage: 0.85,
-                            categoryPercentage: 0.65
-                        },
-                        {
-                            label: 'Monto Cobrado',
-                            data: valoresCobrado,
-                            backgroundColor: gradientCobrado,
-                            borderColor: '#166534',
-                            borderWidth: 1.5,
-                            borderRadius: 6,
-                            barPercentage: 0.85,
-                            categoryPercentage: 0.65
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                boxWidth: 12,
-                                boxHeight: 12,
-                                padding: 15,
-                                font: { size: 10, family: 'Inter', weight: '700' },
-                                color: '#64748b'
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                            titleFont: { size: 12, weight: '700', family: 'Inter' },
-                            bodyFont: { size: 12, family: 'Inter' },
-                            padding: 12,
-                            cornerRadius: 10,
-                            borderWidth: 1,
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            callbacks: {
-                                label: (context) => {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.raw !== null) {
-                                        label += 'S/ ' + context.raw.toLocaleString('es-PE', { minimumFractionDigits: 2 });
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(226, 232, 240, 0.4)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                font: { size: 10, family: 'Inter', weight: '600' },
-                                color: '#64748b',
-                                callback: (value) => {
-                                    if (value >= 1e6) return 'S/ ' + (value / 1e6).toFixed(0) + 'M';
-                                    if (value >= 1e3) return 'S/ ' + (value / 1e3).toFixed(0) + 'k';
-                                    return 'S/ ' + value;
-                                }
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                font: { size: 10, family: 'Inter', weight: '600' },
-                                color: '#64748b'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderCoberturaChart(facturacionData) {
-            const ctx = document.getElementById('chartCobertura').getContext('2d');
-            const labels = facturacionData.map(d => translateMonthLabel(d.mes_label || d.mes));
-            const valoresCobertura = facturacionData.map(d => parseFloat(d.cobertura || 0));
-
-            // Calculate average for months with coverage > 0
-            const activeMonths = valoresCobertura.filter(v => v > 0);
-            const promCobertura = activeMonths.length > 0 
-                ? (activeMonths.reduce((a, b) => a + b, 0) / activeMonths.length)
-                : 0.0;
-
-            document.getElementById('coberturaPromedioAnual').textContent = 
-                promCobertura.toFixed(1) + '%';
-
-            if (coberturaChart) coberturaChart.destroy();
-
-            // Create linear gradient for premium SaaS area line chart
-            const gradientCobertura = ctx.createLinearGradient(0, 0, 0, 280);
-            gradientCobertura.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-            gradientCobertura.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-
-            coberturaChart = new Chart(ctx, {
+            chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Cobertura Operativa',
-                            data: valoresCobertura,
-                            backgroundColor: gradientCobertura,
-                            borderColor: '#10b981',
+                            label: 'Ingresos Producidos',
+                            data: ingresosData,
+                            backgroundColor: gradientIngresos,
+                            borderColor: '#22c55e',
                             borderWidth: 3,
-                            pointBackgroundColor: '#34d399',
-                            pointBorderColor: '#0f172a',
-                            pointBorderWidth: 1.5,
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            pointHoverBorderWidth: 2,
+                            pointBackgroundColor: '#22c55e',
+                            pointBorderColor: '#fff',
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.35
+                        },
+                        {
+                            label: 'Egresos Totales',
+                            data: egresosData,
+                            backgroundColor: gradientEgresos,
+                            borderColor: '#ef4444',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#ef4444',
+                            pointBorderColor: '#fff',
+                            pointHoverRadius: 6,
                             fill: true,
                             tension: 0.35
                         }
@@ -1164,129 +615,268 @@
                     maintainAspectRatio: false,
                     interaction: {
                         mode: 'index',
-                        intersect: false,
+                        intersect: false
                     },
                     plugins: {
                         legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                            titleFont: { size: 12, weight: '700', family: 'Inter' },
-                            bodyFont: { size: 12, family: 'Inter' },
-                            padding: 12,
-                            cornerRadius: 10,
-                            borderWidth: 1,
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            callbacks: {
-                                label: (context) => {
-                                    return `Cobertura: ${context.raw.toFixed(1)}%`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            grid: {
-                                color: 'rgba(226, 232, 240, 0.4)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                font: { size: 10, family: 'Inter', weight: '600' },
-                                color: '#64748b',
-                                callback: (value) => value + '%'
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                font: { family: 'Inter', weight: '600', size: 11 }
                             }
                         },
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                font: { size: 10, family: 'Inter', weight: '600' },
-                                color: '#64748b'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderServiciosChart(data) {
-            const ctx = document.getElementById('chartServicios').getContext('2d');
-
-            let completados = data.servicios_completados;
-            let programados = data.servicios_programados;
-            let enCurso = data.servicios_en_curso;
-
-            if (completados === undefined) {
-                const total = data.servicios_mes || 0;
-                programados = Math.round(total * 0.3);
-                enCurso = Math.round(total * 0.1);
-                completados = total - programados - enCurso;
-            }
-
-            completados = Math.max(0, completados);
-            programados = Math.max(0, programados);
-            enCurso = Math.max(0, enCurso);
-
-            document.getElementById('serviciosCompletados').textContent = completados;
-            document.getElementById('serviciosProgramados').textContent = programados;
-            document.getElementById('serviciosEnCurso').textContent = enCurso;
-
-            const totalServicios = completados + programados + enCurso;
-            document.getElementById('totalServicios').textContent = totalServicios;
-
-            if (serviciosChart) serviciosChart.destroy();
-
-            serviciosChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Completados', 'Programados', 'En Curso'],
-                    datasets: [{
-                        data: [completados, programados, enCurso],
-                        backgroundColor: ['#10B981', '#3B82F6', '#F59E0B'],
-                        borderWidth: 0,
-                        borderRadius: 4,
-                        hoverOffset: 4,
-                        cutout: '76%'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            backgroundColor: '#0f172a',
                             padding: 12,
-                            cornerRadius: 10,
+                            cornerRadius: 8,
                             titleFont: { size: 12, weight: '700', family: 'Inter' },
                             bodyFont: { size: 12, family: 'Inter' }
                         }
                     },
-                    onHover: (event, activeElements) => {
-                        const valueEl = document.getElementById('totalServicios');
-                        const labelEl = document.querySelector('.stats-ring-label');
-                        if (!valueEl || !labelEl) return;
-
-                        if (activeElements && activeElements.length > 0) {
-                            const index = activeElements[0].index;
-                            const label = serviciosChart.data.labels[index];
-                            const value = serviciosChart.data.datasets[0].data[index];
-                            valueEl.textContent = value;
-                            labelEl.textContent = label;
-                        } else {
-                            valueEl.textContent = totalServicios;
-                            labelEl.textContent = 'Este Mes';
+                    scales: {
+                        y: {
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                font: { size: 10, family: 'Inter' },
+                                callback: function(value) { return 'S/ ' + value; }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10, family: 'Inter' } }
                         }
                     }
                 }
             });
         }
 
-        // Initialize
-        setHeaderInfo();
-        loadDashboard();
+        // Populate CRM Summary Section
+        function populateCrmSummary(crm) {
+            document.getElementById('crmPipelineValue').textContent = formatCurrency(crm.pipeline_total);
+            document.getElementById('crmProspectsCount').textContent = crm.prospectos_cantidad;
+
+            // Stages list
+            const stagesList = document.getElementById('crmStagesList');
+            if (crm.por_etapa.length === 0) {
+                stagesList.innerHTML = '<div class="text-center text-muted small py-3">No hay prospectos registrados</div>';
+            } else {
+                const total = crm.prospectos_cantidad;
+                const colors = {
+                    'nuevo': '#64748b',
+                    'contactado': '#3b82f6',
+                    'interesado': '#06b6d4',
+                    'propuesta': '#a855f7',
+                    'negociacion': '#f59e0b',
+                    'ganado': '#10b981',
+                    'perdido': '#ef4444'
+                };
+                
+                stagesList.innerHTML = crm.por_etapa.map(s => {
+                    const pct = total > 0 ? (s.cantidad / total) * 100 : 0;
+                    const color = colors[s.estado] || '#94a3b8';
+                    const label = s.estado.charAt(0).toUpperCase() + s.estado.slice(1);
+                    return `
+                        <div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="crm-stage-label">${label}</span>
+                                <span class="crm-stage-val">${s.cantidad} (${pct.toFixed(0)}%) — ${formatCurrency(s.valor_total)}</span>
+                            </div>
+                            <div class="crm-progress-bar">
+                                <div class="crm-progress-fill" style="width: ${pct}%; background-color: ${color};"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Lead sources tags
+            const sourcesContainer = document.getElementById('crmSourcesContainer');
+            if (crm.por_fuente.length === 0) {
+                sourcesContainer.innerHTML = '<span class="text-muted small">No hay fuentes registradas</span>';
+            } else {
+                sourcesContainer.innerHTML = crm.por_fuente.map(s => {
+                    return `<span class="source-tag">${s.fuente} (${s.cantidad})</span>`;
+                }).join('');
+            }
+        }
+
+        // ==========================================
+        // INTERACTIVE MODALS HANDLING
+        // ==========================================
+
+        // 1. Cobertura Modal (Sedes Pendientes)
+        function openCoberturaModal() {
+            if (!dashboardData) return;
+            filterPendingSedes();
+            modalCoberturaObj.show();
+        }
+
+        // Filter pending sedes list in modal
+        function filterPendingSedes() {
+            const searchTerm = document.getElementById('searchPendingSede').value.toLowerCase().trim();
+            const container = document.getElementById('pendingSedesContainer');
+            
+            const sedes = dashboardData.cobertura.sedes_pendientes_lista;
+            if (!sedes || sedes.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-check2-circle fs-1 text-success"></i><p class="mt-2">¡Todo al día! No hay sedes pendientes en este mes.</p></div>';
+                return;
+            }
+
+            const filtered = sedes.filter(s => {
+                return (s.sede_nombre && s.sede_nombre.toLowerCase().includes(searchTerm)) || 
+                       (s.empresa_razon_social && s.empresa_razon_social.toLowerCase().includes(searchTerm)) ||
+                       (s.sede_direccion && s.sede_direccion.toLowerCase().includes(searchTerm));
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted">No se encontraron sedes con ese criterio.</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(s => {
+                let monthsBadgeClass = "months-ok";
+                if (s.meses_sin_servicio === 'Nunca') {
+                    monthsBadgeClass = "months-never";
+                } else if (s.meses_sin_servicio_raw >= 3) {
+                    monthsBadgeClass = "months-never";
+                } else if (s.meses_sin_servicio_raw >= 1) {
+                    monthsBadgeClass = "months-alert";
+                }
+
+                return `
+                    <div class="pending-sede-card d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+                        <div>
+                            <div class="fw-bold text-dark">${s.empresa_razon_social}</div>
+                            <div class="small text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>${s.sede_nombre} — ${s.sede_direccion} (${s.sede_distrito})</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark border">Frecuencia: ${s.frecuencia || 'No especificada'}</span>
+                                <span class="${monthsBadgeClass}">Sin servicio: ${s.meses_sin_servicio}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="../rutas/listar.html?search=${encodeURIComponent(s.sede_nombre)}" class="btn btn-sm btn-outline-primary btn-action-sm">
+                                <i class="bi bi-map"></i> Asignar
+                            </a>
+                            <a href="../servicios/formulario.html?id_sede=${s.id_sede}" class="btn btn-sm btn-success btn-action-sm text-white">
+                                <i class="bi bi-plus-circle"></i> Atender
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 2. Egresos Modal (Breakdown)
+        function openEgresosModal() {
+            if (!dashboardData) return;
+            
+            const monthText = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex].text;
+            const year = document.getElementById('filterYear').value;
+            document.getElementById('egresosModalSub').textContent = `Gastos registrados en ${monthText} ${year}`;
+            
+            backToEgresosCategories();
+            modalEgresosObj.show();
+        }
+
+        function populateEgresosCategories() {
+            const listContainer = document.getElementById('egresosCategoryList');
+            const categories = dashboardData.egresos.por_categoria;
+
+            if (!categories || categories.length === 0) {
+                listContainer.innerHTML = '<div class="text-center py-4 text-muted">No se registraron egresos en este período.</div>';
+                return;
+            }
+
+            const icons = {
+                'operativo': 'bi-truck text-primary',
+                'fijo': 'bi-building text-info',
+                'nomina': 'bi-person-badge text-success',
+                'administrativo': 'bi-cpu text-secondary',
+                'extraordinario': 'bi-exclamation-triangle text-danger'
+            };
+
+            const labels = {
+                'operativo': 'Operativo / Logística (Clic para ver por Camión)',
+                'fijo': 'Gastos Fijos / Infraestructura',
+                'nomina': 'Nómina / Personal',
+                'administrativo': 'Administrativo / Oficina',
+                'extraordinario': 'Gastos Extraordinarios'
+            };
+
+            listContainer.innerHTML = categories.map(c => {
+                const icon = icons[c.categoria] || 'bi-cash-coin';
+                const label = labels[c.categoria] || c.categoria.toUpperCase();
+                const isOperativo = c.categoria === 'operativo';
+                
+                return `
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3 ${isOperativo ? 'list-group-item-action' : ''}" 
+                         style="${isOperativo ? 'cursor: pointer; font-weight: bold; border-left: 4px solid #3b82f6;' : ''}"
+                         ${isOperativo ? 'onclick="showEgresosTruckBreakdown()"' : ''}>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="fs-4"><i class="bi ${icon}"></i></div>
+                            <div>
+                                <div class="text-dark">${label}</div>
+                                <div class="small text-muted fw-normal">${c.cantidad} transacciones registradas</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fs-5 fw-bold text-dark">${formatCurrency(c.total)}</span>
+                            ${isOperativo ? '<i class="bi bi-chevron-right text-primary"></i>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Show truck breakdown view in egresos modal
+        function showEgresosTruckBreakdown() {
+            document.getElementById('egresosCategoriesView').style.display = 'none';
+            document.getElementById('egresosTrucksView').style.display = 'block';
+
+            const container = document.getElementById('egresosTruckList');
+            const camiones = dashboardData.egresos.por_camion;
+
+            if (!camiones || camiones.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No se registraron gastos operativos asociados a camiones en este mes.</td></tr>';
+                return;
+            }
+
+            container.innerHTML = camiones.map(c => {
+                return `
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">${c.marca || ''} ${c.modelo || ''}</div>
+                            <div class="small text-muted">ID Vehículo: ${c.id_vehiculo}</div>
+                        </td>
+                        <td><span class="badge bg-light text-dark border font-monospace">${c.placa}</span></td>
+                        <td>${c.cantidad} gastos</td>
+                        <td class="text-end fw-bold text-dark">${formatCurrency(c.total)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function backToEgresosCategories() {
+            document.getElementById('egresosCategoriesView').style.display = 'block';
+            document.getElementById('egresosTrucksView').style.display = 'none';
+            populateEgresosCategories();
+        }
+
+        // 3. Rentabilidad Modal (Formula)
+        function openRentabilidadModal() {
+            if (!dashboardData) return;
+
+            const r = dashboardData.rentabilidad;
+            const ing = dashboardData.ingresos.total;
+            const eg = dashboardData.egresos.total;
+
+            document.getElementById('rentIngresos').textContent = formatCurrency(ing);
+            document.getElementById('rentEgresos').textContent = formatCurrency(eg);
+            document.getElementById('rentGanancia').textContent = formatCurrency(r.ganancia);
+            document.getElementById('rentFormulaResult').textContent = `Rentabilidad: ${r.porcentaje}%`;
+            
+            modalRentabilidadObj.show();
+        }
     </script>
 </body>
 
