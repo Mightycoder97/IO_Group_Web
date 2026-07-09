@@ -154,75 +154,69 @@ function getDashboard() {
         }
         $cantidadSedesPendientes = count($sedesSinServicioLista);
         
-        // 3. Ingresos (Suma del producido en control de rutas: completados)
-        $ingresosProducidosResult = db()->queryOne(
-            "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa, 0)), 0) as total 
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.estado = 'completado'
-               AND s.fecha_ejecucion >= ?
-               AND s.fecha_ejecucion < ?",
-            [$filterDateStart, $filterDateNext]
-        );
-        $totalIngresoProducido = $ingresosProducidosResult ? floatval($ingresosProducidosResult['total']) : 0.0;
+        // 3. Ingresos (Calculado dinámicamente según frecuencia de contrato)
+        $servicesQuery = "
+            SELECT s.id_servicio, s.id_sede, s.fecha_ejecucion, s.monto_cobrado, s.estado_pago,
+                   se.nombre_comercial as sede_nombre, e.razon_social as empresa_razon_social,
+                   cs.frecuencia, cs.tarifa, cs.tipo_tarifa, m.peso_kg
+            FROM Servicio s
+            INNER JOIN Sede se ON s.id_sede = se.id_sede
+            INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+            LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+            LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
+            WHERE s.estado = 'completado'
+              AND s.fecha_ejecucion >= ?
+              AND s.fecha_ejecucion < ?
+        ";
         
-        $ingresosBreakdownResult = db()->queryOne(
-            "SELECT 
-                COALESCE(SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pagado' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END), 0) as pagado,
-                COALESCE(SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END), 0) as pendiente
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.estado = 'completado'
-               AND s.fecha_ejecucion >= ?
-               AND s.fecha_ejecucion < ?",
-            [$filterDateStart, $filterDateNext]
-        );
-        $ingresoPagadoMes = $ingresosBreakdownResult ? floatval($ingresosBreakdownResult['pagado']) : 0.0;
-        $ingresoPendienteMes = $ingresosBreakdownResult ? floatval($ingresosBreakdownResult['pendiente']) : 0.0;
+        $rawServices = db()->query($servicesQuery, [$filterDateStart, $filterDateNext]);
+        if (!$rawServices) $rawServices = [];
+        $processedServices = calculateEffectiveTariffs($rawServices);
         
-        // Ingresos growth compared to previous month
-        $ingresosPrevResult = db()->queryOne(
-            "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa, 0)), 0) as total 
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.estado = 'completado'
-               AND s.fecha_ejecucion >= ?
-               AND s.fecha_ejecucion < ?",
-            [$prevMonthDateStart, $filterDateStart]
-        );
-        $totalIngresoPrev = $ingresosPrevResult ? floatval($ingresosPrevResult['total']) : 0.0;
+        $totalIngresoProducido = 0.0;
+        $ingresoPagadoMes = 0.0;
+        $ingresoPendienteMes = 0.0;
+        $clientesPendientesLista = [];
+        
+        foreach ($processedServices as $s) {
+            $monto_total = floatval($s['monto_total']);
+            $totalIngresoProducido += $monto_total;
+            
+            if (isset($s['estado_pago']) && $s['estado_pago'] === 'pagado') {
+                $ingresoPagadoMes += $monto_total;
+            } else {
+                $ingresoPendienteMes += $monto_total;
+                if ($monto_total > 0) {
+                    $clientesPendientesLista[] = [
+                        'id_servicio' => intval($s['id_servicio']),
+                        'fecha_ejecucion' => $s['fecha_ejecucion'],
+                        'estado_pago' => $s['estado_pago'] ?: 'pendiente',
+                        'sede_nombre' => $s['sede_nombre'],
+                        'empresa_razon_social' => $s['empresa_razon_social'],
+                        'monto_total' => $monto_total
+                    ];
+                }
+            }
+        }
+        
+        // Sort pending list desc
+        usort($clientesPendientesLista, function($a, $b) {
+            return $b['monto_total'] <=> $a['monto_total'];
+        });
+        
+        // Previous Month Ingresos (for growth indicator)
+        $rawServicesPrev = db()->query($servicesQuery, [$prevMonthDateStart, $filterDateStart]);
+        if (!$rawServicesPrev) $rawServicesPrev = [];
+        $processedServicesPrev = calculateEffectiveTariffs($rawServicesPrev);
+        
+        $totalIngresoPrev = 0.0;
+        foreach ($processedServicesPrev as $s) {
+            $totalIngresoPrev += floatval($s['monto_total']);
+        }
+        
         $crecimientoIngresos = 0.0;
         if ($totalIngresoPrev > 0) {
             $crecimientoIngresos = round((($totalIngresoProducido - $totalIngresoPrev) / $totalIngresoPrev) * 100, 1);
-        }
-        
-        // List of clients with pending payments, ordered from highest to lowest
-        $clientesPendientesLista = db()->query(
-            "SELECT 
-                s.id_servicio,
-                s.fecha_ejecucion,
-                s.estado_pago,
-                se.nombre_comercial as sede_nombre,
-                e.razon_social as empresa_razon_social,
-                COALESCE(s.monto_cobrado, cs.tarifa, 0) as monto_total
-             FROM Servicio s
-             INNER JOIN Sede se ON s.id_sede = se.id_sede
-             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
-             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-             WHERE s.estado = 'completado'
-               AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
-               AND s.fecha_ejecucion >= ?
-               AND s.fecha_ejecucion < ?
-             ORDER BY monto_total DESC",
-            [$filterDateStart, $filterDateNext]
-        );
-        if (!$clientesPendientesLista) $clientesPendientesLista = [];
-        foreach ($clientesPendientesLista as &$row) {
-            $row['id_servicio'] = intval($row['id_servicio']);
-            $row['monto_total'] = floatval($row['monto_total']);
         }
         
         // 4. Egresos
@@ -279,17 +273,13 @@ function getDashboard() {
             $monthStart = "$key-01";
             $monthNext = date("Y-m-d", strtotime("$monthStart +1 month"));
             
-            $ingQuery = db()->queryOne(
-                "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa, 0)), 0) as total 
-                 FROM Servicio s
-                 INNER JOIN Sede se ON s.id_sede = se.id_sede
-                 LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
-                 WHERE s.estado = 'completado'
-                   AND s.fecha_ejecucion >= ?
-                   AND s.fecha_ejecucion < ?",
-                [$monthStart, $monthNext]
-            );
-            $ingTotal = $ingQuery ? floatval($ingQuery['total']) : 0.0;
+            $rawServicesMonth = db()->query($servicesQuery, [$monthStart, $monthNext]);
+            if (!$rawServicesMonth) $rawServicesMonth = [];
+            $processedServicesMonth = calculateEffectiveTariffs($rawServicesMonth);
+            $ingTotal = 0.0;
+            foreach ($processedServicesMonth as $s) {
+                $ingTotal += floatval($s['monto_total']);
+            }
             
             $egQuery = db()->queryOne(
                 "SELECT COALESCE(SUM(monto), 0) as total 
@@ -649,4 +639,85 @@ function getFacturacionReport() {
         'data' => $facturas,
         'totales' => $totales
     ]);
+}
+
+/**
+ * Calculates effective billing tariffs for each service dynamically based on frequency
+ */
+function calculateEffectiveTariffs($servicesList) {
+    if (empty($servicesList)) return [];
+    
+    // Group services by id_sede and year-month
+    $groups = [];
+    foreach ($servicesList as $idx => $s) {
+        $date = new DateTime($s['fecha_ejecucion']);
+        $yearMonth = $date->format('Y-m');
+        $id_sede = intval($s['id_sede']);
+        
+        $groups[$id_sede][$yearMonth][] = [
+            'index' => $idx,
+            'service' => $s,
+            'day' => intval($date->format('d')),
+            'week' => intval($date->format('W'))
+        ];
+    }
+    
+    $processedList = $servicesList;
+    
+    foreach ($groups as $id_sede => $yearMonths) {
+        foreach ($yearMonths as $yearMonth => $items) {
+            // Sort items by date (day) ascending
+            usort($items, function($a, $b) {
+                return $a['day'] <=> $b['day'];
+            });
+            
+            $chargedPeriods = [];
+            
+            foreach ($items as $item) {
+                $idx = $item['index'];
+                $s = $item['service'];
+                $peso_kg = isset($s['peso_kg']) ? floatval($s['peso_kg']) : 0.0;
+                $tarifa = floatval($s['tarifa']);
+                
+                if (isset($s['monto_cobrado']) && $s['monto_cobrado'] !== null && floatval($s['monto_cobrado']) > 0) {
+                    $effective = floatval($s['monto_cobrado']);
+                } else if ($s['tipo_tarifa'] === 'por_kg') {
+                    $effective = $peso_kg * $tarifa;
+                } else {
+                    $frecuencia = $s['frecuencia'];
+                    if ($frecuencia === 'mensual') {
+                        $periodKey = 'month';
+                        if (!isset($chargedPeriods[$periodKey])) {
+                            $effective = $tarifa;
+                            $chargedPeriods[$periodKey] = true;
+                        } else {
+                            $effective = 0.0;
+                        }
+                    } else if ($frecuencia === 'quincenal') {
+                        $periodKey = $item['day'] <= 15 ? 'fn1' : 'fn2';
+                        if (!isset($chargedPeriods[$periodKey])) {
+                            $effective = $tarifa;
+                            $chargedPeriods[$periodKey] = true;
+                        } else {
+                            $effective = 0.0;
+                        }
+                    } else if ($frecuencia === 'semanal') {
+                        $periodKey = 'week_' . $item['week'];
+                        if (!isset($chargedPeriods[$periodKey])) {
+                            $effective = $tarifa;
+                            $chargedPeriods[$periodKey] = true;
+                        } else {
+                            $effective = 0.0;
+                        }
+                    } else {
+                        $effective = $tarifa;
+                    }
+                }
+                
+                $processedList[$idx]['monto_total'] = $effective;
+            }
+        }
+    }
+    
+    return $processedList;
 }
