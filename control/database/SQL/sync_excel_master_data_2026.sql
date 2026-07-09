@@ -1,6 +1,6 @@
 -- ========================================================
 -- DATABASE SYNC: MASTER DATA FROM BASE DE DATOS 2026.xlsx
--- Generated on: 2026-07-09 10:54:58
+-- Generated on: 2026-07-09 10:59:20
 -- ========================================================
 
 START TRANSACTION;
@@ -3125,63 +3125,54 @@ UPDATE `Empresa` SET `activo` = 0 WHERE `id_empresa` = 1803;
 -- --------------------------------------------------------
 
 -- [NEW CLIENT] Fila 1504: RAMIREZ GONZALES SAMUEL JUNIOR YAMPIERO (RUC: 10438919878)
-INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) VALUES ('RAMIREZ GONZALES SAMUEL JUNIOR YAMPIERO', 'RUC', '10438919878', 1);
-SET @new_cliente_id = LAST_INSERT_ID();
-INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) VALUES (@new_cliente_id, 'RAMIREZ GONZALES SAMUEL JUNIOR YAMPIERO', '10438919878', 1);
-SET @new_empresa_id = LAST_INSERT_ID();
-INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) VALUES (@new_empresa_id, 'ODENTIA', 'AV. Simón Bolivar N 309 - Pueblo libre', 'PUEBLO LIBRE', 'Lima', 'Lima', '', '', 1);
-SET @new_sede_id = LAST_INSERT_ID();
-
--- [NEW CLIENT] Fila 1473: Jeny Luz Lázaro Ramos (RUC: 10708688903)
-INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) VALUES ('Jeny Luz Lázaro Ramos', 'RUC', '10708688903', 1);
-SET @new_cliente_id = LAST_INSERT_ID();
-INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) VALUES (@new_cliente_id, 'Jeny Luz Lázaro Ramos', '10708688903', 1);
-SET @new_empresa_id = LAST_INSERT_ID();
-INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) VALUES (@new_empresa_id, 'Luz de vida', 'Jr. Francisco Bolognesi N 316, cercado de Puente Piedra', 'PUENTE PIEDRA', 'Lima', 'Lima', '', 'Jeny Luz Lázaro Ramos 925 128 618', 1);
-SET @new_sede_id = LAST_INSERT_ID();
-INSERT INTO `ContratoServicio` (`id_sede`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) VALUES (@new_sede_id, '2026-01-01', 65.0, 'mensual_fijo', 'mensual', 1);
+INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) SELECT 'RAMIREZ GONZALES SAMUEL JUNIOR YAMPIERO', 'RUC', '10438919878', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '10438919878');
+SET @new_cliente_id = IFNULL((SELECT `id_cliente` FROM `Empresa` WHERE `ruc` = '10438919878'), LAST_INSERT_ID());
+INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) SELECT @new_cliente_id, 'RAMIREZ GONZALES SAMUEL JUNIOR YAMPIERO', '10438919878', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '10438919878');
+SET @new_empresa_id = (SELECT `id_empresa` FROM `Empresa` WHERE `ruc` = '10438919878');
+INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) SELECT @new_empresa_id, 'ODENTIA', 'AV. Simón Bolivar N 309 - Pueblo libre', 'PUEBLO LIBRE', 'Lima', 'Lima', '', '', 1 WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'AV. Simón Bolivar N 309 - Pueblo libre');
+SET @new_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'AV. Simón Bolivar N 309 - Pueblo libre');
 
 -- [NEW CLIENT] Fila 1500: CANCHUCAJA CAHUANA OMAR RODRIGO (RUC: 10756084128)
-INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) VALUES ('CANCHUCAJA CAHUANA OMAR RODRIGO', 'RUC', '10756084128', 1);
-SET @new_cliente_id = LAST_INSERT_ID();
-INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) VALUES (@new_cliente_id, 'CANCHUCAJA CAHUANA OMAR RODRIGO', '10756084128', 1);
-SET @new_empresa_id = LAST_INSERT_ID();
-INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) VALUES (@new_empresa_id, 'POLIDENTO', 'Mz. D, Lt 5 ASOCIACION CIRCUNVALACION EL AGUSTINO.', 'LIMA', 'Lima', 'Lima', '', 'OMAR CANCHUCAJA CAHUANA 992232828', 1);
-SET @new_sede_id = LAST_INSERT_ID();
-INSERT INTO `ContratoServicio` (`id_sede`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) VALUES (@new_sede_id, '2026-01-01', 65.0, 'mensual_fijo', 'mensual', 1);
+INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) SELECT 'CANCHUCAJA CAHUANA OMAR RODRIGO', 'RUC', '10756084128', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '10756084128');
+SET @new_cliente_id = IFNULL((SELECT `id_cliente` FROM `Empresa` WHERE `ruc` = '10756084128'), LAST_INSERT_ID());
+INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) SELECT @new_cliente_id, 'CANCHUCAJA CAHUANA OMAR RODRIGO', '10756084128', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '10756084128');
+SET @new_empresa_id = (SELECT `id_empresa` FROM `Empresa` WHERE `ruc` = '10756084128');
+INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) SELECT @new_empresa_id, 'POLIDENTO', 'Mz. D, Lt 5 ASOCIACION CIRCUNVALACION EL AGUSTINO.', 'LIMA', 'Lima', 'Lima', '', 'OMAR CANCHUCAJA CAHUANA 992232828', 1 WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'Mz. D, Lt 5 ASOCIACION CIRCUNVALACION EL AGUSTINO.');
+SET @new_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'Mz. D, Lt 5 ASOCIACION CIRCUNVALACION EL AGUSTINO.');
+INSERT INTO `ContratoServicio` (`id_sede`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) SELECT @new_sede_id, '2026-01-01', 65.0, 'mensual_fijo', 'mensual', 1 WHERE NOT EXISTS (SELECT 1 FROM `ContratoServicio` WHERE `id_sede` = @new_sede_id AND `activo` = 1);
 
 -- [NEW CLIENT] Fila 1503: SERVICIO DE ODONTOLOGIA ESPECIALIZADO EIRL (RUC: 20521980541)
-INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) VALUES ('SERVICIO DE ODONTOLOGIA ESPECIALIZADO EIRL', 'RUC', '20521980541', 1);
-SET @new_cliente_id = LAST_INSERT_ID();
-INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) VALUES (@new_cliente_id, 'SERVICIO DE ODONTOLOGIA ESPECIALIZADO EIRL', '20521980541', 1);
-SET @new_empresa_id = LAST_INSERT_ID();
-INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) VALUES (@new_empresa_id, 'CONSULTORIO MEDICO DENTAL LA MOLINA', 'AVENIDA CONSTRUCTORES 1015 LA MOLINA', 'LA MOLINA', 'Lima', 'Lima', '', '', 1);
-SET @new_sede_id = LAST_INSERT_ID();
+INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) SELECT 'SERVICIO DE ODONTOLOGIA ESPECIALIZADO EIRL', 'RUC', '20521980541', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '20521980541');
+SET @new_cliente_id = IFNULL((SELECT `id_cliente` FROM `Empresa` WHERE `ruc` = '20521980541'), LAST_INSERT_ID());
+INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) SELECT @new_cliente_id, 'SERVICIO DE ODONTOLOGIA ESPECIALIZADO EIRL', '20521980541', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '20521980541');
+SET @new_empresa_id = (SELECT `id_empresa` FROM `Empresa` WHERE `ruc` = '20521980541');
+INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) SELECT @new_empresa_id, 'CONSULTORIO MEDICO DENTAL LA MOLINA', 'AVENIDA CONSTRUCTORES 1015 LA MOLINA', 'LA MOLINA', 'Lima', 'Lima', '', '', 1 WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'AVENIDA CONSTRUCTORES 1015 LA MOLINA');
+SET @new_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'AVENIDA CONSTRUCTORES 1015 LA MOLINA');
 
 -- [NEW CLIENT] Fila 1506: SALUD OCUPACIONAL SAN LUCAS EIRL (RUC: 20603486936)
-INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) VALUES ('SALUD OCUPACIONAL SAN LUCAS EIRL', 'RUC', '20603486936', 1);
-SET @new_cliente_id = LAST_INSERT_ID();
-INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) VALUES (@new_cliente_id, 'SALUD OCUPACIONAL SAN LUCAS EIRL', '20603486936', 1);
-SET @new_empresa_id = LAST_INSERT_ID();
-INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) VALUES (@new_empresa_id, 'OCUPASALUD', 'calle arequipa 184, Mz D lt 30 urb. Tilda  a una cuadra del colegio san ignacio school', 'ATE', 'Lima', 'Lima', '', '', 1);
-SET @new_sede_id = LAST_INSERT_ID();
+INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) SELECT 'SALUD OCUPACIONAL SAN LUCAS EIRL', 'RUC', '20603486936', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '20603486936');
+SET @new_cliente_id = IFNULL((SELECT `id_cliente` FROM `Empresa` WHERE `ruc` = '20603486936'), LAST_INSERT_ID());
+INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) SELECT @new_cliente_id, 'SALUD OCUPACIONAL SAN LUCAS EIRL', '20603486936', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '20603486936');
+SET @new_empresa_id = (SELECT `id_empresa` FROM `Empresa` WHERE `ruc` = '20603486936');
+INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) SELECT @new_empresa_id, 'OCUPASALUD', 'calle arequipa 184, Mz D lt 30 urb. Tilda  a una cuadra del colegio san ignacio school', 'ATE', 'Lima', 'Lima', '', '', 1 WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'calle arequipa 184, Mz D lt 30 urb. Tilda  a una cuadra del colegio san ignacio school');
+SET @new_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'calle arequipa 184, Mz D lt 30 urb. Tilda  a una cuadra del colegio san ignacio school');
 
 -- [NEW CLIENT] Fila 555: Linares Clinica Veterinaria EIRL (RUC: 20613247761)
-INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) VALUES ('Linares Clinica Veterinaria EIRL', 'RUC', '20613247761', 1);
-SET @new_cliente_id = LAST_INSERT_ID();
-INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) VALUES (@new_cliente_id, 'Linares Clinica Veterinaria EIRL', '20613247761', 1);
-SET @new_empresa_id = LAST_INSERT_ID();
-INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) VALUES (@new_empresa_id, 'Linares Veterinaria & Spa', 'Av san Luis nro 2753. San Borja', 'SAN BORJA', 'Lima', 'Lima', '', '945156862', 1);
-SET @new_sede_id = LAST_INSERT_ID();
-INSERT INTO `ContratoServicio` (`id_sede`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) VALUES (@new_sede_id, '2026-01-01', 65.0, 'mensual_fijo', 'mensual', 1);
+INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) SELECT 'Linares Clinica Veterinaria EIRL', 'RUC', '20613247761', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '20613247761');
+SET @new_cliente_id = IFNULL((SELECT `id_cliente` FROM `Empresa` WHERE `ruc` = '20613247761'), LAST_INSERT_ID());
+INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) SELECT @new_cliente_id, 'Linares Clinica Veterinaria EIRL', '20613247761', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '20613247761');
+SET @new_empresa_id = (SELECT `id_empresa` FROM `Empresa` WHERE `ruc` = '20613247761');
+INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) SELECT @new_empresa_id, 'Linares Veterinaria & Spa', 'Av san Luis nro 2753. San Borja', 'SAN BORJA', 'Lima', 'Lima', '', '945156862', 1 WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'Av san Luis nro 2753. San Borja');
+SET @new_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'Av san Luis nro 2753. San Borja');
+INSERT INTO `ContratoServicio` (`id_sede`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) SELECT @new_sede_id, '2026-01-01', 65.0, 'mensual_fijo', 'mensual', 1 WHERE NOT EXISTS (SELECT 1 FROM `ContratoServicio` WHERE `id_sede` = @new_sede_id AND `activo` = 1);
 
 -- [NEW CLIENT] Fila 1505: INVERSIONES SALUD ANIMAL ANRU SAC (RUC: 20615908925)
-INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) VALUES ('INVERSIONES SALUD ANIMAL ANRU SAC', 'RUC', '20615908925', 1);
-SET @new_cliente_id = LAST_INSERT_ID();
-INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) VALUES (@new_cliente_id, 'INVERSIONES SALUD ANIMAL ANRU SAC', '20615908925', 1);
-SET @new_empresa_id = LAST_INSERT_ID();
-INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) VALUES (@new_empresa_id, 'WALAC Magdalena', 'JIRON LIBERTAD 653', 'MAGDALENA', 'Lima', 'Lima', '', '', 1);
-SET @new_sede_id = LAST_INSERT_ID();
+INSERT INTO `Cliente` (`nombre`, `tipo_documento`, `dni`, `activo`) SELECT 'INVERSIONES SALUD ANIMAL ANRU SAC', 'RUC', '20615908925', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '20615908925');
+SET @new_cliente_id = IFNULL((SELECT `id_cliente` FROM `Empresa` WHERE `ruc` = '20615908925'), LAST_INSERT_ID());
+INSERT INTO `Empresa` (`id_cliente`, `razon_social`, `ruc`, `activo`) SELECT @new_cliente_id, 'INVERSIONES SALUD ANIMAL ANRU SAC', '20615908925', 1 WHERE NOT EXISTS (SELECT 1 FROM `Empresa` WHERE `ruc` = '20615908925');
+SET @new_empresa_id = (SELECT `id_empresa` FROM `Empresa` WHERE `ruc` = '20615908925');
+INSERT INTO `Sede` (`id_empresa`, `nombre_comercial`, `direccion`, `distrito`, `provincia`, `departamento`, `contacto_nombre`, `contacto_telefono`, `activo`) SELECT @new_empresa_id, 'WALAC Magdalena', 'JIRON LIBERTAD 653', 'MAGDALENA', 'Lima', 'Lima', '', '', 1 WHERE NOT EXISTS (SELECT 1 FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'JIRON LIBERTAD 653');
+SET @new_sede_id = (SELECT `id_sede` FROM `Sede` WHERE `id_empresa` = @new_empresa_id AND `direccion` = 'JIRON LIBERTAD 653');
 
 
 -- --------------------------------------------------------
@@ -4230,6 +4221,8 @@ INSERT INTO `ContratoServicio` (`id_sede`, `fecha_inicio`, `tarifa`, `tipo_tarif
 -- Updating contract for: SEGUNDA ETAPA AV. BRASIL N° 2722,2724,2724-A,2726,2728,2728-A,2730,2738,2740 AREA 1,379.26 M2. PUEBLO LIBRE (RUC: 20612164984)
 -- Excel: S/ 2.5 / mensual | DB: S/ 2500.0 / mensual
 UPDATE `ContratoServicio` SET `tarifa` = 2.5, `tipo_tarifa` = 'por_kg', `frecuencia` = 'mensual' WHERE `id_contrato` = 3081;
+-- Creating new active contract for: Jeny Luz Lázaro Ramos (RUC: 10708688903)
+INSERT INTO `ContratoServicio` (`id_sede`, `fecha_inicio`, `tarifa`, `tipo_tarifa`, `frecuencia`, `activo`) VALUES (3672, '2026-01-01', 65.0, 'mensual_fijo', 'mensual', 1);
 -- Updating contract for: SERVICIOS ASISTENCIALES SANTA BEATRIZ SAC (RUC: 20566148006)
 -- Excel: S/ 2800.0 / interdiario | DB: S/ 2800.0 / mensual
 UPDATE `ContratoServicio` SET `tarifa` = 2800.0, `tipo_tarifa` = 'por_servicio', `frecuencia` = 'interdiario' WHERE `id_contrato` = 3133;
