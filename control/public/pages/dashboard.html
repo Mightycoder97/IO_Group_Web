@@ -223,25 +223,28 @@
                         <div>
                             <div class="kpi-value" id="kpiCoverage">0%</div>
                             <div class="d-flex justify-content-between align-items-center w-100">
-                                <span class="kpi-sublabel" id="kpiCoverageSedes">0/0 atendidas</span>
+                                <span class="kpi-trend" id="kpiCoverageTrend">0%</span>
+                                <span class="kpi-sublabel text-end" id="kpiCoverageSedes">0/0 atendidas</span>
                                 <span class="kpi-click-indicator"><i class="bi bi-chevron-right"></i></span>
                             </div>
                         </div>
                     </button>
 
-                    <!-- Total Ingresos Card -->
-                    <div class="kpi-card-premium info">
+                    <!-- Total Ingresos Card (Interactive) -->
+                    <button class="kpi-card-premium info kpi-card-button info-alert" onclick="openIngresosModal()">
                         <div class="kpi-header">
                             <span class="kpi-label">Ingreso del Mes</span>
                             <div class="kpi-icon-wrapper info"><i class="bi bi-cash-stack"></i></div>
                         </div>
                         <div>
                             <div class="kpi-value" id="kpiIngresos">S/ 0.00</div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="kpi-sublabel" id="kpiIngresosBreakdown">Cobrado S/ 0 | Pend. S/ 0</span>
+                            <div class="d-flex justify-content-between align-items-center w-100">
+                                <span class="kpi-trend" id="kpiIngresosTrend">0%</span>
+                                <span class="kpi-sublabel text-end" id="kpiIngresosBreakdown">Cobrado S/ 0 | Pend. S/ 0</span>
+                                <span class="kpi-click-indicator"><i class="bi bi-chevron-right"></i></span>
                             </div>
                         </div>
-                    </div>
+                    </button>
 
                     <!-- Total Egresos Card (Interactive) -->
                     <button class="kpi-card-premium warning kpi-card-button info-alert" onclick="openEgresosModal()">
@@ -355,6 +358,45 @@
         </div>
     </div>
 
+    <!-- 1.5. Ingresos Modal (Clientes Pendientes de Pago) -->
+    <div class="modal fade" id="modalIngresos" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header modal-custom-header">
+                    <div>
+                        <h5 class="modal-title fw-bold"><i class="bi bi-cash-coin text-danger me-2"></i>Clientes con Cobros Pendientes</h5>
+                        <p class="text-muted small mb-0" id="ingresosModalSub">Lista de servicios completados pendientes de cobro para el período seleccionado.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body modal-custom-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" id="searchPendingPayment" placeholder="Buscar por cliente o sede..." oninput="filterPendingPayments()">
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Cliente / Empresa</th>
+                                    <th>Sede / Dirección</th>
+                                    <th>Fecha Servicio</th>
+                                    <th class="text-end">Monto Pendiente</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingPaymentsContainer">
+                                <!-- List loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
+                    <button type="button" class="btn btn-secondary px-4 fw-semibold" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 2. Egresos Modal (Breakdown) -->
     <div class="modal fade" id="modalEgresos" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -459,6 +501,7 @@
         
         // Modal references
         const modalCoberturaObj = new bootstrap.Modal(document.getElementById('modalCobertura'));
+        const modalIngresosObj = new bootstrap.Modal(document.getElementById('modalIngresos'));
         const modalEgresosObj = new bootstrap.Modal(document.getElementById('modalEgresos'));
         const modalRentabilidadObj = new bootstrap.Modal(document.getElementById('modalRentabilidad'));
         
@@ -534,10 +577,20 @@
             // 2. Cobertura
             document.getElementById('kpiCoverage').textContent = `${d.cobertura.porcentaje}%`;
             document.getElementById('kpiCoverageSedes').textContent = `${d.cobertura.sedes_atendidas}/${d.cobertura.sedes_activas} sedes`;
+            const coverageTrendEl = document.getElementById('kpiCoverageTrend');
+            const coverageTrendVal = d.cobertura.crecimiento;
+            coverageTrendEl.textContent = `${coverageTrendVal >= 0 ? '+' : ''}${coverageTrendVal}%`;
+            coverageTrendEl.className = `kpi-trend ${coverageTrendVal >= 0 ? 'up' : 'danger'}`;
+            coverageTrendEl.innerHTML = `<i class="bi bi-arrow-${coverageTrendVal >= 0 ? 'up' : 'down'}"></i> ${coverageTrendEl.textContent}`;
 
             // 3. Ingresos
             document.getElementById('kpiIngresos').textContent = formatCurrency(d.ingresos.total);
             document.getElementById('kpiIngresosBreakdown').textContent = `Cobrado ${formatCurrency(d.ingresos.pagado)} | Pend. ${formatCurrency(d.ingresos.pendiente)}`;
+            const ingresosTrendEl = document.getElementById('kpiIngresosTrend');
+            const ingresosTrendVal = d.ingresos.crecimiento;
+            ingresosTrendEl.textContent = `${ingresosTrendVal >= 0 ? '+' : ''}${ingresosTrendVal}%`;
+            ingresosTrendEl.className = `kpi-trend ${ingresosTrendVal >= 0 ? 'up' : 'danger'}`;
+            ingresosTrendEl.innerHTML = `<i class="bi bi-arrow-${ingresosTrendVal >= 0 ? 'up' : 'down'}"></i> ${ingresosTrendEl.textContent}`;
 
             // 4. Egresos
             document.getElementById('kpiEgresos').textContent = formatCurrency(d.egresos.total);
@@ -709,6 +762,58 @@
             if (!dashboardData) return;
             filterPendingSedes();
             modalCoberturaObj.show();
+        }
+
+        // 1.5. Ingresos Modal (Clientes Pendientes de Pago)
+        function openIngresosModal() {
+            if (!dashboardData) return;
+            
+            const monthText = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex].text;
+            const year = document.getElementById('filterYear').value;
+            document.getElementById('ingresosModalSub').textContent = `Cobros pendientes en ${monthText} ${year}`;
+            
+            filterPendingPayments();
+            modalIngresosObj.show();
+        }
+
+        function filterPendingPayments() {
+            const searchTerm = document.getElementById('searchPendingPayment').value.toLowerCase().trim();
+            const container = document.getElementById('pendingPaymentsContainer');
+            
+            const list = dashboardData.ingresos.clientes_pendientes_lista;
+            if (!list || list.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted"><i class="bi bi-check2-circle fs-2 text-success"></i><p class="mt-2 mb-0">¡Todo cobrado! No hay pagos pendientes en este mes.</p></td></tr>';
+                return;
+            }
+
+            const filtered = list.filter(p => {
+                return (p.sede_nombre && p.sede_nombre.toLowerCase().includes(searchTerm)) || 
+                       (p.empresa_razon_social && p.empresa_razon_social.toLowerCase().includes(searchTerm));
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No se encontraron cobros pendientes con ese criterio.</td></tr>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => {
+                return `
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">${p.empresa_razon_social}</div>
+                        </td>
+                        <td>
+                            <div class="small text-muted">${p.sede_nombre}</div>
+                        </td>
+                        <td>
+                            <span class="small text-secondary">${p.fecha_ejecucion || ''}</span>
+                        </td>
+                        <td class="text-end fw-bold text-danger">
+                            ${formatCurrency(p.monto_total)}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         // Filter pending sedes list in modal

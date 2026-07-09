@@ -116,6 +116,23 @@ function getDashboard() {
         $sedesAtendidas = $sedesAtendidasResult ? intval($sedesAtendidasResult['count']) : 0;
         $porcentajeCobertura = $sedesActivas > 0 ? round(($sedesAtendidas / $sedesActivas) * 100, 1) : 0.0;
         
+        // Cobertura growth compared to previous month
+        $prevMonthDateStart = date("Y-m-d", strtotime("$filterDateStart -1 month"));
+        $sedesAtendidasPrevResult = db()->queryOne(
+            "SELECT COUNT(DISTINCT s.id_sede) as count 
+             FROM Servicio sv 
+             INNER JOIN Sede s ON sv.id_sede = s.id_sede
+             INNER JOIN Empresa e ON s.id_empresa = e.id_empresa
+             WHERE sv.fecha_ejecucion >= ?
+             AND sv.fecha_ejecucion < ?
+             AND s.activo = 1 AND e.activo = 1
+             AND sv.estado IN ('completado', 'en_curso', 'programado')",
+            [$prevMonthDateStart, $filterDateStart]
+        );
+        $sedesAtendidasPrev = $sedesAtendidasPrevResult ? intval($sedesAtendidasPrevResult['count']) : 0;
+        $porcentajeCoberturaPrev = $sedesActivas > 0 ? round(($sedesAtendidasPrev / $sedesActivas) * 100, 1) : 0.0;
+        $crecimientoCobertura = round($porcentajeCobertura - $porcentajeCoberturaPrev, 1);
+        
         // List of pending sedes
         $sedesSinServicioRaw = getSedesSinServicioMes($filterDateStart, $filterDateNext);
         $sedesSinServicioLista = [];
@@ -164,6 +181,49 @@ function getDashboard() {
         );
         $ingresoPagadoMes = $ingresosBreakdownResult ? floatval($ingresosBreakdownResult['pagado']) : 0.0;
         $ingresoPendienteMes = $ingresosBreakdownResult ? floatval($ingresosBreakdownResult['pendiente']) : 0.0;
+        
+        // Ingresos growth compared to previous month
+        $ingresosPrevResult = db()->queryOne(
+            "SELECT COALESCE(SUM(COALESCE(s.monto_cobrado, cs.tarifa, 0)), 0) as total 
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE s.estado = 'completado'
+               AND s.fecha_ejecucion >= ?
+               AND s.fecha_ejecucion < ?",
+            [$prevMonthDateStart, $filterDateStart]
+        );
+        $totalIngresoPrev = $ingresosPrevResult ? floatval($ingresosPrevResult['total']) : 0.0;
+        $crecimientoIngresos = 0.0;
+        if ($totalIngresoPrev > 0) {
+            $crecimientoIngresos = round((($totalIngresoProducido - $totalIngresoPrev) / $totalIngresoPrev) * 100, 1);
+        }
+        
+        // List of clients with pending payments, ordered from highest to lowest
+        $clientesPendientesLista = db()->query(
+            "SELECT 
+                s.id_servicio,
+                s.fecha_ejecucion,
+                s.estado_pago,
+                se.nombre_comercial as sede_nombre,
+                e.razon_social as empresa_razon_social,
+                COALESCE(s.monto_cobrado, cs.tarifa, 0) as monto_total
+             FROM Servicio s
+             INNER JOIN Sede se ON s.id_sede = se.id_sede
+             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
+             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+             WHERE s.estado = 'completado'
+               AND COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
+               AND s.fecha_ejecucion >= ?
+               AND s.fecha_ejecucion < ?
+             ORDER BY monto_total DESC",
+            [$filterDateStart, $filterDateNext]
+        );
+        if (!$clientesPendientesLista) $clientesPendientesLista = [];
+        foreach ($clientesPendientesLista as &$row) {
+            $row['id_servicio'] = intval($row['id_servicio']);
+            $row['monto_total'] = floatval($row['monto_total']);
+        }
         
         // 4. Egresos
         $egresosTotalesResult = db()->queryOne(
@@ -311,12 +371,15 @@ function getDashboard() {
                     'sedes_atendidas' => $sedesAtendidas,
                     'sedes_activas' => $sedesActivas,
                     'sedes_pendientes_cantidad' => $cantidadSedesPendientes,
-                    'sedes_pendientes_lista' => $sedesSinServicioLista
+                    'sedes_pendientes_lista' => $sedesSinServicioLista,
+                    'crecimiento' => $crecimientoCobertura
                 ],
                 'ingresos' => [
                     'total' => $totalIngresoProducido,
                     'pagado' => $ingresoPagadoMes,
-                    'pendiente' => $ingresoPendienteMes
+                    'pendiente' => $ingresoPendienteMes,
+                    'crecimiento' => $crecimientoIngresos,
+                    'clientes_pendientes_lista' => $clientesPendientesLista
                 ],
                 'egresos' => [
                     'total' => $totalEgreso,
