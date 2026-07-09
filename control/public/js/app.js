@@ -43,10 +43,7 @@ const SIDEBAR_SECTIONS = [
         title: 'Clientes',
         icon: 'people',
         items: [
-            { href: 'clientes/listar.html', icon: 'people', label: 'Clientes', modulo: 'clientes' },
-            { href: 'empresas/listar.html', icon: 'building', label: 'Empresas', modulo: 'empresas' },
             { href: 'sedes/listar.html', icon: 'geo-alt', label: 'Sedes', modulo: 'sedes' },
-            { href: 'contratos/listar.html', icon: 'file-earmark-text', label: 'Contratos', modulo: 'contratos' },
             { href: 'prospectos/listar.html', icon: 'person-hearts', label: 'Prospectos', modulo: 'prospectos' },
             { href: 'altas/index.html', icon: 'person-plus', label: 'Nuevas Altas', modulo: 'sedes' }
         ]
@@ -60,10 +57,7 @@ const SIDEBAR_SECTIONS = [
             { href: 'rutas/listar.html', icon: 'truck', label: 'Asignar Rutas', modulo: 'rutas' },
             { href: 'rutas/historial.html', icon: 'clock-history', label: 'Historial Rutas', modulo: 'rutas' },
             { href: 'rutas/control.html', icon: 'clipboard2-check-fill', label: 'Control de Ruta', modulo: 'rutas' },
-            { href: 'servicios/listar.html', icon: 'tools', label: 'Servicios', modulo: 'rutas' },
-            { href: 'manifiestos/listar.html', icon: 'journal-text', label: 'Manifiestos', modulo: 'manifiestos' },
-            { href: 'guias/listar.html', icon: 'file-earmark-arrow-up', label: 'Gu&iacute;as', modulo: 'guias' },
-
+            { href: 'servicios/listar.html', icon: 'tools', label: 'Servicios', modulo: 'rutas' }
         ]
     },
     {
@@ -78,9 +72,9 @@ const SIDEBAR_SECTIONS = [
         ]
     },
     {
-        id: 'configuracion',
-        title: 'Configuraci&oacute;n',
-        icon: 'sliders',
+        id: 'recursos',
+        title: 'Recursos',
+        icon: 'briefcase',
         items: [
             { href: 'vehiculos/listar.html', icon: 'truck', label: 'Veh&iacute;culos', modulo: 'vehiculos' },
             { href: 'plantas/listar.html', icon: 'factory', label: 'Plantas', modulo: 'plantas' },
