@@ -40,11 +40,12 @@ function getAll() {
     
     $sql = "SELECT f.id_factura, f.id_servicio, f.numero_factura, f.doc_escaneado, f.fecha_creacion,
             s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
-            se.nombre_comercial as sede_nombre, cs.tarifa as tarifa_servicio
+            se.nombre_comercial as sede_nombre, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa) as tarifa_servicio
             FROM Factura f
             INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+            LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             WHERE 1=1";
     $params = [];
     
@@ -75,11 +76,12 @@ function getOne($id) {
     
     $factura = db()->queryOne(
         "SELECT f.*, s.mes_servicio, s.fecha_ejecucion as fecha_servicio,
-                se.nombre_comercial as sede_nombre, cs.tarifa as tarifa_servicio
+                se.nombre_comercial as sede_nombre, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa) as tarifa_servicio
          FROM Factura f
          INNER JOIN Servicio s ON f.id_servicio = s.id_servicio
          INNER JOIN Sede se ON s.id_sede = se.id_sede
          LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+         LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
          WHERE f.id_factura = ?",
         [$id]
     );

@@ -80,7 +80,7 @@ function getRouteServices($id_ruta) {
                     se.nombre_comercial as sede_nombre, se.direccion, se.distrito,
                     se.contacto_nombre, se.contacto_telefono,
                     e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
-                    cs.tarifa as tarifa_servicio
+                    IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa) as tarifa_servicio
              FROM Servicio s
              INNER JOIN Sede se ON s.id_sede = se.id_sede
              INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
@@ -88,7 +88,7 @@ function getRouteServices($id_ruta) {
              LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
              LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
              LEFT JOIN (
-                 SELECT cs1.id_sede, cs1.tarifa
+                 SELECT cs1.id_sede, cs1.tarifa, cs1.tipo_tarifa
                  FROM ContratoServicio cs1
                  WHERE cs1.activo = 1
                  AND cs1.fecha_inicio = (
@@ -976,14 +976,14 @@ function getRouteContextForIa($id_ruta) {
                 m.numero_manifiesto, m.peso_kg, g.numero_guia,
                 se.nombre_comercial as sede_nombre, se.direccion, se.distrito,
                 e.ruc as empresa_ruc, e.razon_social as empresa_razon_social,
-                cs.tarifa as tarifa_servicio
+                IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa) as tarifa_servicio
          FROM Servicio s
          INNER JOIN Sede se ON s.id_sede = se.id_sede
          INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
          LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
          LEFT JOIN Guia g ON s.id_servicio = g.id_servicio
          LEFT JOIN (
-             SELECT cs1.id_sede, cs1.tarifa
+             SELECT cs1.id_sede, cs1.tarifa, cs1.tipo_tarifa
              FROM ContratoServicio cs1
              WHERE cs1.activo = 1
              AND cs1.fecha_inicio = (

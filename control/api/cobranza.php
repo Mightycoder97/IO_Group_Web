@@ -47,7 +47,7 @@ function getPendientes() {
             s.fecha_pago, s.forma_pago,
             COALESCE(se.nombre_comercial, 'Sin Sede') as sede_nombre, 
             se.contacto_telefono, 
-            COALESCE(s.monto_cobrado, cs.tarifa, 0) as tarifa_servicio,
+            COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa), 0) as tarifa_servicio,
             cs.tarifa as tarifa_contrato, s.monto_cobrado,
             se.distrito, se.direccion,
             COALESCE(e.razon_social, 'Sin Empresa') as empresa_razon_social, 
@@ -58,7 +58,7 @@ function getPendientes() {
             r.id_ruta, r.fecha as fecha_ruta,
             v.placa as vehiculo_placa,
             (COALESCE(deuda_total.cantidad_deuda_total, 0) - CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN 1 ELSE 0 END) as deuda_cantidad,
-            (COALESCE(deuda_total.monto_deuda_total, 0) - CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END) as deuda_monto
+            (COALESCE(deuda_total.monto_deuda_total, 0) - CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa), 0) ELSE 0 END) as deuda_monto
             FROM Servicio s
             LEFT JOIN Ruta r ON s.id_ruta = r.id_ruta
             LEFT JOIN Vehiculo v ON r.id_vehiculo = v.id_vehiculo
@@ -66,6 +66,7 @@ function getPendientes() {
             LEFT JOIN Empresa e ON se.id_empresa = e.id_empresa
             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
             LEFT JOIN Factura f ON s.id_servicio = f.id_servicio
+            LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             LEFT JOIN (
                 SELECT id_servicio, 
                        COUNT(*) as num_gestiones,
@@ -76,9 +77,10 @@ function getPendientes() {
             LEFT JOIN (
                 SELECT s_deuda.id_sede, 
                        COUNT(s_deuda.id_servicio) as cantidad_deuda_total,
-                       SUM(COALESCE(s_deuda.monto_cobrado, cs_deuda.tarifa, 0)) as monto_deuda_total
+                       SUM(COALESCE(s_deuda.monto_cobrado, IF(cs_deuda.tipo_tarifa = 'por_kg', COALESCE(m_deuda.peso_kg, 0) * cs_deuda.tarifa, cs_deuda.tarifa), 0)) as monto_deuda_total
                 FROM Servicio s_deuda
                 LEFT JOIN ContratoServicio cs_deuda ON s_deuda.id_contrato = cs_deuda.id_contrato
+                LEFT JOIN Manifiesto m_deuda ON s_deuda.id_servicio = m_deuda.id_servicio
                 WHERE COALESCE(s_deuda.estado_pago, 'pendiente') = 'pendiente' 
                 GROUP BY s_deuda.id_sede
             ) deuda_total ON deuda_total.id_sede = s.id_sede
@@ -132,18 +134,19 @@ function getPendientes() {
     
     $stats = db()->queryOne("
         SELECT 
-            SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END) as total_pendiente,
+            SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa), 0) ELSE 0 END) as total_pendiente,
             SUM(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' 
                 AND DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 
-                THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END) as total_vencido,
+                THEN COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa), 0) ELSE 0 END) as total_vencido,
             SUM(CASE WHEN s.estado_pago = 'pagado' 
                 AND MONTH(s.fecha_pago) = MONTH(CURDATE()) 
                 AND YEAR(s.fecha_pago) = YEAR(CURDATE())
-                THEN COALESCE(s.monto_cobrado, cs.tarifa, 0) ELSE 0 END) as cobrado_mes,
+                THEN COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa), 0) ELSE 0 END) as cobrado_mes,
             COUNT(CASE WHEN COALESCE(s.estado_pago, 'pendiente') = 'pendiente' THEN 1 END) as count_pendientes
         FROM Servicio s
         LEFT JOIN Sede se ON s.id_sede = se.id_sede
         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+        LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
     ");
     
     echo json_encode([
@@ -286,13 +289,14 @@ function getReporteDiario() {
     $pendientes = db()->queryOne("
         SELECT 
             COUNT(*) as cantidad,
-            SUM(COALESCE(s.monto_cobrado, cs.tarifa)) as total,
-            SUM(CASE WHEN DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 THEN COALESCE(s.monto_cobrado, cs.tarifa) ELSE 0 END) as vencido
+            SUM(COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa))) as total,
+            SUM(CASE WHEN DATEDIFF(CURDATE(), s.fecha_ejecucion) > 30 THEN COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa)) ELSE 0 END) as vencido
         FROM Servicio s
         INNER JOIN Sede se ON s.id_sede = se.id_sede
         LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+        LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
         WHERE COALESCE(s.estado_pago, 'pendiente') = 'pendiente'
-        AND COALESCE(s.monto_cobrado, cs.tarifa) > 0
+        AND COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa)) > 0
     ");
     
     echo json_encode([

@@ -77,7 +77,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0045118,-77.0638417' WHERE id_sede = 14;
 -- Cleaned:  PROLONGACION AYACUCHO N° 493
 UPDATE Sede SET coordenadas_gps = '-12.0844708,-77.0771077' WHERE id_sede = 15;
 
--- ID: 16 | RUC: None | CABEZAS YANQUI CINTHIA DEL ROSARIO SOLEDAD
+-- ID: 16 | RUC:  | CABEZAS YANQUI CINTHIA DEL ROSARIO SOLEDAD
 -- Original: PROLONGACION CHOTA 385
 -- Cleaned:  PROLONGACION CHOTA 385
 UPDATE Sede SET coordenadas_gps = '-14.0594284,-75.7317619' WHERE id_sede = 16;
@@ -193,7 +193,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1197095,-77.0046035' WHERE id_sede = 37;
 UPDATE Sede SET coordenadas_gps = '-11.9375437,-77.0731783' WHERE id_sede = 38;
 
 -- ID: 39 | RUC: 10454609285 | EDITH JOVANA VALQUI SOSA
--- Original: AV SAN JUAN DE VILCA MZ C LTE 6  - PUENTE PIEDRA
+-- Original: AV SAN JUAN DE VILCA MZ C LTE 6 - PUENTE PIEDRA
 -- Cleaned:  AV SAN JUAN DE VILCA MZ C LTE 6
 UPDATE Sede SET coordenadas_gps = '-11.8770358,-77.0636654' WHERE id_sede = 39;
 
@@ -223,7 +223,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0241237,-77.049928' WHERE id_sede = 43;
 UPDATE Sede SET coordenadas_gps = '-11.8890183,-77.0365088' WHERE id_sede = 44;
 
 -- ID: 45 | RUC: 10099650813 | VICTOR ARMANDO BARRANTES SAAVEDRA
--- Original: AV SANTO DOMINGO 2020  MZ F LOTE 1 URB CAROLINA-  CARABAYLLO
+-- Original: AV SANTO DOMINGO 2020 MZ F LOTE 1 URB CAROLINA- CARABAYLLO
 -- Cleaned:  AV SANTO DOMINGO 2020 MZ F LOTE 1 URB CAROLINA
 UPDATE Sede SET coordenadas_gps = '-11.8683823,-77.0250477' WHERE id_sede = 45;
 
@@ -243,7 +243,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1728627,-77.00731739999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.0902652,-77.0723083' WHERE id_sede = 48;
 
 -- ID: 49 | RUC: 20603630689 | Veterinaria el gran danés SAC
--- Original: Av Tupac amaru 4470, Mz L2  Lote 15 .PJ Año nuevo, Comas
+-- Original: Av Tupac amaru 4470, Mz L2 Lote 15 .PJ Año nuevo, Comas
 -- Cleaned:  Av Tupac amaru 4470, Mz L2 Lote 15 .PJ Año nuevo
 UPDATE Sede SET coordenadas_gps = '-11.9263605,-77.0424251' WHERE id_sede = 49;
 
@@ -253,7 +253,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9263605,-77.0424251' WHERE id_sede = 49;
 UPDATE Sede SET coordenadas_gps = '-12.0435458,-77.1041066' WHERE id_sede = 50;
 
 -- ID: 51 | RUC: 20548396850 | HBL S.R.L.
--- Original: AV LA MOLINA 704 DPTO 301- A  URB RESIDENCIAL MONTERRICO
+-- Original: AV LA MOLINA 704 DPTO 301- A URB RESIDENCIAL MONTERRICO
 -- Cleaned:  AV LA MOLINA 704 DPTO 301- A URB RESIDENCIAL MONTERRICO
 UPDATE Sede SET coordenadas_gps = '-12.0667693,-76.95912799999999' WHERE id_sede = 51;
 
@@ -262,7 +262,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0667693,-76.95912799999999' WHERE id_sede
 -- Cleaned:  JIRÓN LIBERTAD 706
 UPDATE Sede SET coordenadas_gps = '-12.0926145,-77.06952489999999' WHERE id_sede = 52;
 
--- ID: 53 | RUC: 10422988276 | LIVIAC ANICAMA  ERIKA YANETH
+-- ID: 53 | RUC: 10422988276 | LIVIAC ANICAMA ERIKA YANETH
 -- Original: AV PALERMO 514 2DO PISO
 -- Cleaned:  AV PALERMO 514 2DO PISO
 UPDATE Sede SET coordenadas_gps = '-12.0805849,-77.0231819' WHERE id_sede = 53;
@@ -278,17 +278,17 @@ UPDATE Sede SET coordenadas_gps = '-11.9562214,-77.05148810000001' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-11.8975445,-77.033737' WHERE id_sede = 55;
 
 -- ID: 56 | RUC: 10102144487 | MARILU PANTOJA AQUINO
--- Original: JR UNION 231 SAN  FELIPE - COMAS
+-- Original: JR UNION 231 SAN FELIPE - COMAS
 -- Cleaned:  JR UNION 231 SAN FELIPE
 UPDATE Sede SET coordenadas_gps = '-11.8979496,-77.0403858' WHERE id_sede = 56;
 
 -- ID: 57 | RUC: 10401118816 | JOSE ANTONIO CONTRERAS LEON
--- Original: JR MERCURIO 7542 URB SOL DE ORO-  LOS OLIVOS
+-- Original: JR MERCURIO 7542 URB SOL DE ORO- LOS OLIVOS
 -- Cleaned:  JR MERCURIO 7542 URB SOL DE ORO
 UPDATE Sede SET coordenadas_gps = '-11.9987576,-77.06322639999999' WHERE id_sede = 57;
 
 -- ID: 58 | RUC: 20602461841 | IMPORT & EXPORT GRUPO MILENIUM S.A.C.
--- Original: AV MIGUEL GRAU 115-  PUENTE PIEDRA
+-- Original: AV MIGUEL GRAU 115- PUENTE PIEDRA
 -- Cleaned:  AV MIGUEL GRAU 115
 UPDATE Sede SET coordenadas_gps = '-11.8668932,-77.07609219999999' WHERE id_sede = 58;
 
@@ -387,7 +387,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0800379,-77.0297628' WHERE id_sede = 76;
 -- Cleaned:  Av. Germán Aguirre 847, 2do piso, Urbanización San Germán
 UPDATE Sede SET coordenadas_gps = '-12.0172285,-77.0728354' WHERE id_sede = 77;
 
--- ID: 78 | RUC: 20606214104 | CLINICA VETERINARIA ARZ E.I.R.L
+-- ID: 78 | RUC: 20606214104 | CLINICA VETERINARIA ARZ E.I.R.L
 -- Original: JR. LOS AMARANTOS 925 URB. LAS PALMERAS
 -- Cleaned:  JR. LOS AMARANTOS 925 URB. LAS PALMERAS
 UPDATE Sede SET coordenadas_gps = '-11.98714,-77.0736137' WHERE id_sede = 78;
@@ -438,7 +438,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0535498,-77.1151257' WHERE id_sede = 86;
 UPDATE Sede SET coordenadas_gps = '-13.42553,-76.13671099999999' WHERE id_sede = 87;
 
 -- ID: 88 | RUC: 20566121141 | GRUPO GENTIL E.I.R.L.
--- Original: AV. CARLOS ALBERTO IZAGUIRRE NRO. 968 URB. LAS PALMERAS  - LOS OLIVOS
+-- Original: AV. CARLOS ALBERTO IZAGUIRRE NRO. 968 URB. LAS PALMERAS - LOS OLIVOS
 -- Cleaned:  AV. CARLOS ALBERTO IZAGUIRRE NRO. 968 URB. LAS PALMERAS
 UPDATE Sede SET coordenadas_gps = '-11.9910223,-77.07288299999999' WHERE id_sede = 88;
 
@@ -452,7 +452,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0306501,-77.0900362' WHERE id_sede = 89;
 -- Cleaned:  AV LAS VIOLETAS 608
 UPDATE Sede SET coordenadas_gps = '-12.0010386,-77.0546092' WHERE id_sede = 90;
 
--- ID: 91 | RUC: 20562783467  | SERVICIOS MEDICOS PAMAEH S.A.C.
+-- ID: 91 | RUC: 20562783467 | SERVICIOS MEDICOS PAMAEH S.A.C.
 -- Original: AV. EDUARDO DE HABICH NRO. 489 DPTO. 2PIS URB. INGENIERIA
 -- Cleaned:  AV. EDUARDO DE HABICH NRO. 489 DPTO. 2PIS URB. INGENIERIA
 UPDATE Sede SET coordenadas_gps = '-12.0274555,-77.05582509999999' WHERE id_sede = 91;
@@ -488,7 +488,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0259168,-77.1307482' WHERE id_sede = 96;
 UPDATE Sede SET coordenadas_gps = '-11.9421181,-77.0598067' WHERE id_sede = 97;
 
 -- ID: 98 | RUC: 10214843183 | MUÑIZ ZAMORA RUBEN LUCIO
--- Original: AV. DEL MURO OESTE 391,  MZ. M-15 LT. 34, MARISCAL CÁCERES  PARADERO 5 AV MARISCAL CACERES
+-- Original: AV. DEL MURO OESTE 391, MZ. M-15 LT. 34, MARISCAL CÁCERES PARADERO 5 AV MARISCAL CACERES
 -- Cleaned:  AV. DEL MURO OESTE 391, MZ. M-15 LT. 34, MARISCAL CÁCERES PARADERO 5 AV MARISCAL CACERES
 UPDATE Sede SET coordenadas_gps = '-11.9480691,-76.9845792' WHERE id_sede = 98;
 
@@ -592,7 +592,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9390553,-77.0519514' WHERE id_sede = 117;
 -- Cleaned:  AV. JOSE GALVEZ BARRENECHEA 127 OF 303
 UPDATE Sede SET coordenadas_gps = '-12.0904401,-77.01373939999999' WHERE id_sede = 118;
 
--- ID: 119 | RUC: 10776604262 | JESSICA  CARTAGENA MEZA
+-- ID: 119 | RUC: 10776604262 | JESSICA CARTAGENA MEZA
 -- Original: AV CHIMPU OCLLO MZ R LOTE 15 URB VILLA CORPAC - CARABAYLLO
 -- Cleaned:  AV CHIMPU OCLLO MZ R LOTE 15 URB VILLA CORPAC
 UPDATE Sede SET coordenadas_gps = '-11.8912282,-77.0402721' WHERE id_sede = 119;
@@ -658,7 +658,7 @@ UPDATE Sede SET coordenadas_gps = '-11.981196,-77.0414553' WHERE id_sede = 130;
 UPDATE Sede SET coordenadas_gps = '-11.9475942,-77.0503138' WHERE id_sede = 131;
 
 -- ID: 132 | RUC: 20608086596 | AGVET S.A.C.
--- Original: A. H. Sol Radiante Mz B Lt 05, distrito de  Cieneguilla
+-- Original: A. H. Sol Radiante Mz B Lt 05, distrito de Cieneguilla
 -- Cleaned:  A. H. Sol Radiante Mz B Lt 05, distrito de
 UPDATE Sede SET coordenadas_gps = '-12.0851617,-76.8715105' WHERE id_sede = 132;
 
@@ -693,7 +693,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9925676,-77.0711851' WHERE id_sede = 137;
 UPDATE Sede SET coordenadas_gps = '-11.7870273,-77.15605839999999' WHERE id_sede = 138;
 
 -- ID: 139 | RUC: 10085138974 | MENDIZABAL ARIZMENDI ARMANDO
--- Original: AV Perú 4016  SAN MARTIN DE PORRES
+-- Original: AV Perú 4016 SAN MARTIN DE PORRES
 -- Cleaned:  AV Perú 4016
 UPDATE Sede SET coordenadas_gps = '-12.0299811,-77.0926697' WHERE id_sede = 139;
 
@@ -913,7 +913,7 @@ UPDATE Sede SET coordenadas_gps = '-11.8777506,-77.026044' WHERE id_sede = 181;
 UPDATE Sede SET coordenadas_gps = '-12.009523,-77.0582453' WHERE id_sede = 182;
 
 -- ID: 183 | RUC: 10619754901 | GIANINNA BERNICE BATTILANA SUSANIBAR
--- Original: av héroes del alto  Cenepa 376 comas
+-- Original: av héroes del alto Cenepa 376 comas
 -- Cleaned:  av héroes del alto Cenepa 376
 UPDATE Sede SET coordenadas_gps = '-11.9084992,-77.05463639999999' WHERE id_sede = 183;
 
@@ -948,12 +948,12 @@ UPDATE Sede SET coordenadas_gps = '-12.0379679,-76.9559509' WHERE id_sede = 188;
 UPDATE Sede SET coordenadas_gps = '-11.8854642,-77.0350428' WHERE id_sede = 189;
 
 -- ID: 190 | RUC: 20602258328 | GONVET PERU S.A.C.
--- Original: SECTOR  2. GRUPO 24 A, MZ J  LTE 17 -  VILLA EL SALVADOR
+-- Original: SECTOR 2. GRUPO 24 A, MZ J LTE 17 - VILLA EL SALVADOR
 -- Cleaned:  SECTOR 2. GRUPO 24 A, MZ J LTE 17
 UPDATE Sede SET coordenadas_gps = '-12.2111713,-76.9346011' WHERE id_sede = 190;
 
 -- ID: 191 | RUC: 20601731496 | CONSULTORIO ODONTOLOGICO MATISDENT SAC
--- Original: MZ D  LTE 14  PJ JAVIER HERAUD
+-- Original: MZ D LTE 14 PJ JAVIER HERAUD
 -- Cleaned:  MZ D LTE 14 PJ JAVIER HERAUD
 UPDATE Sede SET coordenadas_gps = '-12.0986855,-76.9619721' WHERE id_sede = 191;
 
@@ -963,12 +963,12 @@ UPDATE Sede SET coordenadas_gps = '-12.0986855,-76.9619721' WHERE id_sede = 191;
 UPDATE Sede SET coordenadas_gps = '-11.8634093,-77.0783677' WHERE id_sede = 192;
 
 -- ID: 193 | RUC: 10461411296 | ALFREDO VÁSQUEZ ANGELES
--- Original: Avenida del rosario mzC lT4 smp
+-- Original: Avenida del rosario mzC lT4 smp
 -- Cleaned:  Avenida del rosario mzC lT4
 UPDATE Sede SET coordenadas_gps = '-11.9859823,-77.0845295' WHERE id_sede = 193;
 
 -- ID: 194 | RUC: 10402387136 | BETZABE PAOLA CANALES SANCHEZ
--- Original: AV. TANTAMAYO  789 REF FRENTE AL MERCADO VIPOL
+-- Original: AV. TANTAMAYO 789 REF FRENTE AL MERCADO VIPOL
 -- Cleaned:  AV. TANTAMAYO 789
 UPDATE Sede SET coordenadas_gps = '-11.9677288,-77.0896884' WHERE id_sede = 194;
 
@@ -1342,7 +1342,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0188501,-77.0299077' WHERE id_sede = 267;
 -- Cleaned:  AV. LA MAR 1999 A
 UPDATE Sede SET coordenadas_gps = '-12.0753481,-77.0781446' WHERE id_sede = 268;
 
--- ID: 269 | RUC: None | 
+-- ID: 269 | RUC:  | 
 -- Sin dirección para geocodificar
 
 -- ID: 270 | RUC: 10409151880 | AMELIA SOLIS CHAVEZ
@@ -1365,7 +1365,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0807584,-77.08803379999999' WHERE id_sede
 -- Cleaned:  Jr Rodríguez de Mendoza 405
 UPDATE Sede SET coordenadas_gps = '-12.0729399,-77.0619215' WHERE id_sede = 273;
 
--- ID: 274 | RUC: 20514715808 | CLINIVET  LASSY EIRL
+-- ID: 274 | RUC: 20514715808 | CLINIVET LASSY EIRL
 -- Original: JR TALARA 489 - SAN MARTIN DE PORRES
 -- Cleaned:  JR TALARA 489
 UPDATE Sede SET coordenadas_gps = '-12.043843,-77.1237807' WHERE id_sede = 274;
@@ -1531,7 +1531,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0752849,-77.0474402' WHERE id_sede = 306;
 UPDATE Sede SET coordenadas_gps = '-12.131785,-76.9779533' WHERE id_sede = 307;
 
 -- ID: 308 | RUC: 20605223983 | NAKURA S.A.C.
--- Original: Ed. Los Fresnos 109, infreso 3-  Residencial San Felipe Jesús María - Lima
+-- Original: Ed. Los Fresnos 109, infreso 3- Residencial San Felipe Jesús María - Lima
 -- Cleaned:  Ed. Los Fresnos 109, infreso 3- Residencial San Felipe Jesús María
 UPDATE Sede SET coordenadas_gps = '-12.086852,-77.0536054' WHERE id_sede = 308;
 
@@ -1546,7 +1546,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9866327,-77.0032736' WHERE id_sede = 309;
 UPDATE Sede SET coordenadas_gps = '-12.0489609,-76.9629424' WHERE id_sede = 310;
 
 -- ID: 311 | RUC: 10444220592 | VELASQUEZ VIZCARRA LUZ NATALY
--- Original: Av. José de la Riva Agüero 1878  - 2D0 PISO- El Agustino
+-- Original: Av. José de la Riva Agüero 1878 - 2D0 PISO- El Agustino
 -- Cleaned:  Av. José de la Riva Agüero 1878 - 2D0 PISO
 UPDATE Sede SET coordenadas_gps = '-12.0406425,-76.99732039999999' WHERE id_sede = 311;
 
@@ -1556,7 +1556,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0406425,-76.99732039999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.2160493,-76.9416789' WHERE id_sede = 312;
 
 -- ID: 313 | RUC: 10436358186 | PINEDA LLANOS CARLA ANABEL
--- Original: AV. 13 DE ENERO  2201 URB. LA HUAYRONA
+-- Original: AV. 13 DE ENERO 2201 URB. LA HUAYRONA
 -- Cleaned:  AV. 13 DE ENERO 2201 URB. LA HUAYRONA
 UPDATE Sede SET coordenadas_gps = '-11.9940427,-77.0054205' WHERE id_sede = 313;
 
@@ -1611,7 +1611,7 @@ UPDATE Sede SET coordenadas_gps = '-12.078195,-77.0547153' WHERE id_sede = 322;
 UPDATE Sede SET coordenadas_gps = '-12.0172239,-77.0979711' WHERE id_sede = 323;
 
 -- ID: 324 | RUC: 10107106869 | GUTIERREZ DEL VALLE CLAUDIA ISABEL
--- Original: Av. Bolognesi 725 -  BARRANCO
+-- Original: Av. Bolognesi 725 - BARRANCO
 -- Cleaned:  Av. Bolognesi 725
 UPDATE Sede SET coordenadas_gps = '-12.1441672,-77.0188143' WHERE id_sede = 324;
 
@@ -1671,7 +1671,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0907895,-77.0826508' WHERE id_sede = 334;
 UPDATE Sede SET coordenadas_gps = '-12.0780749,-77.0674868' WHERE id_sede = 335;
 
 -- ID: 336 | RUC: 20605486879 | CLINICAS DENTALES G&C DR. GAMARRA EIRL
--- Original: AV MIGUEL IGLESIAS 597 ZONA C2  Mz B2  Lte 20B URB SAN JUAN
+-- Original: AV MIGUEL IGLESIAS 597 ZONA C2 Mz B2 Lte 20B URB SAN JUAN
 -- Cleaned:  AV MIGUEL IGLESIAS 597 ZONA C2 Mz B2 Lte 20B URB SAN JUAN
 UPDATE Sede SET coordenadas_gps = '-12.1666625,-76.9610096' WHERE id_sede = 336;
 
@@ -1731,7 +1731,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0096584,-77.1018989' WHERE id_sede = 346;
 UPDATE Sede SET coordenadas_gps = '-12.0641619,-76.94556539999999' WHERE id_sede = 347;
 
 -- ID: 348 | RUC: 20608547780 | CENTRO GINECO OBSTETRICO CONCEBIR EIRL
--- Original: JR CONFRATERNIDAD 554 PISO 2  URB PRO 2da ETAPA - LOS OLIVOS
+-- Original: JR CONFRATERNIDAD 554 PISO 2 URB PRO 2da ETAPA - LOS OLIVOS
 -- Cleaned:  JR CONFRATERNIDAD 554 PISO 2 URB PRO 2da ETAPA
 UPDATE Sede SET coordenadas_gps = '-11.933437,-77.0749799' WHERE id_sede = 348;
 
@@ -1745,13 +1745,13 @@ UPDATE Sede SET coordenadas_gps = '-12.2160493,-76.9416789' WHERE id_sede = 349;
 -- Cleaned:  Av Tupac amaru 7263, urb la calichera.
 UPDATE Sede SET coordenadas_gps = '-11.9246747,-77.0427952' WHERE id_sede = 350;
 
--- ID: 351 | RUC: 10473515313 | Lissett  stefany Cordova Cordova
+-- ID: 351 | RUC: 10473515313 | Lissett stefany Cordova Cordova
 -- Original: Manuel Gonzales 1296-A 2do piso urbanización el retablo 4ta etapa comas
 -- Cleaned:  Manuel Gonzales 1296-A 2do piso urbanización el retablo 4ta etapa
 UPDATE Sede SET coordenadas_gps = '-11.9285644,-77.0569898' WHERE id_sede = 351;
 
 -- ID: 352 | RUC: 20554923527 | SERVICIOS MEDICOS ESPECIALIZADOS SAN AGUSTIN SAC
--- Original: AV THOMAS VALLE  3451 URB JORGE CHAVEZ II ETAPA
+-- Original: AV THOMAS VALLE 3451 URB JORGE CHAVEZ II ETAPA
 -- Cleaned:  AV THOMAS VALLE 3451 URB JORGE CHAVEZ II ETAPA
 UPDATE Sede SET coordenadas_gps = '-12.015138,-77.0961349' WHERE id_sede = 352;
 
@@ -1771,7 +1771,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1109147,-76.8221966' WHERE id_sede = 354;
 UPDATE Sede SET coordenadas_gps = '-11.9388023,-77.0840969' WHERE id_sede = 355;
 
 -- ID: 356 | RUC: 20607492728 | DENTRIX PERU SAC
--- Original: MZ D LTE 14 AAHH JAVIER  HERAUD
+-- Original: MZ D LTE 14 AAHH JAVIER HERAUD
 -- Cleaned:  MZ D LTE 14 AAHH JAVIER HERAUD
 UPDATE Sede SET coordenadas_gps = '-12.0986855,-76.9619721' WHERE id_sede = 356;
 
@@ -1805,7 +1805,7 @@ UPDATE Sede SET coordenadas_gps = '-12.057465,-77.09788209999999' WHERE id_sede 
 -- Cleaned:  JR ANDRES AVELINO CACERES 307
 UPDATE Sede SET coordenadas_gps = '-12.177792,-76.950056' WHERE id_sede = 362;
 
--- ID: 363 | RUC: 10409026091 | NORMA VIRGINIA  OJEDA RAMIREZ
+-- ID: 363 | RUC: 10409026091 | NORMA VIRGINIA OJEDA RAMIREZ
 -- Original: Jirón piura N 122
 -- Cleaned:  Jirón piura N 122
 UPDATE Sede SET coordenadas_gps = '-12.0433855,-77.0980507' WHERE id_sede = 363;
@@ -1861,7 +1861,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0780547,-77.0499016' WHERE id_sede = 372;
 UPDATE Sede SET coordenadas_gps = '-11.8725055,-77.1235076' WHERE id_sede = 373;
 
 -- ID: 374 | RUC: 20515719327 | CLINICA ODONTOLOGICA ACSADENT EIRL
--- Original: AV CARLOS IZAGUIRRE  1304
+-- Original: AV CARLOS IZAGUIRRE 1304
 -- Cleaned:  AV CARLOS IZAGUIRRE 1304
 UPDATE Sede SET coordenadas_gps = '-11.9912744,-77.0783239' WHERE id_sede = 374;
 
@@ -1886,7 +1886,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0256805,-77.00099469999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.0231758,-76.98622309999999' WHERE id_sede = 378;
 
 -- ID: 379 | RUC: 20605614966 | DENTISFRESH E.I.R.L.
--- Original: CALLE ORQUIDEAS MZ  J LT 8
+-- Original: CALLE ORQUIDEAS MZ J LT 8
 -- Cleaned:  CALLE ORQUIDEAS MZ J LT 8
 UPDATE Sede SET coordenadas_gps = '-11.8895208,-77.02086609999999' WHERE id_sede = 379;
 
@@ -1905,7 +1905,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0717547,-76.9919092' WHERE id_sede = 381;
 -- Cleaned:  AV.REPUBLICA DE POLONIA NRO. 555 URB. SAN RAFAEL
 UPDATE Sede SET coordenadas_gps = '-11.9766822,-77.00469389999999' WHERE id_sede = 382;
 
--- ID: 383 | RUC: 20612328456 | Feel  Vet SAC
+-- ID: 383 | RUC: 20612328456 | Feel Vet SAC
 -- Original: jr medrano silva 198 barranco
 -- Cleaned:  jr medrano silva 198
 UPDATE Sede SET coordenadas_gps = '-12.1357299,-77.0220248' WHERE id_sede = 383;
@@ -2145,12 +2145,12 @@ UPDATE Sede SET coordenadas_gps = '-12.0379679,-76.9559509' WHERE id_sede = 429;
 -- Cleaned:  Av julio C Tello 677
 UPDATE Sede SET coordenadas_gps = '-12.086637,-77.040167' WHERE id_sede = 430;
 
--- ID: 431 | RUC: 10708868499  | JUMPA RIVERA MARCIA KRISTIE SANDY
+-- ID: 431 | RUC: 10708868499 | JUMPA RIVERA MARCIA KRISTIE SANDY
 -- Original: Av. Canto Grande 2671
 -- Cleaned:  Av. Canto Grande 2671
 UPDATE Sede SET coordenadas_gps = '-11.9841156,-77.014749' WHERE id_sede = 431;
 
--- ID: 432 | RUC: 20611762462 | VIA ODONTOLOGICA ESECIALIZADA  S.A.C
+-- ID: 432 | RUC: 20611762462 | VIA ODONTOLOGICA ESECIALIZADA S.A.C
 -- Original: AV. MICAELA BASTIDAS 384- COMAS
 -- Cleaned:  AV. MICAELA BASTIDAS 384
 UPDATE Sede SET coordenadas_gps = '-11.9311482,-77.0511745' WHERE id_sede = 432;
@@ -2216,7 +2216,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1669232,-76.9931625' WHERE id_sede = 443;
 UPDATE Sede SET coordenadas_gps = '-12.0914881,-77.0588519' WHERE id_sede = 444;
 
 -- ID: 445 | RUC: 10437752911 | OMONTE GUTIERREZ JOHAN ROLANDO
--- Original: Jr. Emilio Sandoval 117 -  Chorrillos
+-- Original: Jr. Emilio Sandoval 117 - Chorrillos
 -- Cleaned:  Jr. Emilio Sandoval 117
 UPDATE Sede SET coordenadas_gps = '-12.1683628,-77.024461' WHERE id_sede = 445;
 
@@ -2351,7 +2351,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0498736,-77.074167' WHERE id_sede = 470;
 UPDATE Sede SET coordenadas_gps = '-12.0466731,-76.96843550000001' WHERE id_sede = 471;
 
 -- ID: 472 | RUC: 20600117964 | SIMEL NEGOCIACIONES E.I.R.L.
--- Original: AV. SAN JUAN  1105 URB. LA MARINERA
+-- Original: AV. SAN JUAN 1105 URB. LA MARINERA
 -- Cleaned:  AV. SAN JUAN 1105 URB. LA MARINERA
 UPDATE Sede SET coordenadas_gps = '-12.0743594,-76.9990179' WHERE id_sede = 472;
 
@@ -2566,7 +2566,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1129005,-77.0462647' WHERE id_sede = 513;
 UPDATE Sede SET coordenadas_gps = '-12.0979613,-76.9620947' WHERE id_sede = 514;
 
 -- ID: 515 | RUC: 20473466148 | SERVICIOS VETERINARIOS INGE S.A.C.
--- Original: PEDRO VENTURO 104 URB. HIGUERETA   SANTIAGO DE SURCO
+-- Original: PEDRO VENTURO 104 URB. HIGUERETA SANTIAGO DE SURCO
 -- Cleaned:  PEDRO VENTURO 104 URB. HIGUERETA SANTIAGO DE
 UPDATE Sede SET coordenadas_gps = '-12.1201598,-76.9974945' WHERE id_sede = 515;
 
@@ -2626,7 +2626,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0832914,-77.0321927' WHERE id_sede = 525;
 UPDATE Sede SET coordenadas_gps = '-12.0637361,-77.0786439' WHERE id_sede = 526;
 
 -- ID: 527 | RUC: 20603950578 | Servicios veterinarios Pet''s Medic sac
--- Original: AV. VICTOR RAUL HAYA DE LA TORRE MZA. B LOTE. 8 URB. LA ESTANCIA  - LA PERLA
+-- Original: AV. VICTOR RAUL HAYA DE LA TORRE MZA. B LOTE. 8 URB. LA ESTANCIA - LA PERLA
 -- Cleaned:  AV. VICTOR RAUL HAYA DE LA TORRE MZA. B LOTE. 8 URB. LA ESTANCIA - LA PERLA
 UPDATE Sede SET coordenadas_gps = '-12.0713135,-77.1103808' WHERE id_sede = 527;
 
@@ -2926,7 +2926,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1535439,-76.97408349999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.1677439,-76.9776752' WHERE id_sede = 586;
 
 -- ID: 587 | RUC: 20609951525 | VEVET S.A.C.
--- Original: Av. La Fontana 440 Stand   2049 y 2047 - la molina
+-- Original: Av. La Fontana 440 Stand 2049 y 2047 - la molina
 -- Cleaned:  Av. La Fontana 440 Stand 2049 y 2047
 UPDATE Sede SET coordenadas_gps = '-12.0727858,-76.9544331' WHERE id_sede = 587;
 
@@ -3036,7 +3036,7 @@ UPDATE Sede SET coordenadas_gps = '-12.2232439,-76.9309076' WHERE id_sede = 607;
 UPDATE Sede SET coordenadas_gps = '-12.2086706,-76.9397685' WHERE id_sede = 608;
 
 -- ID: 609 | RUC: 10211361650 | COLQUI INGA CAROLINA
--- Original: Av. Revolución cuadra 16 sector 2 grupo 13 Mz E Lte. 5  Villa el Salvador
+-- Original: Av. Revolución cuadra 16 sector 2 grupo 13 Mz E Lte. 5 Villa el Salvador
 -- Cleaned:  Av. Revolución cuadra 16 sector 2 grupo 13 Mz E Lte. 5
 UPDATE Sede SET coordenadas_gps = '-12.2170811,-76.9344317' WHERE id_sede = 609;
 
@@ -3061,7 +3061,7 @@ UPDATE Sede SET coordenadas_gps = '-12.2096129,-76.939031' WHERE id_sede = 612;
 UPDATE Sede SET coordenadas_gps = '-12.1263288,-77.001513' WHERE id_sede = 613;
 
 -- ID: 614 | RUC: 20513473665 | ESTHETICDENT SAC
--- Original: JIRON JOSE DE LA TORRE UGARTE 166 OFICINA 1102 LINCE (ALTURA DE                                                LA CUADRA 25 DE LA AV. AREQUIPA)
+-- Original: JIRON JOSE DE LA TORRE UGARTE 166 OFICINA 1102 LINCE (ALTURA DE LA CUADRA 25 DE LA AV. AREQUIPA)
 -- Cleaned:  JIRON JOSE DE LA TORRE UGARTE 166 OFICINA 1102
 UPDATE Sede SET coordenadas_gps = '-12.0890797,-77.0335844' WHERE id_sede = 614;
 
@@ -3161,7 +3161,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0384722,-76.9569855' WHERE id_sede = 632;
 UPDATE Sede SET coordenadas_gps = '-12.1498724,-76.9512225' WHERE id_sede = 633;
 
 -- ID: 634 | RUC: 10462088707 | MERCADO VEGA DEYSI MERCEDES
--- Original: Av central 1612 sector 2 grupo 8 manzana e lote 6  2do piso  villa el salvador
+-- Original: Av central 1612 sector 2 grupo 8 manzana e lote 6 2do piso villa el salvador
 -- Cleaned:  Av central 1612 sector 2 grupo 8 manzana e lote 6 2do piso
 UPDATE Sede SET coordenadas_gps = '-12.205555,-76.93859979999999' WHERE id_sede = 634;
 
@@ -3241,7 +3241,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1754717,-77.00627209999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.2017221,-77.009114' WHERE id_sede = 649;
 
 -- ID: 650 | RUC: 20603775016 | CORPORACION VETERINARIA G&S SAC
--- Original: Av. 26 de Noviembre 190, Nueva Esperanza, VMT  (Referencia prdo 1 1/2, frente a Marco Polo)
+-- Original: Av. 26 de Noviembre 190, Nueva Esperanza, VMT (Referencia prdo 1 1/2, frente a Marco Polo)
 -- Cleaned:  Av. 26 de Noviembre 190, Nueva Esperanza
 UPDATE Sede SET coordenadas_gps = '-12.1771269,-76.93854979999999' WHERE id_sede = 650;
 
@@ -3306,7 +3306,7 @@ UPDATE Sede SET coordenadas_gps = '-12.2177572,-76.9419803' WHERE id_sede = 661;
 UPDATE Sede SET coordenadas_gps = '-12.0835607,-77.0358984' WHERE id_sede = 662;
 
 -- ID: 663 | RUC: 20600024150 | VIRGEN DE LA ASUNCION M Y O S.A.C.
--- Original: Av salvador Allende S/N.  VMT hospital sisol
+-- Original: Av salvador Allende S/N. VMT hospital sisol
 -- Cleaned:  Av salvador Allende S/N. VMT hospital sisol
 UPDATE Sede SET coordenadas_gps = '-12.1674642,-76.9204126' WHERE id_sede = 663;
 
@@ -3321,7 +3321,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0666038,-76.9429143' WHERE id_sede = 664;
 UPDATE Sede SET coordenadas_gps = '-12.0359195,-76.9348509' WHERE id_sede = 665;
 
 -- ID: 666 | RUC: 20549948775 | KRISTALDENT S.A.C.
--- Original: SECTOR 1, GRUPO 03, MZ N, LOTE 03 VILLA EL SALVADOR, REFERENCIA ENTRE  AV. CENTRAL Y AV. 1 DE MAYO
+-- Original: SECTOR 1, GRUPO 03, MZ N, LOTE 03 VILLA EL SALVADOR, REFERENCIA ENTRE AV. CENTRAL Y AV. 1 DE MAYO
 -- Cleaned:  SECTOR 1, GRUPO 03, MZ N, LOTE 03
 UPDATE Sede SET coordenadas_gps = '-12.217787,-76.9354043' WHERE id_sede = 666;
 
@@ -3366,7 +3366,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1321883,-76.94565209999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.0899509,-77.0701406' WHERE id_sede = 674;
 
 -- ID: 675 | RUC: 10730485714 | JANAMPA CLEMENTE VICTOR ALBERTO
--- Original: Mariscal caceres mz B 13 Lt. 24 -  san juan de lurigancho
+-- Original: Mariscal caceres mz B 13 Lt. 24 - san juan de lurigancho
 -- Cleaned:  Mariscal caceres mz B 13 Lt. 24
 UPDATE Sede SET coordenadas_gps = '-11.9475252,-76.98009909999999' WHERE id_sede = 675;
 
@@ -3431,7 +3431,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1848841,-77.0074502' WHERE id_sede = 686;
 UPDATE Sede SET coordenadas_gps = '-12.1748162,-76.9937815' WHERE id_sede = 687;
 
 -- ID: 688 | RUC: 20607669041 | POLICLINICO ALTAGRACIA E.I.R.L.
--- Original: Cooperativa Virgen de cocharcas mz E Lt sub 28A  Villa el salvador
+-- Original: Cooperativa Virgen de cocharcas mz E Lt sub 28A Villa el salvador
 -- Cleaned:  Cooperativa Virgen de cocharcas mz E Lt sub 28A
 UPDATE Sede SET coordenadas_gps = '-12.2403562,-76.9279352' WHERE id_sede = 688;
 
@@ -3510,7 +3510,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1466083,-77.0182696' WHERE id_sede = 702;
 -- Cleaned:  jiron restauracion 284
 UPDATE Sede SET coordenadas_gps = '-12.0645208,-77.0484262' WHERE id_sede = 703;
 
--- ID: 704 | RUC: 10069158264 | JULIO ALBERTO MARTÍNEZ  APAZA
+-- ID: 704 | RUC: 10069158264 | JULIO ALBERTO MARTÍNEZ APAZA
 -- Original: AV LOS EUCALIPTUS 847- SANTA ANITA
 -- Cleaned:  AV LOS EUCALIPTUS 847
 UPDATE Sede SET coordenadas_gps = '-12.0454019,-76.97569589999999' WHERE id_sede = 704;
@@ -3526,7 +3526,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0754082,-77.1082892' WHERE id_sede = 705;
 UPDATE Sede SET coordenadas_gps = '-12.1121974,-76.9899691' WHERE id_sede = 706;
 
 -- ID: 707 | RUC: 20604206716 | IMPORTACIONES MENDOZA PAREDES S.A.C.
--- Original: CALLE LOS GERANIOS  105- LINCE
+-- Original: CALLE LOS GERANIOS 105- LINCE
 -- Cleaned:  CALLE LOS GERANIOS 105
 UPDATE Sede SET coordenadas_gps = '-12.0906496,-77.0296334' WHERE id_sede = 707;
 
@@ -3591,7 +3591,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0773489,-76.9643365' WHERE id_sede = 718;
 UPDATE Sede SET coordenadas_gps = '-11.9133182,-77.0306722' WHERE id_sede = 719;
 
 -- ID: 720 | RUC: 20604816352 | IMAGEN DENTAL CENTER E.I.R.L.
--- Original: MZ. D17 LOTE. 2  - SAN JUAN DE LURIGANCHO
+-- Original: MZ. D17 LOTE. 2 - SAN JUAN DE LURIGANCHO
 -- Cleaned:  MZ. D17 LOTE. 2
 UPDATE Sede SET coordenadas_gps = '-11.9594946,-76.98136269999999' WHERE id_sede = 720;
 
@@ -3611,7 +3611,7 @@ UPDATE Sede SET coordenadas_gps = '-14.0715597,-75.7318268' WHERE id_sede = 722;
 UPDATE Sede SET coordenadas_gps = '-12.0737162,-76.9892857' WHERE id_sede = 723;
 
 -- ID: 724 | RUC: 20536780506 | WALAC SAC
--- Original: AV  PASEO DE LA REPUBLICA 378 URB SAN JUDAS TADEO
+-- Original: AV PASEO DE LA REPUBLICA 378 URB SAN JUDAS TADEO
 -- Cleaned:  AV PASEO DE LA REPUBLICA 378 URB SAN JUDAS TADEO
 UPDATE Sede SET coordenadas_gps = '-12.1719643,-77.016688' WHERE id_sede = 724;
 
@@ -3670,8 +3670,8 @@ UPDATE Sede SET coordenadas_gps = '-12.1175851,-77.03153259999999' WHERE id_sede
 -- Cleaned:  AV. RICARDO PALMA 341 INT. 406
 UPDATE Sede SET coordenadas_gps = '-12.1188524,-77.0273321' WHERE id_sede = 735;
 
--- ID: 736 | RUC: 20546143733 | MULTISERVICIOS  DE SALUD CHR S.A.C
--- Original: LOS LAURELES 104 OFICINA 302 SURCO EDIFICIO  LUMIERE
+-- ID: 736 | RUC: 20546143733 | MULTISERVICIOS DE SALUD CHR S.A.C
+-- Original: LOS LAURELES 104 OFICINA 302 SURCO EDIFICIO LUMIERE
 -- Cleaned:  LOS LAURELES 104 OFICINA 302 SURCO EDIFICIO LUMIERE
 UPDATE Sede SET coordenadas_gps = '-12.1264306,-76.97582360000001' WHERE id_sede = 736;
 
@@ -3731,7 +3731,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1169955,-76.9817998' WHERE id_sede = 746;
 UPDATE Sede SET coordenadas_gps = '-12.1292267,-77.0004896' WHERE id_sede = 747;
 
 -- ID: 748 | RUC: 10314900036 | HUARHUACHI YSLACHIN LIDIA
--- Original: Av.Jose Olaya 450 A  Vallecito Alto- San Gabriel ,Villa María Del Triunfo
+-- Original: Av.Jose Olaya 450 A Vallecito Alto- San Gabriel ,Villa María Del Triunfo
 -- Cleaned:  Av.Jose Olaya 450 A Vallecito Alto- San Gabriel ,Villa María Del Triunfo
 UPDATE Sede SET coordenadas_gps = '-12.1434753,-76.9450208' WHERE id_sede = 748;
 
@@ -3816,7 +3816,7 @@ UPDATE Sede SET coordenadas_gps = '-12.19457,-76.97455289999999' WHERE id_sede =
 UPDATE Sede SET coordenadas_gps = '-12.1286897,-76.99637899999999' WHERE id_sede = 764;
 
 -- ID: 765 | RUC: 10090813434 | Miriam Rocio Gamarra López
--- Original: Av. 27 de Diciembre 957  Tablada   Villa María del Triunfo
+-- Original: Av. 27 de Diciembre 957 Tablada Villa María del Triunfo
 -- Cleaned:  Av. 27 de Diciembre 957 Tablada Villa María del Triunfo
 UPDATE Sede SET coordenadas_gps = '-12.188806,-76.9277937' WHERE id_sede = 765;
 
@@ -3856,7 +3856,7 @@ UPDATE Sede SET coordenadas_gps = '-12.112118,-76.9897547' WHERE id_sede = 771;
 UPDATE Sede SET coordenadas_gps = '-12.129345,-76.9843034' WHERE id_sede = 772;
 
 -- ID: 773 | RUC: 20611155639 | M & E TRAUMATOLOGIA S.A.C.
--- Original: JR. VISTA ALEGRE MZ A31  LT 20  URBANO SAGITARIO - SURCO
+-- Original: JR. VISTA ALEGRE MZ A31 LT 20 URBANO SAGITARIO - SURCO
 -- Cleaned:  JR. VISTA ALEGRE MZ A31 LT 20 URBANO SAGITARIO
 UPDATE Sede SET coordenadas_gps = '-12.1644097,-76.99399679999999' WHERE id_sede = 773;
 
@@ -3911,7 +3911,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1773143,-77.00749429999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.0823237,-77.0071705' WHERE id_sede = 783;
 
 -- ID: 784 | RUC: 20522222144 | AGROINDUSTRIAS CALLPA SAC
--- Original: Centro poblado. Anexo 12 el Vallecito s/n  Luringancho  Chosica.
+-- Original: Centro poblado. Anexo 12 el Vallecito s/n Luringancho Chosica.
 -- Cleaned:  Centro poblado. Anexo 12 el Vallecito s/n Luringancho Chosica.
 UPDATE Sede SET coordenadas_gps = '-11.9637107,-76.794703' WHERE id_sede = 784;
 
@@ -3941,7 +3941,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1458969,-76.98544969999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-14.0456666,-75.7447806' WHERE id_sede = 789;
 
 -- ID: 790 | RUC: 20606160926 | CENTRO DIGESTIVO FERREL SAC
--- Original: calle Tacones 253 urb san Isidro   ICA
+-- Original: calle Tacones 253 urb san Isidro ICA
 -- Cleaned:  calle Tacones 253 urb san Isidro
 UPDATE Sede SET coordenadas_gps = '-14.0765958,-75.7275647' WHERE id_sede = 790;
 
@@ -4076,7 +4076,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0641254,-76.9466682' WHERE id_sede = 815;
 UPDATE Sede SET coordenadas_gps = '-12.1193569,-76.99804700000001' WHERE id_sede = 816;
 
 -- ID: 817 | RUC: 20548125821 | ESPECIALIDADES ODONTOLOGICAS QUIROZ E.I.R.L
--- Original: TERPSICORE NRO. 177 DPTO. 201 URB. MIGUEL GRAU  - ATE
+-- Original: TERPSICORE NRO. 177 DPTO. 201 URB. MIGUEL GRAU - ATE
 -- Cleaned:  TERPSICORE NRO. 177 DPTO. 201 URB. MIGUEL GRAU
 UPDATE Sede SET coordenadas_gps = '-12.0730739,-76.98211309999999' WHERE id_sede = 817;
 
@@ -4206,7 +4206,7 @@ UPDATE Sede SET coordenadas_gps = '-12.042954,-76.9700589' WHERE id_sede = 841;
 UPDATE Sede SET coordenadas_gps = '-11.9772534,-76.99829079999999' WHERE id_sede = 842;
 
 -- ID: 843 | RUC: 20610637591 | ILLUMINANCE DENTAL E.I.R.L.
--- Original: CALLE LOS PAUJILES  168, SURQUILLO
+-- Original: CALLE LOS PAUJILES 168, SURQUILLO
 -- Cleaned:  CALLE LOS PAUJILES 168
 UPDATE Sede SET coordenadas_gps = '-12.1030976,-77.02149349999999' WHERE id_sede = 843;
 
@@ -4221,7 +4221,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1917733,-76.95494409999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.1246037,-76.9997484' WHERE id_sede = 845;
 
 -- ID: 846 | RUC: 20613649213 | ARVET ASOCIADOS S.A.C.S.
--- Original: MZ M lote 14 APV compradores de terrenos de  Campoy SJL.
+-- Original: MZ M lote 14 APV compradores de terrenos de Campoy SJL.
 -- Cleaned:  MZ M lote 14 APV compradores de terrenos de Campoy SJL.
 UPDATE Sede SET coordenadas_gps = '-11.9553103,-77.0030958' WHERE id_sede = 846;
 
@@ -4316,7 +4316,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1050346,-77.02691' WHERE id_sede = 863;
 UPDATE Sede SET coordenadas_gps = '-12.0318145,-77.0287366' WHERE id_sede = 864;
 
 -- ID: 865 | RUC: 10086605517 | SIETE GUTIERREZ VDA DE ALVARADO YOLANDA
--- Original: Av Parque 12 de Octubre 2453-A  La Victoria
+-- Original: Av Parque 12 de Octubre 2453-A La Victoria
 -- Cleaned:  Av Parque 12 de Octubre 2453-A
 UPDATE Sede SET coordenadas_gps = '-12.0644613,-77.00498189999999' WHERE id_sede = 865;
 
@@ -4356,7 +4356,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0846409,-77.0117065' WHERE id_sede = 871;
 UPDATE Sede SET coordenadas_gps = '-12.0781213,-77.0157878' WHERE id_sede = 872;
 
 -- ID: 873 | RUC: 20607942871 | CENTRO MEDICO VETERINARIO & REHABILITACION REHAVET S.A.C.
--- Original: AV JOSE CARLOS  MARIATEGUI SECTOR 3 GRUPO 29 mz B lt 3 AAHH chavin de  huantar
+-- Original: AV JOSE CARLOS MARIATEGUI SECTOR 3 GRUPO 29 mz B lt 3 AAHH chavin de huantar
 -- Cleaned:  AV JOSE CARLOS MARIATEGUI SECTOR 3 GRUPO 29 mz B lt 3 AAHH chavin de huantar
 UPDATE Sede SET coordenadas_gps = '-12.2255913,-76.93787139999999' WHERE id_sede = 873;
 
@@ -4626,7 +4626,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0741695,-76.9992903' WHERE id_sede = 925;
 UPDATE Sede SET coordenadas_gps = '-12.5195,-76.7322994' WHERE id_sede = 926;
 
 -- ID: 927 | RUC: 10106120566 | VARA BERNUY ERIKA ELIZABETH
--- Original: Av los Olivos Mz U Lote07 AAHH Viña  Alta  distrito  La Molina
+-- Original: Av los Olivos Mz U Lote07 AAHH Viña Alta distrito La Molina
 -- Cleaned:  Av los Olivos Mz U Lote07 AAHH Viña Alta distrito
 UPDATE Sede SET coordenadas_gps = '-12.0962607,-76.9410815' WHERE id_sede = 927;
 
@@ -4665,8 +4665,7 @@ UPDATE Sede SET coordenadas_gps = '-12.027083,-77.0049994' WHERE id_sede = 933;
 -- Cleaned:  Av. Javier Prado Este 330. Segundo piso.
 UPDATE Sede SET coordenadas_gps = '-12.0922787,-77.0307354' WHERE id_sede = 934;
 
--- ID: 935 | RUC: 10425407495
- | ROSALES SILVA RAQUEL
+-- ID: 935 | RUC: 10425407495 | ROSALES SILVA RAQUEL
 -- Original: "Calle José santos Atahualpa Mz N ,lote 4, urbanización el trébol 3 etapa , distrito los olivos
 -- Cleaned:  "Calle José santos Atahualpa Mz N ,lote 4, urbanización el trébol 3 etapa , distrito
 UPDATE Sede SET coordenadas_gps = '-12.0079605,-77.069741' WHERE id_sede = 935;
@@ -4691,7 +4690,7 @@ UPDATE Sede SET coordenadas_gps = '-12.2243736,-76.9444341' WHERE id_sede = 938;
 -- Cleaned:  Av. Urubamba 429, 27 de abril, ate vitarte
 UPDATE Sede SET coordenadas_gps = '-12.0555365,-76.95824999999999' WHERE id_sede = 939;
 
--- ID: 940 | RUC: 20613878182 | Corporación copito y danna  SAC
+-- ID: 940 | RUC: 20613878182 | Corporación copito y danna SAC
 -- Original: AV.RIO MARAÑON 735. URB. LOS PEREGRINOS DEL SEÑOR. LOS OLIVOS.
 -- Cleaned:  AV.RIO MARAÑON 735. URB. LOS PEREGRINOS DEL SEÑOR. LOS OLIVOS.
 UPDATE Sede SET coordenadas_gps = '-11.9723407,-77.07336219999999' WHERE id_sede = 940;
@@ -4727,7 +4726,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9928398,-77.0507217' WHERE id_sede = 945;
 UPDATE Sede SET coordenadas_gps = '-12.0311069,-77.0283256' WHERE id_sede = 946;
 
 -- ID: 947 | RUC: 10088336491 | FERNANDEZ QUINTANA CESAR AUGUSTO
--- Original: Av.alcazar 258  primer piso Rimac
+-- Original: Av.alcazar 258 primer piso Rimac
 -- Cleaned:  Av.alcazar 258 primer piso
 UPDATE Sede SET coordenadas_gps = '-12.0311069,-77.0283256' WHERE id_sede = 947;
 
@@ -4797,12 +4796,12 @@ UPDATE Sede SET coordenadas_gps = '-12.0303095,-77.08922729999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.0473179,-77.0296142' WHERE id_sede = 960;
 
 -- ID: 961 | RUC: 20545590205 | Clínica Dental Brisa SAC
--- Original: Av. Tomás Valle  385
+-- Original: Av. Tomás Valle 385
 -- Cleaned:  Av. Tomás Valle 385
 UPDATE Sede SET coordenadas_gps = '-12.0083854,-77.0587005' WHERE id_sede = 961;
 
 -- ID: 962 | RUC: 20553512281 | MELYSALUD S.A.C
--- Original: Av Perú  3785 smp
+-- Original: Av Perú 3785 smp
 -- Cleaned:  Av Perú 3785
 UPDATE Sede SET coordenadas_gps = '-12.0306907,-77.0895728' WHERE id_sede = 962;
 
@@ -4832,7 +4831,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9966926,-77.1007009' WHERE id_sede = 966;
 UPDATE Sede SET coordenadas_gps = '-11.9918241,-77.0782723' WHERE id_sede = 967;
 
 -- ID: 968 | RUC: 20602928137 | CENTRO DENTAL TROY DENT EIRL
--- Original: AV FRANCISCO LUNA PIZARRO 152 URB INGENIERIA - SAN MARTIN  DE PORRES
+-- Original: AV FRANCISCO LUNA PIZARRO 152 URB INGENIERIA - SAN MARTIN DE PORRES
 -- Cleaned:  AV FRANCISCO LUNA PIZARRO 152 URB INGENIERIA
 UPDATE Sede SET coordenadas_gps = '-12.0237236,-77.0597056' WHERE id_sede = 968;
 
@@ -4871,8 +4870,8 @@ UPDATE Sede SET coordenadas_gps = '-12.0742863,-76.98593699999999' WHERE id_sede
 -- Cleaned:  AV. FAUCETT NRO. 2085 PROV. CONST. DEL CALLAO - BELLAVISTA
 UPDATE Sede SET coordenadas_gps = '-12.0561697,-77.0979776' WHERE id_sede = 975;
 
--- ID: 976 | RUC: 20515275771 | MEGAMEDIC L Y A  SERVICIOS SAC
--- Original: AV UNIVERSITARIA 267  URB TUNGASUCA- CARABAYLLO
+-- ID: 976 | RUC: 20515275771 | MEGAMEDIC L Y A SERVICIOS SAC
+-- Original: AV UNIVERSITARIA 267 URB TUNGASUCA- CARABAYLLO
 -- Cleaned:  AV UNIVERSITARIA 267 URB TUNGASUCA
 UPDATE Sede SET coordenadas_gps = '-11.8973968,-77.0382977' WHERE id_sede = 976;
 
@@ -4947,7 +4946,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0499623,-77.09356609999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.1138637,-77.028064' WHERE id_sede = 990;
 
 -- ID: 991 | RUC: 20605797190 | Clínica spce e.i.r.l
--- Original: AV SAN BORJA SUR  500
+-- Original: AV SAN BORJA SUR 500
 -- Cleaned:  AV SAN BORJA SUR 500
 UPDATE Sede SET coordenadas_gps = '-12.1015958,-77.0043786' WHERE id_sede = 991;
 
@@ -4987,7 +4986,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1687045,-77.0242535' WHERE id_sede = 997;
 UPDATE Sede SET coordenadas_gps = '-12.0780127,-77.0351629' WHERE id_sede = 998;
 
 -- ID: 999 | RUC: 20545373441 | VETERINARIA MI CACHORRITO SAC
--- Original: CALLE LOS BRILLANTES  281 URB SAN EULOGIO COMAS
+-- Original: CALLE LOS BRILLANTES 281 URB SAN EULOGIO COMAS
 -- Cleaned:  CALLE LOS BRILLANTES 281 URB SAN EULOGIO
 UPDATE Sede SET coordenadas_gps = '-11.9620393,-77.06048200000001' WHERE id_sede = 999;
 
@@ -4997,17 +4996,17 @@ UPDATE Sede SET coordenadas_gps = '-11.9620393,-77.06048200000001' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.1615557,-76.9597648' WHERE id_sede = 1000;
 
 -- ID: 1001 | RUC: 10414294958 | MAMANI CURAZI BELDEN IVAN
--- Original: JR LOS HINOJOS MZ H  LTE 16 URB LOS JARDINES
+-- Original: JR LOS HINOJOS MZ H LTE 16 URB LOS JARDINES
 -- Cleaned:  JR LOS HINOJOS MZ H LTE 16 URB LOS JARDINES
 UPDATE Sede SET coordenadas_gps = '-12.0132981,-77.0008466' WHERE id_sede = 1001;
 
 -- ID: 1002 | RUC: 10218633833 | BOHORQUEZ DE LA CRUZ MANUEL GUSTAVO
--- Original: AV CANTO GRANDE  2456 - 2DO PISO
+-- Original: AV CANTO GRANDE 2456 - 2DO PISO
 -- Cleaned:  AV CANTO GRANDE 2456 - 2DO PISO
 UPDATE Sede SET coordenadas_gps = '-11.9890947,-77.01516040000001' WHERE id_sede = 1002;
 
 -- ID: 1003 | RUC: 10098322596 | CASIMIRO MALCA JESSICA NIEVES
--- Original: CALLE JOSE NEYRA 155 URB. LA CALERA  OF. 201
+-- Original: CALLE JOSE NEYRA 155 URB. LA CALERA OF. 201
 -- Cleaned:  CALLE JOSE NEYRA 155 URB. LA CALERA OF. 201
 UPDATE Sede SET coordenadas_gps = '-12.1126429,-77.0014265' WHERE id_sede = 1003;
 
@@ -5046,7 +5045,7 @@ UPDATE Sede SET coordenadas_gps = '-12.115265,-77.01626859999999' WHERE id_sede 
 -- Cleaned:  JR LOS PAUJILES 355
 UPDATE Sede SET coordenadas_gps = '-12.0229163,-76.97733699999999' WHERE id_sede = 1010;
 
--- ID: 1011 | RUC: 20603217579  | VETERINARIAS LOTSO S.A.C.
+-- ID: 1011 | RUC: 20603217579 | VETERINARIAS LOTSO S.A.C.
 -- Original: MZ A LT 20 GRUPO 6 CRUZ MOTUPE
 -- Cleaned:  MZ A LT 20 GRUPO 6 CRUZ MOTUPE
 UPDATE Sede SET coordenadas_gps = '-11.9903212,-77.0132911' WHERE id_sede = 1011;
@@ -5066,8 +5065,7 @@ UPDATE Sede SET coordenadas_gps = '-12.062836,-76.9491713' WHERE id_sede = 1013;
 -- Cleaned:  AV SAN LUIS 1471
 UPDATE Sede SET coordenadas_gps = '-12.0817383,-76.9971583' WHERE id_sede = 1014;
 
--- ID: 1015 | RUC: 10418529984
- | OLIVIA VIOLETA CERACIO PANDURO
+-- ID: 1015 | RUC: 10418529984 | OLIVIA VIOLETA CERACIO PANDURO
 -- Original: AV VENEZUELA 2385 URB STA CECILIA - BELLAVISTA
 -- Cleaned:  AV VENEZUELA 2385 URB STA CECILIA - BELLAVISTA
 UPDATE Sede SET coordenadas_gps = '-12.0621788,-77.096321' WHERE id_sede = 1015;
@@ -5103,7 +5101,7 @@ UPDATE Sede SET coordenadas_gps = '-12.157936,-76.9586431' WHERE id_sede = 1020;
 UPDATE Sede SET coordenadas_gps = '-12.150972,-76.9492812' WHERE id_sede = 1021;
 
 -- ID: 1022 | RUC: 20606002051 | ICAZA ESCOBEDO SAC
--- Original: AV JOSE LEGUIA  Y MELENDEZ 1558 - PUEBLO LIBRE
+-- Original: AV JOSE LEGUIA Y MELENDEZ 1558 - PUEBLO LIBRE
 -- Cleaned:  AV JOSE LEGUIA Y MELENDEZ 1558
 UPDATE Sede SET coordenadas_gps = '-12.074891,-77.06991459999999' WHERE id_sede = 1022;
 
@@ -5133,7 +5131,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9403885,-77.0507113' WHERE id_sede = 1026
 UPDATE Sede SET coordenadas_gps = '-12.23584,-76.91028519999999' WHERE id_sede = 1027;
 
 -- ID: 1028 | RUC: 10724242451 | CUELLAR VELAOCHAGA GABRIELA INES
--- Original: AV.HORACIO URTEAGA 1474 oficina  404
+-- Original: AV.HORACIO URTEAGA 1474 oficina 404
 -- Cleaned:  AV.HORACIO URTEAGA 1474 oficina 404
 UPDATE Sede SET coordenadas_gps = '-12.0759085,-77.05017529999999' WHERE id_sede = 1028;
 
@@ -5162,7 +5160,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1055651,-77.0081601' WHERE id_sede = 1032
 -- Cleaned:  Jr. Daniel Hernández 661, Dpto 203
 UPDATE Sede SET coordenadas_gps = '-12.0759,-77.06894129999999' WHERE id_sede = 1033;
 
--- ID: 1034 | RUC: 10712640087 | NADIA IVETTE  ESTRADA  RODRIGUEZ
+-- ID: 1034 | RUC: 10712640087 | NADIA IVETTE ESTRADA RODRIGUEZ
 -- Original: AV UNIVERSITARIA 273 - MIRONES BAJOS
 -- Cleaned:  AV UNIVERSITARIA 273 - MIRONES BAJOS
 UPDATE Sede SET coordenadas_gps = '-12.0379227,-77.0773664' WHERE id_sede = 1034;
@@ -5247,7 +5245,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0712707,-77.0608537' WHERE id_sede = 1049
 -- Cleaned:  AV CARABAYLLO 507
 UPDATE Sede SET coordenadas_gps = '-11.9590586,-77.0590155' WHERE id_sede = 1050;
 
--- ID: 1051 | RUC: 10105132676  | GARAYAR BURNEO ROSA JULLIANA
+-- ID: 1051 | RUC: 10105132676 | GARAYAR BURNEO ROSA JULLIANA
 -- Original: JR kotosh 1518
 -- Cleaned:  JR kotosh 1518
 UPDATE Sede SET coordenadas_gps = '-12.0111877,-76.9835528' WHERE id_sede = 1051;
@@ -5313,11 +5311,11 @@ UPDATE Sede SET coordenadas_gps = '-11.8917332,-77.0345885' WHERE id_sede = 1062
 UPDATE Sede SET coordenadas_gps = '-12.1184513,-77.0436508' WHERE id_sede = 1063;
 
 -- ID: 1064 | RUC: 10453651211 | ANINA BUSTOS RODRIGUEZ
--- Original: AV CANADÁ 4004, 2DO PISO -  SAN LUIS
+-- Original: AV CANADÁ 4004, 2DO PISO - SAN LUIS
 -- Cleaned:  AV CANADÁ 4004, 2DO PISO
 UPDATE Sede SET coordenadas_gps = '-12.0785077,-76.9898642' WHERE id_sede = 1064;
 
--- ID: 1065 | RUC: 20604055327 | Odonto Shine  B&E
+-- ID: 1065 | RUC: 20604055327 | Odonto Shine B&E
 -- Original: calle Boulevard 162 oficina 1203-surco
 -- Cleaned:  calle Boulevard 162 oficina 1203
 UPDATE Sede SET coordenadas_gps = '-12.1001107,-76.9702429' WHERE id_sede = 1065;
@@ -5338,7 +5336,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9786101,-77.010025' WHERE id_sede = 1067;
 UPDATE Sede SET coordenadas_gps = '-12.0759593,-77.0525416' WHERE id_sede = 1068;
 
 -- ID: 1069 | RUC: 20543457044 | SERVICIOS MEDICOS ODONTOLOGICOS ASESORIA E INVESTIGACION S.A.C
--- Original: SECTOR 3 GRUPO 7  MZ M LT 4 VES
+-- Original: SECTOR 3 GRUPO 7 MZ M LT 4 VES
 -- Cleaned:  SECTOR 3 GRUPO 7 MZ M LT 4
 UPDATE Sede SET coordenadas_gps = '-12.2142436,-76.9344174' WHERE id_sede = 1069;
 
@@ -5378,12 +5376,12 @@ UPDATE Sede SET coordenadas_gps = '-12.0906017,-77.0292618' WHERE id_sede = 1075
 UPDATE Sede SET coordenadas_gps = '-12.1638818,-76.955441' WHERE id_sede = 1076;
 
 -- ID: 1077 | RUC: 10446454086 | SAIRITUPAC QUISPE RAQUEL
--- Original: Av .Jorge Basadre  493 -urb San Carlos- San Juan de Lurigancho
+-- Original: Av .Jorge Basadre 493 -urb San Carlos- San Juan de Lurigancho
 -- Cleaned:  Av .Jorge Basadre 493 -urb San Carlos
 UPDATE Sede SET coordenadas_gps = '-11.9907222,-77.003602' WHERE id_sede = 1077;
 
 -- ID: 1078 | RUC: 10472659231 | PERCY ADOLFO ROBLES CARRANZA
--- Original: JR LOS ESCRITORES MZ  C11  LTE 3  URB EDUARDO DE LA PINELLA - SAN JUAN DE LURIGANCHO
+-- Original: JR LOS ESCRITORES MZ C11 LTE 3 URB EDUARDO DE LA PINELLA - SAN JUAN DE LURIGANCHO
 -- Cleaned:  JR LOS ESCRITORES MZ C11 LTE 3 URB EDUARDO DE LA PINELLA
 UPDATE Sede SET coordenadas_gps = '-11.9746194,-77.0110113' WHERE id_sede = 1078;
 
@@ -5393,7 +5391,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9746194,-77.0110113' WHERE id_sede = 1078
 UPDATE Sede SET coordenadas_gps = '-12.213998,-76.95178729999999' WHERE id_sede = 1079;
 
 -- ID: 1080 | RUC: 20602600361 | Dento esthetic company sac
--- Original: Av  proceres de la independencia cuadra 15, hospital de la solidaridad San juan de lurigancho
+-- Original: Av proceres de la independencia cuadra 15, hospital de la solidaridad San juan de lurigancho
 -- Cleaned:  Av proceres de la independencia cuadra 15, hospital de la solidaridad
 UPDATE Sede SET coordenadas_gps = '-12.0083458,-77.00366199999999' WHERE id_sede = 1080;
 
@@ -5427,7 +5425,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0844245,-77.0724132' WHERE id_sede = 1085
 -- Cleaned:  Av. José Leal 835, dpto 201
 UPDATE Sede SET coordenadas_gps = '-12.0859372,-77.0417004' WHERE id_sede = 1086;
 
--- ID: 1087 | RUC: 20601758661 | PROMOCION  PREVENCION DE SALUD EN EL TRABAJADOR S.A.C.
+-- ID: 1087 | RUC: 20601758661 | PROMOCION PREVENCION DE SALUD EN EL TRABAJADOR S.A.C.
 -- Original: AV DE LA MARINA N° 853 2DO PISO - PUEBLO LIBRE
 -- Cleaned:  AV DE LA MARINA N° 853 2DO PISO
 UPDATE Sede SET coordenadas_gps = '-12.0820032,-77.0708279' WHERE id_sede = 1087;
@@ -5437,7 +5435,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0820032,-77.0708279' WHERE id_sede = 1087
 -- Cleaned:  AV MALECON CHECA 883 URB ZARATE
 UPDATE Sede SET coordenadas_gps = '-12.0269527,-76.9983817' WHERE id_sede = 1088;
 
--- ID: 1089 | RUC: 20601758661 | PROMOCION  PREVENCION DE SALUD EN EL TRABAJADOR S.A.C.
+-- ID: 1089 | RUC: 20601758661 | PROMOCION PREVENCION DE SALUD EN EL TRABAJADOR S.A.C.
 -- Original: Av. Alfonso Ugarte 748
 -- Cleaned:  Av. Alfonso Ugarte 748
 UPDATE Sede SET coordenadas_gps = '-12.0484213,-77.042819' WHERE id_sede = 1089;
@@ -5507,13 +5505,13 @@ UPDATE Sede SET coordenadas_gps = '-11.9919715,-77.0756837' WHERE id_sede = 1101
 -- Cleaned:  AV. PEDRO MIOTTA NRO. 955
 UPDATE Sede SET coordenadas_gps = '-12.1589947,-76.980539' WHERE id_sede = 1102;
 
--- ID: 1103 | RUC: 10080545687  | POMA MENDO JESUS RAFAEL
+-- ID: 1103 | RUC: 10080545687 | POMA MENDO JESUS RAFAEL
 -- Original: AV TUPAC AMARU 1584 AAHH LA LIBERTAD
 -- Cleaned:  AV TUPAC AMARU 1584 AAHH LA LIBERTAD
 UPDATE Sede SET coordenadas_gps = '-11.9510038,-77.0499109' WHERE id_sede = 1103;
 
 -- ID: 1104 | RUC: 15602873495 | MARIA DE LOS ANGELES GONZALEZ RIVAS
--- Original: AV 12 DE OCTUBRE  381-A  SAN MARTIN DE PORRES
+-- Original: AV 12 DE OCTUBRE 381-A SAN MARTIN DE PORRES
 -- Cleaned:  AV 12 DE OCTUBRE 381-A
 UPDATE Sede SET coordenadas_gps = '-12.0283618,-77.087242' WHERE id_sede = 1104;
 
@@ -5608,7 +5606,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0762927,-77.0908526' WHERE id_sede = 1121
 UPDATE Sede SET coordenadas_gps = '-11.9915091,-77.0038162' WHERE id_sede = 1122;
 
 -- ID: 1123 | RUC: 20555957808 | ADMINISTRADORA DE SERVICIOS INTEGRALES DE SALUD S.A.C. - ADSERINSA
--- Original: AV petit thouars 3811   - San Isidro
+-- Original: AV petit thouars 3811 - San Isidro
 -- Cleaned:  AV petit thouars 3811
 UPDATE Sede SET coordenadas_gps = '-12.0996373,-77.0309438' WHERE id_sede = 1123;
 
@@ -5647,8 +5645,8 @@ UPDATE Sede SET coordenadas_gps = '-12.0908639,-77.0187864' WHERE id_sede = 1129
 -- Cleaned:  AV. BERNARDO BALAGUER MZA. B LOTE. 18 URB. LA ALAMEDA DE ÑAÑA 3ERA ETAPA - LURIGANCHO
 UPDATE Sede SET coordenadas_gps = '-11.9837031,-76.8217049' WHERE id_sede = 1130;
 
--- ID: 1131 | RUC: 10744650319 | JOSELYN  CASTRO ZAMBRANO
--- Original: AV CONDORCANQUI  949 MZ R  LTE 30  URB SANTO DOMINGO  1ra ETAPA  - CARABAYLLO
+-- ID: 1131 | RUC: 10744650319 | JOSELYN CASTRO ZAMBRANO
+-- Original: AV CONDORCANQUI 949 MZ R LTE 30 URB SANTO DOMINGO 1ra ETAPA - CARABAYLLO
 -- Cleaned:  AV CONDORCANQUI 949 MZ R LTE 30 URB SANTO DOMINGO 1ra ETAPA
 UPDATE Sede SET coordenadas_gps = '-11.8866464,-77.03562389999999' WHERE id_sede = 1131;
 
@@ -5683,12 +5681,12 @@ UPDATE Sede SET coordenadas_gps = '-11.853828,-77.0625037' WHERE id_sede = 1136;
 UPDATE Sede SET coordenadas_gps = '-12.0997355,-77.01175750000002' WHERE id_sede = 1137;
 
 -- ID: 1138 | RUC: 20605479546 | CLINICA VETERINARIA SAN JUAN MACIAS SRL
--- Original: CALLE PUCARA MZ H  LTE 52  URB SAN JUAN MACIAS
+-- Original: CALLE PUCARA MZ H LTE 52 URB SAN JUAN MACIAS
 -- Cleaned:  CALLE PUCARA MZ H LTE 52 URB SAN JUAN MACIAS
 UPDATE Sede SET coordenadas_gps = '-11.9968983,-77.1206723' WHERE id_sede = 1138;
 
 -- ID: 1139 | RUC: 20608531468 | LABORATORIO CLINICO ESPECIALIZADO HEMOLAB EIRL
--- Original: AV MARAÑON MZ D  LOTE 7  ASOCIACION DE PROPIETARIOS DEL NORTE - LOS OLIVOS
+-- Original: AV MARAÑON MZ D LOTE 7 ASOCIACION DE PROPIETARIOS DEL NORTE - LOS OLIVOS
 -- Cleaned:  AV MARAÑON MZ D LOTE 7 ASOCIACION DE PROPIETARIOS DEL NORTE
 UPDATE Sede SET coordenadas_gps = '-12.0027877,-77.1090052' WHERE id_sede = 1139;
 
@@ -5698,7 +5696,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0027877,-77.1090052' WHERE id_sede = 1139
 UPDATE Sede SET coordenadas_gps = '-12.041363,-77.11854699999999' WHERE id_sede = 1140;
 
 -- ID: 1141 | RUC: 20607572713 | ODONTOTRENDS SAC
--- Original: ÁV ANGELICA GAMARRA  MZ E   LTE 01 URB EL TREBOL  4ª ETAPA
+-- Original: ÁV ANGELICA GAMARRA MZ E LTE 01 URB EL TREBOL 4ª ETAPA
 -- Cleaned:  ÁV ANGELICA GAMARRA MZ E LTE 01 URB EL TREBOL 4ª ETAPA
 UPDATE Sede SET coordenadas_gps = '-12.0061147,-77.0732693' WHERE id_sede = 1141;
 
@@ -5733,7 +5731,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0254343,-77.00117709999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.0259173,-77.00280599999999' WHERE id_sede = 1147;
 
 -- ID: 1148 | RUC: 20514423262 | HKH Reumatologia EIRL
--- Original: AV.CARLOS IZAGUIRRE 1331 -  2 D0 PISO - LOS OLIVOS
+-- Original: AV.CARLOS IZAGUIRRE 1331 - 2 D0 PISO - LOS OLIVOS
 -- Cleaned:  AV.CARLOS IZAGUIRRE 1331 - 2 D0 PISO
 UPDATE Sede SET coordenadas_gps = '-11.9918241,-77.0782723' WHERE id_sede = 1148;
 
@@ -6003,7 +6001,7 @@ UPDATE Sede SET coordenadas_gps = '-12.217787,-76.9354043' WHERE id_sede = 1200;
 UPDATE Sede SET coordenadas_gps = '-12.0905397,-77.069036' WHERE id_sede = 1201;
 
 -- ID: 1202 | RUC: 20608642570 | Veterinaria Cabrera J y P S.A.C.
--- Original: AV TUPAC AMARU 2702 URB  EL PROGRESO - CARABAYLLO
+-- Original: AV TUPAC AMARU 2702 URB EL PROGRESO - CARABAYLLO
 -- Cleaned:  AV TUPAC AMARU 2702 URB EL PROGRESO
 UPDATE Sede SET coordenadas_gps = '-11.8802998,-77.02009149999999' WHERE id_sede = 1202;
 
@@ -6018,7 +6016,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9906472,-77.0054136' WHERE id_sede = 1203
 UPDATE Sede SET coordenadas_gps = '-11.9941157,-77.01025159999999' WHERE id_sede = 1204;
 
 -- ID: 1205 | RUC: 10455206371 | Dávila Gutiérrez Davis Clint
--- Original: Av. Héroes del Cenepa con jirón(calle) Geologos Mz J1 Lt 22  Urb. Mariscal
+-- Original: Av. Héroes del Cenepa con jirón(calle) Geologos Mz J1 Lt 22 Urb. Mariscal
 -- Cleaned:  Av. Héroes del Cenepa con jirón Geologos Mz J1 Lt 22 Urb. Mariscal
 UPDATE Sede SET coordenadas_gps = '-11.9687679,-76.99963' WHERE id_sede = 1205;
 
@@ -6181,7 +6179,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1652793,-76.9734661' WHERE id_sede = 1236
 UPDATE Sede SET coordenadas_gps = '-12.009241,-77.0708332' WHERE id_sede = 1237;
 
 -- ID: 1238 | RUC: 20518132947 | SERVICIOS MEDICOS EL TREBOL SOCIEDAD ANONIMA CERRADA
--- Original: AV. ANGELICA GAMARRA NRO. 199 URB. EL TRÉBOL PRIMERA ETAPA (CRUCE PANAMERICANA NORTE CON ANGELICA GA)  - LOS OLIVOS
+-- Original: AV. ANGELICA GAMARRA NRO. 199 URB. EL TRÉBOL PRIMERA ETAPA (CRUCE PANAMERICANA NORTE CON ANGELICA GA) - LOS OLIVOS
 -- Cleaned:  AV. ANGELICA GAMARRA NRO. 199 URB. EL TRÉBOL PRIMERA ETAPA
 UPDATE Sede SET coordenadas_gps = '-12.0049531,-77.06279769999999' WHERE id_sede = 1238;
 
@@ -6216,7 +6214,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1072971,-76.96891509999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.1149546,-77.0436958' WHERE id_sede = 1244;
 
 -- ID: 1245 | RUC: 10098543860 | PRUDENCIO MAU EDGARD ENRIQUE
--- Original: ASOCIACION LIMATAMBO MZ L LOTE  5    CARABAYLLO
+-- Original: ASOCIACION LIMATAMBO MZ L LOTE 5 CARABAYLLO
 -- Cleaned:  ASOCIACION LIMATAMBO MZ L LOTE 5
 UPDATE Sede SET coordenadas_gps = '-11.9952214,-77.0888174' WHERE id_sede = 1245;
 
@@ -6245,13 +6243,13 @@ UPDATE Sede SET coordenadas_gps = '-11.9313327,-77.0658302' WHERE id_sede = 1249
 -- Cleaned:  AV LIBERTAD 2050
 UPDATE Sede SET coordenadas_gps = '-12.0806745,-77.1008264' WHERE id_sede = 1250;
 
--- ID: 1251 | RUC: 20554613412 | EVERPETS  SAC
--- Original: AV PACASMAYO MZ A  LTE 23 URB JORGE CHAVEZ II ETAPA
+-- ID: 1251 | RUC: 20554613412 | EVERPETS SAC
+-- Original: AV PACASMAYO MZ A LTE 23 URB JORGE CHAVEZ II ETAPA
 -- Cleaned:  AV PACASMAYO MZ A LTE 23 URB JORGE CHAVEZ II ETAPA
 UPDATE Sede SET coordenadas_gps = '-12.0161569,-77.0940292' WHERE id_sede = 1251;
 
 -- ID: 1252 | RUC: 10068030116 | URBINA ANTICONA EUGENIA YRIS
--- Original: Av. Tupac amaru 1015A Int. 1 segundo piso MZ Q Lt 28 Urb. Huaquillay 1ra. Etapa  comas.
+-- Original: Av. Tupac amaru 1015A Int. 1 segundo piso MZ Q Lt 28 Urb. Huaquillay 1ra. Etapa comas.
 -- Cleaned:  Av. Tupac amaru 1015A Int. 1 segundo piso MZ Q Lt 28 Urb. Huaquillay 1ra. Etapa comas.
 UPDATE Sede SET coordenadas_gps = '-11.9565091,-77.052922' WHERE id_sede = 1252;
 
@@ -6276,7 +6274,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0409994,-77.000018' WHERE id_sede = 1255;
 UPDATE Sede SET coordenadas_gps = '-12.0409321,-76.9996887' WHERE id_sede = 1256;
 
 -- ID: 1257 | RUC: 20100339936 | MEDICINA EXTERNA S.A
--- Original: AV. ANGAMOS ESTE 1803 – SURQUILLO  6TO. PISO
+-- Original: AV. ANGAMOS ESTE 1803 – SURQUILLO 6TO. PISO
 -- Cleaned:  AV. ANGAMOS ESTE 1803 – SURQUILLO 6TO. PISO
 UPDATE Sede SET coordenadas_gps = '-12.1117393,-77.0124273' WHERE id_sede = 1257;
 
@@ -6396,7 +6394,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0345624,-76.9636314' WHERE id_sede = 1279
 UPDATE Sede SET coordenadas_gps = '-12.1206308,-76.9965855' WHERE id_sede = 1280;
 
 -- ID: 1281 | RUC: 10459779430 | SALLO QUISPE CARMEN ABIGAIL
--- Original: AV. EL PARQUE MZ C LT 15  ASOC. LA PLANICIE
+-- Original: AV. EL PARQUE MZ C LT 15 ASOC. LA PLANICIE
 -- Cleaned:  AV. EL PARQUE MZ C LT 15 ASOC. LA PLANICIE
 UPDATE Sede SET coordenadas_gps = '-11.9667263,-76.99411979999999' WHERE id_sede = 1281;
 
@@ -6570,7 +6568,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1056534,-77.00743849999999' WHERE id_sede
 -- Cleaned:  Urb. Raul Porras Barrenechea D-16
 UPDATE Sede SET coordenadas_gps = '-14.0791479,-75.7353905' WHERE id_sede = 1316;
 
--- ID: 1317 | RUC: 20162406052  | HOSPITAL REGIONAL DE ICA
+-- ID: 1317 | RUC: 20162406052 | HOSPITAL REGIONAL DE ICA
 -- Original: AV. PROLOG. AYABACA COMATRANA S/N
 -- Cleaned:  AV. PROLOG. AYABACA COMATRANA S/N
 UPDATE Sede SET coordenadas_gps = '-14.0724342,-75.7389273' WHERE id_sede = 1317;
@@ -6586,7 +6584,7 @@ UPDATE Sede SET coordenadas_gps = '-14.07546,-75.7341811' WHERE id_sede = 1318;
 UPDATE Sede SET coordenadas_gps = '-12.0827091,-76.9792497' WHERE id_sede = 1319;
 
 -- ID: 1320 | RUC: 20549566228 | SERVICIOS ODONTOLOGICOS INTEGRALES VAMDENT E.I.R.L.
--- Original: Av 27 de diciembre 681 San Francisco de la tablada de Lurin  Villa María del Triunfo
+-- Original: Av 27 de diciembre 681 San Francisco de la tablada de Lurin Villa María del Triunfo
 -- Cleaned:  Av 27 de diciembre 681 San Francisco de la tablada de Lurin Villa María del Triunfo
 UPDATE Sede SET coordenadas_gps = '-12.1901299,-76.9302534' WHERE id_sede = 1320;
 
@@ -6684,7 +6682,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1975617,-76.951674' WHERE id_sede = 1338;
 UPDATE Sede SET coordenadas_gps = '-12.0750942,-77.0694978' WHERE id_sede = 1339;
 
 -- ID: 1340 | RUC: 10407791091 | Linda Huarancca Chumbe
--- Original: Avenida José de la Rivaguero #627 (Piso 2) Urbanización  El Agustino Zona seis Distrito El Agustino Provincia Lima y  Departamento Lima.
+-- Original: Avenida José de la Rivaguero #627 (Piso 2) Urbanización El Agustino Zona seis Distrito El Agustino Provincia Lima y Departamento Lima.
 -- Cleaned:  Avenida José de la Rivaguero #627 Urbanización El Agustino Zona seis Distrito El Agustino Provincia Lima y Departamento Lima.
 UPDATE Sede SET coordenadas_gps = '-12.0537741,-77.004132' WHERE id_sede = 1340;
 
@@ -6749,7 +6747,7 @@ UPDATE Sede SET coordenadas_gps = '-12.181996,-77.0061214' WHERE id_sede = 1351;
 UPDATE Sede SET coordenadas_gps = '-12.0822874,-77.0284155' WHERE id_sede = 1352;
 
 -- ID: 1353 | RUC: 20600279581 | CLINICA DENTAL PERUDENT EIRL
--- Original: AV. SAN MARTIN 389 SEGUNDO PISO    ICA - ICA -ICA
+-- Original: AV. SAN MARTIN 389 SEGUNDO PISO ICA - ICA -ICA
 -- Cleaned:  AV. SAN MARTIN 389 SEGUNDO PISO
 UPDATE Sede SET coordenadas_gps = '-14.0667248,-75.7298058' WHERE id_sede = 1353;
 
@@ -6993,8 +6991,8 @@ UPDATE Sede SET coordenadas_gps = '-12.0784394,-76.9990488' WHERE id_sede = 1400
 -- Cleaned:  AV. VISTA ALEGREMZ A LT 4 PARQUES DE CARBAYLLO
 UPDATE Sede SET coordenadas_gps = '-11.8704222,-77.0191786' WHERE id_sede = 1401;
 
--- ID: 1402 | RUC: 20608795074 | Beauty Touch Estética Orofacial  & Odontologia
--- Original: avenida paseo de la república  5970 recepción y oficina 519
+-- ID: 1402 | RUC: 20608795074 | Beauty Touch Estética Orofacial & Odontologia
+-- Original: avenida paseo de la república 5970 recepción y oficina 519
 -- Cleaned:  avenida paseo de la república 5970 recepción y oficina 519
 UPDATE Sede SET coordenadas_gps = '-12.126916,-77.02406959999999' WHERE id_sede = 1402;
 
@@ -7064,7 +7062,7 @@ UPDATE Sede SET coordenadas_gps = '-11.93368,-77.0523782' WHERE id_sede = 1414;
 UPDATE Sede SET coordenadas_gps = '-12.0669832,-77.042205' WHERE id_sede = 1415;
 
 -- ID: 1416 | RUC: 10267189442 | Veterinaria Elías Mendoza Cerna
--- Original: av Portada del Sol 421. urbanización Zárate.  Sjl
+-- Original: av Portada del Sol 421. urbanización Zárate. Sjl
 -- Cleaned:  av Portada del Sol 421. urbanización Zárate.
 UPDATE Sede SET coordenadas_gps = '-12.024307,-76.996847' WHERE id_sede = 1416;
 
@@ -7138,8 +7136,7 @@ UPDATE Sede SET coordenadas_gps = '-11.9782752,-77.0468863' WHERE id_sede = 1429
 -- Cleaned:  Av Mariscal Caceres 521
 UPDATE Sede SET coordenadas_gps = '-12.1193758,-77.0200644' WHERE id_sede = 1430;
 
--- ID: 1431 | RUC: 20615227481
- | LACVET CLINICA VETERINARIA E.I.R.L.
+-- ID: 1431 | RUC: 20615227481 | LACVET CLINICA VETERINARIA E.I.R.L.
 -- Original: Av los dominicos 595 callao- callao
 -- Cleaned:  Av los dominicos 595
 UPDATE Sede SET coordenadas_gps = '-12.0095168,-77.09788209999999' WHERE id_sede = 1431;
@@ -7150,7 +7147,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0095168,-77.09788209999999' WHERE id_sede
 UPDATE Sede SET coordenadas_gps = '-12.0799041,-76.9981458' WHERE id_sede = 1432;
 
 -- ID: 1433 | RUC: 20609481103 | CORPORACION EMPRESARIAL SANNA VET S.A.C.
--- Original: AV. 13 DE ENERO  2201 URB. LA HUAYRONA
+-- Original: AV. 13 DE ENERO 2201 URB. LA HUAYRONA
 -- Cleaned:  AV. 13 DE ENERO 2201 URB. LA HUAYRONA
 UPDATE Sede SET coordenadas_gps = '-11.9940427,-77.0054205' WHERE id_sede = 1433;
 
@@ -7370,7 +7367,7 @@ UPDATE Sede SET coordenadas_gps = '-12.1653136,-76.9705079' WHERE id_sede = 1475
 UPDATE Sede SET coordenadas_gps = '-12.0666708,-77.0744324' WHERE id_sede = 1476;
 
 -- ID: 1477 | RUC: 10451242526 | ROMERO OBREGON ANDREA BELEN
--- Original: jirón aymaras 590  , coop. Los chancas . Santa Anita
+-- Original: jirón aymaras 590 , coop. Los chancas . Santa Anita
 -- Cleaned:  jirón aymaras 590 , coop. Los chancas .
 UPDATE Sede SET coordenadas_gps = '-12.0369614,-76.9644019' WHERE id_sede = 1477;
 
@@ -7410,7 +7407,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0817739,-77.1029847' WHERE id_sede = 1483
 UPDATE Sede SET coordenadas_gps = '-11.9774435,-77.120746' WHERE id_sede = 1484;
 
 -- ID: 1488 | RUC: 20615598349 | FAMILIA MUELITAS SAC
--- Original: AV 12 DE OCTUBRE  381-A  SAN MARTIN DE PORRES
+-- Original: AV 12 DE OCTUBRE 381-A SAN MARTIN DE PORRES
 -- Cleaned:  AV 12 DE OCTUBRE 381-A
 UPDATE Sede SET coordenadas_gps = '-12.0283618,-77.087242' WHERE id_sede = 1488;
 
@@ -7444,7 +7441,7 @@ UPDATE Sede SET coordenadas_gps = '-12.0240558,-76.9137552' WHERE id_sede = 1494
 -- Cleaned:  Av. Canevaro 479
 UPDATE Sede SET coordenadas_gps = '-12.1650486,-76.9693668' WHERE id_sede = 1495;
 
--- ID: 1496 | RUC: 20566086566 | CLINICA VETERINARIA HUELLAS Y MAS HUELLAS  SAC
+-- ID: 1496 | RUC: 20566086566 | CLINICA VETERINARIA HUELLAS Y MAS HUELLAS SAC
 -- Original: AV. SIMON BOLIVAR 430
 -- Cleaned:  AV. SIMON BOLIVAR 430
 UPDATE Sede SET coordenadas_gps = '-12.0723423,-77.0571434' WHERE id_sede = 1496;

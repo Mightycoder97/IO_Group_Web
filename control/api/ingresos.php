@@ -46,12 +46,13 @@ function getIngresosServicios() {
     
     $sql = "SELECT s.id_servicio, s.mes_servicio, s.fecha_ejecucion, s.fecha_pago, s.forma_pago,
             se.nombre_comercial as sede_nombre, COALESCE(s.monto_cobrado, 0) as monto,
-            cs.tarifa as tarifa_servicio, s.monto_cobrado,
+            IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa) as tarifa_servicio, s.monto_cobrado,
             e.razon_social as empresa_razon_social
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+            LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             WHERE s.estado_pago = 'pagado'
             AND s.fecha_pago BETWEEN ? AND ?";
     $params = [$fecha_desde, $fecha_hasta];
@@ -321,13 +322,14 @@ function getIngresosPorRuta() {
                    s.fecha_pago, s.forma_pago,
                    se.id_sede, se.nombre_comercial as sede_nombre, 
                    se.direccion as sede_direccion, se.distrito,
-                   CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, cs.tarifa, 0) END as monto,
-                   cs.tarifa as tarifa_servicio, s.monto_cobrado,
+                   CASE WHEN s.estado_pago = 'pagado' THEN COALESCE(s.monto_cobrado, 0) ELSE COALESCE(s.monto_cobrado, IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa), 0) END as monto,
+                   IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa) as tarifa_servicio, s.monto_cobrado,
                    e.razon_social as empresa_razon_social
             FROM Servicio s
             INNER JOIN Sede se ON s.id_sede = se.id_sede
             INNER JOIN Empresa e ON se.id_empresa = e.id_empresa
             LEFT JOIN ContratoServicio cs ON s.id_contrato = cs.id_contrato
+            LEFT JOIN Manifiesto m ON s.id_servicio = m.id_servicio
             WHERE s.id_ruta = ?
             ORDER BY s.id_servicio
         ", [$ruta['id_ruta']]);

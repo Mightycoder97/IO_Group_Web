@@ -55,7 +55,7 @@ function getAll() {
             s.fecha_pago, s.forma_pago, s.residuo, s.observaciones,
             se.nombre_comercial AS sede_nombre,
             se.direccion AS sede_direccion, 
-            cs.tarifa as tarifa_servicio, se.contacto_telefono,
+            IF(cs.tipo_tarifa = 'por_kg', COALESCE(m.peso_kg, 0) * cs.tarifa, cs.tarifa) as tarifa_servicio, se.contacto_telefono,
             e.razon_social as empresa_razon_social,
             p.nombre_comercial as planta_nombre,
             NULL as numero_contrato,
