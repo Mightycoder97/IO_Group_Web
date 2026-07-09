@@ -83,6 +83,17 @@
             background-color: #f8fafc;
         }
         
+        .sede-title-link {
+            color: #1e293b;
+            text-decoration: none;
+            transition: color 0.15s ease-in-out;
+            cursor: pointer;
+        }
+        .sede-title-link:hover {
+            color: #0d6efd !important;
+            text-decoration: underline !important;
+        }
+        
         .months-never {
             color: #ef4444;
             font-weight: 700;
@@ -851,8 +862,10 @@
                 return `
                     <div class="pending-sede-card d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
                         <div>
-                            <div class="fw-bold text-dark">${s.empresa_razon_social}</div>
-                            <div class="small text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>${s.sede_nombre} — ${s.sede_direccion} (${s.sede_distrito})</div>
+                            <a href="sedes/cartilla.html?id=${s.id_sede}" target="_blank" class="sede-title-link d-block">
+                                <div class="fw-bold">${s.empresa_razon_social}</div>
+                                <div class="small text-muted mb-1"><i class="bi bi-geo-alt me-1"></i>${s.sede_nombre} — ${s.sede_direccion} (${s.sede_distrito})</div>
+                            </a>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-light text-dark border">Frecuencia: ${s.frecuencia || 'No especificada'}</span>
                                 <span class="${monthsBadgeClass}">Sin servicio: ${s.meses_sin_servicio}</span>
