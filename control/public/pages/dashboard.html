@@ -279,9 +279,10 @@
                             <div class="kpi-icon-wrapper secondary"><i class="bi bi-graph-up-arrow"></i></div>
                         </div>
                         <div>
-                            <div class="kpi-value" id="kpiRentabilidad">0%</div>
+                            <div class="kpi-value" id="kpiGainValue">S/ 0.00</div>
                             <div class="d-flex justify-content-between align-items-center w-100">
-                                <span class="kpi-sublabel" id="kpiGainText">Ganancia: S/ 0.00</span>
+                                <span class="kpi-trend" id="kpiRentabilidadPorcentaje">0%</span>
+                                <span class="kpi-sublabel text-end mt-0" id="kpiRentabilidadLabel">margen de rentabilidad</span>
                                 <span class="kpi-click-indicator"><i class="bi bi-chevron-right"></i></span>
                             </div>
                         </div>
@@ -607,8 +608,12 @@
             document.getElementById('kpiEgresos').textContent = formatCurrency(d.egresos.total);
 
             // 5. Rentabilidad
-            document.getElementById('kpiRentabilidad').textContent = `${d.rentabilidad.porcentaje}%`;
-            document.getElementById('kpiGainText').textContent = `Ganancia: ${formatCurrency(d.rentabilidad.ganancia)}`;
+            document.getElementById('kpiGainValue').textContent = formatCurrency(d.rentabilidad.ganancia);
+            const rentPercent = d.rentabilidad.porcentaje;
+            const rentPercentEl = document.getElementById('kpiRentabilidadPorcentaje');
+            rentPercentEl.textContent = `${rentPercent}%`;
+            rentPercentEl.className = `kpi-trend ${rentPercent >= 0 ? 'up' : 'danger'}`;
+            rentPercentEl.innerHTML = `<i class="bi bi-arrow-${rentPercent >= 0 ? 'up' : 'down'}"></i> ${rentPercentEl.textContent}`;
 
             // Render Charts
             renderPerformanceChart(d.comparativo_anual);
