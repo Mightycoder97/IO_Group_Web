@@ -665,7 +665,7 @@ function calculateEffectiveTariffs($servicesList) {
     $processedList = $servicesList;
     
     // Query weight lookup to get full monthly weights for relevant Sedes and Months
-    $sedeIds = array_unique(array_map(function($s) { return intval($s['id_sede']); }, $servicesList));
+    $sedeIds = array_values(array_unique(array_map(function($s) { return intval($s['id_sede']); }, $servicesList)));
     $weightLookup = [];
     
     if (!empty($sedeIds)) {

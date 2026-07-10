@@ -425,7 +425,7 @@ function calculateEffectiveTariffs($servicesList) {
     $processedList = $servicesList;
     
     // Query weight lookup to get full monthly weights for relevant Sedes and Months
-    $sedeIds = array_unique(array_map(function($s) { return intval($s['id_sede']); }, $servicesList));
+    $sedeIds = array_values(array_unique(array_map(function($s) { return intval($s['id_sede']); }, $servicesList)));
     $weightLookup = [];
     
     if (!empty($sedeIds)) {
@@ -466,51 +466,45 @@ function calculateEffectiveTariffs($servicesList) {
                 $tipo_tarifa = isset($s['tipo_tarifa']) ? $s['tipo_tarifa'] : 'por_servicio';
                 $peso_limite = isset($s['peso_limite_kg']) ? floatval($s['peso_limite_kg']) : 0.0;
                 $tarifa_extra = isset($s['tarifa_adicional_kg']) ? floatval($s['tarifa_adicional_kg']) : 0.0;
+                $monto_cobrado = isset($s['monto_cobrado']) && $s['monto_cobrado'] !== null ? floatval($s['monto_cobrado']) : null;
                 
-                if (isset($s['monto_cobrado']) && $s['monto_cobrado'] !== null && floatval($s['monto_cobrado']) > 0) {
-                    $effective = floatval($s['monto_cobrado']);
-                } else if ($tipo_tarifa === 'por_kg') {
-                    $effective = $peso_kg * $tarifa;
-                } else if ($tipo_tarifa === 'mensual_fijo') {
-                    // Only charge flat tariff once per month (on the first service)
+                if ($tipo_tarifa === 'mensual_fijo') {
+                    // Monthly flat fee logic
                     if ($k === 0) {
-                        $effective = $tarifa;
+                        $effective = $tarifa; // Charge base monthly tariff
+                        
                         // Calculate weight excess surcharge
                         if ($peso_limite > 0 && $totalWeight > $peso_limite && $tarifa_extra > 0) {
                             $excess = $totalWeight - $peso_limite;
                             $effective += ($excess * $tarifa_extra);
                         }
                     } else {
-                        $effective = 0.0;
+                        // For subsequent services:
+                        // If it has an explicit monto_cobrado that matches the monthly tariff, it is a duplicate -> 0.00
+                        // If it has a different monto_cobrado (> 0), it is a custom surcharge -> keep it!
+                        if ($monto_cobrado !== null && abs($monto_cobrado - $tarifa) >= 0.01 && $monto_cobrado > 0) {
+                            $effective = $monto_cobrado;
+                        } else {
+                            $effective = 0.0;
+                        }
                     }
+                } else if ($tipo_tarifa === 'por_kg') {
+                    $effective = $monto_cobrado !== null && $monto_cobrado > 0 ? $monto_cobrado : ($peso_kg * $tarifa);
                 } else {
+                    // por_servicio or fallback
+                    $effective = $monto_cobrado !== null && $monto_cobrado > 0 ? $monto_cobrado : $tarifa;
+                    
+                    // If tipo_tarifa is not mensual_fijo but they use frequency-based monthly rules:
                     $frecuencia = $s['frecuencia'];
                     if ($frecuencia === 'mensual') {
                         $periodKey = 'month';
                         if (!isset($chargedPeriods[$periodKey])) {
-                            $effective = $tarifa;
                             $chargedPeriods[$periodKey] = true;
                         } else {
-                            $effective = 0.0;
+                            if ($monto_cobrado !== null && abs($monto_cobrado - $tarifa) < 0.01) {
+                                $effective = 0.0;
+                            }
                         }
-                    } else if ($frecuencia === 'quincenal') {
-                        $periodKey = $item['day'] <= 15 ? 'fn1' : 'fn2';
-                        if (!isset($chargedPeriods[$periodKey])) {
-                            $effective = $tarifa;
-                            $chargedPeriods[$periodKey] = true;
-                        } else {
-                            $effective = 0.0;
-                        }
-                    } else if ($frecuencia === 'semanal') {
-                        $periodKey = 'week_' . $item['week'];
-                        if (!isset($chargedPeriods[$periodKey])) {
-                            $effective = $tarifa;
-                            $chargedPeriods[$periodKey] = true;
-                        } else {
-                            $effective = 0.0;
-                        }
-                    } else {
-                        $effective = $tarifa;
                     }
                 }
                 
