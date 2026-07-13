@@ -61,9 +61,10 @@ function getDashboard() {
         // 1. Clientes Activos
         $clientesTotalesResult = db()->queryOne(
             "SELECT 
-                SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as activos,
-                SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as inactivos
-             FROM Cliente"
+                SUM(CASE WHEN s.activo = 1 AND e.activo = 1 THEN 1 ELSE 0 END) as activos,
+                SUM(CASE WHEN s.activo = 0 OR e.activo = 0 THEN 1 ELSE 0 END) as inactivos
+             FROM Sede s
+             INNER JOIN Empresa e ON e.id_empresa = s.id_empresa"
         );
         $clientesActivosTotal = $clientesTotalesResult ? intval($clientesTotalesResult['activos']) : 0;
         $clientesInactivosTotal = $clientesTotalesResult ? intval($clientesTotalesResult['inactivos']) : 0;
@@ -71,8 +72,9 @@ function getDashboard() {
         // Growth calculation (active current month vs previous month based on creation date)
         $activeCurrentMonthResult = db()->queryOne(
             "SELECT COUNT(*) as count 
-             FROM Cliente 
-             WHERE activo = 1 AND fecha_creacion < ?",
+             FROM Sede s
+             INNER JOIN Empresa e ON e.id_empresa = s.id_empresa
+             WHERE s.activo = 1 AND e.activo = 1 AND s.fecha_creacion < ?",
             [$filterDateNext]
         );
         $activeCurrentMonth = $activeCurrentMonthResult ? intval($activeCurrentMonthResult['count']) : 0;
@@ -82,8 +84,9 @@ function getDashboard() {
         
         $activePrevMonthResult = db()->queryOne(
             "SELECT COUNT(*) as count 
-             FROM Cliente 
-             WHERE activo = 1 AND fecha_creacion < ?",
+             FROM Sede s
+             INNER JOIN Empresa e ON e.id_empresa = s.id_empresa
+             WHERE s.activo = 1 AND e.activo = 1 AND s.fecha_creacion < ?",
             [$prevMonthEndNext]
         );
         $activePrevMonth = $activePrevMonthResult ? intval($activePrevMonthResult['count']) : 0;
