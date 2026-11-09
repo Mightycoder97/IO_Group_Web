@@ -7,6 +7,10 @@ RewriteRule ^api/webhooks/whatsapp(.*)$ control/api/webhooks/whatsapp.php [QSA,L
 # Special case: /blog should serve blog.html (not the blog/ directory)
 RewriteRule ^blog/?$ blog.html [L]
 
+# Clean route for Linktree page: /links and /linktree serve links.html
+RewriteRule ^(links|linktree)/$ /$1 [R=301,L]
+RewriteRule ^(links|linktree)$ links.html [L]
+
 # Remove .html extension from URLs
 # Example: /contacto loads contacto.html
 RewriteCond %{REQUEST_FILENAME} !-d

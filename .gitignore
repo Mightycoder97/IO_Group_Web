@@ -13,11 +13,13 @@ extraction_tools/
 *.doc
 *.pdf
 *.txt
-# Permitir explícitamente robots.txt
+# Permitir explícitamente robots.txt y brochure corporativo
 !robots.txt
+!docs/BROCHURE*
 
 # Carpetas privadas de soporte y diseño
-docs/
+docs/*
+!docs/BROCHURE*
 templates/
 archive/
 .xlsm_extract/

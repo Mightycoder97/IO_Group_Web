@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>IO Group — Canales Oficiales y Enlaces | EO-RS Autorizada</title>
+    <meta name="description"
+        content="Accede a todos los canales oficiales de IO Group: WhatsApp de atención, cotización de residuos peligrosos, brochure corporativo, sitio web y redes sociales.">
+    <link rel="canonical" href="https://www.iogroup.pe/links">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.iogroup.pe/links">
+    <meta property="og:title" content="IO Group — Canales Oficiales y Enlaces">
+    <meta property="og:description"
+        content="Empresa Operadora de Residuos Sólidos (EO-RS) autorizada por MINAM y MTC. Centraliza tu contacto con IO Group.">
+    <meta property="og:image" content="https://www.iogroup.pe/img/logos/logo-principal.png">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="IO Group — Canales Oficiales y Enlaces">
+    <meta name="twitter:description" content="Canales oficiales, cotizaciones y brochure corporativo de IO Group.">
+    <meta name="twitter:image" content="https://www.iogroup.pe/img/logos/logo-principal.png">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.2 CDN & Font Awesome 6.4.2 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+    <!-- Base Global Stylesheet -->
+    <link rel="stylesheet" href="css/global.css">
+
+    <style>
+        /* ==========================================================================
+           IO Group Linktree Page Styling System
+           ========================================================================== */
+        :root {
+            color-scheme: light dark;
+            --brand-orange: #E8471A;
+            --brand-orange-hover: #C4390F;
+            --brand-orange-light: #FF5C2E;
+            --brand-orange-glow: rgba(232, 71, 26, 0.25);
+            --brand-olive: #5C6B1E;
+            --brand-olive-light: #728B24;
+            --brand-olive-glow: rgba(92, 107, 30, 0.2);
+            --whatsapp-green: #25D366;
+            --whatsapp-dark: #128C7E;
+
+            /* Light theme (default) */
+            --page-bg: #f5f5f7;
+            --card-bg: #ffffff;
+            --card-border: #e8e8ed;
+            --card-hover-border: #E8471A;
+            --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            --card-shadow-hover: 0 8px 24px rgba(232, 71, 26, 0.16);
+            --text-primary: #0a0a0a;
+            --text-secondary: #555555;
+            --text-muted: #86868b;
+            --badge-bg: rgba(92, 107, 30, 0.10);
+            --badge-color: #4A5618;
+            --modal-bg: #ffffff;
+            --modal-border: #e8e8ed;
+            --code-bg: #eaeaea;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --page-bg: #0a0a0a;
+                --card-bg: #161618;
+                --card-border: #2a2a2e;
+                --card-hover-border: #FF5C2E;
+                --card-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+                --card-shadow-hover: 0 8px 28px rgba(232, 71, 26, 0.28);
+                --text-primary: #f5f5f7;
+                --text-secondary: #b3b3b7;
+                --text-muted: #86868b;
+                --badge-bg: rgba(114, 139, 36, 0.2);
+                --badge-color: #9ecc32;
+                --modal-bg: #1c1c1e;
+                --modal-border: #333338;
+                --code-bg: #28282c;
+            }
+        }
+
+        /* Base Body Reset */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--page-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Subtle ambient glow decoration */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            height: 380px;
+            background: radial-gradient(ellipse at top, rgba(232, 71, 26, 0.12) 0%, rgba(92, 107, 30, 0.05) 50%, transparent 80%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Main Container */
+        .linktree-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 32px 18px 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Brand Header */
+        .brand-header {
+            text-align: center;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .brand-logo-wrap {
+            display: inline-block;
+            margin-bottom: 14px;
+            text-decoration: none;
+            transition: transform 0.2s ease;
+        }
+
+        .brand-logo-wrap:hover {
+            transform: scale(1.02);
+        }
+
+        .brand-logo {
+            width: 100%;
+            max-width: 220px;
+            height: auto;
+            display: block;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            background-color: var(--badge-bg);
+            color: var(--badge-color);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            border-radius: 100px;
+            margin-bottom: 10px;
+        }
+
+        .brand-badge i {
+            color: var(--brand-olive);
+            font-size: 0.7rem;
+        }
+
+        .brand-tagline {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            margin: 0;
+            max-width: 360px;
+            line-height: 1.45;
+        }
+
+        /* Quick QR / Action Bar */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            width: 100%;
+        }
+
+        .btn-qr-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: transparent;
+            color: var(--brand-orange);
+            border: 1.5px solid var(--brand-orange);
+            border-radius: 100px;
+            padding: 12px 22px;
+            min-height: 48px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-qr-trigger:hover,
+        .btn-qr-trigger:focus-visible {
+            background-color: var(--brand-orange);
+            color: #ffffff;
+            box-shadow: 0 4px 14px var(--brand-orange-glow);
+        }
+
+        /* Links Section */
+        .links-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        /* Link Card — WCAG touch target compliance (>= 54px min-height) */
+        .link-card {
+            width: 100%;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 12px 18px;
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--text-primary);
+            box-shadow: var(--card-shadow);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .link-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--card-hover-border);
+            box-shadow: var(--card-shadow-hover);
+            color: var(--text-primary);
+        }
+
+        .link-card:focus-visible {
+            outline: 3px solid var(--brand-orange);
+            outline-offset: 3px;
+        }
+
+        .link-card:active {
+            transform: translateY(0);
+        }
+
+        /* Featured / Highlighted Card (WhatsApp Customer Service) */
+        .link-card.highlight-orange {
+            border-color: var(--brand-orange);
+            background: linear-gradient(135deg, var(--card-bg) 75%, rgba(232, 71, 26, 0.08) 100%);
+        }
+
+        .link-card.highlight-green {
+            border-color: var(--whatsapp-green);
+            background: linear-gradient(135deg, var(--card-bg) 75%, rgba(37, 211, 102, 0.08) 100%);
+        }
+
+        /* Icon Container */
+        .link-icon-wrap {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .link-card:hover .link-icon-wrap {
+            transform: scale(1.08);
+        }
+
+        /* Icon Colors */
+        .icon-whatsapp {
+            background-color: rgba(37, 211, 102, 0.12);
+            color: #20BA5A;
+        }
+
+        .icon-pdf {
+            background-color: rgba(232, 71, 26, 0.12);
+            color: var(--brand-orange);
+        }
+
+        .icon-web {
+            background-color: rgba(92, 107, 30, 0.12);
+            color: var(--brand-olive);
+        }
+
+        .icon-dent-vet {
+            background-color: rgba(232, 71, 26, 0.12);
+            color: var(--brand-orange);
+        }
+
+        .icon-instagram {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: #ffffff;
+        }
+
+        .icon-facebook {
+            background-color: rgba(24, 119, 242, 0.12);
+            color: #1877F2;
+        }
+
+        .icon-phone {
+            background-color: rgba(92, 107, 30, 0.12);
+            color: var(--brand-olive);
+        }
+
+        .icon-email {
+            background-color: rgba(232, 71, 26, 0.12);
+            color: var(--brand-orange);
+        }
+
+        .icon-map {
+            background-color: rgba(234, 67, 53, 0.12);
+            color: #EA4335;
+        }
+
+        /* Content inside Card */
+        .link-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            min-width: 0;
+        }
+
+        .link-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .link-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.35;
+            margin-top: 2px;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .link-chevron {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-left: 10px;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .link-card:hover .link-chevron {
+            transform: translateX(3px);
+            color: var(--brand-orange);
+        }
+
+        /* Dual-Action Card (Brochure: View inline + Download button) */
+        .brochure-card-wrapper {
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .brochure-card-wrapper .brochure-main-link {
+            flex: 1 1 0%;
+            min-width: 0;
+            width: auto;
+        }
+
+        .brochure-download-btn {
+            min-width: 54px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px 12px;
+            background-color: var(--card-bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 16px;
+            color: var(--brand-orange);
+            text-decoration: none;
+            box-shadow: var(--card-shadow);
+            transition: all 0.25s ease;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .brochure-download-btn i {
+            font-size: 1.15rem;
+        }
+
+        .brochure-download-btn:hover {
+            border-color: var(--brand-orange);
+            background-color: var(--brand-orange);
+            color: #ffffff;
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .brochure-download-btn:focus-visible {
+            outline: 3px solid var(--brand-orange);
+            outline-offset: 3px;
+        }
+
+        /* Footer & Compliance */
+        .brand-footer {
+            margin-top: 36px;
+            text-align: center;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-social-icons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 4px;
+        }
+
+        .social-circle-link {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            min-height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .social-circle-link:hover {
+            color: var(--brand-orange);
+            border-color: var(--brand-orange);
+            transform: translateY(-2px);
+        }
+
+        .social-circle-link:focus-visible {
+            outline: 3px solid var(--brand-orange);
+            outline-offset: 2px;
+        }
+
+        .complaints-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 10px 20px;
+            min-height: 48px;
+            border-radius: 100px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            transition: all 0.2s ease;
+        }
+
+        .complaints-link:hover {
+            color: var(--brand-orange);
+            border-color: var(--brand-orange);
+        }
+
+        .complaints-link:focus-visible {
+            outline: 3px solid var(--brand-orange);
+            outline-offset: 2px;
+        }
+
+        .footer-credits {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* ==========================================================================
+           Native <dialog> Modal — Modern Web Guidance Pattern
+           ========================================================================== */
+        dialog#qrModal {
+            border: 1px solid var(--modal-border);
+            border-radius: 24px;
+            background: var(--modal-bg);
+            color: var(--text-primary);
+            padding: 28px 24px;
+            max-width: 420px;
+            width: 92%;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+            margin: auto;
+        }
+
+        /* MANDATORY modern-web-guidance scroll containment rules */
+        dialog:modal {
+            overscroll-behavior: contain;
+        }
+
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            overflow: hidden;
+            overscroll-behavior: contain;
+        }
+
+        .modal-header-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-title-custom {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            background-color: rgba(128, 128, 128, 0.15);
+            color: var(--text-primary);
+        }
+
+        .modal-close-btn:focus-visible {
+            outline: 2px solid var(--brand-orange);
+        }
+
+        .qr-display-box {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 18px;
+        }
+
+        .qr-img {
+            width: 220px;
+            height: 220px;
+            display: block;
+        }
+
+        .qr-caption {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #0a0a0a;
+            margin-top: 10px;
+            margin-bottom: 0;
+            font-family: monospace;
+            background: var(--code-bg);
+            padding: 4px 10px;
+            border-radius: 6px;
+            word-break: break-all;
+        }
+
+        .qr-actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .btn-qr-download {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 100px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-qr-download.png {
+            background-color: var(--brand-orange);
+            color: #ffffff;
+            border: 1px solid var(--brand-orange);
+        }
+
+        .btn-qr-download.png:hover {
+            background-color: var(--brand-orange-hover);
+            color: #ffffff;
+            box-shadow: 0 4px 14px var(--brand-orange-glow);
+        }
+
+        .btn-qr-download.svg {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1.5px solid var(--card-border);
+        }
+
+        .btn-qr-download.svg:hover {
+            border-color: var(--brand-olive);
+            color: var(--brand-olive);
+            background-color: var(--badge-bg);
+        }
+
+        .btn-copy-url {
+            width: 100%;
+            padding: 12px 16px;
+            min-height: 48px;
+            background: transparent;
+            border: 1.5px solid var(--card-border);
+            border-radius: 100px;
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy-url:hover {
+            border-color: var(--brand-orange);
+            color: var(--brand-orange);
+        }
+
+        .btn-copy-url:focus-visible {
+            outline: 2px solid var(--brand-orange);
+        }
+
+        /* Screen reader utility */
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="linktree-container">
+
+        <!-- ===== BRAND PROFILE HEADER ===== -->
+        <header class="brand-header">
+            <a href="https://www.iogroup.pe/" class="brand-logo-wrap" title="Ir al sitio web oficial de IO Group">
+                <img src="img/logos/logo-principal.png" alt="IO Group — Gestión Integral de Residuos Peligrosos" class="brand-logo" width="220" height="81">
+            </a>
+
+            <div class="brand-badge">
+                <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                <span>EO-RS Autorizada MINAM &amp; MTC</span>
+            </div>
+
+            <h1 class="visually-hidden">IO Group — Canales Oficiales y Enlaces de Contacto</h1>
+
+            <p class="brand-tagline">
+                Especialistas en recojo, transporte, incineración y disposición final de residuos peligrosos y biocontaminados en el Perú.
+            </p>
+
+            <div class="header-actions">
+                <button type="button" class="btn-qr-trigger" id="openQrBtn" aria-haspopup="dialog">
+                    <i class="fas fa-qrcode" aria-hidden="true"></i>
+                    <span>Ver Código QR</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ===== LINKS INVENTORY ===== -->
+        <section class="links-list" aria-label="Enlaces oficiales">
+
+            <!-- 1. WhatsApp Atención al Cliente (Destacado) -->
+            <a href="https://wa.me/51997571262?text=Hola%20IO%20Group,%20deseo%20informaci%C3%B3n%20sobre%20sus%20servicios%20de%20gesti%C3%B3n%20de%20residuos."
+                target="_blank" rel="noopener noreferrer"
+                class="link-card highlight-green">
+                <div class="link-icon-wrap icon-whatsapp">
+                    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Chatea con Atención al Cliente</span>
+                    <span class="link-subtitle">Respuesta inmediata por WhatsApp (+51&nbsp;997&nbsp;571&nbsp;262)</span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+            </a>
+
+            <!-- 2. Corporate Brochure (Visualizar y Descargar) -->
+            <div class="brochure-card-wrapper">
+                <a href="docs/BROCHURE%20IOGROUP%20OFICIAL.pdf" target="_blank" rel="noopener noreferrer"
+                    class="link-card brochure-main-link highlight-orange"
+                    title="Abrir brochure corporativo en el navegador">
+                    <div class="link-icon-wrap icon-pdf">
+                        <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                    </div>
+                    <div class="link-content">
+                        <span class="link-title">Brochure Corporativo 2026</span>
+                        <span class="link-subtitle">Ver portafolio de servicios y credenciales EO-RS</span>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square link-chevron" aria-hidden="true"></i>
+                    <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+                </a>
+                <a href="docs/BROCHURE%20IOGROUP%20OFICIAL.pdf" download="BROCHURE_IOGROUP_OFICIAL.pdf"
+                    class="brochure-download-btn"
+                    title="Descargar archivo PDF directamente">
+                    <i class="fas fa-download" aria-hidden="true"></i>
+                    <span>Bajar</span>
+                    <span class="visually-hidden">Descargar PDF</span>
+                </a>
+            </div>
+
+            <!-- 3. WhatsApp Ventas B2B / Cotizaciones -->
+            <a href="https://wa.me/51949063359?text=Buenos%20d%C3%ADas.%20Quisiera%20solicitar%20una%20cotizaci%C3%B3n%20para%20gesti%C3%B3n%20de%20residuos%20peligrosos.%20Nuestra%20raz%C3%B3n%20social%20es%3A"
+                target="_blank" rel="noopener noreferrer"
+                class="link-card">
+                <div class="link-icon-wrap icon-whatsapp">
+                    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Cotizaciones Comerciales &amp; B2B</span>
+                    <span class="link-subtitle">Propuestas a medida para empresas e industrias</span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+            </a>
+
+            <!-- 4. Sitio Web Principal -->
+            <a href="https://www.iogroup.pe/" target="_blank" rel="noopener noreferrer"
+                class="link-card">
+                <div class="link-icon-wrap icon-web">
+                    <i class="fas fa-globe" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Sitio Web Oficial</span>
+                    <span class="link-subtitle">iogroup.pe — Servicios, normativa y autorizaciones</span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+            </a>
+
+            <!-- 5. Planes Especiales Odontología y Veterinaria -->
+            <a href="https://www.iogroup.pe/landing/" target="_blank" rel="noopener noreferrer"
+                class="link-card">
+                <div class="link-icon-wrap icon-dent-vet">
+                    <i class="fas fa-tooth" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Planes Dentales y Veterinarios</span>
+                    <span class="link-subtitle">Servicio mensual desde S/.65 con contenedor incluido</span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+            </a>
+
+            <!-- 6. Instagram -->
+            <a href="https://www.instagram.com/iogroup.residuos/" target="_blank" rel="noopener noreferrer"
+                class="link-card">
+                <div class="link-icon-wrap icon-instagram">
+                    <i class="fab fa-instagram" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Instagram Oficial</span>
+                    <span class="link-subtitle">@iogroup.residuos — Noticias y recomendaciones</span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+            </a>
+
+            <!-- 7. Facebook -->
+            <a href="https://www.facebook.com/iogroup.oficial" target="_blank" rel="noopener noreferrer"
+                class="link-card">
+                <div class="link-icon-wrap icon-facebook">
+                    <i class="fab fa-facebook-f" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Facebook Oficial</span>
+                    <span class="link-subtitle">@iogroup.oficial — Comunidad y actualizaciones</span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+            </a>
+
+            <!-- 8. Llamada Telefónica Directa -->
+            <a href="tel:+51997571262" class="link-card">
+                <div class="link-icon-wrap icon-phone">
+                    <i class="fas fa-phone-volume" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Llámanos&nbsp;Directamente</span>
+                    <span class="link-subtitle"><span>+51&nbsp;997&nbsp;571&nbsp;262</span> &middot; <span>+51&nbsp;973&nbsp;224&nbsp;733</span></span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+            </a>
+
+            <!-- 9. Correo Corporativo -->
+            <a href="mailto:administracion@iogroup.pe?subject=Consulta%20desde%20Linktree%20-%20IO%20Group" class="link-card">
+                <div class="link-icon-wrap icon-email">
+                    <i class="fas fa-envelope" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Correo Electrónico</span>
+                    <span class="link-subtitle">administracion@iogroup.pe &nbsp;·&nbsp; naenciso@iogroup.pe</span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+            </a>
+
+            <!-- 10. Ubicación Google Maps -->
+            <a href="https://maps.google.com/?q=Halcones+260+Surquillo+Lima" target="_blank" rel="noopener noreferrer"
+                class="link-card">
+                <div class="link-icon-wrap icon-map">
+                    <i class="fas fa-location-dot" aria-hidden="true"></i>
+                </div>
+                <div class="link-content">
+                    <span class="link-title">Oficina Central en Lima</span>
+                    <span class="link-subtitle">Calle Los Halcones 260 - 4to piso, Surquillo</span>
+                </div>
+                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+            </a>
+
+        </section>
+
+        <!-- ===== FOOTER & LEGAL ===== -->
+        <footer class="brand-footer">
+            <div class="footer-social-icons">
+                <a href="https://www.facebook.com/iogroup.oficial" target="_blank" rel="noopener noreferrer"
+                    class="social-circle-link" aria-label="Facebook de IO Group (se abre en una nueva pestaña)">
+                    <i class="fab fa-facebook-f" aria-hidden="true"></i>
+                </a>
+                <a href="https://www.instagram.com/iogroup.residuos/" target="_blank" rel="noopener noreferrer"
+                    class="social-circle-link" aria-label="Instagram de IO Group (se abre en una nueva pestaña)">
+                    <i class="fab fa-instagram" aria-hidden="true"></i>
+                </a>
+                <a href="https://wa.me/51997571262" target="_blank" rel="noopener noreferrer"
+                    class="social-circle-link" aria-label="WhatsApp de IO Group (se abre en una nueva pestaña)">
+                    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                </a>
+                <a href="https://www.iogroup.pe/" target="_blank" rel="noopener noreferrer"
+                    class="social-circle-link" aria-label="Sitio web de IO Group (se abre en una nueva pestaña)">
+                    <i class="fas fa-globe" aria-hidden="true"></i>
+                </a>
+            </div>
+
+            <a href="https://www.iogroup.pe/libro-reclamaciones" class="complaints-link">
+                <i class="fas fa-book-bookmark" aria-hidden="true"></i>
+                <span>Libro de Reclamaciones</span>
+            </a>
+
+            <p class="footer-credits">
+                &copy; 2026 IO Group SAC. Todos los derechos reservados.<br>
+                Empresa Operadora de Residuos Sólidos (EO-RS) · Lima, Perú
+            </p>
+        </footer>
+
+    </main>
+
+    <!-- ==========================================================================
+         QR Code Modal — Native <dialog> (Modern Web Guidance Implementation)
+         ========================================================================== -->
+    <dialog id="qrModal" closedby="any" aria-labelledby="qrModalTitle">
+        <div class="modal-header-custom">
+            <h2 id="qrModalTitle" class="modal-title-custom">Código QR de IO Group</h2>
+            <button type="button" class="modal-close-btn" id="closeQrBtn" aria-label="Cerrar modal">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="qr-display-box">
+            <img src="img/qr/qr-linktree.png" alt="Código QR para acceder a los enlaces de IO Group" class="qr-img" width="220" height="220">
+            <p class="qr-caption" id="qrCanonicalUrl">https://www.iogroup.pe/links</p>
+        </div>
+
+        <div class="qr-actions-grid">
+            <a href="img/qr/qr-linktree.png" download="qr-iogroup-links.png" class="btn-qr-download png">
+                <i class="fas fa-download" aria-hidden="true"></i>
+                <span>Descargar PNG</span>
+            </a>
+            <a href="img/qr/qr-linktree.svg" download="qr-iogroup-links.svg" class="btn-qr-download svg">
+                <i class="fas fa-file-code" aria-hidden="true"></i>
+                <span>Descargar SVG</span>
+            </a>
+        </div>
+
+        <button type="button" class="btn-copy-url" id="copyUrlBtn">
+            <i class="fas fa-copy" id="copyIcon" aria-hidden="true"></i>
+            <span id="copyText">Copiar Enlace</span>
+        </button>
+    </dialog>
+
+    <!-- ===== CLIENT SCRIPT: MODAL MANAGEMENT & LIGHT DISMISS FALLBACK ===== -->
+    <script>
+        (function () {
+            const qrModal = document.getElementById('qrModal');
+            const openQrBtn = document.getElementById('openQrBtn');
+            const closeQrBtn = document.getElementById('closeQrBtn');
+            const copyUrlBtn = document.getElementById('copyUrlBtn');
+            const copyText = document.getElementById('copyText');
+            const copyIcon = document.getElementById('copyIcon');
+            const canonicalUrl = 'https://www.iogroup.pe/links';
+
+            if (openQrBtn && qrModal) {
+                openQrBtn.addEventListener('click', function () {
+                    qrModal.showModal();
+                });
+            }
+
+            if (closeQrBtn && qrModal) {
+                closeQrBtn.addEventListener('click', function () {
+                    qrModal.close();
+                });
+            }
+
+            // Modern Web Guidance: Fallback light-dismiss for browsers lacking closedby support
+            if (qrModal && !('closedBy' in HTMLDialogElement.prototype)) {
+                let pressedOutside = false;
+                const isOutside = function (e, dialog) {
+                    const r = dialog.getBoundingClientRect();
+                    return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+                };
+
+                qrModal.addEventListener('pointerdown', function (e) {
+                    pressedOutside = isOutside(e, qrModal);
+                });
+
+                qrModal.addEventListener('pointerup', function (e) {
+                    if (pressedOutside && isOutside(e, qrModal)) {
+                        qrModal.close();
+                    }
+                });
+            }
+
+            // Copy Link Functionality with Feedback
+            if (copyUrlBtn) {
+                copyUrlBtn.addEventListener('click', async function () {
+                    try {
+                        await navigator.clipboard.writeText(canonicalUrl);
+                        copyText.textContent = '¡Enlace copiado!';
+                        copyIcon.className = 'fas fa-check text-success';
+                        setTimeout(function () {
+                            copyText.textContent = 'Copiar Enlace';
+                            copyIcon.className = 'fas fa-copy';
+                        }, 2500);
+                    } catch (err) {
+                        // Fallback prompt for legacy environments
+                        window.prompt('Copia este enlace:', canonicalUrl);
+                    }
+                });
+            }
+        })();
+    </script>
+
+</body>
+
+</html>
