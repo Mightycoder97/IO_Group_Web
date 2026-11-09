@@ -6,30 +6,32 @@
     <base href="/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light dark">
-    <title>IO Group — Canales Oficiales y Enlaces | EO-RS Autorizada</title>
+    <title>IO Group — Canales Oficiales, Brochure y Contacto | EO-RS Autorizada</title>
     <meta name="description"
-        content="Accede a todos los canales oficiales de IO Group: WhatsApp de atención, cotización de residuos peligrosos, brochure corporativo, sitio web y redes sociales.">
+        content="Accede a todos los canales oficiales de IO Group: Brochure Corporativo Oficial, WhatsApp de atención inmediata, cotizaciones B2B, planes dentales/veterinarios y redes sociales.">
     <link rel="canonical" href="https://www.iogroup.pe/links">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.iogroup.pe/links">
-    <meta property="og:title" content="IO Group — Canales Oficiales y Enlaces">
+    <meta property="og:title" content="IO Group — Canales Oficiales y Brochure Corporativo">
     <meta property="og:description"
-        content="Empresa Operadora de Residuos Sólidos (EO-RS) autorizada por MINAM y MTC. Centraliza tu contacto con IO Group.">
-    <meta property="og:image" content="https://www.iogroup.pe/img/logos/logo-principal.png">
+        content="Empresa Operadora de Residuos Sólidos (EO-RS) autorizada por MINAM y MTC. Descarga nuestro brochure oficial y contáctanos.">
+    <meta property="og:image" content="https://www.iogroup.pe/img/hero/hero-principal.jpg">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="IO Group — Canales Oficiales y Enlaces">
-    <meta name="twitter:description" content="Canales oficiales, cotizaciones y brochure corporativo de IO Group.">
-    <meta name="twitter:image" content="https://www.iogroup.pe/img/logos/logo-principal.png">
+    <meta name="twitter:title" content="IO Group — Canales Oficiales y Brochure Corporativo">
+    <meta name="twitter:description" content="Canales oficiales, cotizaciones B2B y brochure corporativo de IO Group.">
+    <meta name="twitter:image" content="https://www.iogroup.pe/img/hero/hero-principal.jpg">
 
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Plus Jakarta Sans (Display/Headings) + Inter (Body/UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+        rel="stylesheet">
 
     <!-- Bootstrap 5.3.2 CDN & Font Awesome 6.4.2 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -40,61 +42,99 @@
 
     <style>
         /* ==========================================================================
-           IO Group Linktree Page Styling System
+           IO Group Linktree — Senior UX/UI Bento Design System
            ========================================================================== */
         :root {
             color-scheme: light dark;
+            --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+            /* Brand Core Tokens */
             --brand-orange: #E8471A;
             --brand-orange-hover: #C4390F;
-            --brand-orange-light: #FF5C2E;
-            --brand-orange-glow: rgba(232, 71, 26, 0.25);
+            --brand-orange-light: #FF6B42;
+            --brand-orange-glow: rgba(232, 71, 26, 0.28);
             --brand-olive: #5C6B1E;
-            --brand-olive-light: #728B24;
-            --brand-olive-glow: rgba(92, 107, 30, 0.2);
+            --brand-olive-light: #869D2B;
+            --brand-olive-glow: rgba(92, 107, 30, 0.25);
             --whatsapp-green: #25D366;
             --whatsapp-dark: #128C7E;
 
-            /* Light theme (default) */
-            --page-bg: #f5f5f7;
+            /* Gradient Interpolation Space Token (modern-web-guidance: visual-effects) */
+            --in-oklab: ;
+
+            /* Light Theme Tokens */
+            --page-bg: #eef0f4;
+            --shell-bg: rgba(255, 255, 255, 0.82);
+            --shell-border: rgba(15, 23, 42, 0.08);
             --card-bg: #ffffff;
-            --card-border: #e8e8ed;
+            --card-bg-elevated: #f8fafc;
+            --card-border: rgba(15, 23, 42, 0.11);
             --card-hover-border: #E8471A;
-            --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-            --card-shadow-hover: 0 8px 24px rgba(232, 71, 26, 0.16);
-            --text-primary: #0a0a0a;
-            --text-secondary: #555555;
-            --text-muted: #86868b;
-            --badge-bg: rgba(92, 107, 30, 0.10);
-            --badge-color: #4A5618;
+            --card-shadow: 0 2px 6px rgba(15, 23, 42, 0.04), 0 10px 24px rgba(15, 23, 42, 0.05);
+            --card-shadow-hover: 0 8px 20px rgba(232, 71, 26, 0.15), 0 16px 36px rgba(15, 23, 42, 0.08);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --badge-bg: rgba(92, 107, 30, 0.12);
+            --badge-color: #3f4a13;
+            --badge-border: rgba(92, 107, 30, 0.25);
+            --divider-line: rgba(15, 23, 42, 0.10);
             --modal-bg: #ffffff;
-            --modal-border: #e8e8ed;
-            --code-bg: #eaeaea;
+            --modal-border: rgba(15, 23, 42, 0.12);
+            --code-bg: #f1f5f9;
+            --bg-photo-opacity: 0.12;
+            --bg-overlay-start: rgba(238, 240, 244, 0.86);
+            --bg-overlay-end: rgba(238, 240, 244, 0.96);
+            --stat-bg: rgba(241, 245, 249, 0.9);
+        }
+
+        @supports (background: linear-gradient(in oklab, white, black)) {
+            :root {
+                --in-oklab: in oklab;
+            }
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --page-bg: #0a0a0a;
-                --card-bg: #161618;
-                --card-border: #2a2a2e;
-                --card-hover-border: #FF5C2E;
-                --card-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-                --card-shadow-hover: 0 8px 28px rgba(232, 71, 26, 0.28);
-                --text-primary: #f5f5f7;
-                --text-secondary: #b3b3b7;
-                --text-muted: #86868b;
-                --badge-bg: rgba(114, 139, 36, 0.2);
-                --badge-color: #9ecc32;
-                --modal-bg: #1c1c1e;
-                --modal-border: #333338;
-                --code-bg: #28282c;
+                --page-bg: #07090d;
+                --shell-bg: rgba(17, 20, 26, 0.78);
+                --shell-border: rgba(255, 255, 255, 0.09);
+                --card-bg: rgba(24, 28, 36, 0.92);
+                --card-bg-elevated: rgba(32, 37, 48, 0.95);
+                --card-border: rgba(255, 255, 255, 0.11);
+                --card-hover-border: #FF6B42;
+                --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 14px 28px rgba(0, 0, 0, 0.35);
+                --card-shadow-hover: 0 8px 24px rgba(232, 71, 26, 0.28), 0 18px 40px rgba(0, 0, 0, 0.55);
+                --text-primary: #f8fafc;
+                --text-secondary: #cbd5e1;
+                --text-muted: #94a3b8;
+                --badge-bg: rgba(134, 157, 43, 0.18);
+                --badge-color: #c9e45b;
+                --badge-border: rgba(163, 190, 55, 0.32);
+                --divider-line: rgba(255, 255, 255, 0.10);
+                --modal-bg: #151921;
+                --modal-border: rgba(255, 255, 255, 0.14);
+                --code-bg: #1e2430;
+                --bg-photo-opacity: 0.24;
+                --bg-overlay-start: rgba(7, 9, 13, 0.80);
+                --bg-overlay-end: rgba(7, 9, 13, 0.95);
+                --stat-bg: rgba(15, 18, 24, 0.75);
             }
         }
 
-        /* Base Body Reset */
+        /* Base Reset & Typography (modern-web-guidance: typography) */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: var(--font-sans);
             background-color: var(--page-bg);
             color: var(--text-primary);
+            line-height: 1.5;
             min-height: 100vh;
             min-height: 100dvh;
             margin: 0;
@@ -103,31 +143,61 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            transition: background-color 0.3s ease, color 0.3s ease;
             position: relative;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Subtle ambient glow decoration */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 600px;
-            height: 380px;
-            background: radial-gradient(ellipse at top, rgba(232, 71, 26, 0.12) 0%, rgba(92, 107, 30, 0.05) 50%, transparent 80%);
+        /* ==========================================================================
+           Atmospheric Industrial Background Layer
+           ========================================================================== */
+        .ambient-backdrop {
+            position: fixed;
+            inset: 0;
             pointer-events: none;
             z-index: 0;
+            overflow: hidden;
+            isolation: isolate;
         }
 
-        /* Main Container */
+        .ambient-photo {
+            position: absolute;
+            inset: -30px;
+            background-image: url('img/hero/planta.jpg');
+            background-size: cover;
+            background-position: center 35%;
+            filter: blur(22px) saturate(1.15);
+            opacity: var(--bg-photo-opacity);
+            transform: scale(1.06);
+        }
+
+        .ambient-gradient {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232, 71, 26, 0.24) 0%, transparent 65%),
+                radial-gradient(ellipse 65% 45% at 85% 95%, rgba(92, 107, 30, 0.20) 0%, transparent 70%),
+                linear-gradient(to bottom var(--in-oklab), var(--bg-overlay-start), var(--bg-overlay-end));
+        }
+
+        /* Subtle technical dot grid pattern */
+        .ambient-grid {
+            position: absolute;
+            inset: 0;
+            --dot-color: rgba(148, 163, 184, 0.10);
+            background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px);
+            background-size: 24px 24px;
+            mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 20%, transparent 85%);
+            -webkit-mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 20%, transparent 85%);
+        }
+
+        /* ==========================================================================
+           Main Linktree Bento Container
+           ========================================================================== */
         .linktree-container {
             width: 100%;
-            max-width: 480px;
-            padding: 32px 18px 48px;
+            max-width: 520px;
+            padding: 20px 14px 48px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -135,123 +205,462 @@
             z-index: 1;
         }
 
-        /* Brand Header */
-        .brand-header {
-            text-align: center;
-            margin-bottom: 24px;
+        @media (min-width: 576px) {
+            .linktree-container {
+                padding: 36px 24px 56px;
+            }
+        }
+
+        /* ==========================================================================
+           1. Hero Profile Card (Solves Dark Mode Logo Contrast + Visual Authority)
+           ========================================================================== */
+        .hero-profile-card {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 26px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin-bottom: 22px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Top Photographic Banner */
+        .hero-cover {
+            position: relative;
+            width: 100%;
+            height: 126px;
+            background-image: url('img/servicios/recojo.jpg');
+            background-size: cover;
+            background-position: center 28%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 12px 14px;
+        }
+
+        .hero-cover::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom var(--in-oklab),
+                rgba(7, 9, 13, 0.35) 0%,
+                rgba(7, 9, 13, 0.55) 60%,
+                rgba(7, 9, 13, 0.88) 100%
+            );
+            pointer-events: none;
+        }
+
+        .hero-cover-tag {
+            position: relative;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 100px;
+            background: rgba(10, 14, 20, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #f8fafc;
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .hero-cover-tag i {
+            color: #9ecc32;
+        }
+
+        /* QR Trigger Button in Hero Corner (>= 48px touch target) */
+        .btn-qr-trigger {
+            position: relative;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            background: rgba(232, 71, 26, 0.94);
+            color: #ffffff;
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            border-radius: 100px;
+            padding: 10px 16px;
+            min-height: 48px;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+            transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-qr-trigger:hover,
+        .btn-qr-trigger:focus-visible {
+            background-color: var(--brand-orange-hover);
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--brand-orange-glow);
+        }
+
+        /* Hero Body & High-Contrast Brand Logo Pod */
+        .hero-body {
+            padding: 0 18px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
         }
 
+        /* CRITICAL FIX: High-contrast white capsule so dark-olive "GROUP E.I.R.L." never disappears on dark backgrounds */
         .brand-logo-wrap {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -38px;
             margin-bottom: 14px;
+            padding: 13px 24px;
+            background: linear-gradient(180deg, #ffffff 0%, #f4f6f9 100%);
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow:
+                0 10px 28px rgba(0, 0, 0, 0.32),
+                0 2px 6px rgba(0, 0, 0, 0.12);
             text-decoration: none;
-            transition: transform 0.2s ease;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
         }
 
         .brand-logo-wrap:hover {
-            transform: scale(1.02);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow:
+                0 14px 34px rgba(232, 71, 26, 0.25),
+                0 4px 10px rgba(0, 0, 0, 0.16);
         }
 
         .brand-logo {
             width: 100%;
-            max-width: 220px;
+            max-width: 195px;
             height: auto;
             display: block;
+        }
+
+        /* Trust Credentials Pills */
+        .trust-pills {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 10px;
         }
 
         .brand-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 5px 14px;
+            padding: 4px 11px;
             background-color: var(--badge-bg);
             color: var(--badge-color);
-            font-size: 0.75rem;
+            border: 1px solid var(--badge-border);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
             font-weight: 700;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
             border-radius: 100px;
-            margin-bottom: 10px;
         }
 
-        .brand-badge i {
-            color: var(--brand-olive);
-            font-size: 0.7rem;
+        .brand-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.18rem, 0.95rem + 1.1vw, 1.42rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            margin: 0 0 6px;
+            line-height: 1.22;
+            letter-spacing: -0.02em;
+            text-wrap: balance;
         }
 
         .brand-tagline {
-            font-size: 0.92rem;
+            font-size: 0.86rem;
             color: var(--text-secondary);
-            margin: 0;
-            max-width: 360px;
-            line-height: 1.45;
+            margin: 0 0 16px;
+            max-width: 44ch;
+            line-height: 1.48;
+            text-wrap: pretty;
         }
 
-        /* Quick QR / Action Bar */
-        .header-actions {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 14px;
-            margin-bottom: 6px;
+        /* Quick Authority Metrics Strip */
+        .hero-metrics {
             width: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding-top: 14px;
+            border-top: 1px solid var(--divider-line);
         }
 
-        .btn-qr-trigger {
-            display: inline-flex;
+        .metric-item {
+            background: var(--stat-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 8px 6px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            background: transparent;
+        }
+
+        .metric-val {
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            font-weight: 800;
             color: var(--brand-orange);
-            border: 1.5px solid var(--brand-orange);
-            border-radius: 100px;
-            padding: 12px 22px;
-            min-height: 48px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            line-height: 1.2;
         }
 
-        .btn-qr-trigger:hover,
-        .btn-qr-trigger:focus-visible {
-            background-color: var(--brand-orange);
-            color: #ffffff;
-            box-shadow: 0 4px 14px var(--brand-orange-glow);
+        .metric-lbl {
+            font-size: 0.68rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-top: 2px;
+            line-height: 1.2;
         }
 
-        /* Links Section */
-        .links-list {
+        /* ==========================================================================
+           Section Dividers (Clear Visual Hierarchy)
+           ========================================================================== */
+        .links-section-group {
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            margin-top: 10px;
+            gap: 11px;
+            margin-bottom: 22px;
         }
 
-        /* Link Card — WCAG touch target compliance (>= 54px min-height) */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 0 4px;
+            margin-bottom: 2px;
+        }
+
+        .section-divider-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: var(--brand-orange);
+            box-shadow: 0 0 8px var(--brand-orange);
+            flex-shrink: 0;
+        }
+
+        .section-divider-title {
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .section-divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--divider-line), transparent);
+        }
+
+        /* ==========================================================================
+           2. Featured Corporate Brochure Spotlight Card
+           ========================================================================== */
+        .brochure-spotlight {
+            width: 100%;
+            background:
+                linear-gradient(135deg var(--in-oklab), rgba(232, 71, 26, 0.14) 0%, var(--card-bg) 62%);
+            border: 1.5px solid rgba(232, 71, 26, 0.55);
+            border-radius: 22px;
+            padding: 16px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .brochure-spotlight:hover {
+            border-color: var(--brand-orange);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .brochure-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .brochure-icon-badge {
+            width: 50px;
+            height: 50px;
+            min-width: 50px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--brand-orange) 0%, #ff6b42 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 6px 16px var(--brand-orange-glow);
+        }
+
+        .brochure-meta {
+            flex: 1;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .brochure-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--font-display);
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--brand-orange-light);
+            background: rgba(232, 71, 26, 0.14);
+            padding: 2px 9px;
+            border-radius: 100px;
+            margin-bottom: 5px;
+        }
+
+        @media (prefers-color-scheme: light) {
+            .brochure-kicker {
+                color: var(--brand-orange-hover);
+            }
+        }
+
+        .brochure-heading {
+            font-family: var(--font-display);
+            font-size: 1.04rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin: 0 0 3px;
+            line-height: 1.25;
+        }
+
+        .brochure-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.38;
+        }
+
+        /* Symmetric Dual Action Bar inside Brochure Card */
+        .brochure-card-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        @media (max-width: 359px) {
+            .brochure-card-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .brochure-main-link.link-card {
+            min-height: 48px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: var(--brand-orange);
+            border: 1.5px solid var(--brand-orange);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: var(--font-display);
+            font-size: 0.84rem;
+            font-weight: 700;
+            text-align: center;
+            box-shadow: 0 4px 14px var(--brand-orange-glow);
+        }
+
+        .brochure-main-link.link-card:hover {
+            background: var(--brand-orange-hover);
+            border-color: var(--brand-orange-hover);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .brochure-main-link .link-title {
+            color: inherit;
+            font-size: 0.84rem;
+        }
+
+        .brochure-download-btn {
+            min-height: 48px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background-color: var(--card-bg-elevated);
+            border: 1.5px solid var(--card-border);
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: var(--font-display);
+            font-size: 0.84rem;
+            font-weight: 700;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .brochure-download-btn:hover {
+            border-color: var(--brand-orange);
+            color: var(--brand-orange);
+            transform: translateY(-1px);
+        }
+
+        .brochure-download-btn:focus-visible {
+            outline: 3px solid var(--brand-orange);
+            outline-offset: 2px;
+        }
+
+        /* ==========================================================================
+           3. Standard & Highlighted Link Cards (WCAG >= 56px Touch Target)
+           ========================================================================== */
         .link-card {
             width: 100%;
-            min-height: 56px;
+            min-height: 58px;
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            padding: 12px 18px;
+            padding: 12px 16px;
             background-color: var(--card-bg);
             border: 1.5px solid var(--card-border);
-            border-radius: 16px;
+            border-radius: 18px;
             text-decoration: none;
             color: var(--text-primary);
             box-shadow: var(--card-shadow);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease, box-shadow 0.22s ease;
             position: relative;
             cursor: pointer;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
 
         .link-card:hover {
@@ -270,82 +679,92 @@
             transform: translateY(0);
         }
 
-        /* Featured / Highlighted Card (WhatsApp Customer Service) */
-        .link-card.highlight-orange {
-            border-color: var(--brand-orange);
-            background: linear-gradient(135deg, var(--card-bg) 75%, rgba(232, 71, 26, 0.08) 100%);
-        }
-
+        /* Primary WhatsApp Card with Live Indicator */
         .link-card.highlight-green {
-            border-color: var(--whatsapp-green);
-            background: linear-gradient(135deg, var(--card-bg) 75%, rgba(37, 211, 102, 0.08) 100%);
+            border-color: rgba(37, 211, 102, 0.55);
+            background: linear-gradient(135deg var(--in-oklab), rgba(37, 211, 102, 0.13) 0%, var(--card-bg) 65%);
         }
 
-        /* Icon Container */
+        .link-card.highlight-green:hover {
+            border-color: var(--whatsapp-green);
+            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.22);
+        }
+
+        /* Icon Containers */
         .link-icon-wrap {
             width: 44px;
             height: 44px;
             min-width: 44px;
-            border-radius: 12px;
+            border-radius: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.25rem;
-            margin-right: 14px;
+            margin-right: 13px;
             transition: transform 0.2s ease;
+            flex-shrink: 0;
         }
 
         .link-card:hover .link-icon-wrap {
-            transform: scale(1.08);
+            transform: scale(1.07);
         }
 
-        /* Icon Colors */
         .icon-whatsapp {
-            background-color: rgba(37, 211, 102, 0.12);
-            color: #20BA5A;
-        }
-
-        .icon-pdf {
-            background-color: rgba(232, 71, 26, 0.12);
-            color: var(--brand-orange);
+            background: linear-gradient(135deg, rgba(37, 211, 102, 0.22), rgba(18, 140, 126, 0.18));
+            color: #25D366;
+            border: 1px solid rgba(37, 211, 102, 0.3);
         }
 
         .icon-web {
-            background-color: rgba(92, 107, 30, 0.12);
-            color: var(--brand-olive);
+            background: linear-gradient(135deg, rgba(134, 157, 43, 0.22), rgba(92, 107, 30, 0.15));
+            color: var(--brand-olive-light);
+            border: 1px solid rgba(134, 157, 43, 0.3);
         }
 
         .icon-dent-vet {
-            background-color: rgba(232, 71, 26, 0.12);
-            color: var(--brand-orange);
+            background: linear-gradient(135deg, rgba(232, 71, 26, 0.20), rgba(255, 107, 66, 0.12));
+            color: var(--brand-orange-light);
+            border: 1px solid rgba(232, 71, 26, 0.28);
         }
 
         .icon-instagram {
             background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
             color: #ffffff;
+            box-shadow: 0 4px 12px rgba(220, 39, 67, 0.3);
         }
 
         .icon-facebook {
-            background-color: rgba(24, 119, 242, 0.12);
-            color: #1877F2;
+            background: linear-gradient(135deg, #1877F2 0%, #0d5bd9 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
         }
 
         .icon-phone {
-            background-color: rgba(92, 107, 30, 0.12);
-            color: var(--brand-olive);
+            background: rgba(134, 157, 43, 0.16);
+            color: var(--brand-olive-light);
+            border: 1px solid rgba(134, 157, 43, 0.28);
         }
 
         .icon-email {
-            background-color: rgba(232, 71, 26, 0.12);
-            color: var(--brand-orange);
+            background: rgba(232, 71, 26, 0.15);
+            color: var(--brand-orange-light);
+            border: 1px solid rgba(232, 71, 26, 0.26);
         }
 
         .icon-map {
-            background-color: rgba(234, 67, 53, 0.12);
-            color: #EA4335;
+            background: rgba(234, 67, 53, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(234, 67, 53, 0.26);
         }
 
-        /* Content inside Card */
+        @media (prefers-color-scheme: light) {
+            .icon-whatsapp { color: #15803d; }
+            .icon-web, .icon-phone { color: var(--brand-olive); }
+            .icon-dent-vet, .icon-email { color: var(--brand-orange); }
+            .icon-map { color: #dc2626; }
+        }
+
+        /* Text Content inside Cards */
         .link-content {
             flex: 1;
             display: flex;
@@ -354,34 +773,91 @@
             min-width: 0;
         }
 
+        .link-title-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
         .link-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            line-height: 1.3;
+            font-family: var(--font-display);
+            font-size: 0.94rem;
+            font-weight: 700;
+            line-height: 1.28;
             color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        }
+
+        /* Status & Promo Pills inside Cards */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 100px;
+            background: rgba(37, 211, 102, 0.16);
+            color: #4ade80;
+            letter-spacing: 0.02em;
+        }
+
+        @media (prefers-color-scheme: light) {
+            .status-pill {
+                color: #15803d;
+            }
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #25D366;
+            box-shadow: 0 0 6px #25D366;
+            animation: pulseDot 1.8s infinite ease-in-out;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.45; transform: scale(0.85); }
+        }
+
+        .price-pill {
+            display: inline-flex;
+            align-items: center;
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 100px;
+            background: rgba(232, 71, 26, 0.16);
+            color: var(--brand-orange-light);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        @media (prefers-color-scheme: light) {
+            .price-pill {
+                color: var(--brand-orange-hover);
+            }
         }
 
         .link-subtitle {
             font-size: 0.78rem;
             color: var(--text-secondary);
-            line-height: 1.35;
+            line-height: 1.38;
             margin-top: 2px;
             white-space: normal;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            word-break: normal;
             overflow-wrap: anywhere;
+            word-break: normal;
         }
 
         .link-chevron {
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             margin-left: 10px;
+            flex-shrink: 0;
             transition: transform 0.2s ease, color 0.2s ease;
         }
 
@@ -390,73 +866,64 @@
             color: var(--brand-orange);
         }
 
-        /* Dual-Action Card (Brochure: View inline + Download button) */
-        .brochure-card-wrapper {
-            display: flex;
-            align-items: stretch;
-            gap: 8px;
+        /* ==========================================================================
+           4. Social Networks Bento Grid (2 Columns on >= 400px, 1 Column on Small Mobile)
+           ========================================================================== */
+        .social-bento-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 11px;
             width: 100%;
         }
 
-        .brochure-card-wrapper .brochure-main-link {
-            flex: 1 1 0%;
-            min-width: 0;
-            width: auto;
+        @media (min-width: 360px) {
+            .social-bento-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .social-bento-grid .link-card {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 14px;
+                min-height: 112px;
+            }
+
+            .social-bento-grid .link-icon-wrap {
+                margin-right: 0;
+                margin-bottom: 10px;
+                width: 42px;
+                height: 42px;
+                min-width: 42px;
+            }
+
+            .social-bento-grid .link-chevron {
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                margin-left: 0;
+            }
         }
 
-        .brochure-download-btn {
-            min-width: 54px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            padding: 8px 12px;
-            background-color: var(--card-bg);
-            border: 1.5px solid var(--card-border);
-            border-radius: 16px;
-            color: var(--brand-orange);
-            text-decoration: none;
-            box-shadow: var(--card-shadow);
-            transition: all 0.25s ease;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-align: center;
-        }
-
-        .brochure-download-btn i {
-            font-size: 1.15rem;
-        }
-
-        .brochure-download-btn:hover {
-            border-color: var(--brand-orange);
-            background-color: var(--brand-orange);
-            color: #ffffff;
-            box-shadow: var(--card-shadow-hover);
-        }
-
-        .brochure-download-btn:focus-visible {
-            outline: 3px solid var(--brand-orange);
-            outline-offset: 3px;
-        }
-
-        /* Footer & Compliance */
+        /* ==========================================================================
+           5. Footer & Regulatory Compliance
+           ========================================================================== */
         .brand-footer {
-            margin-top: 36px;
+            margin-top: 12px;
+            padding-top: 20px;
+            border-top: 1px solid var(--divider-line);
             text-align: center;
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .footer-social-icons {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            margin-bottom: 4px;
+            gap: 12px;
         }
 
         .social-circle-link {
@@ -469,15 +936,17 @@
             align-items: center;
             justify-content: center;
             background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
+            border: 1.5px solid var(--card-border);
             color: var(--text-secondary);
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             text-decoration: none;
+            box-shadow: var(--card-shadow);
             transition: all 0.2s ease;
         }
 
         .social-circle-link:hover {
-            color: var(--brand-orange);
+            color: #ffffff;
+            background-color: var(--brand-orange);
             border-color: var(--brand-orange);
             transform: translateY(-2px);
         }
@@ -492,15 +961,16 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            font-size: 0.8rem;
-            font-weight: 500;
+            font-family: var(--font-display);
+            font-size: 0.78rem;
+            font-weight: 700;
             color: var(--text-secondary);
             text-decoration: none;
             padding: 10px 20px;
             min-height: 48px;
             border-radius: 100px;
             background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
+            border: 1.5px solid var(--card-border);
             transition: all 0.2s ease;
         }
 
@@ -515,36 +985,35 @@
         }
 
         .footer-credits {
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             color: var(--text-muted);
             margin: 0;
-            line-height: 1.5;
+            line-height: 1.55;
         }
 
         /* ==========================================================================
            Native <dialog> Modal — Modern Web Guidance Pattern
            ========================================================================== */
         dialog#qrModal {
-            border: 1px solid var(--modal-border);
+            border: 1.5px solid var(--modal-border);
             border-radius: 24px;
             background: var(--modal-bg);
             color: var(--text-primary);
-            padding: 28px 24px;
-            max-width: 420px;
+            padding: 24px 20px;
+            max-width: 400px;
             width: 92%;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
             margin: auto;
         }
 
-        /* MANDATORY modern-web-guidance scroll containment rules */
         dialog:modal {
             overscroll-behavior: contain;
         }
 
         dialog::backdrop {
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background-color: rgba(5, 7, 11, 0.76);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             overflow: hidden;
             overscroll-behavior: contain;
         }
@@ -553,21 +1022,22 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .modal-title-custom {
-            font-size: 1.15rem;
-            font-weight: 700;
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 800;
             margin: 0;
             color: var(--text-primary);
         }
 
         .modal-close-btn {
             background: transparent;
-            border: none;
+            border: 1px solid var(--card-border);
             color: var(--text-muted);
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             width: 48px;
             height: 48px;
             min-width: 48px;
@@ -581,7 +1051,7 @@
         }
 
         .modal-close-btn:hover {
-            background-color: rgba(128, 128, 128, 0.15);
+            background-color: rgba(148, 163, 184, 0.15);
             color: var(--text-primary);
         }
 
@@ -591,32 +1061,32 @@
 
         .qr-display-box {
             background-color: #ffffff;
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 18px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            margin-bottom: 18px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            margin-bottom: 16px;
         }
 
         .qr-img {
-            width: 220px;
-            height: 220px;
+            width: 210px;
+            height: 210px;
             display: block;
         }
 
         .qr-caption {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 600;
-            color: #0a0a0a;
+            color: #0f172a;
             margin-top: 10px;
             margin-bottom: 0;
             font-family: monospace;
-            background: var(--code-bg);
-            padding: 4px 10px;
-            border-radius: 6px;
+            background: #f1f5f9;
+            padding: 5px 12px;
+            border-radius: 8px;
             word-break: break-all;
         }
 
@@ -624,7 +1094,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .btn-qr-download {
@@ -632,10 +1102,12 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            padding: 10px 14px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            border-radius: 100px;
+            padding: 12px 14px;
+            min-height: 48px;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 12px;
             text-decoration: none;
             transition: all 0.2s ease;
             cursor: pointer;
@@ -645,13 +1117,12 @@
         .btn-qr-download.png {
             background-color: var(--brand-orange);
             color: #ffffff;
-            border: 1px solid var(--brand-orange);
+            border: 1.5px solid var(--brand-orange);
         }
 
         .btn-qr-download.png:hover {
             background-color: var(--brand-orange-hover);
             color: #ffffff;
-            box-shadow: 0 4px 14px var(--brand-orange-glow);
         }
 
         .btn-qr-download.svg {
@@ -661,9 +1132,8 @@
         }
 
         .btn-qr-download.svg:hover {
-            border-color: var(--brand-olive);
-            color: var(--brand-olive);
-            background-color: var(--badge-bg);
+            border-color: var(--brand-olive-light);
+            color: var(--brand-olive-light);
         }
 
         .btn-copy-url {
@@ -672,10 +1142,11 @@
             min-height: 48px;
             background: transparent;
             border: 1.5px solid var(--card-border);
-            border-radius: 100px;
+            border-radius: 12px;
             color: var(--text-primary);
+            font-family: var(--font-display);
             font-size: 0.82rem;
-            font-weight: 600;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -689,8 +1160,16 @@
             color: var(--brand-orange);
         }
 
-        .btn-copy-url:focus-visible {
-            outline: 2px solid var(--brand-orange);
+        /* Forced Colors Mode Fallback (modern-web-guidance: color) */
+        @media (forced-colors: active) {
+            .hero-profile-card,
+            .brochure-spotlight,
+            .link-card,
+            .brochure-download-btn,
+            .social-circle-link,
+            .complaints-link {
+                border: 2px solid CanvasText;
+            }
         }
 
         /* Screen reader utility */
@@ -710,37 +1189,123 @@
 
 <body>
 
+    <!-- ===== ATMOSPHERIC INDUSTRIAL BACKGROUND ===== -->
+    <div class="ambient-backdrop" aria-hidden="true">
+        <div class="ambient-photo"></div>
+        <div class="ambient-gradient"></div>
+        <div class="ambient-grid"></div>
+    </div>
+
     <main class="linktree-container">
 
-        <!-- ===== BRAND PROFILE HEADER ===== -->
-        <header class="brand-header">
-            <a href="https://www.iogroup.pe/" class="brand-logo-wrap" title="Ir al sitio web oficial de IO Group">
-                <img src="img/logos/logo-principal.png" alt="IO Group — Gestión Integral de Residuos Peligrosos" class="brand-logo" width="220" height="81">
-            </a>
+        <!-- ===== 1. HERO PROFILE CARD ===== -->
+        <header class="hero-profile-card">
+            <div class="hero-cover">
+                <span class="hero-cover-tag">
+                    <i class="fas fa-leaf" aria-hidden="true"></i>
+                    <span>Gestión Ambiental</span>
+                </span>
 
-            <div class="brand-badge">
-                <i class="fas fa-shield-halved" aria-hidden="true"></i>
-                <span>EO-RS Autorizada MINAM &amp; MTC</span>
-            </div>
-
-            <h1 class="visually-hidden">IO Group — Canales Oficiales y Enlaces de Contacto</h1>
-
-            <p class="brand-tagline">
-                Especialistas en recojo, transporte, incineración y disposición final de residuos peligrosos y biocontaminados en el Perú.
-            </p>
-
-            <div class="header-actions">
                 <button type="button" class="btn-qr-trigger" id="openQrBtn" aria-haspopup="dialog">
                     <i class="fas fa-qrcode" aria-hidden="true"></i>
-                    <span>Ver Código QR</span>
+                    <span>Código QR</span>
                 </button>
+            </div>
+
+            <div class="hero-body">
+                <!-- Luminance Capsule Pod guarantees 100% contrast for the IO Group logo in dark & light modes -->
+                <a href="https://www.iogroup.pe/" class="brand-logo-wrap" title="Ir al sitio web oficial de IO Group">
+                    <img src="img/logos/logo-principal.png"
+                        alt="IO Group — Gestión Integral de Residuos Peligrosos"
+                        class="brand-logo" width="195" height="72">
+                </a>
+
+                <div class="trust-pills">
+                    <span class="brand-badge">
+                        <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                        <span>EO-RS Autorizada MINAM &amp; MTC</span>
+                    </span>
+                    <span class="brand-badge">
+                        <i class="fas fa-certificate" aria-hidden="true"></i>
+                        <span>EO-RS-00206-2024</span>
+                    </span>
+                </div>
+
+                <h1 class="brand-title">Gestión Integral de Residuos Peligrosos</h1>
+
+                <p class="brand-tagline">
+                    Especialistas en recojo, transporte, incineración y disposición final de residuos peligrosos y biocontaminados en el Perú.
+                </p>
+
+                <div class="hero-metrics">
+                    <div class="metric-item">
+                        <span class="metric-val">+6 Años</span>
+                        <span class="metric-lbl">Experiencia</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-val">100% Legal</span>
+                        <span class="metric-lbl">Trazabilidad</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-val">Flota Propia</span>
+                        <span class="metric-lbl">Lima y Callao</span>
+                    </div>
+                </div>
             </div>
         </header>
 
-        <!-- ===== LINKS INVENTORY ===== -->
-        <section class="links-list" aria-label="Enlaces oficiales">
+        <!-- ===== 2. DOCUMENTACIÓN OFICIAL (BROCHURE SPOTLIGHT) ===== -->
+        <section class="links-section-group" aria-label="Brochure corporativo oficial">
+            <div class="section-divider">
+                <span class="section-divider-dot" aria-hidden="true"></span>
+                <h2 class="section-divider-title">Documentación Oficial</h2>
+                <span class="section-divider-line" aria-hidden="true"></span>
+            </div>
 
-            <!-- 1. WhatsApp Atención al Cliente (Destacado) -->
+            <div class="brochure-spotlight">
+                <div class="brochure-top">
+                    <div class="brochure-icon-badge" aria-hidden="true">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="brochure-meta">
+                        <span class="brochure-kicker">
+                            <i class="fas fa-star" aria-hidden="true"></i>
+                            Portafolio Oficial &middot; 7 Páginas
+                        </span>
+                        <h3 class="brochure-heading">Brochure Corporativo IO Group</h3>
+                        <p class="brochure-desc">
+                            Conoce nuestros servicios, planta de incineración, flota certificada y autorizaciones EO-RS.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="brochure-card-wrapper">
+                    <a href="docs/BROCHURE%20IOGROUP%20OFICIAL.pdf" target="_blank" rel="noopener noreferrer"
+                        class="link-card brochure-main-link"
+                        title="Abrir brochure corporativo en el navegador">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                        <span class="link-title">Ver Brochure</span>
+                        <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+                    </a>
+                    <a href="docs/BROCHURE%20IOGROUP%20OFICIAL.pdf" download="BROCHURE_IOGROUP_OFICIAL.pdf"
+                        class="brochure-download-btn"
+                        title="Descargar archivo PDF directamente">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        <span>Descargar PDF</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 3. ATENCIÓN INMEDIATA Y COTIZACIONES ===== -->
+        <section class="links-section-group" aria-label="Atención al cliente y cotizaciones">
+            <div class="section-divider">
+                <span class="section-divider-dot" aria-hidden="true"></span>
+                <h2 class="section-divider-title">Atención Inmediata &amp; Cotizaciones</h2>
+                <span class="section-divider-line" aria-hidden="true"></span>
+            </div>
+
+            <!-- WhatsApp Atención al Cliente -->
             <a href="https://wa.me/51997571262?text=Hola%20IO%20Group,%20deseo%20informaci%C3%B3n%20sobre%20sus%20servicios%20de%20gesti%C3%B3n%20de%20residuos."
                 target="_blank" rel="noopener noreferrer"
                 class="link-card highlight-green">
@@ -748,38 +1313,20 @@
                     <i class="fab fa-whatsapp" aria-hidden="true"></i>
                 </div>
                 <div class="link-content">
-                    <span class="link-title">Chatea con Atención al Cliente</span>
+                    <div class="link-title-row">
+                        <span class="link-title">Atención al Cliente</span>
+                        <span class="status-pill">
+                            <span class="status-dot" aria-hidden="true"></span>
+                            En línea
+                        </span>
+                    </div>
                     <span class="link-subtitle">Respuesta inmediata por WhatsApp (+51&nbsp;997&nbsp;571&nbsp;262)</span>
                 </div>
                 <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
                 <span class="visually-hidden">(se abre en una nueva pestaña)</span>
             </a>
 
-            <!-- 2. Corporate Brochure (Visualizar y Descargar) -->
-            <div class="brochure-card-wrapper">
-                <a href="docs/BROCHURE%20IOGROUP%20OFICIAL.pdf" target="_blank" rel="noopener noreferrer"
-                    class="link-card brochure-main-link highlight-orange"
-                    title="Abrir brochure corporativo en el navegador">
-                    <div class="link-icon-wrap icon-pdf">
-                        <i class="fas fa-file-pdf" aria-hidden="true"></i>
-                    </div>
-                    <div class="link-content">
-                        <span class="link-title">Brochure Corporativo 2026</span>
-                        <span class="link-subtitle">Ver portafolio de servicios y credenciales EO-RS</span>
-                    </div>
-                    <i class="fas fa-arrow-up-right-from-square link-chevron" aria-hidden="true"></i>
-                    <span class="visually-hidden">(se abre en una nueva pestaña)</span>
-                </a>
-                <a href="docs/BROCHURE%20IOGROUP%20OFICIAL.pdf" download="BROCHURE_IOGROUP_OFICIAL.pdf"
-                    class="brochure-download-btn"
-                    title="Descargar archivo PDF directamente">
-                    <i class="fas fa-download" aria-hidden="true"></i>
-                    <span>Bajar</span>
-                    <span class="visually-hidden">Descargar PDF</span>
-                </a>
-            </div>
-
-            <!-- 3. WhatsApp Ventas B2B / Cotizaciones -->
+            <!-- WhatsApp Ventas B2B / Cotizaciones -->
             <a href="https://wa.me/51949063359?text=Buenos%20d%C3%ADas.%20Quisiera%20solicitar%20una%20cotizaci%C3%B3n%20para%20gesti%C3%B3n%20de%20residuos%20peligrosos.%20Nuestra%20raz%C3%B3n%20social%20es%3A"
                 target="_blank" rel="noopener noreferrer"
                 class="link-card">
@@ -787,94 +1334,118 @@
                     <i class="fab fa-whatsapp" aria-hidden="true"></i>
                 </div>
                 <div class="link-content">
-                    <span class="link-title">Cotizaciones Comerciales &amp; B2B</span>
-                    <span class="link-subtitle">Propuestas a medida para empresas e industrias</span>
+                    <div class="link-title-row">
+                        <span class="link-title">Cotizaciones Comerciales &amp; B2B</span>
+                    </div>
+                    <span class="link-subtitle">Propuestas a medida para industrias, clínicas y empresas</span>
                 </div>
                 <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
                 <span class="visually-hidden">(se abre en una nueva pestaña)</span>
             </a>
 
-            <!-- 4. Sitio Web Principal -->
-            <a href="https://www.iogroup.pe/" target="_blank" rel="noopener noreferrer"
-                class="link-card">
-                <div class="link-icon-wrap icon-web">
-                    <i class="fas fa-globe" aria-hidden="true"></i>
-                </div>
-                <div class="link-content">
-                    <span class="link-title">Sitio Web Oficial</span>
-                    <span class="link-subtitle">iogroup.pe — Servicios, normativa y autorizaciones</span>
-                </div>
-                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
-                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
-            </a>
-
-            <!-- 5. Planes Especiales Odontología y Veterinaria -->
+            <!-- Planes Especiales Odontología y Veterinaria -->
             <a href="https://www.iogroup.pe/landing/" target="_blank" rel="noopener noreferrer"
                 class="link-card">
                 <div class="link-icon-wrap icon-dent-vet">
                     <i class="fas fa-tooth" aria-hidden="true"></i>
                 </div>
                 <div class="link-content">
-                    <span class="link-title">Planes Dentales y Veterinarios</span>
-                    <span class="link-subtitle">Servicio mensual desde S/.65 con contenedor incluido</span>
+                    <div class="link-title-row">
+                        <span class="link-title">Planes Dentales y Veterinarios</span>
+                        <span class="price-pill">Desde S/.65/mes</span>
+                    </div>
+                    <span class="link-subtitle">Incluye recojo mensual, contenedor rígido y manifiesto</span>
                 </div>
                 <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
                 <span class="visually-hidden">(se abre en una nueva pestaña)</span>
             </a>
+        </section>
 
-            <!-- 6. Instagram -->
-            <a href="https://www.instagram.com/iogroup.residuos/" target="_blank" rel="noopener noreferrer"
+        <!-- ===== 4. REDES SOCIALES Y SITIO WEB (BENTO GRID) ===== -->
+        <section class="links-section-group" aria-label="Redes sociales y sitio web">
+            <div class="section-divider">
+                <span class="section-divider-dot" aria-hidden="true"></span>
+                <h2 class="section-divider-title">Redes Sociales &amp; Web Oficial</h2>
+                <span class="section-divider-line" aria-hidden="true"></span>
+            </div>
+
+            <!-- Sitio Web Principal -->
+            <a href="https://www.iogroup.pe/" target="_blank" rel="noopener noreferrer"
                 class="link-card">
-                <div class="link-icon-wrap icon-instagram">
-                    <i class="fab fa-instagram" aria-hidden="true"></i>
+                <div class="link-icon-wrap icon-web">
+                    <i class="fas fa-globe" aria-hidden="true"></i>
                 </div>
                 <div class="link-content">
-                    <span class="link-title">Instagram Oficial</span>
-                    <span class="link-subtitle">@iogroup.residuos — Noticias y recomendaciones</span>
+                    <span class="link-title">Sitio Web Oficial — iogroup.pe</span>
+                    <span class="link-subtitle">Servicios integrales, normativa ambiental y certificaciones</span>
                 </div>
-                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
+                <i class="fas fa-arrow-up-right-from-square link-chevron" aria-hidden="true"></i>
                 <span class="visually-hidden">(se abre en una nueva pestaña)</span>
             </a>
 
-            <!-- 7. Facebook -->
-            <a href="https://www.facebook.com/iogroup.oficial" target="_blank" rel="noopener noreferrer"
-                class="link-card">
-                <div class="link-icon-wrap icon-facebook">
-                    <i class="fab fa-facebook-f" aria-hidden="true"></i>
-                </div>
-                <div class="link-content">
-                    <span class="link-title">Facebook Oficial</span>
-                    <span class="link-subtitle">@iogroup.oficial — Comunidad y actualizaciones</span>
-                </div>
-                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
-                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
-            </a>
+            <!-- 2-Column Bento Grid for Instagram & Facebook -->
+            <div class="social-bento-grid">
+                <a href="https://www.instagram.com/iogroup.residuos/" target="_blank" rel="noopener noreferrer"
+                    class="link-card">
+                    <div class="link-icon-wrap icon-instagram">
+                        <i class="fab fa-instagram" aria-hidden="true"></i>
+                    </div>
+                    <div class="link-content">
+                        <span class="link-title">Instagram</span>
+                        <span class="link-subtitle">@iogroup.residuos</span>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square link-chevron" aria-hidden="true"></i>
+                    <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+                </a>
 
-            <!-- 8. Llamada Telefónica Directa -->
+                <a href="https://www.facebook.com/iogroup.oficial" target="_blank" rel="noopener noreferrer"
+                    class="link-card">
+                    <div class="link-icon-wrap icon-facebook">
+                        <i class="fab fa-facebook-f" aria-hidden="true"></i>
+                    </div>
+                    <div class="link-content">
+                        <span class="link-title">Facebook</span>
+                        <span class="link-subtitle">@iogroup.oficial</span>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square link-chevron" aria-hidden="true"></i>
+                    <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ===== 5. CONTACTO DIRECTO Y SEDE CENTRAL ===== -->
+        <section class="links-section-group" aria-label="Contacto directo y ubicación">
+            <div class="section-divider">
+                <span class="section-divider-dot" aria-hidden="true"></span>
+                <h2 class="section-divider-title">Contacto Directo &amp; Sede</h2>
+                <span class="section-divider-line" aria-hidden="true"></span>
+            </div>
+
+            <!-- Llamada Telefónica Directa -->
             <a href="tel:+51997571262" class="link-card">
                 <div class="link-icon-wrap icon-phone">
                     <i class="fas fa-phone-volume" aria-hidden="true"></i>
                 </div>
                 <div class="link-content">
-                    <span class="link-title">Llámanos&nbsp;Directamente</span>
-                    <span class="link-subtitle"><span>+51&nbsp;997&nbsp;571&nbsp;262</span> &middot; <span>+51&nbsp;973&nbsp;224&nbsp;733</span></span>
+                    <span class="link-title">Central&nbsp;Telefónica&nbsp;Directa</span>
+                    <span class="link-subtitle"><span>+51&nbsp;997&nbsp;571&nbsp;262</span><br><span>+51&nbsp;973&nbsp;224&nbsp;733</span></span>
                 </div>
                 <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
             </a>
 
-            <!-- 9. Correo Corporativo -->
+            <!-- Correo Corporativo -->
             <a href="mailto:administracion@iogroup.pe?subject=Consulta%20desde%20Linktree%20-%20IO%20Group" class="link-card">
                 <div class="link-icon-wrap icon-email">
                     <i class="fas fa-envelope" aria-hidden="true"></i>
                 </div>
                 <div class="link-content">
-                    <span class="link-title">Correo Electrónico</span>
-                    <span class="link-subtitle">administracion@iogroup.pe &nbsp;·&nbsp; naenciso@iogroup.pe</span>
+                    <span class="link-title">Correo Electrónico Corporativo</span>
+                    <span class="link-subtitle">administracion@iogroup.pe &nbsp;&middot;&nbsp; naenciso@iogroup.pe</span>
                 </div>
                 <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
             </a>
 
-            <!-- 10. Ubicación Google Maps -->
+            <!-- Ubicación Google Maps -->
             <a href="https://maps.google.com/?q=Halcones+260+Surquillo+Lima" target="_blank" rel="noopener noreferrer"
                 class="link-card">
                 <div class="link-icon-wrap icon-map">
@@ -887,7 +1458,6 @@
                 <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
                 <span class="visually-hidden">(se abre en una nueva pestaña)</span>
             </a>
-
         </section>
 
         <!-- ===== FOOTER & LEGAL ===== -->
@@ -918,7 +1488,7 @@
 
             <p class="footer-credits">
                 &copy; 2026 IO Group SAC. Todos los derechos reservados.<br>
-                Empresa Operadora de Residuos Sólidos (EO-RS) · Lima, Perú
+                Empresa Operadora de Residuos Sólidos (EO-RS) &middot; Lima, Perú
             </p>
         </footer>
 
@@ -936,7 +1506,7 @@
         </div>
 
         <div class="qr-display-box">
-            <img src="img/qr/qr-linktree.png" alt="Código QR para acceder a los enlaces de IO Group" class="qr-img" width="220" height="220">
+            <img src="img/qr/qr-linktree.png" alt="Código QR para acceder a los enlaces de IO Group" class="qr-img" width="210" height="210">
             <p class="qr-caption" id="qrCanonicalUrl">https://www.iogroup.pe/links</p>
         </div>
 
@@ -999,6 +1569,16 @@
                 });
             }
 
+            // Keyboard shortcut 'q' to toggle QR modal
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'q' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    const tag = document.activeElement ? document.activeElement.tagName : '';
+                    if (tag !== 'INPUT' && tag !== 'TEXTAREA' && qrModal && !qrModal.open) {
+                        qrModal.showModal();
+                    }
+                }
+            });
+
             // Copy Link Functionality with Feedback
             if (copyUrlBtn) {
                 copyUrlBtn.addEventListener('click', async function () {
@@ -1011,7 +1591,6 @@
                             copyIcon.className = 'fas fa-copy';
                         }, 2500);
                     } catch (err) {
-                        // Fallback prompt for legacy environments
                         window.prompt('Copia este enlace:', canonicalUrl);
                     }
                 });
