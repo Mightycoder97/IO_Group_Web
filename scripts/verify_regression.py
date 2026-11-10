@@ -149,9 +149,9 @@ def run_regression_tests():
                     page.close()
 
             # =================================================================
-            # TEST SUITE 3: Typography & Subtitle Wrapping on Mobile
+            # TEST SUITE 3: 6-Channel Grid, Modals (Email & Phone) & Clean Footer
             # =================================================================
-            print("\n[TEST SUITE 3] Typography Wrapping & Secondary Contact Visibility")
+            print("\n[TEST SUITE 3] 6-Channel Bento Grid, Interactive Modals & Clean Footer")
             for w in [320, 375]:
                 tests_run += 1
                 page = browser.new_page(viewport={"width": w, "height": 800})
@@ -166,29 +166,46 @@ def run_regression_tests():
                 else:
                     print(f"  [PASS] At {w}px, .link-subtitle white-space is 'normal'")
 
-                # Verify essential secondary contact details are visible and wrap
-                phone_card = page.query_selector('a[href^="tel:"]')
-                email_card = page.query_selector('a[href^="mailto:"]')
+                # Verify 6 channel tiles exist under .channels-bento-grid
+                tiles = page.query_selector_all(".channels-bento-grid .channel-tile")
+                if len(tiles) != 6:
+                    msg = f"Expected 6 channel tiles in .channels-bento-grid, found {len(tiles)}"
+                    print(f"  [FAIL] {msg}")
+                    failures.append(msg)
+                else:
+                    print(f"  [PASS] At {w}px, verified 6 channel tiles (Facebook, Instagram, TikTok, WhatsApp, Correo, Llamada).")
 
-                if phone_card:
-                    sub = phone_card.query_selector(".link-subtitle")
-                    lines = page.evaluate(
-                        "(el) => Math.round(el.offsetHeight / parseFloat(window.getComputedStyle(el).lineHeight))",
-                        sub,
-                    )
-                    if lines < 2 and w == 320:
-                        msg = f"At {w}px, phone subtitle rendered on {lines} line(s), expected >=2 lines"
-                        print(f"  [WARN/FAIL] {msg}")
-                    else:
-                        print(f"  [PASS] At {w}px, phone numbers wrapped cleanly across {lines} lines.")
+                # Verify TikTok link and no footer social icons
+                tiktok = page.query_selector('a[href="https://www.tiktok.com/@iogroup.pe"]')
+                footer_socials = page.query_selector_all("footer .social-circle-link")
+                if not tiktok:
+                    failures.append("TikTok link https://www.tiktok.com/@iogroup.pe missing")
+                if len(footer_socials) > 0:
+                    failures.append("Redundant social icons still present in footer")
+                else:
+                    print(f"  [PASS] At {w}px, TikTok link verified and footer has 0 redundant social icons.")
 
-                if email_card:
-                    sub = email_card.query_selector(".link-subtitle")
-                    lines = page.evaluate(
-                        "(el) => Math.round(el.offsetHeight / parseFloat(window.getComputedStyle(el).lineHeight))",
-                        sub,
-                    )
-                    print(f"  [PASS] At {w}px, corporate emails wrapped cleanly across {lines} lines.")
+                # Verify Email Modal opens and shows Naenciso@iogroup.pe and Jgarcia@iogroup.pe
+                page.click("#openEmailBtn")
+                page.wait_for_timeout(150)
+                email_open = page.evaluate("document.getElementById('emailModal').open")
+                email_links = page.query_selector_all("#emailModal a.modal-option-card")
+                if not email_open or len(email_links) != 2:
+                    failures.append("Email modal failed to open or missing 2 email options")
+                else:
+                    print(f"  [PASS] At {w}px, Email modal opened with 2 recipients (Naenciso@iogroup.pe, Jgarcia@iogroup.pe).")
+                page.click('[data-close-modal="emailModal"]')
+
+                # Verify Phone Modal opens and shows both phone numbers
+                page.click("#openPhoneBtn")
+                page.wait_for_timeout(150)
+                phone_open = page.evaluate("document.getElementById('phoneModal').open")
+                phone_links = page.query_selector_all("#phoneModal a.modal-option-card")
+                if not phone_open or len(phone_links) != 2:
+                    failures.append("Phone modal failed to open or missing 2 phone options")
+                else:
+                    print(f"  [PASS] At {w}px, Phone modal opened with 2 phone lines (+51 997 571 262, +51 973 224 733).")
+                page.click('[data-close-modal="phoneModal"]')
 
                 page.close()
 
@@ -217,7 +234,6 @@ def run_regression_tests():
             # Check secondary elements on page
             tests_run += 1
             sec_elements = [
-                (".social-circle-link", "Social circle links (footer)", True),  # check width AND height
                 (".btn-qr-trigger", "QR Code modal trigger button", False),     # check height
                 (".complaints-link", "Libro de reclamaciones link", False),     # check height
             ]

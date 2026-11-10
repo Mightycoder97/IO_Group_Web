@@ -8,7 +8,7 @@
     <meta name="color-scheme" content="light dark">
     <title>IO Group — Canales Oficiales, Brochure y Contacto | EO-RS Autorizada</title>
     <meta name="description"
-        content="Accede a todos los canales oficiales de IO Group: Brochure Corporativo Oficial, WhatsApp de atención inmediata, cotizaciones B2B, planes dentales/veterinarios y redes sociales.">
+        content="Accede a los canales oficiales de IO Group: Brochure Corporativo Oficial, Facebook, Instagram, TikTok, WhatsApp de atención inmediata, correo, teléfono y ubicación.">
     <link rel="canonical" href="https://www.iogroup.pe/links">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
@@ -23,7 +23,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="IO Group — Canales Oficiales y Brochure Corporativo">
-    <meta name="twitter:description" content="Canales oficiales, cotizaciones B2B y brochure corporativo de IO Group.">
+    <meta name="twitter:description" content="Canales oficiales, redes sociales y brochure corporativo de IO Group.">
     <meta name="twitter:image" content="https://www.iogroup.pe/img/hero/hero-principal.jpg">
 
     <!-- Google Fonts: Plus Jakarta Sans (Display/Headings) + Inter (Body/UI) -->
@@ -65,8 +65,6 @@
 
             /* Light Theme Tokens */
             --page-bg: #eef0f4;
-            --shell-bg: rgba(255, 255, 255, 0.82);
-            --shell-border: rgba(15, 23, 42, 0.08);
             --card-bg: #ffffff;
             --card-bg-elevated: #f8fafc;
             --card-border: rgba(15, 23, 42, 0.11);
@@ -98,8 +96,6 @@
         @media (prefers-color-scheme: dark) {
             :root {
                 --page-bg: #07090d;
-                --shell-bg: rgba(17, 20, 26, 0.78);
-                --shell-border: rgba(255, 255, 255, 0.09);
                 --card-bg: rgba(24, 28, 36, 0.92);
                 --card-bg-elevated: rgba(32, 37, 48, 0.95);
                 --card-border: rgba(255, 255, 255, 0.11);
@@ -180,7 +176,6 @@
                 linear-gradient(to bottom var(--in-oklab), var(--bg-overlay-start), var(--bg-overlay-end));
         }
 
-        /* Subtle technical dot grid pattern */
         .ambient-grid {
             position: absolute;
             inset: 0;
@@ -212,7 +207,7 @@
         }
 
         /* ==========================================================================
-           1. Hero Profile Card (Solves Dark Mode Logo Contrast + Visual Authority)
+           1. Hero Profile Card
            ========================================================================== */
         .hero-profile-card {
             width: 100%;
@@ -227,7 +222,6 @@
             -webkit-backdrop-filter: blur(20px);
         }
 
-        /* Top Photographic Banner */
         .hero-cover {
             position: relative;
             width: 100%;
@@ -278,7 +272,6 @@
             color: #9ecc32;
         }
 
-        /* QR Trigger Button in Hero Corner (>= 48px touch target) */
         .btn-qr-trigger {
             position: relative;
             z-index: 2;
@@ -308,7 +301,6 @@
             box-shadow: 0 6px 20px var(--brand-orange-glow);
         }
 
-        /* Hero Body & High-Contrast Brand Logo Pod */
         .hero-body {
             padding: 0 18px 20px;
             display: flex;
@@ -319,7 +311,6 @@
             z-index: 2;
         }
 
-        /* CRITICAL FIX: High-contrast white capsule so dark-olive "GROUP E.I.R.L." never disappears on dark backgrounds */
         .brand-logo-wrap {
             display: inline-flex;
             align-items: center;
@@ -351,7 +342,6 @@
             display: block;
         }
 
-        /* Trust Credentials Pills */
         .trust-pills {
             display: flex;
             flex-wrap: wrap;
@@ -397,7 +387,6 @@
             text-wrap: pretty;
         }
 
-        /* Quick Authority Metrics Strip */
         .hero-metrics {
             width: 100%;
             display: grid;
@@ -435,7 +424,7 @@
         }
 
         /* ==========================================================================
-           Section Dividers (Clear Visual Hierarchy)
+           Section Dividers
            ========================================================================== */
         .links-section-group {
             width: 100%;
@@ -566,7 +555,6 @@
             line-height: 1.38;
         }
 
-        /* Symmetric Dual Action Bar inside Brochure Card */
         .brochure-card-wrapper {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -641,7 +629,7 @@
         }
 
         /* ==========================================================================
-           3. Standard & Highlighted Link Cards (WCAG >= 56px Touch Target)
+           3. Standard Link Cards & 6-Channel Bento Grid
            ========================================================================== */
         .link-card {
             width: 100%;
@@ -661,6 +649,7 @@
             cursor: pointer;
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
+            font-family: inherit;
         }
 
         .link-card:hover {
@@ -679,13 +668,68 @@
             transform: translateY(0);
         }
 
-        /* Primary WhatsApp Card with Live Indicator */
-        .link-card.highlight-green {
-            border-color: rgba(37, 211, 102, 0.55);
-            background: linear-gradient(135deg var(--in-oklab), rgba(37, 211, 102, 0.13) 0%, var(--card-bg) 65%);
+        /* 6-Channel Bento Grid below Brochure (2x3 on mobile, 3x2 on >= 430px) */
+        .channels-bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 11px;
+            width: 100%;
         }
 
-        .link-card.highlight-green:hover {
+        @media (max-width: 319px) {
+            .channels-bento-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 430px) {
+            .channels-bento-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .channel-tile.link-card {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 16px 10px 14px;
+            min-height: 116px;
+            gap: 8px;
+        }
+
+        .channel-tile .link-icon-wrap {
+            margin-right: 0;
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            border-radius: 15px;
+            font-size: 1.35rem;
+        }
+
+        .channel-tile .link-content {
+            align-items: center;
+            text-align: center;
+            width: 100%;
+        }
+
+        .channel-tile .link-title {
+            font-size: 0.88rem;
+            line-height: 1.2;
+        }
+
+        .channel-tile .link-subtitle {
+            font-size: 0.72rem;
+            margin-top: 3px;
+            line-height: 1.25;
+        }
+
+        .channel-tile.highlight-green {
+            border-color: rgba(37, 211, 102, 0.55);
+            background: linear-gradient(145deg var(--in-oklab), rgba(37, 211, 102, 0.14) 0%, var(--card-bg) 70%);
+        }
+
+        .channel-tile.highlight-green:hover {
             border-color: var(--whatsapp-green);
             box-shadow: 0 8px 24px rgba(37, 211, 102, 0.22);
         }
@@ -706,49 +750,44 @@
         }
 
         .link-card:hover .link-icon-wrap {
-            transform: scale(1.07);
-        }
-
-        .icon-whatsapp {
-            background: linear-gradient(135deg, rgba(37, 211, 102, 0.22), rgba(18, 140, 126, 0.18));
-            color: #25D366;
-            border: 1px solid rgba(37, 211, 102, 0.3);
-        }
-
-        .icon-web {
-            background: linear-gradient(135deg, rgba(134, 157, 43, 0.22), rgba(92, 107, 30, 0.15));
-            color: var(--brand-olive-light);
-            border: 1px solid rgba(134, 157, 43, 0.3);
-        }
-
-        .icon-dent-vet {
-            background: linear-gradient(135deg, rgba(232, 71, 26, 0.20), rgba(255, 107, 66, 0.12));
-            color: var(--brand-orange-light);
-            border: 1px solid rgba(232, 71, 26, 0.28);
-        }
-
-        .icon-instagram {
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(220, 39, 67, 0.3);
+            transform: scale(1.08);
         }
 
         .icon-facebook {
             background: linear-gradient(135deg, #1877F2 0%, #0d5bd9 100%);
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+            box-shadow: 0 6px 14px rgba(24, 119, 242, 0.32);
         }
 
-        .icon-phone {
-            background: rgba(134, 157, 43, 0.16);
-            color: var(--brand-olive-light);
-            border: 1px solid rgba(134, 157, 43, 0.28);
+        .icon-instagram {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: #ffffff;
+            box-shadow: 0 6px 14px rgba(220, 39, 67, 0.32);
+        }
+
+        .icon-tiktok {
+            background: linear-gradient(135deg, #111111 0%, #262626 100%);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: -2px -2px 10px rgba(0, 242, 254, 0.25), 2px 2px 10px rgba(254, 9, 121, 0.25);
+        }
+
+        .icon-whatsapp {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: #ffffff;
+            box-shadow: 0 6px 14px rgba(37, 211, 102, 0.32);
         }
 
         .icon-email {
-            background: rgba(232, 71, 26, 0.15);
-            color: var(--brand-orange-light);
-            border: 1px solid rgba(232, 71, 26, 0.26);
+            background: linear-gradient(135deg, var(--brand-orange) 0%, #ff6b42 100%);
+            color: #ffffff;
+            box-shadow: 0 6px 14px var(--brand-orange-glow);
+        }
+
+        .icon-phone {
+            background: linear-gradient(135deg, var(--brand-olive) 0%, var(--brand-olive-light) 100%);
+            color: #ffffff;
+            box-shadow: 0 6px 14px var(--brand-olive-glow);
         }
 
         .icon-map {
@@ -758,10 +797,9 @@
         }
 
         @media (prefers-color-scheme: light) {
-            .icon-whatsapp { color: #15803d; }
-            .icon-web, .icon-phone { color: var(--brand-olive); }
-            .icon-dent-vet, .icon-email { color: var(--brand-orange); }
-            .icon-map { color: #dc2626; }
+            .icon-map {
+                color: #dc2626;
+            }
         }
 
         /* Text Content inside Cards */
@@ -773,74 +811,12 @@
             min-width: 0;
         }
 
-        .link-title-row {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
         .link-title {
             font-family: var(--font-display);
             font-size: 0.94rem;
             font-weight: 700;
             line-height: 1.28;
             color: var(--text-primary);
-        }
-
-        /* Status & Promo Pills inside Cards */
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-family: var(--font-display);
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 100px;
-            background: rgba(37, 211, 102, 0.16);
-            color: #4ade80;
-            letter-spacing: 0.02em;
-        }
-
-        @media (prefers-color-scheme: light) {
-            .status-pill {
-                color: #15803d;
-            }
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #25D366;
-            box-shadow: 0 0 6px #25D366;
-            animation: pulseDot 1.8s infinite ease-in-out;
-        }
-
-        @keyframes pulseDot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.45; transform: scale(0.85); }
-        }
-
-        .price-pill {
-            display: inline-flex;
-            align-items: center;
-            font-family: var(--font-display);
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 100px;
-            background: rgba(232, 71, 26, 0.16);
-            color: var(--brand-orange-light);
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-        }
-
-        @media (prefers-color-scheme: light) {
-            .price-pill {
-                color: var(--brand-orange-hover);
-            }
         }
 
         .link-subtitle {
@@ -866,49 +842,29 @@
             color: var(--brand-orange);
         }
 
-        /* ==========================================================================
-           4. Social Networks Bento Grid (2 Columns on >= 400px, 1 Column on Small Mobile)
-           ========================================================================== */
-        .social-bento-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 11px;
-            width: 100%;
+        /* Live dot inside WhatsApp tile */
+        .live-dot-inline {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #25D366;
+            box-shadow: 0 0 6px #25D366;
+            margin-right: 4px;
+            vertical-align: middle;
+            animation: pulseDot 1.8s infinite ease-in-out;
         }
 
-        @media (min-width: 360px) {
-            .social-bento-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .social-bento-grid .link-card {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 14px;
-                min-height: 112px;
-            }
-
-            .social-bento-grid .link-icon-wrap {
-                margin-right: 0;
-                margin-bottom: 10px;
-                width: 42px;
-                height: 42px;
-                min-width: 42px;
-            }
-
-            .social-bento-grid .link-chevron {
-                position: absolute;
-                top: 16px;
-                right: 16px;
-                margin-left: 0;
-            }
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.45; transform: scale(0.85); }
         }
 
         /* ==========================================================================
-           5. Footer & Regulatory Compliance
+           4. Clean Footer (Zero Redundant Social Icons)
            ========================================================================== */
         .brand-footer {
-            margin-top: 12px;
+            margin-top: 8px;
             padding-top: 20px;
             border-top: 1px solid var(--divider-line);
             text-align: center;
@@ -917,43 +873,6 @@
             flex-direction: column;
             align-items: center;
             gap: 14px;
-        }
-
-        .footer-social-icons {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .social-circle-link {
-            width: 48px;
-            height: 48px;
-            min-width: 48px;
-            min-height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--card-bg);
-            border: 1.5px solid var(--card-border);
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            text-decoration: none;
-            box-shadow: var(--card-shadow);
-            transition: all 0.2s ease;
-        }
-
-        .social-circle-link:hover {
-            color: #ffffff;
-            background-color: var(--brand-orange);
-            border-color: var(--brand-orange);
-            transform: translateY(-2px);
-        }
-
-        .social-circle-link:focus-visible {
-            outline: 3px solid var(--brand-orange);
-            outline-offset: 2px;
         }
 
         .complaints-link {
@@ -992,15 +911,15 @@
         }
 
         /* ==========================================================================
-           Native <dialog> Modal — Modern Web Guidance Pattern
+           Native <dialog> Modals (QR, Email Selector, Phone Selector)
            ========================================================================== */
-        dialog#qrModal {
+        dialog.custom-modal {
             border: 1.5px solid var(--modal-border);
             border-radius: 24px;
             background: var(--modal-bg);
             color: var(--text-primary);
             padding: 24px 20px;
-            max-width: 400px;
+            max-width: 420px;
             width: 92%;
             box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
             margin: auto;
@@ -1022,15 +941,23 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
+            gap: 10px;
         }
 
         .modal-title-custom {
             font-family: var(--font-display);
-            font-size: 1.1rem;
+            font-size: 1.08rem;
             font-weight: 800;
             margin: 0;
             color: var(--text-primary);
+        }
+
+        .modal-subtitle-custom {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin: 0 0 16px;
+            line-height: 1.4;
         }
 
         .modal-close-btn {
@@ -1048,6 +975,7 @@
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
         .modal-close-btn:hover {
@@ -1059,6 +987,86 @@
             outline: 2px solid var(--brand-orange);
         }
 
+        /* Modal Contact Selector Options */
+        .modal-options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-option-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 15px;
+            min-height: 58px;
+            border-radius: 16px;
+            background: var(--card-bg-elevated);
+            border: 1.5px solid var(--card-border);
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            gap: 12px;
+        }
+
+        .modal-option-card:hover {
+            border-color: var(--brand-orange);
+            transform: translateY(-1px);
+            color: var(--text-primary);
+        }
+
+        .modal-option-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .modal-option-icon {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .modal-option-text {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .modal-option-label {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            overflow-wrap: anywhere;
+        }
+
+        .modal-option-hint {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+        }
+
+        .modal-option-action {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--brand-orange);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        /* QR Display inside QR Modal */
         .qr-display-box {
             background-color: #ffffff;
             border-radius: 18px;
@@ -1166,8 +1174,8 @@
             .brochure-spotlight,
             .link-card,
             .brochure-download-btn,
-            .social-circle-link,
-            .complaints-link {
+            .complaints-link,
+            .modal-option-card {
                 border: 2px solid CanvasText;
             }
         }
@@ -1213,7 +1221,6 @@
             </div>
 
             <div class="hero-body">
-                <!-- Luminance Capsule Pod guarantees 100% contrast for the IO Group logo in dark & light modes -->
                 <a href="https://www.iogroup.pe/" class="brand-logo-wrap" title="Ir al sitio web oficial de IO Group">
                     <img src="img/logos/logo-principal.png"
                         alt="IO Group — Gestión Integral de Residuos Peligrosos"
@@ -1254,11 +1261,11 @@
             </div>
         </header>
 
-        <!-- ===== 2. DOCUMENTACIÓN OFICIAL (BROCHURE SPOTLIGHT) ===== -->
+        <!-- ===== 2. BROCHURE CORPORATIVO OFICIAL ===== -->
         <section class="links-section-group" aria-label="Brochure corporativo oficial">
             <div class="section-divider">
                 <span class="section-divider-dot" aria-hidden="true"></span>
-                <h2 class="section-divider-title">Documentación Oficial</h2>
+                <h2 class="section-divider-title">Brochure Corporativo</h2>
                 <span class="section-divider-line" aria-hidden="true"></span>
             </div>
 
@@ -1297,92 +1304,18 @@
             </div>
         </section>
 
-        <!-- ===== 3. ATENCIÓN INMEDIATA Y COTIZACIONES ===== -->
-        <section class="links-section-group" aria-label="Atención al cliente y cotizaciones">
+        <!-- ===== 3. GRILLA DE 6 ICONOS (REDES SOCIALES Y CONTACTO) ===== -->
+        <section class="links-section-group" aria-label="Redes sociales y canales de contacto">
             <div class="section-divider">
                 <span class="section-divider-dot" aria-hidden="true"></span>
-                <h2 class="section-divider-title">Atención Inmediata &amp; Cotizaciones</h2>
+                <h2 class="section-divider-title">Canales Oficiales &amp; Contacto</h2>
                 <span class="section-divider-line" aria-hidden="true"></span>
             </div>
 
-            <!-- WhatsApp Contacta un Asesor -->
-            <a href="https://wa.me/51997571262?text=Hola%20IO%20Group,%20deseo%20contactar%20con%20un%20asesor%20sobre%20sus%20servicios%20de%20gesti%C3%B3n%20de%20residuos."
-                target="_blank" rel="noopener noreferrer"
-                class="link-card highlight-green">
-                <div class="link-icon-wrap icon-whatsapp">
-                    <i class="fab fa-whatsapp" aria-hidden="true"></i>
-                </div>
-                <div class="link-content">
-                    <div class="link-title-row">
-                        <span class="link-title">Contacta un Asesor</span>
-                        <span class="status-pill">
-                            <span class="status-dot" aria-hidden="true"></span>
-                            En línea
-                        </span>
-                    </div>
-                    <span class="link-subtitle">Atención inmediata y cotizaciones por WhatsApp (+51&nbsp;997&nbsp;571&nbsp;262)</span>
-                </div>
-                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
-                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
-            </a>
-
-            <!-- Planes Especiales Odontología y Veterinaria -->
-            <a href="https://www.iogroup.pe/landing/" target="_blank" rel="noopener noreferrer"
-                class="link-card">
-                <div class="link-icon-wrap icon-dent-vet">
-                    <i class="fas fa-tooth" aria-hidden="true"></i>
-                </div>
-                <div class="link-content">
-                    <div class="link-title-row">
-                        <span class="link-title">Planes Dentales y Veterinarios</span>
-                        <span class="price-pill">Desde S/.65/mes</span>
-                    </div>
-                    <span class="link-subtitle">Incluye recojo mensual, contenedor rígido y manifiesto</span>
-                </div>
-                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
-                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
-            </a>
-        </section>
-
-        <!-- ===== 4. REDES SOCIALES Y SITIO WEB (BENTO GRID) ===== -->
-        <section class="links-section-group" aria-label="Redes sociales y sitio web">
-            <div class="section-divider">
-                <span class="section-divider-dot" aria-hidden="true"></span>
-                <h2 class="section-divider-title">Redes Sociales &amp; Web Oficial</h2>
-                <span class="section-divider-line" aria-hidden="true"></span>
-            </div>
-
-            <!-- Sitio Web Principal -->
-            <a href="https://www.iogroup.pe/" target="_blank" rel="noopener noreferrer"
-                class="link-card">
-                <div class="link-icon-wrap icon-web">
-                    <i class="fas fa-globe" aria-hidden="true"></i>
-                </div>
-                <div class="link-content">
-                    <span class="link-title">Sitio Web Oficial — iogroup.pe</span>
-                    <span class="link-subtitle">Servicios integrales, normativa ambiental y certificaciones</span>
-                </div>
-                <i class="fas fa-arrow-up-right-from-square link-chevron" aria-hidden="true"></i>
-                <span class="visually-hidden">(se abre en una nueva pestaña)</span>
-            </a>
-
-            <!-- 2-Column Bento Grid for Instagram & Facebook -->
-            <div class="social-bento-grid">
-                <a href="https://www.instagram.com/iogroup.residuos/" target="_blank" rel="noopener noreferrer"
-                    class="link-card">
-                    <div class="link-icon-wrap icon-instagram">
-                        <i class="fab fa-instagram" aria-hidden="true"></i>
-                    </div>
-                    <div class="link-content">
-                        <span class="link-title">Instagram</span>
-                        <span class="link-subtitle">@iogroup.residuos</span>
-                    </div>
-                    <i class="fas fa-arrow-up-right-from-square link-chevron" aria-hidden="true"></i>
-                    <span class="visually-hidden">(se abre en una nueva pestaña)</span>
-                </a>
-
+            <div class="channels-bento-grid">
+                <!-- 1. Facebook -->
                 <a href="https://www.facebook.com/iogroup.oficial" target="_blank" rel="noopener noreferrer"
-                    class="link-card">
+                    class="link-card channel-tile">
                     <div class="link-icon-wrap icon-facebook">
                         <i class="fab fa-facebook-f" aria-hidden="true"></i>
                     </div>
@@ -1390,45 +1323,81 @@
                         <span class="link-title">Facebook</span>
                         <span class="link-subtitle">@iogroup.oficial</span>
                     </div>
-                    <i class="fas fa-arrow-up-right-from-square link-chevron" aria-hidden="true"></i>
                     <span class="visually-hidden">(se abre en una nueva pestaña)</span>
                 </a>
+
+                <!-- 2. Instagram -->
+                <a href="https://www.instagram.com/iogroup.residuos/" target="_blank" rel="noopener noreferrer"
+                    class="link-card channel-tile">
+                    <div class="link-icon-wrap icon-instagram">
+                        <i class="fab fa-instagram" aria-hidden="true"></i>
+                    </div>
+                    <div class="link-content">
+                        <span class="link-title">Instagram</span>
+                        <span class="link-subtitle">@iogroup.residuos</span>
+                    </div>
+                    <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+                </a>
+
+                <!-- 3. TikTok -->
+                <a href="https://www.tiktok.com/@iogroup.pe" target="_blank" rel="noopener noreferrer"
+                    class="link-card channel-tile">
+                    <div class="link-icon-wrap icon-tiktok">
+                        <i class="fab fa-tiktok" aria-hidden="true"></i>
+                    </div>
+                    <div class="link-content">
+                        <span class="link-title">TikTok</span>
+                        <span class="link-subtitle">@iogroup.pe</span>
+                    </div>
+                    <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+                </a>
+
+                <!-- 4. WhatsApp -->
+                <a href="https://wa.me/51997571262?text=Hola%20IO%20Group,%20deseo%20contactar%20con%20un%20asesor%20sobre%20sus%20servicios%20de%20gesti%C3%B3n%20de%20residuos."
+                    target="_blank" rel="noopener noreferrer"
+                    class="link-card channel-tile highlight-green">
+                    <div class="link-icon-wrap icon-whatsapp">
+                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                    </div>
+                    <div class="link-content">
+                        <span class="link-title">WhatsApp</span>
+                        <span class="link-subtitle"><span class="live-dot-inline" aria-hidden="true"></span>Contacta un Asesor</span>
+                    </div>
+                    <span class="visually-hidden">(se abre en una nueva pestaña)</span>
+                </a>
+
+                <!-- 5. Correo (Abre Modal) -->
+                <button type="button" class="link-card channel-tile" id="openEmailBtn" aria-haspopup="dialog">
+                    <span class="link-icon-wrap icon-email">
+                        <i class="fas fa-envelope" aria-hidden="true"></i>
+                    </span>
+                    <span class="link-content">
+                        <span class="link-title">Correo</span>
+                        <span class="link-subtitle">Elegir contacto</span>
+                    </span>
+                </button>
+
+                <!-- 6. Llamada (Abre Modal) -->
+                <button type="button" class="link-card channel-tile" id="openPhoneBtn" aria-haspopup="dialog">
+                    <span class="link-icon-wrap icon-phone">
+                        <i class="fas fa-phone-volume" aria-hidden="true"></i>
+                    </span>
+                    <span class="link-content">
+                        <span class="link-title">Llamada</span>
+                        <span class="link-subtitle">Elegir línea</span>
+                    </span>
+                </button>
             </div>
         </section>
 
-        <!-- ===== 5. CONTACTO DIRECTO Y SEDE CENTRAL ===== -->
-        <section class="links-section-group" aria-label="Contacto directo y ubicación">
+        <!-- ===== 4. UBICACIÓN DE LA OFICINA ===== -->
+        <section class="links-section-group" aria-label="Ubicación de la oficina">
             <div class="section-divider">
                 <span class="section-divider-dot" aria-hidden="true"></span>
-                <h2 class="section-divider-title">Contacto Directo &amp; Sede</h2>
+                <h2 class="section-divider-title">Ubicación de la Oficina</h2>
                 <span class="section-divider-line" aria-hidden="true"></span>
             </div>
 
-            <!-- Llamada Telefónica Directa -->
-            <a href="tel:+51997571262" class="link-card">
-                <div class="link-icon-wrap icon-phone">
-                    <i class="fas fa-phone-volume" aria-hidden="true"></i>
-                </div>
-                <div class="link-content">
-                    <span class="link-title">Central&nbsp;Telefónica&nbsp;Directa</span>
-                    <span class="link-subtitle"><span>+51&nbsp;997&nbsp;571&nbsp;262</span><br><span>+51&nbsp;973&nbsp;224&nbsp;733</span></span>
-                </div>
-                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
-            </a>
-
-            <!-- Correo Corporativo -->
-            <a href="mailto:administracion@iogroup.pe?subject=Consulta%20desde%20Linktree%20-%20IO%20Group" class="link-card">
-                <div class="link-icon-wrap icon-email">
-                    <i class="fas fa-envelope" aria-hidden="true"></i>
-                </div>
-                <div class="link-content">
-                    <span class="link-title">Correo Electrónico Corporativo</span>
-                    <span class="link-subtitle">administracion@iogroup.pe &nbsp;&middot;&nbsp; naenciso@iogroup.pe</span>
-                </div>
-                <i class="fas fa-chevron-right link-chevron" aria-hidden="true"></i>
-            </a>
-
-            <!-- Ubicación Google Maps -->
             <a href="https://maps.google.com/?q=Halcones+260+Surquillo+Lima" target="_blank" rel="noopener noreferrer"
                 class="link-card">
                 <div class="link-icon-wrap icon-map">
@@ -1443,27 +1412,8 @@
             </a>
         </section>
 
-        <!-- ===== FOOTER & LEGAL ===== -->
+        <!-- ===== 5. FOOTER LIMPIO (SIN REDUNDANCIA DE REDES SOCIALES) ===== -->
         <footer class="brand-footer">
-            <div class="footer-social-icons">
-                <a href="https://www.facebook.com/iogroup.oficial" target="_blank" rel="noopener noreferrer"
-                    class="social-circle-link" aria-label="Facebook de IO Group (se abre en una nueva pestaña)">
-                    <i class="fab fa-facebook-f" aria-hidden="true"></i>
-                </a>
-                <a href="https://www.instagram.com/iogroup.residuos/" target="_blank" rel="noopener noreferrer"
-                    class="social-circle-link" aria-label="Instagram de IO Group (se abre en una nueva pestaña)">
-                    <i class="fab fa-instagram" aria-hidden="true"></i>
-                </a>
-                <a href="https://wa.me/51997571262" target="_blank" rel="noopener noreferrer"
-                    class="social-circle-link" aria-label="WhatsApp de IO Group (se abre en una nueva pestaña)">
-                    <i class="fab fa-whatsapp" aria-hidden="true"></i>
-                </a>
-                <a href="https://www.iogroup.pe/" target="_blank" rel="noopener noreferrer"
-                    class="social-circle-link" aria-label="Sitio web de IO Group (se abre en una nueva pestaña)">
-                    <i class="fas fa-globe" aria-hidden="true"></i>
-                </a>
-            </div>
-
             <a href="https://www.iogroup.pe/libro-reclamaciones" class="complaints-link">
                 <i class="fas fa-book-bookmark" aria-hidden="true"></i>
                 <span>Libro de Reclamaciones</span>
@@ -1478,12 +1428,12 @@
     </main>
 
     <!-- ==========================================================================
-         QR Code Modal — Native <dialog> (Modern Web Guidance Implementation)
+         MODAL 1: Código QR (<dialog closedby="any">)
          ========================================================================== -->
-    <dialog id="qrModal" closedby="any" aria-labelledby="qrModalTitle">
+    <dialog id="qrModal" class="custom-modal" closedby="any" aria-labelledby="qrModalTitle">
         <div class="modal-header-custom">
             <h2 id="qrModalTitle" class="modal-title-custom">Código QR de IO Group</h2>
-            <button type="button" class="modal-close-btn" id="closeQrBtn" aria-label="Cerrar modal">
+            <button type="button" class="modal-close-btn" data-close-modal="qrModal" aria-label="Cerrar modal">
                 <i class="fas fa-xmark" aria-hidden="true"></i>
             </button>
         </div>
@@ -1510,49 +1460,149 @@
         </button>
     </dialog>
 
-    <!-- ===== CLIENT SCRIPT: MODAL MANAGEMENT & LIGHT DISMISS FALLBACK ===== -->
+    <!-- ==========================================================================
+         MODAL 2: Selector de Correo Electrónico (<dialog closedby="any">)
+         ========================================================================== -->
+    <dialog id="emailModal" class="custom-modal" closedby="any" aria-labelledby="emailModalTitle">
+        <div class="modal-header-custom">
+            <h2 id="emailModalTitle" class="modal-title-custom">Enviar Correo Electrónico</h2>
+            <button type="button" class="modal-close-btn" data-close-modal="emailModal" aria-label="Cerrar modal de correo">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <p class="modal-subtitle-custom">Selecciona el destinatario con quien deseas comunicarte:</p>
+
+        <div class="modal-options-list">
+            <a href="mailto:Naenciso@iogroup.pe?subject=Consulta%20desde%20IO%20Group%20Links" class="modal-option-card">
+                <div class="modal-option-left">
+                    <div class="modal-option-icon icon-email">
+                        <i class="fas fa-envelope" aria-hidden="true"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <span class="modal-option-label">Naenciso@iogroup.pe</span>
+                        <span class="modal-option-hint">Atención comercial y administrativa</span>
+                    </div>
+                </div>
+                <span class="modal-option-action">
+                    <span>Escribir</span>
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </span>
+            </a>
+
+            <a href="mailto:Jgarcia@iogroup.pe?subject=Consulta%20desde%20IO%20Group%20Links" class="modal-option-card">
+                <div class="modal-option-left">
+                    <div class="modal-option-icon icon-email">
+                        <i class="fas fa-envelope" aria-hidden="true"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <span class="modal-option-label">Jgarcia@iogroup.pe</span>
+                        <span class="modal-option-hint">Gestión operativa y cotizaciones</span>
+                    </div>
+                </div>
+                <span class="modal-option-action">
+                    <span>Escribir</span>
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </span>
+            </a>
+        </div>
+    </dialog>
+
+    <!-- ==========================================================================
+         MODAL 3: Selector de Llamada Telefónica (<dialog closedby="any">)
+         ========================================================================== -->
+    <dialog id="phoneModal" class="custom-modal" closedby="any" aria-labelledby="phoneModalTitle">
+        <div class="modal-header-custom">
+            <h2 id="phoneModalTitle" class="modal-title-custom">Llamar a IO Group</h2>
+            <button type="button" class="modal-close-btn" data-close-modal="phoneModal" aria-label="Cerrar modal de llamada">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <p class="modal-subtitle-custom">Elige la línea telefónica a la que deseas llamar:</p>
+
+        <div class="modal-options-list">
+            <a href="tel:+51997571262" class="modal-option-card">
+                <div class="modal-option-left">
+                    <div class="modal-option-icon icon-phone">
+                        <i class="fas fa-phone-volume" aria-hidden="true"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <span class="modal-option-label">+51&nbsp;997&nbsp;571&nbsp;262</span>
+                        <span class="modal-option-hint">Atención&nbsp;al&nbsp;Cliente&nbsp;y&nbsp;Asesoría</span>
+                    </div>
+                </div>
+                <span class="modal-option-action">
+                    <span>Llamar</span>
+                    <i class="fas fa-phone" aria-hidden="true"></i>
+                </span>
+            </a>
+
+            <a href="tel:+51973224733" class="modal-option-card">
+                <div class="modal-option-left">
+                    <div class="modal-option-icon icon-phone">
+                        <i class="fas fa-phone-volume" aria-hidden="true"></i>
+                    </div>
+                    <div class="modal-option-text">
+                        <span class="modal-option-label">+51&nbsp;973&nbsp;224&nbsp;733</span>
+                        <span class="modal-option-hint">Central&nbsp;de&nbsp;Operaciones&nbsp;y&nbsp;Rutas</span>
+                    </div>
+                </div>
+                <span class="modal-option-action">
+                    <span>Llamar</span>
+                    <i class="fas fa-phone" aria-hidden="true"></i>
+                </span>
+            </a>
+        </div>
+    </dialog>
+
+    <!-- ===== CLIENT SCRIPT: MODALS & LIGHT-DISMISS FALLBACK ===== -->
     <script>
         (function () {
-            const qrModal = document.getElementById('qrModal');
-            const openQrBtn = document.getElementById('openQrBtn');
-            const closeQrBtn = document.getElementById('closeQrBtn');
-            const copyUrlBtn = document.getElementById('copyUrlBtn');
-            const copyText = document.getElementById('copyText');
-            const copyIcon = document.getElementById('copyIcon');
-            const canonicalUrl = 'https://www.iogroup.pe/links';
+            const modalTriggers = [
+                { btnId: 'openQrBtn', modalId: 'qrModal' },
+                { btnId: 'openEmailBtn', modalId: 'emailModal' },
+                { btnId: 'openPhoneBtn', modalId: 'phoneModal' }
+            ];
 
-            if (openQrBtn && qrModal) {
-                openQrBtn.addEventListener('click', function () {
-                    qrModal.showModal();
-                });
-            }
+            modalTriggers.forEach(function (pair) {
+                const btn = document.getElementById(pair.btnId);
+                const modal = document.getElementById(pair.modalId);
+                if (btn && modal) {
+                    btn.addEventListener('click', function () {
+                        modal.showModal();
+                    });
+                }
+            });
 
-            if (closeQrBtn && qrModal) {
-                closeQrBtn.addEventListener('click', function () {
-                    qrModal.close();
-                });
-            }
-
-            // Modern Web Guidance: Fallback light-dismiss for browsers lacking closedby support
-            if (qrModal && !('closedBy' in HTMLDialogElement.prototype)) {
-                let pressedOutside = false;
-                const isOutside = function (e, dialog) {
-                    const r = dialog.getBoundingClientRect();
-                    return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
-                };
-
-                qrModal.addEventListener('pointerdown', function (e) {
-                    pressedOutside = isOutside(e, qrModal);
-                });
-
-                qrModal.addEventListener('pointerup', function (e) {
-                    if (pressedOutside && isOutside(e, qrModal)) {
-                        qrModal.close();
+            document.querySelectorAll('[data-close-modal]').forEach(function (closeBtn) {
+                closeBtn.addEventListener('click', function () {
+                    const targetId = closeBtn.getAttribute('data-close-modal');
+                    const modal = document.getElementById(targetId);
+                    if (modal) {
+                        modal.close();
                     }
+                });
+            });
+
+            // Modern Web Guidance (light-dismiss-a-dialog): Mandatory fallback for browsers without closedby support
+            if (!('closedBy' in HTMLDialogElement.prototype)) {
+                document.querySelectorAll('dialog.custom-modal').forEach(function (dialog) {
+                    dialog.addEventListener('click', function (event) {
+                        if (event.target !== dialog) return;
+                        const rect = dialog.getBoundingClientRect();
+                        const isDialogContent = (
+                            rect.top <= event.clientY &&
+                            event.clientY <= rect.top + rect.height &&
+                            rect.left <= event.clientX &&
+                            event.clientX <= rect.left + rect.width
+                        );
+                        if (isDialogContent) return;
+                        dialog.close();
+                    });
                 });
             }
 
             // Keyboard shortcut 'q' to toggle QR modal
+            const qrModal = document.getElementById('qrModal');
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'q' && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     const tag = document.activeElement ? document.activeElement.tagName : '';
@@ -1563,6 +1613,11 @@
             });
 
             // Copy Link Functionality with Feedback
+            const copyUrlBtn = document.getElementById('copyUrlBtn');
+            const copyText = document.getElementById('copyText');
+            const copyIcon = document.getElementById('copyIcon');
+            const canonicalUrl = 'https://www.iogroup.pe/links';
+
             if (copyUrlBtn) {
                 copyUrlBtn.addEventListener('click', async function () {
                     try {
